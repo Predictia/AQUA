@@ -12,6 +12,7 @@ The entry point for the console is the command ``aqua``.
 It has the following subcommands:
 
 - :ref:`aqua-install`
+- :ref:`aqua-avail`
 - :ref:`aqua-add`
 - :ref:`aqua-remove`
 - :ref:`aqua-set`
@@ -21,6 +22,7 @@ It has the following subcommands:
 - :ref:`aqua-fixes`
 - :ref:`aqua-grids`
 - :ref:`aqua-lra`
+- :ref:`_fdb-catalog-generator`
 
 The main command has some options listed below:
 
@@ -72,13 +74,9 @@ Optional arguments are:
 
 .. option:: machine-name
 
-    The name of the machine where you are installing.
-    It is an optional argument that will set the machine name of the configuration file.
-
-.. warning::
-    If not provided, the machine name will be left to ``auto``, where each time the 
-    configuration file is loaded, the machine name will be set trying to guess the machine name.
-    This can bring to some issues if the machine name is not correctly guessed.
+    The name of the machine where you are installing. **It is a mandatory argument.**
+    Even if you are working on your local machine, always define it (even a random name would suffice!)
+    Setting machine to `lumi`, `levante` or `MN5` is fundamental to use AQUA on different platform
 
 .. option:: --path, -p <path>
 
@@ -94,11 +92,6 @@ Optional arguments are:
 
 .. warning::
     The editable mode requires a path to the ``AQUA/config`` folder, not to the main AQUA folder.
-
-.. _aqua-install-diagnostics:
-
-aqua install of diagnostics
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In addition to the general configuration file, ``aqua install`` supports copying and linking configuration files 
 for different diagnostics.
@@ -123,6 +116,13 @@ specified in the ``diagnostic_config.py``. For example, the structure might look
         │   │       └── config_ecmean_cli.yaml
 
 This structure ensures that all configuration files are neatly organized and easily accessible for each diagnostic type.
+
+.. _aqua-avail:
+
+aqua avail
+----------
+
+This simple command will print all the available catalogs on the `Climate-DT-catalog <https://github.com/DestinE-Climate-DT/Climate-DT-catalog>`_.
 
 .. _aqua-add:
 
@@ -204,21 +204,23 @@ aqua list
 This command lists the available catalogs in the installation folder.
 It will show also if a catalog is installed in editable mode.
 
-.. option:: --all, -a
+.. option:: -a, -all
 
     This will show also all the fixes, grids and data models installed
 
 .. _aqua-update:
 
-aqua update <catalog>
+aqua update
 -----------------------
 
-This command will check if there is a new version of the catalog available and update it by overwriting the current installation.
+This command will update all the fixes, grids and various configuration files from the local copy of the AQUA repository. 
+It is very useful if you pull a new version of AQUA and want to update your local confiugration and you are not in editable mode. 
 
-.. warning::
+.. option:: -c, --catalog
 
+    This command will check if there is a new version of the catalog available and update it by overwriting the current installation.
     This will work only for catalogs installed from the Climate-DT repository.
-    If the catalog is installed in editable mode, it will be enough to update the linked folders.
+    If the catalog is installed in editable mode, this command will not work.
 
 
 .. _aqua-fixes:
@@ -256,6 +258,8 @@ This is useful if new external grids are created and need to be added to the lis
 .. option:: -e, --editable
 
     It will create a symbolic link to the grid folder. Valid only for ``aqua grids add``
+
+.. _aqua-lra:
 
 aqua lra -c <config_file> <lra-options>
 -----------------------------------
