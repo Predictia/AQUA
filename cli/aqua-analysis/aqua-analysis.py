@@ -27,12 +27,11 @@ def run_command(cmd, log_file=None):
         print(f"Error running command {cmd}: {e}")
         raise
 
-def run_diagnostic(diagnostic, *, script_path, extra_args, loglevel, output_dir, logger, logfile):
+def run_diagnostic(diagnostic, *, script_path, extra_args, loglevel, logger, logfile):
     """Run the diagnostic script with specified arguments."""
     try:
         # Construct the command
-        cmd = f"python {script_path} {extra_args} -l {loglevel} --outputdir {output_dir} \
-        > {logfile} 2>&1 "
+        cmd = f"python {script_path} {extra_args} -l {loglevel} > {logfile} 2>&1"
         
         # Log the command for debugging
         logger.info(f"Running diagnostic {diagnostic} with command: {cmd}")
@@ -144,7 +143,8 @@ def main():
         logger.info(f"Successfully validated inputs: Model = {model}, Experiment = {exp}, Source = {source}.")
 
     output_dir = f"{outputdir}/{model}/{exp}"
-    extra_args = f"--model {model} --exp {exp} --source {source}"
+    os.environ["OUTPUT"] = output_dir
+    source_args = f"--model {model} --exp {exp} --source {source}"
 
     # Create output directory
     os.makedirs(output_dir, exist_ok=True)
@@ -183,17 +183,19 @@ def main():
 
     thread_count = 0
     for diagnostic in diagnostics:
-        script_path = os.path.join(AQUA, config.get('diagnostics', {}).get(diagnostic).get('script_path') \
-            or f"diagnostics/{diagnostic}/cli/cli_{diagnostic}.py")
+        script_path = os.path.join(AQUA, "diagnostics", config.get('diagnostics', {}).get(diagnostic).get('script_path') \
+            or f"{diagnostic}/cli/cli_{diagnostic}.py")
         logfile = f"{output_dir}/{diagnostic}.log"
         # Safely concatenate extra_args with 'extra' from the config, defaulting to an empty string if None
-        extra_args = extra_args + (config.get('diagnostics', {}).get(diagnostic).get('extra') or "")
+        extra_args = " " + (config.get('diagnostics', {}).get(diagnostic).get('extra') or "")
         
         # Generate the output name, defaulting to diagnostic if outname is None
         outname = f"{output_dir}/{config.get('diagnostics', {}).get(diagnostic).get('outname') or diagnostic}"
         logger.debug(f"outname: {outname}")
+        
+        args = source_args + " --outputdir " + outname + extra_args
         # Concatenate extra_args with the number of workers, defaulting to 1 if None
-        extra_args = extra_args + f" --nworkers {config.get('diagnostics', {}).get(diagnostic).get('nworkers')}"
+        args = args + f" --nworkers {config.get('diagnostics', {}).get(diagnostic).get('nworkers')}"
         if max_threads > 0:
             thread_count += 1
             if thread_count >= max_threads:
@@ -205,9 +207,8 @@ def main():
         run_diagnostic(
             diagnostic=diagnostic,
             script_path=script_path,
-            extra_args=extra_args,
+            extra_args=args,
             loglevel=loglevel,
-            output_dir=outname,
             logger=logger,
             logfile=logfile
         )
