@@ -489,7 +489,7 @@ class AquaConsole():
             sys.exit(1)
 
     def _copy_update_folder_file(self, source, target, link=False, update=False):
-        """Function to copy or update a source to a target folder"""
+        """Generic function to copy or update a source to a target folder"""
         
         # Check if the target exists
         if os.path.exists(target):
@@ -504,11 +504,13 @@ class AquaConsole():
                 else:
                     os.remove(target)
 
+        if os.path.exists(target):
+            self.logger.error('%s already exist, please consider update or uninstall', target)
+            sys.exit(1)
+
         # Handle linking
         if link:
             self.logger.info('Linking from %s to %s', source, target)
-            if os.path.exists(target):
-                os.remove(target)
             os.symlink(source, target)
         
         # Handle copying
