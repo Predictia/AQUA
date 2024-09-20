@@ -184,15 +184,11 @@ class AquaConsole():
                 self.logger.info('Copying from %s to %s', self.aquapath, self.configpath)
                 shutil.copy(f'{self.aquapath}/{file}', f'{self.configpath}/{target_file}')
         for directory in ['fixes', 'data_models', 'grids', 'catgen']:
-            if not os.path.exists(os.path.join(self.configpath, directory)):
-                self.logger.info('Copying from %s to %s',
-                                 os.path.join(self.aquapath, directory), self.configpath)
-                shutil.copytree(f'{self.aquapath}/{directory}', f'{self.configpath}/{directory}')
+            self._copy_update_folder(os.path.join(self.aquapath, directory),
+                                     os.path.join(self.configpath, directory))
         for directory in ['templates']:
-            if not os.path.exists(os.path.join(self.configpath, directory)):
-                self.logger.info('Copying from %s to %s',
-                                 os.path.join(self.aquapath, '..', directory), self.configpath)
-                shutil.copytree(f'{self.aquapath}/../{directory}', f'{self.configpath}/{directory}')
+            self._copy_update_folder(os.path.join(self.aquapath, '..', directory),
+                                     os.path.join(self.configpath, directory))
         os.makedirs(f'{self.configpath}/{catpath}', exist_ok=True)
 
     def _install_editable(self, editable):
@@ -215,15 +211,11 @@ class AquaConsole():
                 os.rmdir(self.configpath)
                 sys.exit(1)
         for directory in ['fixes', 'data_models', 'grids', 'catgen']:
-            if not os.path.exists(os.path.join(self.configpath, directory)):
-                self.logger.info('Linking from %s to %s',
-                                 os.path.join(editable, directory), self.configpath)
-                os.symlink(f'{editable}/{directory}', f'{self.configpath}/{directory}')
+            self._copy_update_folder(f'{editable}/{directory}', f'{self.configpath}/{directory}', link=True)
+
         for directory in ['templates']:
-            if not os.path.exists(os.path.join(self.configpath, directory)):
-                self.logger.info('Linking from %s to %s',
-                                 os.path.join(editable, '..', directory), self.configpath)
-                os.symlink(f'{editable}/../{directory}', f'{self.configpath}/{directory}')
+            self._copy_update_folder(os.path.join(editable, '..', directory), f'{self.configpath}/{directory}', link=True)
+
         os.makedirs(f'{self.configpath}/{catpath}', exist_ok=True)
 
     def _install_default_diagnostics(self, diagnostic_type):
@@ -500,6 +492,24 @@ class AquaConsole():
                               catalog, cdir)
             sys.exit(1)
 
+    def _copy_update_folder(self, source, target, link=False, update=False):
+        """Function to copy or update a source to a target folder"""
+        
+        if os.path.exists(target):
+            if os.path.islink(target):
+                self.logger.error('AQUA has been installed in editable mode, no need to update')
+                sys.exit(1)
+            if update:
+                self.logger.info('Updating %s ...', target)
+                shutil.rmtree(target)
+
+        if link:
+            self.logger.info('Linking from %s to %s', source, target)
+            os.symlink(source, target)
+        else:
+            self.logger.info('Copying from %s to %s', source, target)
+            shutil.copytree(source, target)
+
     def update(self, args):
         """Update an existing catalog by copying it if not installed in editable mode"""
 
@@ -521,20 +531,14 @@ class AquaConsole():
         else:
             self.logger.info('Updating AQUA installation...')
             for directory in ['fixes', 'data_models', 'grids', 'catgen']:
-                cdir = f'{self.configpath}/{directory}'
-                if os.path.islink(cdir):
-                    self.logger.error('AQUA has been installed in editable mode, no need to update')
-                    sys.exit(1)
-                self.logger.info('Updating from %s to %s',
-                                os.path.join(self.aquapath, directory), self.configpath)
-                shutil.rmtree(cdir)
-                shutil.copytree(f'{self.aquapath}/{directory}', f'{self.configpath}/{directory}')
+                self._copy_update_folder(os.path.join(self.aquapath, directory),
+                                         os.path.join(self.configpath, directory),
+                                         update=True)
+
             for directory in ['templates']:
-                if not os.path.exists(os.path.join(self.configpath, directory)):
-                    self.logger.info('Copying from %s to %s',
-                                    os.path.join(self.aquapath, '..', directory), self.configpath)
-                    shutil.rmtree(cdir)
-                    shutil.copytree(f'{self.aquapath}/../{directory}', f'{self.configpath}/{directory}')
+                self._copy_update_folder(os.path.join(self.aquapath, '..', directory),
+                                         os.path.join(self.configpath, directory),
+                                         update=True)
 
 
     def _set_catalog(self, catalog):
@@ -765,3 +769,7 @@ def fsspec_get_recursive(fs, src_dir, dest_dir):
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
             # Copy the file
             fs.get(item, dest_path)
+
+
+
+        
