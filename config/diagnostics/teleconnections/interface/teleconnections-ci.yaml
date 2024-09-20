@@ -1,4 +1,5 @@
 # Configuration file of the teleconnections diagnostic
+# This is the setup used to run the CI/CD tests
 #
 # Parameters in common to the teleconnections are:
 #
@@ -15,10 +16,10 @@ NAO:
   lat2: 64.1
   lon2: -22
 
-# ENSO 3.4 region coordinates 
+# Fake teleconnection for CI/CD tests
 ENSO:
   telec_type: 'region'
-  field: sst
+  field: skt
   latN:  5
   lonW: -170
   latS: -5

@@ -1,4 +1,5 @@
 # Configuration file of the teleconnections diagnostic
+# This is the setup used in the ClimateDT project
 #
 # Parameters in common to the teleconnections are:
 #
@@ -15,11 +16,19 @@ NAO:
   lat2: 64.1
   lon2: -22
 
-# Fake teleconnection for CI/CD tests
+# ENSO 3.4 region coordinates 
 ENSO:
   telec_type: 'region'
-  field: skt
+  field: avg_tos
   latN:  5
   lonW: -170
   latS: -5
   lonE: -120
+
+MJO: # http://www.bom.gov.au/climate/mjo
+  field: mtntrf
+  latN: 15
+  latS: -15
+  lonW: null
+  lonE: null
+  flip_sign: true # To obtain standard OLR variable
