@@ -7,8 +7,8 @@ AQUA command line main functions
 import os
 import shutil
 import sys
-import fsspec
 from urllib.error import HTTPError
+import fsspec
 
 from aqua import __path__ as pypath
 from aqua import catalog
@@ -180,14 +180,12 @@ class AquaConsole():
         print("Installing AQUA to", self.configpath)
         for file in ['config-aqua.tmpl']:
             target_file = os.path.splitext(file)[0] + '.yaml'  # replace the tmpl with yaml
-            if not os.path.exists(os.path.join(self.configpath, target_file)):
-                self.logger.info('Copying from %s to %s', self.aquapath, self.configpath)
-                shutil.copy(f'{self.aquapath}/{file}', f'{self.configpath}/{target_file}')
+            self._copy_update_folder_file(f'{self.aquapath}/{file}', f'{self.configpath}/{target_file}')
         for directory in ['fixes', 'data_models', 'grids', 'catgen']:
-            self._copy_update_folder(os.path.join(self.aquapath, directory),
+            self._copy_update_folder_file(os.path.join(self.aquapath, directory),
                                      os.path.join(self.configpath, directory))
         for directory in ['templates']:
-            self._copy_update_folder(os.path.join(self.aquapath, '..', directory),
+            self._copy_update_folder_file(os.path.join(self.aquapath, '..', directory),
                                      os.path.join(self.configpath, directory))
         os.makedirs(f'{self.configpath}/{catpath}', exist_ok=True)
 
@@ -203,18 +201,16 @@ class AquaConsole():
         for file in ['config-aqua.tmpl']:
             target_file = os.path.splitext(file)[0] + '.yaml'
             if os.path.isfile(os.path.join(editable, file)):
-                if not os.path.exists(os.path.join(self.configpath, file)):
-                    self.logger.info('Linking from %s to %s', editable, self.configpath)
-                    shutil.copy(f'{editable}/{file}', f'{self.configpath}/{target_file}')
+                self._copy_update_folder_file(f'{self.aquapath}/{file}', f'{self.configpath}/{target_file}')
             else:
                 self.logger.error('%s folder does not include AQUA configuration files. Please use AQUA/config', editable)
                 os.rmdir(self.configpath)
                 sys.exit(1)
         for directory in ['fixes', 'data_models', 'grids', 'catgen']:
-            self._copy_update_folder(f'{editable}/{directory}', f'{self.configpath}/{directory}', link=True)
+            self._copy_update_folder_file(f'{editable}/{directory}', f'{self.configpath}/{directory}', link=True)
 
         for directory in ['templates']:
-            self._copy_update_folder(os.path.join(editable, '..', directory), f'{self.configpath}/{directory}', link=True)
+            self._copy_update_folder_file(os.path.join(editable, '..', directory), f'{self.configpath}/{directory}', link=True)
 
         os.makedirs(f'{self.configpath}/{catpath}', exist_ok=True)
 
@@ -464,7 +460,7 @@ class AquaConsole():
 
         fs = self._github_explore()
         available_catalog = [os.path.basename(x) for x in fs.ls(f"{catpath}/")]
-        print(f'Available ClimateDT catalogs at  are:')
+        print('Available ClimateDT catalogs at are:')
         print(available_catalog)
 
 
@@ -492,23 +488,37 @@ class AquaConsole():
                               catalog, cdir)
             sys.exit(1)
 
-    def _copy_update_folder(self, source, target, link=False, update=False):
+    def _copy_update_folder_file(self, source, target, link=False, update=False):
         """Function to copy or update a source to a target folder"""
         
+        # Check if the target exists
         if os.path.exists(target):
             if os.path.islink(target):
                 self.logger.error('AQUA has been installed in editable mode, no need to update')
                 sys.exit(1)
+            # Update case
             if update:
                 self.logger.info('Updating %s ...', target)
-                shutil.rmtree(target)
+                if os.path.isdir(target):
+                    shutil.rmtree(target)
+                else:
+                    os.remove(target)
 
+        # Handle linking
         if link:
             self.logger.info('Linking from %s to %s', source, target)
+            if os.path.exists(target):
+                os.remove(target)
             os.symlink(source, target)
+        
+        # Handle copying
         else:
-            self.logger.info('Copying from %s to %s', source, target)
-            shutil.copytree(source, target)
+            if os.path.isdir(source):
+                self.logger.info('Copying directory from %s to %s', source, target)
+                shutil.copytree(source, target)
+            else:
+                self.logger.info('Copying file from %s to %s', source, target)
+                shutil.copy2(source, target)
 
     def update(self, args):
         """Update an existing catalog by copying it if not installed in editable mode"""
@@ -531,12 +541,12 @@ class AquaConsole():
         else:
             self.logger.info('Updating AQUA installation...')
             for directory in ['fixes', 'data_models', 'grids', 'catgen']:
-                self._copy_update_folder(os.path.join(self.aquapath, directory),
+                self._copy_update_folder_file(os.path.join(self.aquapath, directory),
                                          os.path.join(self.configpath, directory),
                                          update=True)
 
             for directory in ['templates']:
-                self._copy_update_folder(os.path.join(self.aquapath, '..', directory),
+                self._copy_update_folder_file(os.path.join(self.aquapath, '..', directory),
                                          os.path.join(self.configpath, directory),
                                          update=True)
 
