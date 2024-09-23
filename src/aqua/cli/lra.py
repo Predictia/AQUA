@@ -144,35 +144,38 @@ def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, l
         for exp in exps:
             sources = to_list(get_arg(args, 'source', config['data'][model][exp].keys()))
             for source in sources:
+                # get info on potential realizations
+                realizations = to_list(get_arg(args, 'var', config['data'][model][exp][source].get('realizations', 1)))
                 varnames = to_list(get_arg(args, 'var', config['data'][model][exp][source]['vars']))
                 for varname in varnames:
 
                     # get the zoom level - this might need some tuning for extra kwargs
-                    extra_args = {}
-                    zoom = config['data'][model][exp][source].get('zoom', None)
-                    if zoom is not None:
-                        extra_args = {**extra_args, **{'zoom': zoom}}
+                    for realization in realizations:
+                        extra_args = {'realization:', realization}
+                        zoom = config['data'][model][exp][source].get('zoom', None)
+                        if zoom is not None:
+                            extra_args = {**extra_args, **{'zoom': zoom}}
 
-                    # get the number of workers for this specific configuration
-                    workers = config['data'][model][exp][source].get('workers', default_workers)
+                        # get the number of workers for this specific configuration
+                        workers = config['data'][model][exp][source].get('workers', default_workers)
 
-                    # init the LRA
-                    lra = LRAgenerator(catalog=catalog, model=model, exp=exp, source=source,
-                                       var=varname, resolution=resolution,
-                                       frequency=frequency, fix=fix,
-                                       outdir=outdir, tmpdir=tmpdir,
-                                       nproc=workers, loglevel=loglevel,
-                                       definitive=definitive, overwrite=overwrite,
-                                       performance_reporting=monitoring,
-                                       exclude_incomplete=True,
-                                       **extra_args)
+                        # init the LRA
+                        lra = LRAgenerator(catalog=catalog, model=model, exp=exp, source=source,
+                                        var=varname, resolution=resolution,
+                                        frequency=frequency, fix=fix,
+                                        outdir=outdir, tmpdir=tmpdir,
+                                        nproc=workers, loglevel=loglevel,
+                                        definitive=definitive, overwrite=overwrite,
+                                        performance_reporting=monitoring,
+                                        exclude_incomplete=True,
+                                        **extra_args)
 
-                    # check that your LRA is not already there (it will not work in streaming mode)
-                    lra.check_integrity(varname)
+                        # check that your LRA is not already there (it will not work in streaming mode)
+                        lra.check_integrity(varname)
 
-                    # retrieve and generate
-                    lra.retrieve()
-                    lra.generate_lra()
+                        # retrieve and generate
+                        lra.retrieve()
+                        lra.generate_lra()
 
             # create the catalog once the loop is over
             lra.create_catalog_entry()
@@ -211,7 +214,6 @@ def lra_autosubmit(config, catalog, resolution, frequency, fix, fixer_name,
 
                     print(f'Netcdf files found in {opadir}: Launching LRA')
 
-                    # init the LRA
                     # init the LRA
                     lra = LRAgenerator(catalog=catalog, model=model, exp=exp, source=entry_name,
                                        var=varname, resolution=resolution,
