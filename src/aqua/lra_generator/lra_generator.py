@@ -73,7 +73,9 @@ class LRAgenerator():
                                                dask usage, default is False.
             exclude_incomplete (bool,opt)   : True to remove incomplete chunk
                                             when averaging, default is false.  
-            **kwargs:                kwargs to be sent to the Reader, as zoom or realization
+            **kwargs:                kwargs to be sent to the Reader, as 'zoom' or 'realization'
+                                     please notice that realization will change the file name 
+                                     produced by the LRA
         """
         # General settings
         self.logger = log_configure(loglevel, 'lra_generator')
