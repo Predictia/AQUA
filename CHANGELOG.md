@@ -15,6 +15,7 @@ AQUA core complete list:
 - A diagnostic module, called `aqua.diagnostics`, has been created under the `src` folder (#1332, #1341)
 - AQUA console revisiting, adding `avail` method and `update` method (#1346)
 - AQUA install now requires mandatory machine name (#1346)
+- Fix to make keyword step optional in request (#1360)
 
 AQUA diagnostic complete list:
 
