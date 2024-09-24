@@ -15,6 +15,7 @@ AQUA core complete list:
 - A diagnostic module, called `aqua.diagnostics`, has been created under the `src` folder (#1332, #1341)
 - Increase flexibility of LRA generator tool so that it support for relizations (#1357)
 - LRA generator requires `catalog` as a mandatory argument (#1357)
+- Fix to make keyword step optional in request (#1360)
 
 AQUA diagnostic complete list:
 
