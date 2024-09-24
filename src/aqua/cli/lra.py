@@ -145,20 +145,27 @@ def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, l
             sources = to_list(get_arg(args, 'source', config['data'][model][exp].keys()))
             for source in sources:
                 # get info on potential realizations
-                realizations = to_list(get_arg(args, 'var', config['data'][model][exp][source].get('realizations', 1)))
-                varnames = to_list(get_arg(args, 'var', config['data'][model][exp][source]['vars']))
-                for varname in varnames:
+                realizations = get_arg(args, 'var', config['data'][model][exp][source].get('realizations'))
+                loop_realizations = to_list(realizations) if realizations else [1]
 
-                    # get the zoom level - this might need some tuning for extra kwargs
-                    for realization in realizations:
-                        extra_args = {'realization:', realization}
+                # get info on varlist and workers
+                varnames = to_list(get_arg(args, 'var', config['data'][model][exp][source]['vars']))
+
+                # get the number of workers for this specific configuration
+                workers = config['data'][model][exp][source].get('workers', default_workers)
+
+                # loop in realizations
+                for realization in loop_realizations:
+
+                    # define realization as extra args only if this is found in the configuration file
+                    extra_args = {'realization': realization} if realizations else {}
+                    for varname in varnames:
+
+                        # get the zoom level - this might need some tuning for extra kwargs 
                         zoom = config['data'][model][exp][source].get('zoom', None)
                         if zoom is not None:
                             extra_args = {**extra_args, **{'zoom': zoom}}
-
-                        # get the number of workers for this specific configuration
-                        workers = config['data'][model][exp][source].get('workers', default_workers)
-
+                    
                         # init the LRA
                         lra = LRAgenerator(catalog=catalog, model=model, exp=exp, source=source,
                                         var=varname, resolution=resolution,
