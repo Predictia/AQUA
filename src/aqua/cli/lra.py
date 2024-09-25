@@ -109,7 +109,9 @@ def lra_execute(args):
     definitive = get_arg(args, 'definitive', False)
     monitoring = get_arg(args, 'monitoring', False)
     overwrite = get_arg(args, 'overwrite', False)
-    only_catalog = get_arg(args, 'only_catalog', False)  # option not used yet
+    only_catalog = get_arg(args, 'only_catalog', False)
+    if only_catalog:
+        print('--only-catalog selected, doing a lot of noise but in the end producing only catalog update!')
     fix = get_arg(args, 'fix', True)
     default_workers = get_arg(args, 'workers', 1)
     loglevel = get_arg(args, 'loglevel', loglevel)
@@ -144,42 +146,42 @@ def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, l
         for exp in exps:
 
             # if you do require the entire catalog generator
-            if not only_catalog:
-                sources = to_list(get_arg(args, 'source', config['data'][model][exp].keys()))
-                for source in sources:
-                    # get info on potential realizations
-                    realizations = get_arg(args, 'var', config['data'][model][exp][source].get('realizations'))
-                    loop_realizations = to_list(realizations) if realizations is not None else [1]
+            sources = to_list(get_arg(args, 'source', config['data'][model][exp].keys()))
+            for source in sources:
+                # get info on potential realizations
+                realizations = get_arg(args, 'var', config['data'][model][exp][source].get('realizations'))
+                loop_realizations = to_list(realizations) if realizations is not None else [1]
 
-                    # get info on varlist and workers
-                    varnames = to_list(get_arg(args, 'var', config['data'][model][exp][source]['vars']))
+                # get info on varlist and workers
+                varnames = to_list(get_arg(args, 'var', config['data'][model][exp][source]['vars']))
 
-                    # get the number of workers for this specific configuration
-                    workers = config['data'][model][exp][source].get('workers', default_workers)
+                # get the number of workers for this specific configuration
+                workers = config['data'][model][exp][source].get('workers', default_workers)
 
-                    # loop in realizations
-                    for realization in loop_realizations:
+                # loop in realizations
+                for realization in loop_realizations:
 
-                        # define realization as extra args only if this is found in the configuration file
-                        extra_args = {'realization': realization} if realizations else {}
-                        for varname in varnames:
+                    # define realization as extra args only if this is found in the configuration file
+                    extra_args = {'realization': realization} if realizations else {}
+                    for varname in varnames:
 
-                            # get the zoom level - this might need some tuning for extra kwargs 
-                            zoom = config['data'][model][exp][source].get('zoom', None)
-                            if zoom is not None:
-                                extra_args = {**extra_args, **{'zoom': zoom}}
+                        # get the zoom level - this might need some tuning for extra kwargs 
+                        zoom = config['data'][model][exp][source].get('zoom', None)
+                        if zoom is not None:
+                            extra_args = {**extra_args, **{'zoom': zoom}}
+                    
+                        # init the LRA
+                        lra = LRAgenerator(catalog=catalog, model=model, exp=exp, source=source,
+                                        var=varname, resolution=resolution,
+                                        frequency=frequency, fix=fix,
+                                        outdir=outdir, tmpdir=tmpdir,
+                                        nproc=workers, loglevel=loglevel,
+                                        definitive=definitive, overwrite=overwrite,
+                                        performance_reporting=monitoring,
+                                        exclude_incomplete=True,
+                                        **extra_args)
                         
-                            # init the LRA
-                            lra = LRAgenerator(catalog=catalog, model=model, exp=exp, source=source,
-                                            var=varname, resolution=resolution,
-                                            frequency=frequency, fix=fix,
-                                            outdir=outdir, tmpdir=tmpdir,
-                                            nproc=workers, loglevel=loglevel,
-                                            definitive=definitive, overwrite=overwrite,
-                                            performance_reporting=monitoring,
-                                            exclude_incomplete=True,
-                                            **extra_args)
-
+                        if not only_catalog:
                             # check that your LRA is not already there (it will not work in streaming mode)
                             lra.check_integrity(varname)
 
@@ -194,7 +196,7 @@ def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, l
 
     print('CLI LRA run completed. Have yourself a pint of beer!')
 
-def lra_autosubmit(config, catalog, resolution, frequency, fix, fixer_name, 
+def lra_autosubmit(args, config, catalog, resolution, frequency, fix, fixer_name,
                    outdir, tmpdir, opadir, loglevel, definitive, overwrite, default_workers):
     
     """
