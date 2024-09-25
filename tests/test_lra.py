@@ -21,7 +21,7 @@ class TestLRA():
     def test_definitive_false(self, lra_arguments):
         """Test the LRA generator with definitive = False"""
         model, exp, source, var, outdir, tmpdir = lra_arguments
-        test = LRAgenerator(model=model, exp=exp, source=source, var=var,
+        test = LRAgenerator(catalog='ci', model=model, exp=exp, source=source, var=var,
                             outdir=outdir, tmpdir=tmpdir, resolution='r100',
                             frequency='monthly', loglevel=loglevel)
         test.retrieve()
@@ -34,7 +34,7 @@ class TestLRA():
     def test_definitive_true(self, lra_arguments, nworkers):
         """Test the LRA generator with definitive = True"""
         model, exp, source, var, outdir, tmpdir = lra_arguments
-        test = LRAgenerator(model=model, exp=exp, source=source, var=var,
+        test = LRAgenerator(catalog='ci', model=model, exp=exp, source=source, var=var,
                             outdir=outdir, tmpdir=tmpdir, resolution='r100',
                             frequency='monthly', definitive=True,
                             loglevel=loglevel, nproc=nworkers)
@@ -59,7 +59,7 @@ class TestLRA():
         but with create zarr archive
         """
         model, exp, source, var, outdir, tmpdir = lra_arguments
-        test = LRAgenerator(model=model, exp=exp, source=source, var=var,
+        test = LRAgenerator(catalog='ci', model=model, exp=exp, source=source, var=var,
                             outdir=outdir, tmpdir=tmpdir,
                             resolution='r100', frequency='monthly', nproc= 1,
                             loglevel=loglevel, definitive=True)
@@ -82,7 +82,7 @@ class TestLRA():
         but with dask init and catalog generator
         """
         model, exp, source, var, outdir, tmpdir = lra_arguments
-        test = LRAgenerator(model=model, exp=exp, source=source, var=var,
+        test = LRAgenerator(catalog='ci', model=model, exp=exp, source=source, var=var,
                             outdir=outdir, tmpdir=tmpdir, overwrite=True,
                             definitive=True,
                             resolution='r100', frequency='monthly', nproc=2,
@@ -98,7 +98,7 @@ class TestLRA():
     def test_exclude_incomplete(self, lra_arguments):
         """Test exclude_incomplete option"""
         model, exp, source, var, outdir, tmpdir = lra_arguments
-        test = LRAgenerator(model=model, exp=exp, source=source, var=var,
+        test = LRAgenerator(catalog='ci', model=model, exp=exp, source=source, var=var,
                             outdir=outdir, tmpdir=tmpdir, resolution='r100',
                             frequency='monthly', definitive=True, exclude_incomplete=True,
                             loglevel=loglevel)
@@ -129,7 +129,7 @@ class TestLRA():
         resolution='r100'
         frequency='monthly'
         year = 2022
-        test = LRAgenerator(model=model, exp=exp, source=source, var=var,
+        test = LRAgenerator(catalog='ci', model=model, exp=exp, source=source, var=var,
                         outdir=outdir, tmpdir=tmpdir, resolution=resolution,
                         frequency=frequency, loglevel=loglevel)
 
