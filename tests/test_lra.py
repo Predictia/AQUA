@@ -44,7 +44,7 @@ class TestLRA():
         test.data = month
         test.generate_lra()
         path = os.path.join(os.getcwd(), outdir,
-                            "IFS/test-tco79/r100/monthly/2t_test-tco79_r100_monthly_202001.nc")
+                            "ci/IFS/test-tco79/r100/monthly/2t_test-tco79_r100_monthly_202001.nc")
         test.check_integrity(varname=var)
         assert os.path.isfile(path)
         file = xr.open_dataset(path)
@@ -106,11 +106,11 @@ class TestLRA():
         test.generate_lra()
 
         path = os.path.join(os.getcwd(), outdir,
-                            "IFS/test-tco79/r100/monthly/2t_test-tco79_r100_monthly_202008.nc")
+                            "ci/IFS/test-tco79/r100/monthly/2t_test-tco79_r100_monthly_202008.nc")
         assert not os.path.exists(path)
 
         path = os.path.join(os.getcwd(), outdir,
-                            "IFS/test-tco79/r100/monthly/2t_test-tco79_r100_monthly_202002.nc")
+                            "ci/IFS/test-tco79/r100/monthly/2t_test-tco79_r100_monthly_202002.nc")
         assert os.path.exists(path)
         file = xr.open_dataset(path)
         assert len(file.time) == 1
