@@ -12,6 +12,9 @@ loglevel = "DEBUG"
 def lra_arguments(request):
     return request.param
 
+# path for lra data
+lrapath = 'ci/IFS/test-tco79/r100/monthly'
+
 @pytest.mark.aqua
 class TestLRA():
     """Class for LRA Tests"""
@@ -25,7 +28,7 @@ class TestLRA():
         test.retrieve()
         test.generate_lra()
         assert os.path.isdir(os.path.join(os.getcwd(), outdir,
-                                          "ci/IFS/test-tco79/r100/monthly"))
+                                          lrapath))
         
     # defintiive = True with or without dask
     @pytest.mark.parametrize("nworkers", [1, 2])
@@ -41,8 +44,8 @@ class TestLRA():
         month = year.sel(time=year.time.dt.month == 1)
         test.data = month
         test.generate_lra()
-        path = os.path.join(os.getcwd(), outdir,
-                            "ci/IFS/test-tco79/r100/monthly/2t_test-tco79_r100_monthly_202001.nc")
+        path = os.path.join(os.getcwd(), outdir,lrapath,
+                            "2t_test-tco79_r100_monthly_202001.nc")
         test.check_integrity(varname=var)
         assert os.path.isfile(path)
         file = xr.open_dataset(path)
@@ -87,8 +90,7 @@ class TestLRA():
                             loglevel=loglevel)
         test.retrieve()
         test.generate_lra()
-        assert os.path.isdir(os.path.join(os.getcwd(), outdir,
-                                          "IFS/test-tco79/r100/monthly"))
+        assert os.path.isdir(os.path.join(os.getcwd(), outdir, lrapath))
         shutil.rmtree(os.path.join(os.getcwd(), outdir))
         shutil.rmtree(os.path.join(os.getcwd(), tmpdir))
 
@@ -103,12 +105,12 @@ class TestLRA():
         test.retrieve()
         test.generate_lra()
 
-        path = os.path.join(os.getcwd(), outdir,
-                            "ci/IFS/test-tco79/r100/monthly/2t_test-tco79_r100_monthly_202008.nc")
+        path = os.path.join(os.getcwd(), outdir, lrapath,
+                            "2t_test-tco79_r100_monthly_202008.nc")
         assert not os.path.exists(path)
 
-        path = os.path.join(os.getcwd(), outdir,
-                            "ci/IFS/test-tco79/r100/monthly/2t_test-tco79_r100_monthly_202002.nc")
+        path = os.path.join(os.getcwd(), outdir, lrapath,
+                            "2t_test-tco79_r100_monthly_202002.nc")
         assert os.path.exists(path)
         file = xr.open_dataset(path)
         assert len(file.time) == 1
