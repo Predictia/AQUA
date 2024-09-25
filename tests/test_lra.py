@@ -12,8 +12,6 @@ loglevel = "DEBUG"
 def lra_arguments(request):
     return request.param
 
-
-
 @pytest.mark.aqua
 class TestLRA():
     """Class for LRA Tests"""
@@ -27,7 +25,7 @@ class TestLRA():
         test.retrieve()
         test.generate_lra()
         assert os.path.isdir(os.path.join(os.getcwd(), outdir,
-                                          "IFS/test-tco79/r100/monthly"))
+                                          "ci/IFS/test-tco79/r100/monthly"))
         
     # defintiive = True with or without dask
     @pytest.mark.parametrize("nworkers", [1, 2])
