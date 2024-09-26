@@ -67,7 +67,7 @@ def read_eccodes_def(filename):
             line = line.replace(" =", "").replace('{', '').replace('}', '').replace(';', '').replace('\t', '#    ')
             if not line.startswith("#"):
                 keylist['grib2']['wmo'].append(line.strip().replace("'", ""))
-    keylist['grib2']['wmo'] = keylist['grib2']['wmo'][:-1]  # The last entry is no good
+    keylist['grib2']['wmo'] = keylist['grib2']['wmo'][:-1]  # The last entry is no good 
 
     # ECMWF lists
     for grib_version in ['grib2', 'grib1']:
