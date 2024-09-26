@@ -67,7 +67,7 @@ jobs:
               git \
               rustc
       - name: Set up Micromamba
-        uses: mamba-org/setup-micromamba@v1.9.0
+        uses: mamba-org/setup-micromamba@v1
         with:
           micromamba-version: '1.5.10-0'
           environment-file: environment.yml 
