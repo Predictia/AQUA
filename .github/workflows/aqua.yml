@@ -77,13 +77,14 @@ jobs:
       # building Rust applications, this one is for installing tools with Cargo).
       - name: Install htmlq
         if: ${{ env.COVERAGE_ENABLED }}
-        uses: baptiste0928/cargo-install@v3.1.0
+        uses: baptiste0928/cargo-install@v3.1.1
         with:
           crate: htmlq
           cache-key: cargo-coverage
       - name: Set up Micromamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v1.9.0
         with:
+          micromamba-version: '2.0.0-0'
           environment-file: environment.yml 
           environment-name: aqua
           cache-downloads: true
@@ -187,7 +188,7 @@ jobs:
         if: ${{ github.event_name == 'pull_request' && env.COVERAGE_ENABLED }}
         # Comment on an issue or pull request using GH Actions tooling:
         # https://github.com/actions/github-script#comment-on-an-issue
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         id: coverage-report
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
