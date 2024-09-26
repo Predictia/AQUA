@@ -30,7 +30,7 @@ jobs:
       - name: Setup Micromamba with diagnostic environment
         uses: mamba-org/setup-micromamba@v1.9.0
         with:
-          micromamba-version: '2.0.0-0'
+          micromamba-version: '1.5.10-0'
           environment-file: environment.yml
           environment-name: tropical-rainfall
           cache-downloads: true
