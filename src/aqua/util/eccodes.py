@@ -1,6 +1,7 @@
 """Utilities for ecCodes"""
 import os
 import eccodes
+from packaging import version
 from ruamel.yaml import YAML
 from aqua.logger import log_configure
 from aqua.exceptions import NoEcCodesShortNameError
@@ -47,7 +48,17 @@ def read_eccodes_def(filename):
                    'ecmwf': []
                }}
 
-    fn_eccodes = eccodes.codes_definition_path().split(':')[0]  # LUMI fix, take only first
+    # OK I know this looks crazy
+    current = version.parse(eccodes.__version__)
+    check = version.parse("2.37.0")
+    if current >= check:
+        # ABSOLUTE CRAZY HACK
+        parts = (eccodes.__file__).split(os.sep)
+        lib_index = parts.index('lib')
+        fn_eccodes = os.path.join(os.sep.join(parts[:lib_index]), 'share/eccodes/definitions')
+    else:
+        fn_eccodes = eccodes.codes_definition_path().split(':')[0]  # LUMI fix, take only first
+
 
     # WMO lists
     fn = os.path.join(fn_eccodes, 'grib2', filename)
