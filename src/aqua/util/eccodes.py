@@ -222,20 +222,19 @@ def init_get_eccodes_shortname():
         """
         nonlocal shortname, paramid
 
-        # If we have a digit we have to search for the shortname
-        if str(var).isdigit():
-            # We loop over the available tables
-            for grib_version in shortname.keys():
-                for table in shortname[grib_version].keys():
-                    try:
-                        i = paramid[grib_version][table].index(str(var))
-                        return shortname[grib_version][table][i]
-                    except (ValueError, IndexError):
-                        # We don't have an error yet unless it's the last table to analyze
-                        pass
-            # Out of the loop, we have not found anything and we have no left table, error
-            raise NoEcCodesShortNameError(f'Cannot find any grib codes for paramid {var}')
-        else:  # If we have a string there is no need to search
+        if not str(var).isdigit():
             return var
+        # If we have a digit we have to search for the shortname
+        # We loop over the available tables
+        for grib_version, tables in shortname.items():
+            for table, names in tables.items():
+                try:
+                    i = paramid[grib_version][table].index(str(var))
+                    return names[i]
+                except (ValueError, IndexError):
+                    continue
+        # Out of the loop, we have not found anything and we have no left table, error
+        raise NoEcCodesShortNameError(f'Cannot find any grib codes for paramid {var}')
+
 
     return _get_eccodes_shortname
