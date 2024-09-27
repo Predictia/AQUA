@@ -43,28 +43,31 @@ def eccodes_list_stripper(filename, tablelist):
     tablelist = tablelist[:-1]  # The last entry is no good
     return tablelist
 
-def eccodes_dict_stripper(filename, tabledict):
+# def eccodes_dict_stripper(filename, tabledict):
 
-    """Alternative eccodes definition file parser based on dictionary
+#     """Alternative eccodes definition file parser based on dictionary
     
-    Args:
-        filename: The eccodes definition file
-        tabledict: The table that you want to update
-    """
+#     Args:
+#         filename: The eccodes definition file
+#         tabledict: The table that you want to update
+#     """
 
-    with open(filename, "r", encoding='utf-8') as f:
-        for line in f:
-            line = line.replace(" =", "").replace('{', '').replace('}', '').replace(';', '').replace('\t', '$    ')
-            if not line.startswith("$") and not line.startswith("# "):
-                #print(line)
-                if line.startswith('#'):
-                    full_name = line.lstrip('#').strip() 
-                    continue
-                if full_name and line:
-                    #print(line)
-                    tabledict[full_name] = line.strip('\n').strip(" ").strip("'")  # Remove quotes around the value
-                    full_name = None
-    return tabledict
+#     with open(filename, "r", encoding='utf-8') as f:
+#         for line in f:
+#             line = line.replace(" =", "").replace('{', '').replace('}', '').replace(';', '').replace('\t', '$    ')
+#             if not line.startswith("$") and not line.startswith("# "):
+#                 #print(line)
+#                 if line.startswith('#'):
+#                     full_name = line.lstrip('#').strip()
+#                     continue
+#                 if full_name and line:
+#                     #print(line)
+#                     if not full_name in tabledict:
+#                         tabledict[full_name] = line.strip('\n').strip(" ").strip("'")  # Remove quotes around the value
+#                         full_name = None
+#                     #else:
+#                     #    print('double entry for' + full_name)
+#     return tabledict
 
 def read_eccodes_def(filename):
     """
@@ -79,20 +82,21 @@ def read_eccodes_def(filename):
 
     # This allows to further extend the list of grib_version and tables to read
     # when looking for eccodes definitions.
-    # keylist = {'grib2': {
-    #                 'wmo': [],
-    #                 'ecmwf': []
-    #             },
-    #            'grib1': {
-    #                'ecmwf': []
-    #            }}
     keylist = {'grib2': {
-                    'wmo': {},
-                    'ecmwf': {}
+                    'wmo': [],
+                    'ecmwf': []
                 },
                'grib1': {
-                   'ecmwf': {}
+                   'ecmwf': []
                }}
+    # keylist = {'grib2': {
+    #                 'wmo': {},
+    #                 'ecmwf': {}
+    #                 #'destine': {}
+    #             },
+    #            'grib1': {
+    #                'ecmwf': {}
+    #            }}
 
     # OK I know this looks crazy
     current = version.parse(eccodes.__version__)
@@ -108,14 +112,20 @@ def read_eccodes_def(filename):
 
     # WMO lists
     fn = os.path.join(fn_eccodes, 'grib2', filename)
-    #keylist['grib2']['wmo'] = eccodes_list_stripper(fn, keylist['grib2']['wmo'])
-    keylist['grib2']['wmo'] = eccodes_dict_stripper(fn, keylist['grib2']['wmo'])
+    keylist['grib2']['wmo'] = eccodes_list_stripper(fn, keylist['grib2']['wmo'])
+    #keylist['grib2']['wmo'] = eccodes_dict_stripper(fn, keylist['grib2']['wmo'])
 
     # ECMWF lists
     for grib_version in ['grib2', 'grib1']:
         fn = os.path.join(fn_eccodes, grib_version, 'localConcepts', 'ecmf', filename)
-        #keylist[grib_version]['ecmwf'] = eccodes_list_stripper(fn, keylist[grib_version]['ecmwf'])
-        keylist[grib_version]['ecmwf'] = eccodes_dict_stripper(fn, keylist[grib_version]['ecmwf'])
+        keylist[grib_version]['ecmwf'] = eccodes_list_stripper(fn, keylist[grib_version]['ecmwf'])
+        #keylist[grib_version]['ecmwf'] = eccodes_dict_stripper(fn, keylist[grib_version]['ecmwf'])
+    
+    # DestinE lists
+    # for grib_version in ['grib2']:
+    #     fn = os.path.join(fn_eccodes, grib_version, 'localConcepts', 'destine', filename)
+    #     #keylist[grib_version]['destine'] = eccodes_list_stripper(fn, keylist[grib_version]['destine'])
+    #     keylist[grib_version]['destine'] = eccodes_dict_stripper(fn, keylist[grib_version]['destine'])
 
     return keylist
 
@@ -129,56 +139,6 @@ def _init_get_eccodes_attr():
     cfvarname = read_eccodes_def("cfVarName.def")
     units = read_eccodes_def("units.def")
 
-    # def _get_eccodes_attr(sn, loglevel='WARNING'):
-    #     """
-    #     Recover eccodes attributes for a given short name
-
-    #     Args:
-    #         shortname(str): the shortname to search
-    #         loglevel (str): the loggin level
-    #     Returns:
-    #         A dictionary containing param, long_name, units, short_name
-    #     """
-    #     logger = log_configure(log_level=loglevel, log_name='eccodes')
-    #     nonlocal shortname, paramid, name, cfname, cfvarname, units
-
-    #     for grib_version, tables in shortname.items():
-    #         for table in tables:
-    #             try:
-    #                 if sn.startswith("var"):
-    #                     i = paramid[grib_version][table].index(sn[3:])
-    #                     # indices = [i for i, x in enumerate(paramid) if x == sn[3:]]
-    #                 else:
-    #                     # i = shortname.index(sn)
-    #                     indices = [i for i, x in enumerate(shortname[grib_version][table]) if x == sn]
-    #                     if len(indices) > 1:
-    #                         logger.warning('ShortName %s has multiple grib codes associated: %s',
-    #                                        sn, [paramid[grib_version][table][i] for i in indices])
-    #                         logger.warning('AQUA will take the first so that %s -> %s, please set up a correct fix if this does not look right',  # noqa E501
-    #                                        sn, paramid[grib_version][table][indices[0]])
-    #                     i = indices[0]
-
-    #                 dic = {"paramId": paramid[grib_version][table][i],
-    #                        "long_name": name[grib_version][table][i],
-    #                        "units": units[grib_version][table][i],
-    #                        #"cfVarName": cfvarname[grib_version][table][i],
-    #                        "shortName": shortname[grib_version][table][i]}
-
-    #                 if 'grib1' in grib_version:
-    #                     logger.warning('Variable %s is found in grib1 tables, please check if it is correct', shortname[grib_version][table][i]) # noqa E501
-    #                 elif 'ecmwf' in table:
-    #                     logger.info('Variable %s is found in ECMWF local tables', shortname[grib_version][table][i])
-
-    #                 return dic
-
-    #             except (ValueError, IndexError):
-    #                 logger.debug('Not found shortname %s for gribversion %s, table %s', sn, grib_version, table)
-
-    #     logger.error('Cannot find any grib codes for ShortName %s, returning empty dictionary', sn)
-
-    #     return None
-
-    # return _get_eccodes_attr
 
     def _get_eccodes_attr(sn, loglevel='WARNING'):
         """
@@ -197,13 +157,11 @@ def _init_get_eccodes_attr():
             for table in tables:
                 try:
                     if sn.startswith("var"):
-                        #i = paramid[grib_version][table].index(sn[3:])
-                        i = [key for key, value in paramid[grib_version][table].items() if value == sn[3:]][0]
-                        # indices = [i for i, x in enumerate(paramid) if x == sn[3:]]
+                        i = paramid[grib_version][table].index(sn[3:])
+                        #i = [key for key, value in paramid[grib_version][table].items() if value == sn[3:]][0]
                     else:
-                        # i = shortname.index(sn)
-                        indices = [key for key, value in shortname[grib_version][table].items() if value == sn]
-                        #indices = [i for i, x in enumerate(shortname[grib_version][table]) if x == sn]
+                        #indices = [key for key, value in shortname[grib_version][table].items() if value == sn]
+                        indices = [i for i, x in enumerate(shortname[grib_version][table]) if x == sn]
                         if len(indices) > 1:
                             logger.warning('ShortName %s has multiple grib codes associated: %s',
                                            sn, [paramid[grib_version][table][i] for i in indices])
@@ -211,15 +169,11 @@ def _init_get_eccodes_attr():
                                            sn, paramid[grib_version][table][indices[0]])
                         i = indices[0]
 
-                    if i in cfvarname[grib_version][table]:
-                        cfname = cfvarname[grib_version][table][i]
-                    else:
-                        cfname = shortname[grib_version][table][i]
 
                     dic = {"paramId": paramid[grib_version][table][i],
                            "long_name": name[grib_version][table][i],
                            "units": units[grib_version][table][i],
-                           "cfVarName": cfname,
+                           #"cfVarName": cfvarname[grib_version][table].get(i, shortname[grib_version][table][i]),
                            "shortName": shortname[grib_version][table][i]}
 
                     if 'grib1' in grib_version:
@@ -229,7 +183,7 @@ def _init_get_eccodes_attr():
 
                     return dic
 
-                except (ValueError, IndexError):
+                except (ValueError, IndexError, KeyError):
                     logger.debug('Not found shortname %s for gribversion %s, table %s', sn, grib_version, table)
 
         logger.error('Cannot find any grib codes for ShortName %s, returning empty dictionary', sn)
