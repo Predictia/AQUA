@@ -26,6 +26,24 @@ from aqua.exceptions import NoEcCodesShortNameError
 #     text = text.replace(" =", ":").replace('{', '').replace('}', '').replace(';', '').replace('\t', '    ')
 #     return yaml.load(text)
 
+def eccodes_file_stripper(filename, tablelist):
+
+    """Eccodes definition file parser
+    
+    Args:
+        filename: The eccodes definition file
+        tablelist: The table that you want to update
+    """
+
+    with open(filename, "r", encoding='utf-8') as f:
+        for line in f:
+            line = line.replace(" =", "").replace('{', '').replace('}', '').replace(';', '').replace('\t', '#    ')
+            if not line.startswith("#"):
+                tablelist.append(line.strip().replace("'", ""))
+    tablelist = tablelist[:-1]  # The last entry is no good
+    return tablelist
+
+
 
 def read_eccodes_def(filename):
     """
@@ -62,22 +80,12 @@ def read_eccodes_def(filename):
 
     # WMO lists
     fn = os.path.join(fn_eccodes, 'grib2', filename)
-    with open(fn, "r", encoding='utf-8') as f:
-        for line in f:
-            line = line.replace(" =", "").replace('{', '').replace('}', '').replace(';', '').replace('\t', '#    ')
-            if not line.startswith("#"):
-                keylist['grib2']['wmo'].append(line.strip().replace("'", ""))
-    keylist['grib2']['wmo'] = keylist['grib2']['wmo'][:-1]  # The last entry is no good 
+    keylist['grib2']['wmo'] = eccodes_file_stripper(fn, keylist['grib2']['wmo'])
 
     # ECMWF lists
     for grib_version in ['grib2', 'grib1']:
         fn_grib = os.path.join(fn_eccodes, grib_version, 'localConcepts', 'ecmf', filename)
-        with open(fn_grib, "r", encoding='utf-8') as f:
-            for line in f:
-                line = line.replace(" =", "").replace('{', '').replace('}', '').replace(';', '').replace('\t', '#    ')
-                if not line.startswith("#"):
-                    keylist[grib_version]['ecmwf'].append(line.strip().replace("'", ""))
-        keylist[grib_version]['ecmwf'] = keylist[grib_version]['ecmwf'][:-1]  # The last entry is no good
+        keylist[grib_version]['ecmwf'] = eccodes_file_stripper(fn_grib, keylist[grib_version]['ecmwf'])
 
     return keylist
 
