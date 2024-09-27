@@ -104,8 +104,8 @@ def _init_get_eccodes_attr():
         logger = log_configure(log_level=loglevel, log_name='eccodes')
         nonlocal shortname, paramid, name, cfname, cfvarname, units
 
-        for grib_version in shortname.keys():
-            for table in shortname[grib_version].keys():
+        for grib_version, tables in shortname.items():
+            for table in tables:
                 try:
                     if sn.startswith("var"):
                         i = paramid[grib_version][table].index(sn[3:])
@@ -127,16 +127,16 @@ def _init_get_eccodes_attr():
                            "shortName": shortname[grib_version][table][i]}
 
                     if 'grib1' in grib_version:
-                        logger.warning(f'Variable {shortname[grib_version][table][i]} is found in grib1 tables, please check if it is correct') # noqa E501
+                        logger.warning('Variable %s is found in grib1 tables, please check if it is correct', shortname[grib_version][table][i]) # noqa E501
                     elif 'ecmwf' in table:
-                        logger.info(f'Variable {shortname[grib_version][table][i]} is found in ECMWF local tables')
+                        logger.info('Variable %s is found in ECMWF local tables', shortname[grib_version][table][i])
 
                     return dic
 
                 except (ValueError, IndexError):
-                    logger.debug('Not found for gribversion %s, table %s: %s', grib_version, table)
+                    logger.debug('Not found shortname %s for gribversion %s, table %s', sn, grib_version, table)
 
-        logger.error(f'Cannot find any grib codes for ShortName {sn}, returning empty dictionary')
+        logger.error('Cannot find any grib codes for ShortName %s, returning empty dictionary', sn)
 
         return None
 
