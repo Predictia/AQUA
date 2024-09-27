@@ -123,7 +123,7 @@ def _init_get_eccodes_attr():
                     dic = {"paramId": paramid[grib_version][table][i],
                            "long_name": name[grib_version][table][i],
                            "units": units[grib_version][table][i],
-                           "cfVarName": cfvarname[grib_version][table][i],
+                           #"cfVarName": cfvarname[grib_version][table][i],
                            "shortName": shortname[grib_version][table][i]}
 
                     if 'grib1' in grib_version:
