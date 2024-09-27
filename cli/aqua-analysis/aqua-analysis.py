@@ -62,9 +62,6 @@ def run_diagnostic(diagnostic: str, *, script_path: str, extra_args: str, loglev
 def get_args():
     """
     Parse command-line arguments.
-
-    Returns:
-        argparse.Namespace: Parsed command-line arguments.
     """
     parser = argparse.ArgumentParser(description="Run diagnostics for the AQUA project.")
     
@@ -78,9 +75,10 @@ def get_args():
     parser.add_argument("-c", "--catalog", type=str, help="Catalog")
     parser.add_argument("-p", "--parallel", action="store_true", help="Run diagnostics in parallel")
     parser.add_argument("-t", "--threads", type=int, default=-1, help="Maximum number of threads")
-    parser.add_argument("-l", "--loglevel", type=str, choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], default="WARNING", help="Log level")
+    parser.add_argument("-l", "--loglevel", type=lambda s: s.upper(), choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], default="WARNING", help="Log level")
     
     return parser.parse_args()
+
 
 def get_aqua_paths(*, args, logger):
     """
