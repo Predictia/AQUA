@@ -1,10 +1,8 @@
-#!/usr/bin/env python3
-
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 import sys
 import subprocess
 import argparse
-from concurrent.futures import ThreadPoolExecutor
 from aqua.logger import log_configure
 from aqua.util import load_yaml
 
@@ -211,24 +209,30 @@ def main():
         else:
             logger.info("Setup checker completed successfully.")
 
-    # Run diagnostics (either in parallel or sequentially)
-    for diagnostic in diagnostics:
-        run_diagnostic_func(
-            diagnostic=diagnostic,
-            parallel=args.parallel,
-            config=config,
-            model=model,
-            exp=exp,
-            source=source,
-            output_dir=output_dir,
-            loglevel=loglevel,
-            logger=logger,
-            AQUA=AQUA  # Pass AQUA as an argument
-        )
+    with ThreadPoolExecutor(max_workers=max_threads if max_threads > 0 else None) as executor:
+        futures = []
+        for diagnostic in diagnostics:
+            futures.append(executor.submit(
+                run_diagnostic_func,
+                diagnostic=diagnostic,
+                parallel=args.parallel,
+                config=config,
+                model=model,
+                exp=exp,
+                source=source,
+                output_dir=output_dir,
+                loglevel=loglevel,
+                logger=logger,
+                AQUA=AQUA
+            ))
+
+        for future in as_completed(futures):
+            try:
+                result = future.result()
+            except Exception as e:
+                logger.error(f"Diagnostic raised an exception: {e}")
 
     logger.info("All diagnostics finished successfully.")
-
-
 
 if __name__ == "__main__":
     main()
