@@ -25,7 +25,7 @@ def parse_arguments(args):
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
     parser.add_argument('-z', '--zoom', type=str,
-                        help='override zoom level')
+                        help='override zoom: convenient for loop on many zoom levels')
 
     return parser.parse_args(args)
 
@@ -52,7 +52,6 @@ if __name__ == '__main__':
     # Configuration needed to save the file
     tmp = config['tmp']
     model_name = config['model_name']
-    #zoom = config.get('zoom')
     zoom = int(get_arg(args, 'zoom', config.get('zoom'))) #HACK for zoom
     catalog = config.get('catalog')
     nested = config['nested']
