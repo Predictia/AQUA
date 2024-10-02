@@ -100,13 +100,13 @@ fixer_name:
             u:
                 source: ua
                 grib: true
-            avg_uo:
+            avg_uoe:
                 source: u
                 grib: true
             v:
                 source: va
                 grib: true
-            avg_vo:
+            avg_von:
                 source: v
                 grib: true
 
