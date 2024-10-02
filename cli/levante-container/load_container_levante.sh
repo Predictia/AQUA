@@ -1,14 +1,16 @@
 #!/bin/bash
 
-# Check if AQUA is set and the file exists
-if [[ -z "$AQUA" ]]; then
-    # define the aqua installation path
-    AQUA=$(aqua --path)/../..
+AQUA=$(aqua --path)/../..
+
+if [ ! -d $AQUA ]; then
+    echo -e "\033[0;31mError: AQUA is not installed."
+    echo -e "\x1b[38;2;255;165;0mPlease install AQUA with aqua install command"
+    exit 1  # Exit with status 1 to indicate an error
 else
     source "$AQUA/cli/util/logger.sh"
     log_message INFO "Sourcing logger.sh from: $AQUA/cli/util/logger.sh"
-    # Your subsequent commands here
 fi
+
 setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
 AQUA_container="/work/bb1153/b382289/container/aqua/aqua_0.11.3.sif"
 GRID_DEFINITION_PATH="/work/bb1153/b382321/grid_definitions"
