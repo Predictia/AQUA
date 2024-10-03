@@ -198,14 +198,13 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             self.src_grid_name = self.esmcat.metadata.get('source_grid_name')
             if self.src_grid_name is not None:
                 self.logger.info('Grid metadata is %s', self.src_grid_name)
+                self.dst_grid_name = regrid
+                # configure all the required elements
+                self._configure_coords(cfg_regrid)
             else: 
                 self.logger.warning('Grid metadata is not defined. Disabling regridding and areas capabilities.')
                 areas = False
                 regrid = None
-            self.dst_grid_name = regrid
-
-            # configure all the required elements
-            self._configure_coords(cfg_regrid)
 
         # generate source areas
         if areas:
