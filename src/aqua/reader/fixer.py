@@ -694,7 +694,7 @@ class FixerMixin():
                         self.logger.debug("Coordinate %s renamed to %s", src_coord, coord)
                         log_history(data[coord], f"Coordinate {src_coord} renamed to {coord} by fixer")
                     else:
-                        self.logger.warning("Coordinate %s not found", coord)
+                        self.logger.warning("Coordinate %s not found", src_coord)
 
                 if tgt_units:
                     if coord in data.coords:
