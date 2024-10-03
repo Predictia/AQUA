@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 
+- Mixed updates to support data for NextGEMS cycle4 hackathon (#1375)
 - Preprocess functionality added to the `Reader` class (#1298)
 - The AQUAthon material has been moved under the `notebooks` folder (#1342)
 - `aqua` source code has been moved to the `src` folder (#1332)
