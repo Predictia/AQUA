@@ -206,3 +206,11 @@ fixer_name:
                     valid_min: 0
                     valid_max: 1400
                     positive: down
+    
+    era5-arco-destine:
+        parent: ERA5-destine-v1
+        coords:
+            lon:
+                source: longitude
+            lat:
+                source: latitude
