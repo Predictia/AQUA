@@ -40,6 +40,7 @@ dependencies = [
     "dask_jobqueue",
     "eccodes==2.38.0",
     "docker",
+    "gcsfs", # Google Cloud Storage File System
     "gribscan",
     "pandas",
     "intake==0.7.0", # Version 2 is not yet compatible with intake-xarray
