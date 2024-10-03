@@ -109,7 +109,9 @@ fixer_name:
             avg_von:
                 source: v
                 grib: true
-
+            avg_so:
+                source: so
+                grib: true
             #fixes for NextGems data    
             cfh_lnd: 
                 source: cfh_lnd
