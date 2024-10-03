@@ -569,7 +569,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         if isinstance(data, xr.Dataset) and self.fix:
             for var in data.data_vars:
                 if not hasattr(data[var], 'units'):
-                    self.logger.error('Variable %s has no units!', var)
+                    self.logger.warning('Variable %s has no units!', var)
 
         if not fiter:  # This is not needed if we already have an iterator
             if self.streaming:
