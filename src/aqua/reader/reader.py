@@ -13,7 +13,7 @@ from aqua.util import load_multi_yaml, files_exist
 from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history
 from aqua.util import flip_lat_dir, find_vert_coord
-from aqua.exceptions import NoDataError
+from aqua.exceptions import NoDataError, NoRegridError
 import aqua.gsv
 
 from .streaming import Streaming
@@ -632,6 +632,9 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
     def regrid(self, data):
         """Call the regridder function returning container or iterator"""
+
+        if self.dst_grid_name is None:
+            raise NoRegridError('regrid has not been initialized in the Reader, cannot perform any regrid.')
 
         if isinstance(data, types.GeneratorType):
             return self._regridgen(data)
