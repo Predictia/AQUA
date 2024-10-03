@@ -199,7 +199,9 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             if self.src_grid_name is not None:
                 self.logger.info('Grid metadata is %s', self.src_grid_name)
             else: 
-                self.logger.warning('Grid metadata is not defined. Regridding capabilities might not work.')
+                self.logger.warning('Grid metadata is not defined. Disabling regridding and areas capabilities.')
+                areas = False
+                regrid = None
             self.dst_grid_name = regrid
 
             # configure all the required elements
