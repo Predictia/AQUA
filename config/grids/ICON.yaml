@@ -1,3 +1,4 @@
+# More info on ICON here: https://easy.gems.dkrz.de/Processing/healpix/index.html
 grids:
   # ICON oceanic healpix
   icon-hpz10-nested:
