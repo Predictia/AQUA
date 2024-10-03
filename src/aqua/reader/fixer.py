@@ -387,7 +387,7 @@ class FixerMixin():
                 tgt_units = self._override_tgt_units(tgt_units, varfix, var)
 
                 if "units" not in data[source].attrs:  # Houston we have had a problem, no units!
-                    self.logger.error('Variable %s has no units!', source)
+                    self.logger.warning('Variable %s has no units!', source)
 
                 # adjust units
                 if tgt_units:
