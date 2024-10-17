@@ -62,7 +62,7 @@ class RegridMixin():
         self.logger.warning("Source areas file not found: %s", areafile)
         self.logger.warning("Attempting to generate it ...")
 
-        src_extra = source_grid.get("extra", [])
+        src_extra = source_grid.get("cdo_extra", [])
 
         grid_area = self.cdo_generate_areas(source=sgrid,
                                             gridpath=gridpath,
@@ -162,7 +162,8 @@ class RegridMixin():
                                       new_grid_size=new_grid_size, vert_coord_size=vert_coord_size, nproc=nproc)
 
         # hack to  pass a correct list of all options
-        src_extra = source_grid.get("extra", [])
+        src_extra = source_grid.get("cdo_extra", [])
+        src_options = source_grid.get("cdo_options", [])
         if src_extra:
             if not isinstance(src_extra, list):
                 src_extra = [src_extra]
@@ -180,7 +181,8 @@ class RegridMixin():
                                           method=method,
                                           gridpath=cfg_regrid["cdo-paths"]["download"],
                                           icongridpath=cfg_regrid["cdo-paths"]["icon"],
-                                          extra=extra,
+                                          cdo_extra=extra,
+                                          cdo_options=src_options,
                                           cdo=self.cdo,
                                           vert_coord=vert_coord,
                                           nproc=self.nproc,
