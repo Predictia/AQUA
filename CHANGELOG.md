@@ -10,7 +10,7 @@ Unreleased in the current development version:
 AQUA core complete list:
 - Fix using AQUA container for submit-aqua-web, do not wipe old figures by default (#1387)
 
-AQUA diagnostic complete list: 
+AQUA diagnostic complete list:
 
 ## [v0.12]
 
