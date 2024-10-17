@@ -77,22 +77,22 @@ class DetectNodes():
             # this is required to avoid conflict between z 3D and z 2D (orography)
             if 'z' in self.lowres2d.data_vars:
                 self.lowres2d = self.lowres2d.rename({'z': 'zs'})
-                
+
             lowres3d = self.reader3d.regrid(
                 self.data3d.sel(time=timestep, plev=[30000, 50000]))
             outfield = xr.merge([self.lowres2d, lowres3d])
-            
-        elif self.model == 'IFS-NEMO':
+
+        elif self.model == 'IFS-NEMO' or self.model == 'IFS-FESOM':
 
             # this assumes that only required 2D data has been retrieved
             self.lowres2d = self.reader2d.regrid(self.data2d.sel(time=timestep)).load()
-            
+
             # rename some variables to run DetectNodes command
             if '10u' in self.lowres2d.data_vars:
                 self.lowres2d = self.lowres2d.rename({'10u': 'u10m'})
             if '10v' in self.lowres2d.data_vars:
                 self.lowres2d = self.lowres2d.rename({'10v': 'v10m'})
-                
+
             lowres3d = self.reader3d.regrid(
                 self.data3d.sel(time=timestep, plev=[30000, 50000])).load()
 
@@ -100,21 +100,24 @@ class DetectNodes():
 
             if self.orography:
                 self.logger.info("Orography added to detect nodes input file")
-                orog_first_timestep = self.orog.isel(time=0)
-                orog_first_timestep['time'] = outfield['time']
+                if 'time' in self.orog.dims:
+                    orog_first_timestep = self.orog.isel(time=0)
+                    orog_first_timestep['time'] = outfield['time']
+                else:
+                    orog_first_timestep = self.orog
                 outfield = outfield.combine_first(orog_first_timestep)
-                
+
         elif self.model == 'ICON':
 
             # this assumes that only required 2D data has been retrieved
             self.lowres2d = self.reader2d.regrid(self.data2d.sel(time=timestep)).load()
-            
+
             # rename some variables to run DetectNodes command
             if '10u' in self.lowres2d.data_vars:
                 self.lowres2d = self.lowres2d.rename({'10u': 'u10m'})
             if '10v' in self.lowres2d.data_vars:
                 self.lowres2d = self.lowres2d.rename({'10v': 'v10m'})
-                
+  
             # deal with vertical levels in ICON (transform to Pa)
             lowres3d = self.reader3d.regrid(
                 self.data3d.sel(time=timestep))
@@ -126,10 +129,10 @@ class DetectNodes():
             if self.orography:
                 self.logger.info("Orography added to detect nodes input file")
                 outfield = outfield.combine_first(self.orog)
-            
+
         else:
             raise KeyError(f'Atmospheric model {self.model} not supported')
-        
+
 
         # check if output file exists
         if os.path.exists(fileout):
