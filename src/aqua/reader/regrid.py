@@ -8,7 +8,6 @@ import tempfile
 import xarray as xr
 import smmregrid as rg
 
-
 class RegridMixin():
     """Regridding mixin for the Reader class"""
 
@@ -176,7 +175,7 @@ class RegridMixin():
 
         sgrid.load()  # load the data to avoid problems with dask in smmregrid
         sgrid = sgrid.compute()  # for some reason both lines are needed 
-        
+         
         weights = rg.cdo_generate_weights(source_grid=sgrid,
                                           target_grid=cfg_regrid["grids"][regrid],
                                           method=method,
@@ -185,7 +184,9 @@ class RegridMixin():
                                           extra=extra,
                                           cdo=self.cdo,
                                           vert_coord=vert_coord,
-                                          nproc=self.nproc)
+                                          nproc=self.nproc,
+                                          loglevel=self.loglevel)
+
         weights.to_netcdf(weightsfile)
         self.logger.warning("Success!")
 
