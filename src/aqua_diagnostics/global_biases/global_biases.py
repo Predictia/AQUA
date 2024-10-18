@@ -45,9 +45,10 @@ class GlobalBiases:
         # Fix precipitation units if necessary
         if self.var_name in ['tprate', 'mtpr']:
             self.logger.info(f'Fixing precipitation units for variable {self.var_name}.')
-            self.data = self.fix_precipitation_units(self.data, self.var_name, 'mm/day')
+            self.data = self.fix_precipitation_units(self.data, self.var_name)
             if self.data_ref is not None:
-                self.data_ref = self.fix_precipitation_units(self.data_ref, self.var_name, 'mm/day')
+                self.logger.info(f'Fixing precipitation units for variable {self.var_name} in reference data.')
+                self.data_ref = self.fix_precipitation_units(self.data_ref, self.var_name)
 
         # Select pressure level if necessary
         if self.plev is not None:
@@ -79,9 +80,9 @@ class GlobalBiases:
             raise NoDataError(f"The dataset for {var_name} variable does not have a 'plev' coordinate.")
 
     @staticmethod
-    def fix_precipitation_units(data, var_name, target_units):
+    def fix_precipitation_units(data, var_name):
         """
-        Fix the units of precipitation variables.
+        Fix the units of precipitation variables from kg m-2 s-1 to mm/day.
         
         Args:
             data (xr.Dataset): Input dataset.
@@ -91,18 +92,20 @@ class GlobalBiases:
         Returns:
             xr.Dataset: Dataset with corrected units.
         """
-        if data[var_name].attrs['units'] != target_units:
+        if data[var_name].attrs['units'] != 'mm/day':
             data[var_name] *= 86400
-            data[var_name].attrs['units'] = target_units
+            data[var_name].attrs['units'] = 'mm/day'
         return data
 
-    def plot_bias(self, seasons=False, seasons_stat='mean'):
+    def plot_bias(self, seasons=False, seasons_stat='mean', vmin=None, vmax=None):
         """
         Plot the global biases.
 
         Args:
             seasons (bool): Flag to indicate seasonal analysis.
             seasons_stat (str): Statistic to use for seasonal analysis.
+            vmin (float): Minimum value for colorbar.
+            vmax (float): Maximum value for colorbar.
         """
 
         self.logger.info('Plotting global biases.')
@@ -112,14 +115,22 @@ class GlobalBiases:
         # Plot a single map if only one dataset is provided
         if self.data_ref is None:
             self.logger.warning('Plotting single dataset map since no reference dataset is provided.')
-            fig, ax = plot_single_map(self.data[self.var_name].mean(dim='time'), return_fig=True)
-            return fig, ax
+            fig, ax = plot_single_map(self.data[self.var_name].mean(dim='time'), 
+                                      return_fig=True, 
+                                      sym=False, sym_contour=False,
+                                      vmin_fill=vmin, vmax_fill=vmax,
+                                      vmin_contour=vmin, vmax_contour=vmax)
+            
         else:
             # Plot the bias map if two datasets are provided
             self.logger.info('Plotting bias map between two datasets.')
             fig, ax = plot_single_map_diff(data=self.data[self.var_name].mean(dim='time'), 
-                                           data_ref=self.data_ref[self.var_name].mean(dim='time'), return_fig=True)
-            return fig, ax
+                                           data_ref=self.data_ref[self.var_name].mean(dim='time'),
+                                           return_fig=True,
+                                           contour=True, 
+                                           sym=False, sym_contour=False,
+                                           vmin_fill=vmin, vmax_fill=vmax,
+                                           vmin_contour=vmin, vmax_contour=vmax)
 
         # Plot seasonal biases if seasons is True
         if self.seasons:
@@ -142,8 +153,15 @@ class GlobalBiases:
                 seasonal_data.append(data_stat)  
                 seasonal_data_ref.append(data_ref_stat)  
             
-            plot_maps_diff(maps=seasonal_data, maps_ref=seasonal_data_ref, titles=season_list)
-
+            plot_maps_diff(maps=seasonal_data, 
+                           maps_ref=seasonal_data_ref, 
+                           return_fig=True, 
+                           titles=season_list,
+                           contour=False,
+                           sym=False, vmin_fill=vmin, vmax_fill=vmax,
+                           )
+        
+        return fig, ax
 
     def plot_vertical_bias(self, data=None, data_ref=None, var_name=None, plev_min=None, plev_max=None, vmin=None, vmax=None):
         """
@@ -215,59 +233,3 @@ class GlobalBiases:
         plt.grid(True)
         plt.show()
 
-    @staticmethod
-    def boxplot(datasets=None, model_names=None, variables=None):
-        """
-        Generate a boxplot showing the uncertainty of a global variable for different models.
-
-        Args:
-            datasets (list of xarray.Dataset): A list of xarray Datasets to be plotted.
-            model_names (list of str): Names for the plotting, corresponding to the datasets.
-            variables (list of str): List of variables to be plotted.
-        """
-
-        logger = log_configure(log_level='INFO', log_name='Boxplot')
-        logger.info('Generating boxplot.')
-
-        sns.set_palette("pastel")
-        fontsize = 18
-
-        # Initialize a dictionary to store data for the boxplot
-        boxplot_data = {'Variables': [], 'Values': [], 'Datasets': []}
-
-        # Default model names if not provided
-        if model_names is None:
-            model_names = [f"Model {i+1}" for i in range(len(datasets))]
-
-        # Default variables if not provided
-        if variables is None:
-            variables = ['-mtnlwrf', 'mtnswrf']
-
-        for dataset, model_name in zip(datasets, model_names):
-            for variable in variables:
-                var_name = variable[1:] if variable.startswith('-') else variable  # Adjusted variable name
-                gm = dataset.aqua.fldmean()
-
-                values = gm[var_name].values.flatten()
-                if variable.startswith('-'):
-                    values = -values
-                boxplot_data['Variables'].extend([variable] * len(values))
-                boxplot_data['Values'].extend(values)
-                boxplot_data['Datasets'].extend([model_name] * len(values))
-
-                units = dataset[var_name].attrs.get('units', 'Unknown')
-                logger.info(f'Processed variable {var_name} for dataset {model_name} with units {units}.')
-
-        # Plotting the boxplot
-        logger.info('Plotting the boxplot.')
-        df = pd.DataFrame(boxplot_data)
-        plt.figure(figsize=(12, 8))
-        sns.boxplot(data=df, x='Variables', y='Values', hue='Datasets')
-        plt.title('Global Mean Variables Boxplot')
-        plt.xlabel('Variables')
-        plt.ylabel(f'Values [{units}]')
-        plt.xticks(fontsize=fontsize)
-        plt.yticks(fontsize=fontsize)
-        plt.legend(loc='upper right', fontsize=fontsize)
-        plt.grid(True)
-        plt.show()
