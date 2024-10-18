@@ -391,9 +391,7 @@ def plot_maps_diff(maps: list,
                                    diff_map,
                                    transform=proj,
                                    cmap=cmap,
-                                   vmin=vmin, vmax=vmax,
-                                   add_colorbar=False,
-                                   add_labels=False)
+                                   vmin=vmin, vmax=vmax)
 
         # Title
         if titles is not None:
