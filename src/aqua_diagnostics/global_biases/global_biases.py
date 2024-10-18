@@ -112,14 +112,18 @@ class GlobalBiases:
         self.seasons = seasons
         self.seasons_stat = seasons_stat
 
+        if vmin is None or vmax is None:
+            sym = True
+        else:
+            sym = False
+
         # Plot a single map if only one dataset is provided
         if self.data_ref is None:
             self.logger.warning('Plotting single dataset map since no reference dataset is provided.')
             fig, ax = plot_single_map(self.data[self.var_name].mean(dim='time'), 
                                       return_fig=True, 
-                                      sym=False, sym_contour=False,
-                                      vmin_fill=vmin, vmax_fill=vmax,
-                                      vmin_contour=vmin, vmax_contour=vmax)
+                                      sym=sym,
+                                      vmin=vmin, vmax=vmax)
             
         else:
             # Plot the bias map if two datasets are provided
@@ -128,9 +132,8 @@ class GlobalBiases:
                                            data_ref=self.data_ref[self.var_name].mean(dim='time'),
                                            return_fig=True,
                                            contour=True, 
-                                           sym=False, sym_contour=False,
-                                           vmin_fill=vmin, vmax_fill=vmax,
-                                           vmin_contour=vmin, vmax_contour=vmax)
+                                           sym=sym,
+                                           vmin_fill=vmin, vmax_fill=vmax)
 
         # Plot seasonal biases if seasons is True
         if self.seasons:
@@ -158,7 +161,7 @@ class GlobalBiases:
                            return_fig=True, 
                            titles=season_list,
                            contour=False,
-                           sym=False, vmin_fill=vmin, vmax_fill=vmax,
+                           sym=sym, vmin=vmin, vmax=vmax
                            )
         
         return fig, ax
