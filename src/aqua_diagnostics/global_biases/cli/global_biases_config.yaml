@@ -16,11 +16,10 @@ obs:
 outputdir: "./"
 
 diagnostic_attributes:
-  variables: ['mtpr', 'q'] #['mtpr', '2t', 'msl', 'mtpr', 'mtnlwrf', 't', 'u', 'v', 'q']
-  #plev: None # You can specify a pressure level here
+  variables: ['mtpr', '2t', 'msl', 'mtpr', 'mtnlwrf', 't', 'u', 'v', 'q']
+  plev: null # You can specify a pressure level here
   seasons: True
   seasons_stat: 'mean'
-  compare_datasets_plev: True
   vertical: True
   startdate_data: "1990-01-01"
   enddate_data: "1998-11-01"
@@ -33,6 +32,11 @@ diagnostic_attributes:
 
 
 biases_plot_params:
+  bias_maps:
+    mtpr:
+      vmin: -8
+      vmax: 8
+
   vertical_plev:
     t:
       vmin: -20

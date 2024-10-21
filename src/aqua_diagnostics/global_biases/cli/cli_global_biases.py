@@ -82,7 +82,7 @@ if __name__ == '__main__':
     startdate_obs = config['diagnostic_attributes'].get('startdate_obs')
     enddate_obs = config['diagnostic_attributes'].get('enddate_obs')
 
-    #create output directory
+    #creating output directory
     outputdir = get_arg(args, "outputdir", config["outputdir"])
     out_pdf = os.path.join(outputdir, 'pdf')
     out_netcdf = os.path.join(outputdir, 'netcdf')
@@ -97,7 +97,6 @@ if __name__ == '__main__':
     vertical = config['diagnostic_attributes'].get('vertical', False)
 
     names = OutputSaver(diagnostic='global_biases', model=model_data, exp=exp_data, loglevel=loglevel)
-
 
     try:
         reader = Reader(catalog = catalog_data, model=model_data, exp=exp_data, source=source_data, startdate=startdate_data, enddate=enddate_data)
@@ -115,27 +114,51 @@ if __name__ == '__main__':
 
     for var_name in variables:
         logger.info(f"Running Global Biases diagnostic for {var_name}...")
+        var_attributes = config["biases_plot_params"]['bias_maps'].get(var_name, {})
+        vmin = var_attributes.get('vmin', None)
+        vmax = var_attributes.get('vmax', None)
+        logger.debug(f"var: {var_name}, vmin: {vmin}, vmax: {vmax}")
 
         try:
-            global_biases = GlobalBiases(data=data, data_ref = data_obs, var_name=var_name, plev=plev, loglevel=loglevel)
-            
-            #seasonal bias
-            fig, ax = global_biases.plot_bias(seasons=True)
-            names.generate_name(diagnostic_product='seasonal_map', var=var_name)
-            names.save_pdf(fig, path=out_pdf)
+            global_biases = GlobalBiases(data=data, data_ref=data_obs, var_name=var_name, plev=plev, loglevel=loglevel)
 
-            #vertical bias
-            if vertical:
-                var_attributes = config["biases_plot_params"]['vertical_plev'].get(var_name, {})
-                vmin = var_attributes.get('vmin', None)
-                vmax = var_attributes.get('vmax', None)
+            # Total bias
+            result = global_biases.plot_bias(vmin=vmin, vmax=vmax)
+            
+            if result is not None:
+                fig, ax = result 
+                names.generate_name(diagnostic_product='total_bias_map', var=var_name)
+                names.save_pdf(fig, path=out_pdf, var=var_name)
+                
+            else:
+                logger.warning(f"No total bias plot generated for {var_name}. Skipping save.")
+
+            # Seasonal bias
+            result = global_biases.plot_seasonal_bias(vmin=vmin, vmax=vmax)
+            if result is not None:
+                fig, ax = result 
+                names.generate_name(diagnostic_product='seasonal_bias_map', var=var_name)
+                names.save_pdf(fig, path=out_pdf, var=var_name)
+            else:
+                logger.warning(f"No seasonal bias plot generated for {var_name}. Skipping save.") 
+
+            # Vertical bias
+            if vertical and 'plev' in data[var_name].dims:
+                var_attributes_vert = config["biases_plot_params"]['vertical_plev'].get(var_name, {})
+                vmin = var_attributes_vert.get('vmin', None)
+                vmax = var_attributes_vert.get('vmax', None)
                 logger.debug(f"var: {var_name}, vmin: {vmin}, vmax: {vmax}")
 
-                fig, ax = global_biases.plot_vertical_bias(var_name=var_name, vmin= vmin, vmax= vmax)
-                names.generate_name(diagnostic_product='vertical_bias', var=var_name)
-                names.save_pdf(fig, path=out_pdf)
-                                             
+                result = global_biases.plot_vertical_bias(var_name=var_name, vmin=vmin, vmax=vmax)
+                if result is not None:
+                    fig, ax = result  # Only unpack if result is not None
+                    names.generate_name(diagnostic_product='vertical_bias', var=var_name)
+                    names.save_pdf(fig, path=out_pdf, var=var_name)
+                else:
+                    logger.warning(f"No vertical bias plot generated for {var_name}. Skipping save.")
+
         except Exception as e:
-            logger.error(f"An unexpected error occurred: {e}")
+            logger.error(f"An unexpected error occurred while processing {var_name}: {e}")
 
     logger.info("Global Biases diagnostic is terminated.")
+

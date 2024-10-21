@@ -56,6 +56,11 @@ class GlobalBiases:
             self.data = self.select_pressure_level(self.data, self.plev, self.var_name)
             if self.data_ref is not None:
                 self.data_ref = self.select_pressure_level(self.data_ref, self.plev, self.var_name)
+        else:
+            # Check if the variable has pressure levels and warn
+            if 'plev' in self.data[self.var_name].dims:
+                self.logger.warning(f"Variable {self.var_name} has multiple pressure levels, but no specific level was selected. Skipping 2D plotting for bias maps.")
+
 
     @staticmethod
     def select_pressure_level(data, plev, var_name):
@@ -97,25 +102,26 @@ class GlobalBiases:
             data[var_name].attrs['units'] = 'mm/day'
         return data
 
-    def plot_bias(self, seasons=False, seasons_stat='mean', vmin=None, vmax=None):
+    def plot_bias(self, stat='mean', vmin=None, vmax=None):
         """
         Plot the global biases.
 
         Args:
-            seasons (bool): Flag to indicate seasonal analysis.
-            seasons_stat (str): Statistic to use for seasonal analysis.
             vmin (float): Minimum value for colorbar.
             vmax (float): Maximum value for colorbar.
         """
 
         self.logger.info('Plotting global biases.')
-        self.seasons = seasons
-        self.seasons_stat = seasons_stat
 
         if vmin is None or vmax is None:
             sym = True
         else:
             sym = False
+
+        # Check if pressure levels exist but are not specified
+        if 'plev' in self.data[self.var_name].dims and self.plev is None:
+            self.logger.warning(f"Variable {self.var_name} has multiple pressure levels, but no specific level was selected. Skipping 2D bias plotting.")
+            return None  # Return None for both fig and ax  
 
         # Plot a single map if only one dataset is provided
         if self.data_ref is None:
@@ -134,35 +140,62 @@ class GlobalBiases:
                                            contour=True, 
                                            sym=sym,
                                            vmin_fill=vmin, vmax_fill=vmax)
+            return fig, ax
+
+    def plot_seasonal_bias(self, seasons_stat='mean', vmin=None, vmax=None):
+        """
+        Plot the seasonal biases.
+
+        Args:
+            seasons_stat (str): Statistic to use for seasonal analysis.
+            vmin (float): Minimum value for colorbar.
+            vmax (float): Maximum value for colorbar.
+
+        
+        Returns:
+            fig, ax: figure and axis objects.
+        """
+
+        self.logger.info('Plotting seasonal biases.')
+        self.seasons_stat = seasons_stat
+
+        if vmin is None or vmax is None:
+            sym = True
+        else:
+            sym = False
+
+        # Check if pressure levels exist but are not specified
+        if 'plev' in self.data[self.var_name].dims and self.plev is None:
+            self.logger.warning(f"Variable {self.var_name} has multiple pressure levels, but no specific level was selected. Skipping 2D bias plotting.")
+            return None  # Return None for both fig and ax  
 
         # Plot seasonal biases if seasons is True
-        if self.seasons:
-            self.logger.info('Plotting seasonal biases.')
-            season_list = ['DJF', 'MAM', 'JJA', 'SON']
-            stat_funcs = {'mean': 'mean', 'max': 'max', 'min': 'min', 'std': 'std'}
 
-            if self.seasons_stat not in stat_funcs:
-                raise ValueError("Invalid statistic. Please choose one of 'mean', 'std', 'max', 'min'.")
+        season_list = ['DJF', 'MAM', 'JJA', 'SON']    
+        stat_funcs = {'mean': 'mean', 'max': 'max', 'min': 'min', 'std': 'std'}
 
-            seasonal_data = []
-            seasonal_data_ref = []
+        if self.seasons_stat not in stat_funcs:
+            raise ValueError("Invalid statistic. Please choose one of 'mean', 'std', 'max', 'min'.")
+
+        seasonal_data = []
+        seasonal_data_ref = []
             
-            for season in season_list:
-                data_season = select_season(self.data[self.var_name], season)
-                data_ref_season = select_season(self.data_ref[self.var_name], season)
-                data_stat =  getattr(data_season, stat_funcs[self.seasons_stat])(dim='time') 
-                data_ref_stat = getattr(data_ref_season, stat_funcs[self.seasons_stat])(dim='time')
+        for season in season_list:
+            data_season = select_season(self.data[self.var_name], season)
+            data_ref_season = select_season(self.data_ref[self.var_name], season)
+            data_stat =  getattr(data_season, stat_funcs[self.seasons_stat])(dim='time') 
+            data_ref_stat = getattr(data_ref_season, stat_funcs[self.seasons_stat])(dim='time')
 
-                seasonal_data.append(data_stat)  
-                seasonal_data_ref.append(data_ref_stat)  
+            seasonal_data.append(data_stat)  
+            seasonal_data_ref.append(data_ref_stat)  
             
-            plot_maps_diff(maps=seasonal_data, 
-                           maps_ref=seasonal_data_ref, 
-                           return_fig=True, 
-                           titles=season_list,
-                           contour=False,
-                           sym=sym, vmin=vmin, vmax=vmax
-                           )
+        fig, ax = plot_maps_diff(maps=seasonal_data, 
+                        maps_ref=seasonal_data_ref, 
+                        return_fig=True, 
+                        titles=season_list,
+                        contour=False,
+                        sym=sym, vmin_fill=vmin, vmax_fill=vmax
+                        )
         
         return fig, ax
 
@@ -178,6 +211,9 @@ class GlobalBiases:
             plev_max (float, optional): Maximum pressure level for bias calculation.
             vmin (float, optional): Minimum value for colorbar.
             vmax (float, optional): Maximum value for colorbar.
+
+        Returns:
+            fig, ax: figure and axis objects.
         """
 
         self.logger.info('Plotting vertical biases.')
@@ -225,14 +261,16 @@ class GlobalBiases:
 
         # Plotting the zonal bias
         self.logger.info('Plotting the zonal bias.')
-        plt.figure(figsize=(10, 8))
-        cax = plt.contourf(zonal_bias['lat'], zonal_bias['plev'], zonal_bias, cmap='RdBu_r', levels=levels, extend='both')
-        plt.title(f'Zonal Bias of {var_name}')
-        plt.yscale('log')
-        plt.ylabel('Pressure Level (Pa)')
-        plt.xlabel('Latitude')
-        plt.gca().invert_yaxis()
-        plt.colorbar(cax, label=f'{var_name} [{self.data[self.var_name].attrs.get("units", "")}]')
-        plt.grid(True)
-        plt.show()
+        fig, ax = plt.subplots(figsize=(10, 8))
+        cax = ax.contourf(zonal_bias['lat'], zonal_bias['plev'], zonal_bias, cmap='RdBu_r', levels=levels, extend='both')
+        ax.set_title(f'Zonal Bias of {var_name}')
+        ax.set_yscale('log')
+        ax.set_ylabel('Pressure Level (Pa)')
+        ax.set_xlabel('Latitude')
+        ax.invert_yaxis()
+        fig.colorbar(cax, ax=ax, label=f'{var_name} [{self.data[self.var_name].attrs.get("units", "")}]')
+        ax.grid(True)
+
+        return fig, ax
+
 
