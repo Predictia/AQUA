@@ -110,7 +110,6 @@ class GlobalBiases:
             vmin (float): Minimum value for colorbar.
             vmax (float): Maximum value for colorbar.
         """
-
         self.logger.info('Plotting global biases.')
 
         if vmin is None or vmax is None:
@@ -130,6 +129,7 @@ class GlobalBiases:
                                       return_fig=True, 
                                       sym=sym,
                                       vmin=vmin, vmax=vmax)
+
             
         else:
             # Plot the bias map if two datasets are provided
@@ -188,14 +188,22 @@ class GlobalBiases:
 
             seasonal_data.append(data_stat)  
             seasonal_data_ref.append(data_ref_stat)  
-            
-        fig, ax = plot_maps_diff(maps=seasonal_data, 
-                        maps_ref=seasonal_data_ref, 
-                        return_fig=True, 
-                        titles=season_list,
-                        contour=False,
-                        sym=sym, vmin_fill=vmin, vmax_fill=vmax
-                        )
+        
+        plot_kwargs = {
+            'maps': seasonal_data,
+            'maps_ref': seasonal_data_ref,
+            'return_fig': True,
+            'titles': season_list,
+            'contour': False,
+            'sym': sym }
+        
+        if vmin is not None:
+            plot_kwargs['vmin_fill'] = vmin
+        if vmax is not None:
+            plot_kwargs['vmax_fill'] = vmax
+
+        fig, ax = plot_maps_diff(**plot_kwargs)
+    
         
         return fig, ax
 
