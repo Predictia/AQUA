@@ -211,9 +211,12 @@ class OutputSaver:
         # Ensure fig is a Figure object
         if isinstance(fig, plt.Axes):
             fig = fig.figure
-        # Save the figure as a PDF
+        
+        # Adjust layout to prevent cropping of labels
+        fig.tight_layout()
+
         if isinstance(fig, (plt.Figure, Figure)):
-            fig.savefig(full_path, dpi=dpi)
+            fig.savefig(full_path, dpi=dpi, bbox_inches='tight')
         else:
             raise ValueError("The provided fig parameter is not a valid matplotlib Figure or pyplot figure.")
 
