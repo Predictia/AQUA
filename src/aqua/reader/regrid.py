@@ -5,7 +5,7 @@ import types
 import subprocess
 import tempfile
 import xarray as xr
-import smmregrid as rg
+from smmregrid import CdoGenerate
 
 class RegridMixin():
     """Regridding mixin for the Reader class"""
@@ -176,17 +176,26 @@ class RegridMixin():
         sgrid.load()  # load the data to avoid problems with dask in smmregrid
         sgrid = sgrid.compute()  # for some reason both lines are needed 
          
-        weights = rg.cdo_generate_weights(source_grid=sgrid,
-                                          target_grid=cfg_regrid["grids"][regrid],
-                                          method=method,
-                                          gridpath=cfg_regrid["cdo-paths"]["download"],
-                                          icongridpath=cfg_regrid["cdo-paths"]["icon"],
-                                          cdo_extra=extra,
-                                          cdo_options=src_options,
-                                          cdo=self.cdo,
-                                          vert_coord=vert_coord,
-                                          nproc=self.nproc,
-                                          loglevel=self.loglevel)
+        generator = CdoGenerate(source_grid=sgrid,
+                                target_grid=cfg_regrid["grids"][regrid],
+                                cdo_download_path=cfg_regrid["cdo-paths"]["download"],
+                                cdo_icon_grids=cfg_regrid["cdo-paths"]["icon"],
+                                cdo_extra=extra,
+                                cdo_options=src_options,
+                                cdo=self.cdo,
+                                loglevel=self.loglevel)
+        weights = generator.weights(method=method, vert_coord=vert_coord, nproc=self.nproc)
+        # weights = rg.cdo_generate_weights(source_grid=sgrid,
+        #                                   target_grid=cfg_regrid["grids"][regrid],
+        #                                   method=method,
+        #                                   gridpath=cfg_regrid["cdo-paths"]["download"],
+        #                                   icongridpath=cfg_regrid["cdo-paths"]["icon"],
+        #                                   cdo_extra=extra,
+        #                                   cdo_options=src_options,
+        #                                   cdo=self.cdo,
+        #                                   vert_coord=vert_coord,
+        #                                   nproc=self.nproc,
+        #                                   loglevel=self.loglevel)
 
         weights.to_netcdf(weightsfile)
         self.logger.warning("Success!")

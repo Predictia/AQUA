@@ -7,7 +7,7 @@ import shutil
 import intake_esm
 import intake_xarray
 import xarray as xr
-import smmregrid as rg
+from smmregrid import Regridder
 
 from aqua.util import load_multi_yaml, files_exist
 from aqua.util import ConfigPath, area_selection
@@ -310,7 +310,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
             self.weights.update({vc: xr.open_mfdataset(self.weightsfile[vc])})
             vc2 = None if vc == "2d" or vc == "2dm" else vc
-            self.regridder.update({vc: rg.Regridder(weights=self.weights[vc],
+            self.regridder.update({vc: Regridder(weights=self.weights[vc],
                                                     vert_coord=vc2,
                                                     space_dims=default_space_dims)})
 
