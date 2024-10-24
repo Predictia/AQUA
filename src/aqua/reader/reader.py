@@ -13,7 +13,7 @@ from aqua.util import load_multi_yaml, files_exist
 from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history
 from aqua.util import flip_lat_dir, find_vert_coord
-from aqua.exceptions import NoDataError
+from aqua.exceptions import NoDataError, NoRegridError
 import aqua.gsv
 
 from .streaming import Streaming
@@ -39,7 +39,7 @@ xr.set_options(keep_attrs=True)
 
 
 class Reader(FixerMixin, RegridMixin, TimmeanMixin):
-    """General reader for NextGEMS data."""
+    """General reader for climate data."""
 
     instance = None  # Used to store the latest instance of the class
 
@@ -51,6 +51,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4,
                  aggregation=None, chunks=None,
+                 preproc=None,
                  **kwargs):
         """
         Initializes the Reader class, which uses the catalog
@@ -60,8 +61,8 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             model (str): Model ID. Mandatory
             exp (str): Experiment ID. Mandatory.
             source (str): Source ID. Mandatory
-            catalog (str, optional): Catalog where to search for the triplet.  Default to None will allow for autosearch in 
-                                     the installed catalogs. 
+            catalog (str, optional): Catalog where to search for the triplet.  Default to None will allow for autosearch in
+                                     the installed catalogs.
             regrid (str, optional): Perform regridding to grid `regrid`, as defined in `config/regrid.yaml`. Defaults to None.
             regrid_method (str, optional): CDO Regridding regridding method. Read from grid configuration.
                                            If not specified anywhere, using "ycon".
@@ -85,8 +86,9 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                                             If it is a dictionary the keys 'time' and 'vertical' are looked for.
                                             Time chunking can be one of S (step), 10M, 15M, 30M, h, 1h, 3h, 6h, D, 5D, W, M, Y.
                                             Vertical chunking is expressed as the number of vertical levels to be used.
+            preproc (function, optional): a function to be applied to the dataset when retrieved. Defaults to None.
             **kwargs: Arbitrary keyword arguments to be passed as parameters to the catalog entry.
-                      'zoom', meant for HEALPix grid, is a predefined one which will allow for multiple gridname definition   
+                      'zoom', meant for HEALPix grid, is a predefined one which will allow for multiple gridname definitions.
 
         Returns:
             Reader: A `Reader` class object.
@@ -108,6 +110,9 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.time_correction = False #extra flag for correction data with cumulation time on monthly timescale
         self.aggregation = aggregation
         self.chunks = chunks
+
+        # Preprocessing function
+        self.preproc = preproc
 
         self.grid_area = None
         self.src_grid_area = None
@@ -132,7 +137,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.enddate = enddate
 
         self.previous_data = None  # used for FDB iterator fixing
-        self.sample_data = None #used to avoid multiple calls of retrieve_plain
+        self.sample_data = None  # used to avoid multiple calls of retrieve_plain
 
         # define configuration file and paths
         Configurer = ConfigPath(catalog=catalog, loglevel=loglevel)
@@ -141,7 +146,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.config_file = Configurer.config_file
         self.cat, self.catalog_file, self.machine_file = Configurer.deliver_intake_catalog(catalog=catalog, model=model, exp=exp, source=source)
         self.fixer_folder, self.grids_folder = Configurer.get_reader_filenames()
-        
+
         # deduce catalog name
         self.catalog = self.cat.name
 
@@ -168,7 +173,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         if self.fixer_name is False:
             self.logger.warning('A False flag is specified in fixer_name metadata, disabling fix!')
             self.fix = False
-        
+
         if self.fix:
             self.fixes_dictionary = load_multi_yaml(self.fixer_folder, loglevel=self.loglevel)
             self.fixes = self.find_fixes()  # find fixes for this model/exp/source
@@ -183,23 +188,23 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         # load and check the regrid
         if regrid or areas:
 
-
             cfg_regrid = load_multi_yaml(folder_path=self.grids_folder,
                                          definitions=machine_paths['paths'],
                                          loglevel=self.loglevel)
-            
+
             cfg_regrid = {**machine_paths, **cfg_regrid}
 
             # define grid names
             self.src_grid_name = self.esmcat.metadata.get('source_grid_name')
             if self.src_grid_name is not None:
                 self.logger.info('Grid metadata is %s', self.src_grid_name)
+                self.dst_grid_name = regrid
+                # configure all the required elements
+                self._configure_coords(cfg_regrid)
             else: 
-                self.logger.warning('Grid metadata is not defined. Regridding capabilities might not work.')
-            self.dst_grid_name = regrid
-
-            # configure all the required elements
-            self._configure_coords(cfg_regrid)
+                self.logger.warning('Grid metadata is not defined. Disabling regridding and areas capabilities.')
+                areas = False
+                regrid = None
 
         # generate source areas
         if areas:
@@ -564,7 +569,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         if isinstance(data, xr.Dataset) and self.fix:
             for var in data.data_vars:
                 if not hasattr(data[var], 'units'):
-                    self.logger.error('Variable %s has no units!', var)
+                    self.logger.warning('Variable %s has no units!', var)
 
         if not fiter:  # This is not needed if we already have an iterator
             if self.streaming:
@@ -577,6 +582,10 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         if isinstance(data, xr.Dataset):
             data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
+
+        # Preprocessing function
+        if self.preproc:
+            data = self.preproc(data)
 
         return data
 
@@ -624,6 +633,9 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
     def regrid(self, data):
         """Call the regridder function returning container or iterator"""
+
+        if self.dst_grid_name is None:
+            raise NoRegridError('regrid has not been initialized in the Reader, cannot perform any regrid.')
 
         if isinstance(data, types.GeneratorType):
             return self._regridgen(data)
