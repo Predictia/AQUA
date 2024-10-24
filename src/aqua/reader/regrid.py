@@ -25,8 +25,15 @@ class RegridMixin():
         self.logger.warning("Destination areas file not found: %s", areafile)
         self.logger.warning("Attempting to generate it ...")
 
-        dst_extra = f"-const,1,{grid}"
-        grid_area = self.cdo_generate_areas(source=dst_extra)
+        generator = CdoGenerate(source_grid=None, target_grid=grid,
+                                cdo_extra=None,
+                                cdo_options=None, cdo_download_path=None, 
+                                cdo_icon_grids=None,
+                                cdo=self.cdo, loglevel=self.loglevel)
+        grid_area = generator.areas(target=True)['cell_area']
+
+        #dst_extra = f"-const,1,{grid}"
+        #grid_area = self.cdo_generate_areas(source=dst_extra)
 
         # Make sure that grid areas contain exactly the same coordinates
         data = self._retrieve_plain()
@@ -64,10 +71,18 @@ class RegridMixin():
 
         src_extra = source_grid.get("cdo_extra", [])
 
-        grid_area = self.cdo_generate_areas(source=sgrid,
-                                            gridpath=gridpath,
-                                            icongridpath=icongridpath,
-                                            extra=src_extra)
+        #grid_area = self.cdo_generate_areas(source=sgrid,
+        #                                    gridpath=gridpath,
+        #                                    icongridpath=icongridpath,
+        #                                    extra=src_extra)
+
+        generator = CdoGenerate(sgrid, cdo_extra=src_extra,
+                                cdo_options=None, cdo_download_path=gridpath, 
+                                cdo_icon_grids=icongridpath,
+                                cdo=self.cdo, loglevel=self.loglevel)
+        grid_area = generator.areas()['cell_area']
+
+
         # Make sure that the new DataArray uses the expected spatial dimensions
         grid_area = _rename_dims(grid_area, self.src_space_coord)
         data = self._retrieve_plain(startdate=None)
@@ -256,86 +271,86 @@ class RegridMixin():
 
         return sgrid
 
-    def cdo_generate_areas(self, source, icongridpath=None, gridpath=None, extra=None):
-        """
-            Generate grid areas using CDO
+    # def cdo_generate_areas(self, source, icongridpath=None, gridpath=None, extra=None):
+    #     """
+    #         Generate grid areas using CDO
 
-            Args:
-                source (xarray.DataArray or str): Source grid
-                gridpath (str): where to store downloaded grids
-                icongridpath (str): location of ICON grids (e.g. /pool/data/ICON)
-                extra (str): command(s) to apply to source grid before weight generation (can be a list)
+    #         Args:
+    #             source (xarray.DataArray or str): Source grid
+    #             gridpath (str): where to store downloaded grids
+    #             icongridpath (str): location of ICON grids (e.g. /pool/data/ICON)
+    #             extra (str): command(s) to apply to source grid before weight generation (can be a list)
 
-            Returns:
-                xarray.DataArray: A DataArray containing cell areas.
-        """
+    #         Returns:
+    #             xarray.DataArray: A DataArray containing cell areas.
+    #     """
 
-        # Make some temporary files that we'll feed to CDO
-        area_file = tempfile.NamedTemporaryFile()
+    #     # Make some temporary files that we'll feed to CDO
+    #     area_file = tempfile.NamedTemporaryFile()
 
-        if isinstance(source, str):
-            sgrid = source
-        else:
-            source_grid_file = tempfile.NamedTemporaryFile()
-            source.to_netcdf(source_grid_file.name)
-            sgrid = source_grid_file.name
+    #     if isinstance(source, str):
+    #         sgrid = source
+    #     else:
+    #         source_grid_file = tempfile.NamedTemporaryFile()
+    #         source.to_netcdf(source_grid_file.name)
+    #         sgrid = source_grid_file.name
 
-        # Setup environment
-        env = os.environ
-        if gridpath:
-            env["CDO_DOWNLOAD_PATH"] = gridpath
-        if icongridpath:
-            env["CDO_ICON_GRIDS"] = icongridpath
+    #     # Setup environment
+    #     env = os.environ
+    #     if gridpath:
+    #         env["CDO_DOWNLOAD_PATH"] = gridpath
+    #     if icongridpath:
+    #         env["CDO_ICON_GRIDS"] = icongridpath
 
-        try:
-            # Run CDO
-            if extra:
-                # make sure extra is a flat list if it is not already
-                if not isinstance(extra, list):
-                    extra = [extra]
+    #     try:
+    #         # Run CDO
+    #         if extra:
+    #             # make sure extra is a flat list if it is not already
+    #             if not isinstance(extra, list):
+    #                 extra = [extra]
 
-                subprocess.check_output(
-                    [
-                        self.cdo,
-                        "-f", "nc4",
-                        "gridarea",
-                    ] + extra +
-                    [
-                        sgrid,
-                        area_file.name,
-                    ],
-                    stderr=subprocess.PIPE,
-                    env=env,
-                )
-            else:
-                subprocess.check_output(
-                    [
-                        self.cdo,
-                        "-f", "nc4",
-                        "gridarea",
-                        sgrid,
-                        area_file.name,
-                    ],
-                    stderr=subprocess.PIPE,
-                    env=env,
-                )
+    #             subprocess.check_output(
+    #                 [
+    #                     self.cdo,
+    #                     "-f", "nc4",
+    #                     "gridarea",
+    #                 ] + extra +
+    #                 [
+    #                     sgrid,
+    #                     area_file.name,
+    #                 ],
+    #                 stderr=subprocess.PIPE,
+    #                 env=env,
+    #             )
+    #         else:
+    #             subprocess.check_output(
+    #                 [
+    #                     self.cdo,
+    #                     "-f", "nc4",
+    #                     "gridarea",
+    #                     sgrid,
+    #                     area_file.name,
+    #                 ],
+    #                 stderr=subprocess.PIPE,
+    #                 env=env,
+    #             )
 
-            areas = xr.load_dataset(area_file.name, engine="netcdf4")
-            areas.cell_area.attrs['units'] = 'm2'
-            areas.cell_area.attrs['standard_name'] = 'area'
-            areas.cell_area.attrs['long_name'] = 'area of grid cell'
-            return areas.cell_area
+    #         areas = xr.load_dataset(area_file.name, engine="netcdf4")
+    #         areas.cell_area.attrs['units'] = 'm2'
+    #         areas.cell_area.attrs['standard_name'] = 'area'
+    #         areas.cell_area.attrs['long_name'] = 'area of grid cell'
+    #         return areas.cell_area
 
-        except subprocess.CalledProcessError as err:
-            # Print the CDO error message
-            self.logger.critical(err.stderr.decode('utf-8'))
-            raise
+    #     except subprocess.CalledProcessError as err:
+    #         # Print the CDO error message
+    #         self.logger.critical(err.stderr.decode('utf-8'))
+    #         raise
 
-        finally:
-            # Clean up the temporary files
-            if not isinstance(source, str):
-                source_grid_file.close()
-            area_file.close()
+    #     finally:
+    #         # Clean up the temporary files
+    #         if not isinstance(source, str):
+    #             source_grid_file.close()
+    #         area_file.close()
 
     def _retrieve_plain(self, *args, **kwargs):
         """
