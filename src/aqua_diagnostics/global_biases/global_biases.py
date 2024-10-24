@@ -33,34 +33,30 @@ class GlobalBiases:
         self.outputdir = outputdir
         self.logger = log_configure(log_level=loglevel, log_name='Atmospheric global')
 
-        self._process_data()
+        self._process_data(self.data)
+        if self.data_ref is not None:
+            self._process_data(self.data_ref)
 
-    def _process_data(self):
+
+    def _process_data(self, data):
         """
         Process the input data, fix precipitation units, select pressure level.
         """
-
-        self.logger.info('Processing data.')
-
         # Fix precipitation units if necessary
         if self.var_name in ['tprate', 'mtpr']:
             self.logger.info(f'Fixing precipitation units for variable {self.var_name}.')
-            self.data = self.fix_precipitation_units(self.data, self.var_name)
-            if self.data_ref is not None:
-                self.logger.info(f'Fixing precipitation units for variable {self.var_name} in reference data.')
-                self.data_ref = self.fix_precipitation_units(self.data_ref, self.var_name)
+            data = self.fix_precipitation_units(data, self.var_name)
 
         # Select pressure level if necessary
         if self.plev is not None:
             self.logger.info(f'Selecting pressure level {self.plev} for variable {self.var_name}.')
-            self.data = self.select_pressure_level(self.data, self.plev, self.var_name)
-            if self.data_ref is not None:
-                self.data_ref = self.select_pressure_level(self.data_ref, self.plev, self.var_name)
+            data = self.select_pressure_level(data, self.plev, self.var_name)
         else:
             # Check if the variable has pressure levels and warn
-            if 'plev' in self.data[self.var_name].dims:
+            if 'plev' in data[self.var_name].dims:
                 self.logger.warning(f"Variable {self.var_name} has multiple pressure levels, but no specific level was selected. Skipping 2D plotting for bias maps.")
 
+        
 
     @staticmethod
     def select_pressure_level(data, plev, var_name):
