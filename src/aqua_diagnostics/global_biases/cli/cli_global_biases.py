@@ -120,8 +120,9 @@ if __name__ == '__main__':
         logger.debug(f"var: {var_name}, vmin: {vmin}, vmax: {vmax}")
 
         try:
-            global_biases = GlobalBiases(data=data, data_ref=data_obs, var_name=var_name, plev=plev, loglevel=loglevel)
-
+            global_biases = GlobalBiases(data=data, data_ref=data_obs, var_name=var_name, plev=plev, loglevel=loglevel,
+                                        model= model_data, exp=exp_data, startdate_data=startdate_data, enddate_data=enddate_data,
+                                        model_obs=model_obs, startdate_obs=startdate_obs, enddate_obs=enddate_obs)                               
             # Total bias
             result = global_biases.plot_bias(vmin=vmin, vmax=vmax)
             

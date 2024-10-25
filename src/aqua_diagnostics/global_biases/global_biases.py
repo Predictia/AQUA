@@ -24,19 +24,26 @@ class GlobalBiases:
         outputdir (str): Directory to save output plots.
         loglevel (str): Logging level.
     """
-
-    def __init__(self, data=None, data_ref=None, var_name=None, plev=None, outputdir=None, loglevel='WARNING'):
+    def __init__(self, data=None, data_ref=None, var_name=None, plev=None, outputdir=None, loglevel='WARNING', 
+                 model=None, exp=None, startdate_data=None, enddate_data=None, 
+                 model_obs=None, startdate_obs=None, enddate_obs=None):
         self.data = data
         self.data_ref = data_ref
         self.var_name = var_name
         self.plev = plev
         self.outputdir = outputdir
         self.logger = log_configure(log_level=loglevel, log_name='Atmospheric global')
+        self.model = model
+        self.exp = exp
+        self.startdate_data = startdate_data
+        self.enddate_data = enddate_data
+        self.model_obs = model_obs
+        self.startdate_obs = startdate_obs
+        self.enddate_obs = enddate_obs
 
         self._process_data(self.data)
         if self.data_ref is not None:
             self._process_data(self.data_ref)
-
 
     def _process_data(self, data):
         """
@@ -121,22 +128,30 @@ class GlobalBiases:
         # Plot a single map if only one dataset is provided
         if self.data_ref is None:
             self.logger.warning('Plotting single dataset map since no reference dataset is provided.')
+
+            title = (f"{self.var_name} map {self.model} {self.exp} {self.startdate_data}/{self.enddate_data}")
+
             fig, ax = plot_single_map(self.data[self.var_name].mean(dim='time'), 
                                       return_fig=True, 
+                                      title=title,
                                       sym=sym,
                                       vmin=vmin, vmax=vmax)
-
             
         else:
             # Plot the bias map if two datasets are provided
             self.logger.info('Plotting bias map between two datasets.')
+
+            title = (f"{self.var_name} global bias of {self.model} {self.exp} {self.startdate_data}/{self.enddate_data}\n" 
+                     f"relative to {self.model_obs} climatology {self.startdate_obs}/{self.enddate_obs}\n" )
+
             fig, ax = plot_single_map_diff(data=self.data[self.var_name].mean(dim='time'), 
                                            data_ref=self.data_ref[self.var_name].mean(dim='time'),
                                            return_fig=True,
                                            contour=True, 
+                                           title=title,
                                            sym=sym,
-                                           vmin_fill=vmin, vmax_fill=vmax)
-            return fig, ax
+                                           vmin_fill=vmin, vmax_fill=vmax)                                      
+        return fig, ax
 
     def plot_seasonal_bias(self, seasons_stat='mean', vmin=None, vmax=None):
         """
@@ -230,11 +245,9 @@ class GlobalBiases:
             self.var_name = var_name
 
         # Compute climatology for reference dataset
-        self.logger.info('Computing climatology for reference dataset.')
         ref_climatology = self.data_ref[var_name].mean(dim='time')
 
         # Calculate the bias between the two datasets
-        self.logger.info('Calculating bias between datasets.')
         bias = self.data[var_name] - ref_climatology
 
         # Filter pressure levels
@@ -246,12 +259,10 @@ class GlobalBiases:
         bias = bias.sel(plev=slice(plev_max, plev_min))
 
         # Calculate the mean bias along the time axis
-        self.logger.info('Calculating mean bias along the time axis.')
         mean_bias = bias.mean(dim='time')
         nlevels = 18
 
         # Calculate the zonal mean bias
-        self.logger.info('Calculating zonal mean bias.')
         zonal_bias = mean_bias.mean(dim='lon')
 
         # Determine colorbar limits if not provided
@@ -263,11 +274,13 @@ class GlobalBiases:
 
         levels = np.linspace(vmin, vmax, nlevels)
 
+        title = (f"{self.var_name} vertical bias of {self.model} {self.exp} {self.startdate_data}/{self.enddate_data}\n" 
+            f"relative to {self.model_obs} climatology {self.startdate_obs}/{self.enddate_obs}\n")
+
         # Plotting the zonal bias
-        self.logger.info('Plotting the zonal bias.')
         fig, ax = plt.subplots(figsize=(10, 8))
         cax = ax.contourf(zonal_bias['lat'], zonal_bias['plev'], zonal_bias, cmap='RdBu_r', levels=levels, extend='both')
-        ax.set_title(f'Zonal Bias of {var_name}')
+        ax.set_title(title)
         ax.set_yscale('log')
         ax.set_ylabel('Pressure Level (Pa)')
         ax.set_xlabel('Latitude')
