@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Introduce `timeshift` option for the fixer to roll forward/back the time axis (#1411)
+- Centralize and refactor in single script the tool to load AQUA container (#1413)
 
 ## [v0.12.1]
 

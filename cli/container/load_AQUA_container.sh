@@ -1,13 +1,16 @@
-###### Script to load AQUA container on multiple machines #####
-############# Support for levante, lumi and MN5 ###############
 #!/bin/bash
 set -e
+
+#--------------------------------------------------------------#
+#----- Script to load AQUA container on multiple machines -----#
+#------------ Support for levante, lumi and MN5 ---------------#
+#--------------------------------------------------------------#
 
 # set version from here
 version="0.12"
 
 #--------------------------------------------------------------#
-#--------------------------Parsing part------------------------#
+#--------------------------Parsing block-----------------------#
 #--------------------------------------------------------------#
 
 usage() {
@@ -19,7 +22,7 @@ usage() {
                                  Machine supported are Lumi, Levante and MN5
 
     Options:
-        --local                  Enable local mode.
+        --local                  Enable local mode: AQUA will read from local env variable. 
         -s <script>              Execute a exectuable bash or python script.
         -e <command>             Execute a shell command.
         -h, --help               Display this help message.
@@ -63,9 +66,9 @@ parse_machine() {
             --local)
                 local_mode=1;   shift  ;;
             -e)
-                cmd="exec";     script="bash $2";   shift 2 ;;
+                cmd="exec";     script="bash $2" ;    shift 2 ;;
             -s)
-                cmd="exec";     script="./$2";        shift 2 ;;
+                cmd="exec";     script="./$2" ;       shift 2 ;;
             -h | --help)
                 usage   ;;
             --)
@@ -101,7 +104,7 @@ parse_machine() {
 }
 
 #--------------------------------------------------------------#
-#-----------------------Setup functions------------------------#
+#------------------Machine-dependent setup---------------------#
 #--------------------------------------------------------------#
 
 function setup_container_path(){
@@ -212,7 +215,6 @@ function setup_binds(){
 
     echo "${binds[@]}"
 }
-
 
 #--------------------------------------------------------------#
 #-----------------------Real running---------------------------#
