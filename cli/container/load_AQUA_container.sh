@@ -16,17 +16,18 @@ usage() {
 
     Mandatory Argument:
         machine_name             The name of the machine to set.
+                                 Machine supported are Lumi, Levante and MN5
 
     Options:
         --local                  Enable local mode.
-        -e <script>              Execute a Python script.
-        -c <command>             Execute a Bash command.
+        -s <script>              Execute a exectuable bash or python script.
+        -e <command>             Execute a shell command.
         -h, --help               Display this help message.
 
     Examples:
         $0 lumi --local
-        $0 lumi -e my_script.py
-        $0 lumi -c "echo 'Hello World'"
+        $0 lumi -s my_script.py
+        $0 lumi -e "echo 'I love AQUA so much!'"
 EOF
         exit 1
 }
@@ -50,7 +51,7 @@ parse_machine() {
     cmd="shell" #standard container init
 
     # Use getopt to parse options
-    OPTIONS=$(getopt -o he:c: --long help,local -n "$0" -- "$@")
+    OPTIONS=$(getopt -o he:s: --long help,local -n "$0" -- "$@")
     if [ $? -ne 0 ]; then
         usage
     fi
@@ -63,8 +64,8 @@ parse_machine() {
                 local_mode=1;   shift  ;;
             -e)
                 cmd="exec";     script="bash $2";   shift 2 ;;
-            -c)
-                cmd="exec";     script="$2";        shift 2 ;;
+            -s)
+                cmd="exec";     script="./$2";        shift 2 ;;
             -h | --help)
                 usage   ;;
             --)
