@@ -12,7 +12,7 @@ else
 fi
 
 setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
-AQUA_container="/work/bb1153/b382289/container/aqua/aqua_0.12.sif"
+AQUA_container="/work/bb1153/b382289/container/aqua/aqua_0.12.1.sif"
 GRID_DEFINITION_PATH="/work/bb1153/b382321/grid_definitions"
 
 # Simple command line parsing
@@ -72,10 +72,10 @@ module load singularity
 
 singularity $cmd \
     --cleanenv \
-    --env PYTHONPATH=/opt/conda/lib/python3.10/site-packages \
     --env ESMFMKFILE=/opt/conda/lib/esmf.mk \
     --env PYTHONPATH=$AQUA \
     --env AQUA=$AQUA \
+    --env PYTHONUSERBASE=1 \
     --bind /work/bb1153 \
     --bind /pool/data/ICDC/atmosphere/ceres_ebaf/ \
     $AQUA_container $script
