@@ -69,8 +69,7 @@ if __name__ == '__main__':
     model_data = get_arg(args, 'model', config['data']['model'])
     exp_data = get_arg(args, 'exp', config['data']['exp'])
     source_data = get_arg(args, 'source', config['data']['source'])
-    
-    startdate_data = config['diagnostic_attributes'].get('startdate_data', None)  #aggiungere default
+    startdate_data = config['diagnostic_attributes'].get('startdate_data', None) 
     enddate_data = config['diagnostic_attributes'].get('enddate_data', None)
 
     # Acquiring model, experiment and source for reference data
@@ -78,9 +77,8 @@ if __name__ == '__main__':
     model_obs = config['obs']['model']
     exp_obs = config['obs']['exp']
     source_obs = config['obs']['source']
-
-    startdate_obs = config['diagnostic_attributes'].get('startdate_obs')
-    enddate_obs = config['diagnostic_attributes'].get('enddate_obs')
+    startdate_obs = config['diagnostic_attributes'].get('startdate_obs', None) 
+    enddate_obs = config['diagnostic_attributes'].get('enddate_obs', None)
 
     #creating output directory
     outputdir = get_arg(args, "outputdir", config["outputdir"])
@@ -112,6 +110,12 @@ if __name__ == '__main__':
     except Exception as e:
         logger.error(f"No observation data found: {e}")
 
+    startdate_data = startdate_data or data.time[0].values
+    enddate_data = enddate_data or data.time[-1].values
+    startdate_obs = startdate_obs or data_obs.time[0].values
+    enddate_obs = enddate_obs or data_obs.time[-1].values
+
+    # Loop on varibables
     for var_name in variables:
         logger.info(f"Running Global Biases diagnostic for {var_name}...")
         var_attributes = config["biases_plot_params"]['bias_maps'].get(var_name, {})
