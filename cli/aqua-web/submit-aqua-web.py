@@ -22,7 +22,8 @@ class Submitter():
     """
 
     def __init__(self, loglevel='INFO', config='config.aqua-web.yaml',
-                 template='aqua-web.job.j2', dryrun=False, parallel=True, wipe=False, local=False):
+                 template='aqua-web.job.j2', dryrun=False, parallel=True,
+                 wipe=False, local=False, fresh=False):
         """
         Initialize the Submitter class
 
@@ -34,6 +35,7 @@ class Submitter():
             parallel: run in parallel mode (multiple cores)
             wipe: wipe the destination directory before copying the images
             local: use the local AQUA version (default is the container version)
+            fresh: use a fresh (new) output directory, do not recycle original one
         """
 
         if dryrun:
@@ -47,6 +49,7 @@ class Submitter():
         self.parallel = parallel
         self.wipe = wipe
         self.local = local
+        self.fresh = fresh
 
     def is_job_running(self, job_name, username):
         """verify that a job name is not already submitted in the slurm queue"""
@@ -105,6 +108,10 @@ class Submitter():
             definitions['localaqua'] = '-y'
         else:
             definitions['localaqua'] = '-n'
+        if self.fresh:
+            definitions['fresh'] = 'true'
+        else:
+            definitions['fresh'] = 'false'
 
         username = definitions['username']
         jobname = definitions.get('jobname', 'aqua-web')
@@ -178,6 +185,14 @@ class Submitter():
             definitions['wipe'] = '-w'
         else:
             definitions['wipe'] = ''
+        if self.local:
+            definitions['localaqua'] = '-y'
+        else:
+            definitions['localaqua'] = '-n'
+        if self.fresh:
+            definitions['fresh'] = 'true'
+        else:
+            definitions['fresh'] = 'false'
 
         with open(self.template, 'r', encoding='utf-8') as file:
             rendered_job  = Template(file.read()).render(definitions)
@@ -282,6 +297,8 @@ def parse_arguments(arguments):
                         help='wipe the destination directory before copying the images')
     parser.add_argument('-n', '--native', action="store_true",
                         help='use the native (local) AQUA version (default is the container version)')
+    parser.add_argument('-f', '--fresh', action="store_true",
+                        help='use a fresh (new) output directory, do not recycle original one')
      
     # List of experiments is a positional argument
     parser.add_argument('list', nargs='?', type=str,
@@ -308,9 +325,11 @@ if __name__ == '__main__':
     push = get_arg(args, 'push', False)
     wipe = get_arg(args, 'wipe', False)
     local = get_arg(args, 'native', False)
+    fresh = get_arg(args, 'fresh', False)
 
     submitter = Submitter(config=config, template=template, dryrun=dryrun,
-                          parallel=not serial, wipe=wipe, local=local, loglevel=loglevel)
+                          parallel=not serial, wipe=wipe, local=local,
+                          fresh=fresh, loglevel=loglevel)
 
     count = 0
     parent_job = None

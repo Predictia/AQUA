@@ -12,9 +12,14 @@ model={{ model }}
 exp={{ exp }}
 source={{ source }}
 
-export OUTDIR={{ outdir }}
+if [[ "{{ fresh }}" == "true" ]]; then
+    export OUTDIR={{ outdir }}/temp_$$
+else
+    export OUTDIR={{ outdir }}
+fi
 export AQUA={{ aquadir }}
 
+mkdir -p $OUTDIR
 cd $OUTDIR
 
 unset SINGULARITY_BIND  # Lumi specific fix for singularity
