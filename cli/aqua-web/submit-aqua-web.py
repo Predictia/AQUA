@@ -22,7 +22,7 @@ class Submitter():
     """
 
     def __init__(self, loglevel='INFO', config='config.aqua-web.yaml',
-                 template='aqua-web.job.j2', dryrun=False, parallel=True):
+                 template='aqua-web.job.j2', dryrun=False, parallel=True, wipe=False):
         """
         Initialize the Submitter class
 
@@ -43,6 +43,7 @@ class Submitter():
 
         self.dryrun = dryrun
         self.parallel = parallel
+        self.wipe = wipe
 
     def is_job_running(self, job_name, username):
         """verify that a job name is not already submitted in the slurm queue"""
@@ -93,6 +94,10 @@ class Submitter():
             definitions['parallel'] = '-p'
         else:
             definitions['parallel'] = ''
+        if self.wipe:
+            definitions['wipe'] = '-w'
+        else:
+            definitions['wipe'] = ''
 
         username = definitions['username']
         jobname = definitions.get('jobname', 'aqua-web')
@@ -162,6 +167,10 @@ class Submitter():
 
         definitions['push'] = "true"
         definitions['explist'] = listfile
+        if self.wipe:
+            definitions['wipe'] = '-w'
+        else:
+            definitions['wipe'] = ''
 
         with open(self.template, 'r', encoding='utf-8') as file:
             rendered_job  = Template(file.read()).render(definitions)
@@ -262,7 +271,9 @@ def parse_arguments(arguments):
                         help='logging level')
     parser.add_argument('-p', '--push', action="store_true",
                         help='flag to push to aqua-web')
-    
+    parser.add_argument('-w', '--wipe', action="store_true",
+                        help='wipe the destination directory before copying the images')
+     
     # List of experiments is a positional argument
     parser.add_argument('list', nargs='?', type=str,
                         help='list of experiments in format: model, exp, source')
@@ -286,8 +297,10 @@ if __name__ == '__main__':
     dryrun = get_arg(args, 'dry', False)
     loglevel = get_arg(args, 'loglevel', 'info')
     push = get_arg(args, 'push', False)
+    wipe = get_arg(args, 'wipe', False)
 
-    submitter = Submitter(config=config, template=template, dryrun=dryrun, parallel=not serial, loglevel=loglevel)
+    submitter = Submitter(config=config, template=template, dryrun=dryrun,
+                          parallel=not serial, wipe=wipe, loglevel=loglevel)
 
     count = 0
     parent_job = None
