@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Introduce `timeshift` option for the fixer to roll forward/back the time axis (#1411)
+- Add extra maintenance options to submit-aqua-web (#1415)
 
 ## [v0.12.1]
 
