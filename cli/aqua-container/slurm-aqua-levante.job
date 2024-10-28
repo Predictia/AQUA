@@ -1,0 +1,25 @@
+#!/bin/bash
+# --- EDIT THE SLURM DETAILS --- # 
+#SBATCH --job-name=aqua_container
+#SBATCH --partition=compute
+#SBATCH --account=bb1153
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=02:00:00
+#SBATCH --error=aqua-container_%j.err
+#SBATCH --output=aqua-container_%j.out
+
+
+AQUA=$HOME/AQUA
+machine=levante
+
+
+#----------------------------------------------#
+
+bash $AQUA/cli/aqua-container/load-aqua-container.sh $machine <<EOF
+#!/bin/bash
+#--------------
+echo "I love pizza"
+aqua lra 
+#--------------
+EOF
