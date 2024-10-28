@@ -187,7 +187,7 @@ function setup_binds(){
                 "/pfs/lustrep3/scratch/"
                 "/appl/local/climatedt/"
                 "/appl/local/destine/"
-                "/flash/project_465000454/"
+                #"/flash/project_465000454/" #REMOVED SINCE IT LEADS TO COINTAINER HANG
                 "/projappl/"
                 "/project/"
                 "/scratch/"
@@ -257,6 +257,7 @@ done
 
 echo "Perfect! Now it's time to ride with AQUA ⛵"
 
+#singularity $cmd --cleanenv $env_args $AQUA_container $script
 singularity $cmd --cleanenv $env_args $bind_args $AQUA_container $script
 
 ##### To update any python package e.g. gsv interface, opa, aqua ######
