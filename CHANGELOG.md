@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Introduce `timeshift` option for the fixer to roll forward/back the time axis (#1411)
+- Update push-analysis.sh removing dependency on full AQUA and option not to convert to png (#1419)
 
 ## [v0.12.1]
 
