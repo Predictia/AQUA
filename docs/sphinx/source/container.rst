@@ -64,6 +64,10 @@ Otherwise some options can be passed to the script to avoid the interactive mode
    Load the container with the local version of AQUA found in the ``$AQUA`` environment variable.
    Without this option, it will load the container with the container version of AQUA.
 
+.. option:: -v <version>
+
+   Load a specific version of the AQUA container. The default is the "latest" version available on the machine
+
 .. option:: -e <script>
 
    Execute a command in the container after loading it.
