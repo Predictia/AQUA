@@ -1,0 +1,31 @@
+#!/bin/bash
+# --- EDIT THE SLURM DETAILS --- # 
+#SBATCH --job-name=aqua_container
+#SBATCH --partition={{ partition }}
+#SBATCH --account={{ account }}
+#SBATCH --nodes={{ nodes }}
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=02:00:00
+#SBATCH --error={{ logdir_error }}/aqua-container.err
+#SBATCH --output={{ logdir_output }}/aqua-container.out
+
+
+AQUA=$HOME/AQUA
+machine=levante
+
+
+#----------------------------------------------#
+
+bash $AQUA/cli/lumi-container/load_container_lumi.sh $machine <<EOF
+#!/bin/bash
+#--------------
+# You can edit below code for your required script.
+# This is just an example to run jupyter-lab in compute node.
+# You can run your own script here.
+
+# To run jupyter-lab in compute node
+# node=$(hostname -s)
+# port=$(shuf -i8000-9999 -n1)
+# jupyter-lab --no-browser --port=${port} --ip=${node}
+#--------------
+EOF
