@@ -10,7 +10,7 @@ from aqua.util import load_yaml, get_arg, OutputSaver, create_folder
 from aqua import Reader
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.logger import log_configure
-from aqua.diagnostics import GlobalBiases, Timeseries, Radiation
+from aqua.diagnostics import Radiation
 
 def parse_arguments(args):
     """Parse command line arguments"""
@@ -38,7 +38,6 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-
 if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
@@ -62,42 +61,35 @@ if __name__ == '__main__':
         logger.info(f"Running with {nworkers} dask distributed workers.")
 
     # Aquiring the configuration
-    file = get_arg(args, "config", "global_bias_config.yaml")
+    file = get_arg(args, "config", "radiation_config.yaml")
     logger.info(f"Reading configuration file {file}")
     config = load_yaml(file)
 
-    # Acquiring model, experiment and source
-    catalog_data = get_arg(args, 'catalog', config['data']['catalog'])
-    model_data = get_arg(args, 'model', config['data']['model'])
-    exp_data = get_arg(args, 'exp', config['data']['exp'])
-    source_data = get_arg(args, 'source', config['data']['source'])
-    
-    startdate_data = config['diagnostic_attributes'].get('startdate_data', None)  #aggiungere default
-    enddate_data = config['diagnostic_attributes'].get('enddate_data', None)
+    models = config['models']
+    models[0]['catalog'] = get_arg(args, 'catalog', models[0]['catalog'])
+    models[0]['model'] = get_arg(args, 'model', models[0]['model'])
+    models[0]['exp'] = get_arg(args, 'exp', models[0]['exp'])
+    models[0]['source'] = get_arg(args, 'source', models[0]['source'])
 
-    if startdate_data is None:
-        startdate_data = self.data.time[0].values  
+    logger.debug("Analyzing models:")
+    models_list = []
+    exp_list = []
+    datasets = []
+    variables = config['diagnostic_attributes'].get('variables', ['-mtnlwrf', 'mtnswrf'])
 
-    if enddate_data is None:
-        enddate_data = self.data.time[-1].values 
+    for model in models:
+        try:
+            reader = Reader(catalog = model['catalog'], model=model['model'], exp=model['exp'], source=model['source'])
+            dataset = reader.retrieve()   
+        except Exception as e:
+            logger.error(f"No model data found: {e}")
+            logger.critical("Radiation diagnostic is terminated.")
+            sys.exit(0)
+        datasets.append(dataset)
+        models_list.append(model['model'])
+        exp_list.append(model['exp'])
 
-
-    # Acquiring model, experiment and source for reference data
-    catalog_obs = config['obs']['catalog']
-    model_obs = config['obs']['model']
-    exp_obs = config['obs']['exp']
-    source_obs = config['obs']['source']
-
-    startdate_obs = config['diagnostic_attributes'].get('startdate_obs')
-    enddate_obs = config['diagnostic_attributes'].get('enddate_obs')
-
-    if startdate_obs is None:
-        startdate_obs = self.data.time[0].values  
-
-    if enddate_data is None:
-        enddate_data = self.data.time[-1].values 
-
-    #create output directory
+    #creating output directory
     outputdir = get_arg(args, "outputdir", config["outputdir"])
     out_pdf = os.path.join(outputdir, 'pdf')
     out_netcdf = os.path.join(outputdir, 'netcdf')
@@ -105,33 +97,13 @@ if __name__ == '__main__':
     create_folder(out_netcdf, loglevel)
 
     variables = config['diagnostic_attributes'].get('variables', [])
+
+    names = OutputSaver(diagnostic='radiation', model= models_list[0], exp = exp_list[0], loglevel=loglevel)
     
-    names = OutputSaver(diagnostic='radiation', model=model_data, exp=exp_data, loglevel=loglevel)
-
-    try:
-        reader = Reader(catalog = catalog_data, model=model_data, exp=exp_data, source=source_data, startdate=startdate_data, enddate=enddate_data, regrid='r100')
-        data = reader.retrieve()
-        data = data.regrid(data[variables])
-    except Exception as e:
-        logger.error(f"No model data found: {e}")
-        logger.critical("Global mean biases diagnostic is terminated.")
-        sys.exit(0)
-
-    try:
-        reader_ = Reader(catalog = catalog_obs, model=model_obs, exp=exp_obs, source=source_obs, startdate=startdate_obs, enddate=enddate_obs, regrid='r100')
-        data_obs = reader_obs.retrieve()
-        data_obs = data_obs.regrid(data_obs[variables])
-    except Exception as e:
-        logger.error(f"No observation data found: {e}")
-
-
-    #global biases
-    for var_name in variables:
-        logger.info(f"Producing bias map for {var_name}...")
-        try:
-            global_biases = GlobalBiases(data=data, data_ref = data_obs, var_name=var_name, plev=plev, loglevel=loglevel)
- 
-        except Exception as e:
-            logger.error(f"An unexpected error occurred: {e}")
-
-    logger.info("Global Biases diagnostic is terminated.")
+    logger.info("Boxplot generation")
+    radiation = Radiation()
+    result = radiation.boxplot(datasets=datasets, model_names=models_list, variables=variables)
+    if result is not None:
+        fig, ax = result  
+        names.generate_name(diagnostic_product='boxplot')
+        names.save_pdf(fig, path=out_pdf)

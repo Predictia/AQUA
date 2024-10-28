@@ -1,24 +1,24 @@
 # The first model in this block can be overridden
 # in the command line by using:
 # --model, --exp, --source, --outputdir, --catalog
-data:
-  - catalog: null
-    model: 'IFS-NEMO'
-    exp: 'historical-1990'
-    source: 'lra-r100-monthly'
+models:
+    - catalog: null
+      model: 'IFS-NEMO'
+      exp: 'historical-1990'
+      source: 'lra-r100-monthly'
 
-obs:
-  - catalog: null
-    model: 'ERA5'
-    exp: 'era5'
-    source: 'monthly'
-       
-  - catalog: null
-    model: 'ceres'
-    exp: 'ebaf-toa41'
-    source: 'monthly'
+    - catalog: null
+      model: 'ERA5'
+      exp: 'era5'
+      source: 'monthly'
+      
+    - catalog: null
+      model: 'CERES'
+      exp: 'ebaf-toa41'
+      source: 'monthly'
+
 
 outputdir: "./"
 
 diagnostic_attributes:
-  variables: ['mtnlwrf', 'mtnswrf']
+  variables: ['-mtnlwrf', 'mtnswrf']

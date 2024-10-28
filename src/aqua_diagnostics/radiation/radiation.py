@@ -9,7 +9,7 @@ xr.set_options(keep_attrs=True)
 
 class Radiation:
 
-    def boxplot(datasets=None, model_names=None, variables=None):
+    def boxplot(self, datasets=None, model_names=None, variables=None):
         """
         Generate a boxplot showing the uncertainty of a global variable for different models.
 
@@ -51,16 +51,17 @@ class Radiation:
                 units = dataset[var_name].attrs.get('units', 'Unknown')
                 logger.info(f'Processed variable {var_name} for dataset {model_name} with units {units}.')
 
-        # Plotting the boxplot
-        logger.info('Plotting the boxplot.')
+        logger.info(f'Producing boxplot for variables {variables}')
         df = pd.DataFrame(boxplot_data)
-        plt.figure(figsize=(12, 8))
-        sns.boxplot(data=df, x='Variables', y='Values', hue='Datasets')
-        plt.title('Global Mean Variables Boxplot')
-        plt.xlabel('Variables')
-        plt.ylabel(f'Values [{units}]')
-        plt.xticks(fontsize=fontsize)
-        plt.yticks(fontsize=fontsize)
-        plt.legend(loc='upper right', fontsize=fontsize)
-        plt.grid(True)
-        plt.show()
+        fig, ax = plt.subplots(figsize=(12, 8))
+        sns.boxplot(data=df, x='Variables', y='Values', hue='Datasets', ax=ax)
+        ax.set_title('Global mean radiation for different models')
+        ax.set_xlabel('Variables')
+        ax.set_ylabel(f'Values [{units}]')
+        ax.tick_params(axis='both', labelsize=fontsize)
+        ax.legend(loc='upper right', fontsize=fontsize)
+        ax.grid(True)
+
+        return fig, ax  
+
+
