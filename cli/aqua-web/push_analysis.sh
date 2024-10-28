@@ -113,7 +113,7 @@ while [[ $# -gt 2 ]]; do
         shift
         ;;
     -n|--no-convert)
-        noconvert=0
+        convert=0
         shift
         ;;
     -l|--loglevel)
@@ -138,7 +138,7 @@ exps=$2
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ ! -f "$SCRIPT_DIR/../util/logger.sh" ]; then
-    echo "Error: $SCRIPT_DIR/../util/logger.sh not found, using dummy logger"
+    echo "Warning: $SCRIPT_DIR/../util/logger.sh not found, using dummy logger"
     # Define a dummy log_message function
     function log_message() {
         echo "$2"
@@ -150,6 +150,10 @@ else
 fi
 
 log_message INFO "Processing $indir"
+
+if [ "$convert" -eq 0 ]; then
+    log_message INFO "Conversion of PDFs to PNGs suppressed"
+fi
 
 if [ -n "$repository" ]; then
     log_message INFO "Using local aqua-web repository: $repository"
