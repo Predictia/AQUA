@@ -55,6 +55,8 @@ def lra_parser(parser = None):
                         help='source to be processed. Use with coherence with --exp and --var')
     parser.add_argument('-v', '--var', type=str,
                         help='var to be processed. Use with coherence with --source')
+    #parser.add_argument('-r', '--realization', type=str,
+    #                    help="realization to be processed. Use with coherence with --var")
 
     #return parser.parse_args(arguments)
     return parser
@@ -149,7 +151,7 @@ def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, l
             sources = to_list(get_arg(args, 'source', config['data'][model][exp].keys()))
             for source in sources:
                 # get info on potential realizations
-                realizations = get_arg(args, 'var', config['data'][model][exp][source].get('realizations'))
+                realizations = config['data'][model][exp][source].get('realizations')
                 loop_realizations = to_list(realizations) if realizations is not None else [1]
 
                 # get info on varlist and workers

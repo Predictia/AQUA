@@ -6,6 +6,7 @@ import argparse
 from aqua.logger import log_configure
 from aqua.util import load_yaml
 
+
 def run_command(cmd: str, *, log_file: str = None, logger=None) -> int:
     """
     Run a system command and capture the exit code, redirecting output to the specified log file.
@@ -30,6 +31,7 @@ def run_command(cmd: str, *, log_file: str = None, logger=None) -> int:
         logger.error(f"Error running command {cmd}: {e}")
         raise
 
+
 def run_diagnostic(diagnostic: str, *, script_path: str, extra_args: str, loglevel: str, logger, logfile: str):
     """
     Run the diagnostic script with specified arguments.
@@ -48,7 +50,7 @@ def run_diagnostic(diagnostic: str, *, script_path: str, extra_args: str, loglev
         logger.debug(f"Command: {cmd}")
 
         process = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        stdout, stderr = process.stdout, process.stderr
+        _, stderr = process.stdout, process.stderr
 
         if process.returncode != 0:
             logger.error(f"Error running diagnostic {diagnostic}: {stderr}")
@@ -57,24 +59,28 @@ def run_diagnostic(diagnostic: str, *, script_path: str, extra_args: str, loglev
     except Exception as e:
         logger.error(f"Failed to run diagnostic {diagnostic}: {e}")
 
+
 def get_args():
     """
     Parse command-line arguments.
     """
     parser = argparse.ArgumentParser(description="Run diagnostics for the AQUA project.")
-    
+
     parser.add_argument("-a", "--model_atm", type=str, help="Atmospheric model")
     parser.add_argument("-o", "--model_oce", type=str, help="Oceanic model")
     parser.add_argument("-m", "--model", type=str, help="Model (atmospheric and oceanic)")
     parser.add_argument("-e", "--exp", type=str, help="Experiment")
     parser.add_argument("-s", "--source", type=str, help="Source")
-    parser.add_argument("-f", "--config", type=str, default="$AQUA/cli/aqua-analysis/config.aqua-analysis.yaml", help="Configuration file")
+    parser.add_argument("-f", "--config", type=str, default="$AQUA/cli/aqua-analysis/config.aqua-analysis.yaml",
+                        help="Configuration file")
     parser.add_argument("-d", "--outputdir", type=str, help="Output directory")
     parser.add_argument("-c", "--catalog", type=str, help="Catalog")
     parser.add_argument("-p", "--parallel", action="store_true", help="Run diagnostics in parallel")
     parser.add_argument("-t", "--threads", type=int, default=-1, help="Maximum number of threads")
-    parser.add_argument("-l", "--loglevel", type=lambda s: s.upper(), choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], default="WARNING", help="Log level")
-    
+    parser.add_argument("-l", "--loglevel", type=lambda s: s.upper(),
+                        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+                        default="WARNING", help="Log level")
+
     return parser.parse_args()
 
 
@@ -107,6 +113,7 @@ def get_aqua_paths(*, args, logger):
     except Exception as e:
         logger.error(f"Error getting AQUA path or config: {e}")
         sys.exit(1)
+
 
 def run_diagnostic_func(diagnostic: str, *, parallel: bool, config, model, exp, source, output_dir, loglevel, logger, AQUA):
     """
@@ -233,6 +240,7 @@ def main():
                 logger.error(f"Diagnostic raised an exception: {e}")
 
     logger.info("All diagnostics finished successfully.")
+
 
 if __name__ == "__main__":
     main()
