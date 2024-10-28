@@ -59,6 +59,10 @@ The scripts are located in the ``cli/container/load_AQUA_container.sh``, and it 
 The script can be called and will guide the user to load the container in an interactive way.
 Otherwise some options can be passed to the script to avoid the interactive mode, for example in a batch job.
 
+.. option:: machine
+
+   Mandatory argument, could be Levante, Lumi or MN5. This set env variables and bindings which are specifically required.
+
 .. option:: --local
 
    Load the container with the local version of AQUA found in the ``$AQUA`` environment variable.
