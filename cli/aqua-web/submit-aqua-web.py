@@ -9,6 +9,7 @@ import argparse
 import re
 import sys
 import os
+import uuid
 from jinja2 import Template
 from ruamel.yaml import YAML
 from tempfile import NamedTemporaryFile
@@ -49,7 +50,10 @@ class Submitter():
         self.parallel = parallel
         self.wipe = wipe
         self.local = local
-        self.fresh = fresh
+        if fresh:
+            self.fresh = f"/tmp{str(uuid.uuid4())[:13]}"
+        else:
+            self.fresh = ""
 
     def is_job_running(self, job_name, username):
         """verify that a job name is not already submitted in the slurm queue"""
@@ -108,10 +112,8 @@ class Submitter():
             definitions['localaqua'] = '-y'
         else:
             definitions['localaqua'] = '-n'
-        if self.fresh:
-            definitions['fresh'] = 'true'
-        else:
-            definitions['fresh'] = 'false'
+
+        definitions['fresh'] = self.fresh
 
         username = definitions['username']
         jobname = definitions.get('jobname', 'aqua-web')
@@ -189,10 +191,8 @@ class Submitter():
             definitions['localaqua'] = '-y'
         else:
             definitions['localaqua'] = '-n'
-        if self.fresh:
-            definitions['fresh'] = 'true'
-        else:
-            definitions['fresh'] = 'false'
+
+        definitions['fresh'] = self.fresh
 
         with open(self.template, 'r', encoding='utf-8') as file:
             rendered_job  = Template(file.read()).render(definitions)

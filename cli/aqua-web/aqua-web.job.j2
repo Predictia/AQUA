@@ -12,11 +12,7 @@ model={{ model }}
 exp={{ exp }}
 source={{ source }}
 
-if [[ "{{ fresh }}" == "true" ]]; then
-    export OUTDIR={{ outdir }}/temp_$$
-else
-    export OUTDIR={{ outdir }}
-fi
+export OUTDIR={{ outdir }}{{ fresh }}
 export AQUA={{ aquadir }}
 
 mkdir -p $OUTDIR
