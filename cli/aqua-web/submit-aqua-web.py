@@ -119,7 +119,7 @@ class Submitter():
         jobname = definitions.get('jobname', 'aqua-web')
 
         # create identifier for each model-exp-source-var tuple
-        full_job_name = jobname + '_' + "_".join([model, exp, source])
+        full_job_name = jobname + '_' + "_".join([catalog, model, exp, source])
         definitions['job_name'] = full_job_name
 
         definitions['output'] = full_job_name + '_%j.out'
