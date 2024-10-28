@@ -145,8 +145,8 @@ if [ ! -f "$SCRIPT_DIR/../util/logger.sh" ]; then
     }
 else
     source "$SCRIPT_DIR/../util/logger.sh"
-    log_message DEBUG "Sourcing logger.sh from: $SCRIPT_DIR/../util/logger.sh"
     setup_log_level $loglevel # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
+    log_message DEBUG "Sourcing logger.sh from: $SCRIPT_DIR/../util/logger.sh"
 fi
 
 log_message INFO "Processing $indir"
