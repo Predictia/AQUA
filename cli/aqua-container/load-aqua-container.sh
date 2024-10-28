@@ -6,8 +6,8 @@ set -e
 #------------ Support for levante, lumi and MN5 ---------------#
 #--------------------------------------------------------------#
 
-# set AQUA container version from here
-version="0.12.1"
+# Set default AQUA container version
+version="latest"
 
 #--------------------------------------------------------------#
 #--------------------------Parsing block-----------------------#
@@ -22,17 +22,19 @@ usage() {
                                  Machine supported are Lumi, Levante and MN5
 
     Options:
-        --local                  Enable local mode: AQUA will read from local env variable. 
-        -s <script>              Execute a exectuable bash or python script.
+        --local                  Enable local mode: AQUA will read from local env variable.
+        -s <script>              Execute an executable bash or python script.
         -e <command>             Execute a shell command.
+        -v <version>             Specify the AQUA container version (default: "latest").
         -h, --help               Display this help message.
 
     Examples:
         $0 lumi --local
         $0 lumi -s my_script.py
         $0 lumi -e "echo 'I love AQUA so much!'"
+        $0 lumi -v 0.12.1
 EOF
-        exit 1
+    exit 1
 }
 
 # Parse the mandatory machine argument and options
@@ -49,12 +51,12 @@ parse_machine() {
     shift  # Shift the first argument to process options
 
     # Default values for options
-    local_mode=0 # AQUA read from container 
-    script="" #script to be read as argument
-    cmd="shell" #standard container init
+    local_mode=0  # AQUA reads from container 
+    script=""     # Script to be read as argument
+    cmd="shell"   # Standard container init
 
     # Use getopt to parse options
-    OPTIONS=$(getopt -o he:s: --long help,local -n "$0" -- "$@")
+    OPTIONS=$(getopt -o he:s:v: --long help,local -n "$0" -- "$@")
     if [ $? -ne 0 ]; then
         usage
     fi
@@ -64,28 +66,31 @@ parse_machine() {
     while true; do
         case "$1" in
             --local)
-                local_mode=1;   shift  ;;
+                local_mode=1; shift ;;
             -e)
-                cmd="exec";     script="bash $2" ;    shift 2 ;;
+                cmd="exec"; script="bash $2"; shift 2 ;;
             -s)
-                cmd="exec";     script="./$2" ;       shift 2 ;;
+                cmd="exec"; script="./$2"; shift 2 ;;
+            -v)
+                version="$2"; shift 2 ;;
             -h | --help)
-                usage   ;;
+                usage ;;
             --)
                 shift
                 break   
                 ;;
             *)
                 echo "ERROR: Invalid option '$1'"
-                usage   ;;
+                usage ;;
         esac
     done
 
-   # set up global variable for local mode
+    # Set up global variable for local mode
     echo "Machine is set to: $machine"
+    echo "AQUA version is set to: $version"
     [ "$local_mode" -eq 1 ] && echo "Local mode is enabled: AQUA will use local installation instead of container one."
 
-    if [[ "$local_mode" -eq 0 ]] ;  then
+    if [[ "$local_mode" -eq 0 ]]; then
         export AQUA="/app/AQUA"
         echo "Selecting the AQUA path $AQUA from the container."
     else
@@ -98,7 +103,7 @@ parse_machine() {
         branch_name=$(git -C "$AQUA" rev-parse --abbrev-ref HEAD)
         echo "Current branch: $branch_name"
         last_commit=$(git -C "$AQUA" log -1 --pretty=format:"%h %an: %s")
-        echo "Last commit: $last_commit"  
+        echo "Last commit: $last_commit"
     fi  
 
 }
@@ -133,6 +138,16 @@ function setup_container_path(){
     if [ ! -f "$AQUA_container" ]; then
         echo "ERROR: The AQUA container does not exist at: $AQUA_container"
         exit 1
+    fi
+
+    if [ ${version} == "latest" ] ; then
+        resolved_path=$(readlink "$AQUA_container")
+
+        if [ -n "$resolved_path" ]; then
+            AQUA_container="$AQUA_folder/$resolved_path"
+        else
+            echo "Warning: Unable to resolve the symlink for $AQUA_container. Using the specified path instead."
+        fi
     fi
 
     echo "${AQUA_container}"
