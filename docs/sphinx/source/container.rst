@@ -72,7 +72,7 @@ Otherwise some options can be passed to the script to avoid the interactive mode
 
    Load a specific version of the AQUA container. The default is the "latest" version available on the machine
 
-.. option:: -e <script>
+.. option:: -c <script>
 
    Execute a command in the container after loading it.
 

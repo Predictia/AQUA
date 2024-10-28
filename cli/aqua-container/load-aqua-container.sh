@@ -24,14 +24,14 @@ usage() {
     Options:
         --local                  Enable local mode: AQUA will read from local env variable.
         -s <script>              Execute an executable bash or python script.
-        -e <command>             Execute a shell command.
+        -c <command>             Execute a shell command.
         -v <version>             Specify the AQUA container version (default: "latest").
         -h, --help               Display this help message.
 
     Examples:
         $0 lumi --local
         $0 lumi -s my_script.py
-        $0 lumi -e "echo 'I love AQUA so much!'"
+        $0 lumi -c "echo 'I love AQUA so much!'"
         $0 lumi -v 0.12.1
 EOF
     exit 1
@@ -54,9 +54,10 @@ parse_machine() {
     local_mode=0  # AQUA reads from container 
     script=""     # Script to be read as argument
     cmd="shell"   # Standard container init
-
+    mode=""    # Container mode: none, script or bash
+ 
     # Use getopt to parse options
-    OPTIONS=$(getopt -o he:s:v: --long help,local -n "$0" -- "$@")
+    OPTIONS=$(getopt -o hc:s:v: --long help,local -n "$0" -- "$@")
     if [ $? -ne 0 ]; then
         usage
     fi
@@ -67,10 +68,10 @@ parse_machine() {
         case "$1" in
             --local)
                 local_mode=1; shift ;;
-            -e)
-                cmd="exec"; script="bash $2"; shift 2 ;;
+            -c)
+                mode="bash"; cmd="exec"; script=$2; shift 2 ;;
             -s)
-                cmd="exec"; script="./$2"; shift 2 ;;
+                mode="script"; cmd="exec"; script=$2; shift 2 ;;
             -v)
                 version="$2"; shift 2 ;;
             -h | --help)
@@ -88,8 +89,9 @@ parse_machine() {
     # Set up global variable for local mode
     echo "Machine is set to: $machine"
     echo "AQUA version is set to: $version"
-    [ "$local_mode" -eq 1 ] && echo "Local mode is enabled: AQUA will use local installation instead of container one."
 
+    # Local model configuration
+    [ "$local_mode" -eq 1 ] && echo "Local mode is enabled: AQUA will use local installation instead of container one."
     if [[ "$local_mode" -eq 0 ]]; then
         export AQUA="/app/AQUA"
         echo "Selecting the AQUA path $AQUA from the container."
@@ -104,7 +106,21 @@ parse_machine() {
         echo "Current branch: $branch_name"
         last_commit=$(git -C "$AQUA" log -1 --pretty=format:"%h %an: %s")
         echo "Last commit: $last_commit"
-    fi  
+    fi
+
+    # Container mode configuration
+    if [[ "$mode" == "script" ]]; then
+        if [[ -f $script ]]; then
+            echo "Running script: $script"
+            script="./$script"
+        else
+            echo "ERROR: Cannot find script $script to run"
+            exit 1
+        fi 
+    elif [[ "$mode" == "bash" ]]; then
+        echo "Executing command line: $script"
+    fi
+
 
 }
 
@@ -128,16 +144,16 @@ function setup_container_path(){
             ;;
         
         *)
-            echo "ERROR: The machine $machine is not supported"
-            exit 1
+            echo "ERROR: The machine $machine is not supported" >&2
+            return 1
             ;;
     esac
 
     AQUA_container="$AQUA_folder/aqua_${version}.sif"
 
     if [ ! -f "$AQUA_container" ]; then
-        echo "ERROR: The AQUA container does not exist at: $AQUA_container"
-        exit 1
+        echo "ERROR: The AQUA container does not exist at: $AQUA_container" >&2
+        return 1
     fi
 
     if [ ${version} == "latest" ] ; then
@@ -146,7 +162,7 @@ function setup_container_path(){
         if [ -n "$resolved_path" ]; then
             AQUA_container="$AQUA_folder/$resolved_path"
         else
-            echo "Warning: Unable to resolve the symlink for $AQUA_container. Using the specified path instead."
+            echo "Warning: Unable to resolve the symlink for $AQUA_container. Using the specified path instead." >&2
         fi
     fi
 
@@ -173,8 +189,8 @@ function setup_envs(){
             ESMFMKFILE="/opt/conda/lib/esmf.mk"
             ;;
         *)
-            echo "ERROR: The machine $machine is not supported"
-            exit 1
+            echo "ERROR: The machine $machine is not supported" >&2
+            return 1
             ;;
     esac
 
@@ -223,8 +239,8 @@ function setup_binds(){
             ;;
 
         *)
-            echo "ERROR: The machine $machine is not supported"
-            exit 1
+            echo "ERROR: The machine $machine is not supported" >&2
+            return 1
             ;;
     esac
 
@@ -239,7 +255,7 @@ function setup_binds(){
 parse_machine "$@"
 
 # Call the function and assign its output to a variable
-AQUA_container=$(setup_container_path $machine)
+AQUA_container="$(setup_container_path $machine)"
 if [ $? -ne 0 ]; then
     echo "Cannot find the container!"
     exit 1
@@ -272,7 +288,7 @@ done
 
 echo "Perfect! Now it's time to ride with AQUA ⛵"
 
-#singularity $cmd --cleanenv $env_args $AQUA_container $script
+#echo "singularity $cmd --cleanenv $env_args $bind_args $AQUA_container $script"
 singularity $cmd --cleanenv $env_args $bind_args $AQUA_container $script
 
 ##### To update any python package e.g. gsv interface, opa, aqua ######
