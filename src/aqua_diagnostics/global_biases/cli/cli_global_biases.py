@@ -3,6 +3,7 @@ import sys
 import os
 import argparse
 from dask.distributed import Client, LocalCluster
+import pandas as pd
 
 from aqua.util import load_yaml, get_arg, OutputSaver, create_folder
 from aqua import Reader
@@ -85,6 +86,11 @@ def main():
         reader = Reader(catalog=catalog_data, model=model_data, exp=exp_data, source=source_data,
                         startdate=startdate_data, enddate=enddate_data)
         data = reader.retrieve()
+
+        # Calculate 'tnr' if applicable
+        if 'tnr' in variables:
+            data['tnr'] = data['mtnlwrf'] + data['mtnswrf']
+
     except Exception as e:
         logger.error(f"No model data found: {e}")
         sys.exit("Global biases diagnostic terminated.")
@@ -93,14 +99,19 @@ def main():
         reader_obs = Reader(catalog=catalog_obs, model=model_obs, exp=exp_obs, source=source_obs,
                             startdate=startdate_obs, enddate=enddate_obs, loglevel=loglevel)
         data_obs = reader_obs.retrieve()
+
+        # Calculate 'tnr' for observations if applicable
+        if 'tnr' in variables:
+            data_obs['tnr'] = data_obs['mtnlwrf'] + data_obs['mtnswrf']
+
     except Exception as e:
         logger.error(f"No observation data found: {e}")
 
     # Update date attributes with data if not set in config
-    startdate_data = startdate_data or data.time[0].values
-    enddate_data = enddate_data or data.time[-1].values
-    startdate_obs = startdate_obs or data_obs.time[0].values
-    enddate_obs = enddate_obs or data_obs.time[-1].values
+    startdate_data = startdate_data or pd.to_datetime(data.time[0].values).strftime('%Y-%m-%d')
+    enddate_data = enddate_data or pd.to_datetime(data.time[-1].values).strftime('%Y-%m-%d')
+    startdate_obs = startdate_obs or pd.to_datetime(data_obs.time[0].values).strftime('%Y-%m-%d')
+    enddate_obs = enddate_obs or pd.to_datetime(data_obs.time[-1].values).strftime('%Y-%m-%d')
 
     # Loop over variables for diagnostics
     for var_name in variables:
