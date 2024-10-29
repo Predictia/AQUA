@@ -132,6 +132,18 @@ Additional options
 
     Title for the automatic PR (optional).
 
+.. option:: -w, --wipe
+    
+        Wipe the destination directory before copying the images.
+
+.. option:: -n, --no-convert
+    
+        Do not convert PDFs to PNGs.
+
+.. option:: -l, --loglevel LEVEL
+        
+            Set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2.
+
 Another script is used to upload the documentation to the aqua-web repository.
 
 .. code-block:: bash
