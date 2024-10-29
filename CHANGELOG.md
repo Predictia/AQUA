@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+AQUA core complete list:
+- Introduce `timeshift` option for the fixer to roll forward/back the time axis (#1411)
+- Pin to xarray<2024.09 to prevent bug in polyfit requires temporary (#1420)
+- Remove spurious dimensions when running `fldmean()` (#1423)
+
 ## [v0.12.1]
 
 AQUA core complete list:

@@ -84,11 +84,13 @@ singularity $cmd \
     --bind /pfs/lustrep3/scratch/ \
     --bind /appl/local/climatedt/ \
     --bind /appl/local/destine/ \
-    --bind /flash/project_465000454 \
     --bind /projappl/ \
     --bind /project \
     --bind /scratch/ \
     $AQUA_container $script
+
+# Removed because not needed/not working
+#     --bind /flash/project_465000454 \
 
 # Run this script in LUMI in VSCode 
 
