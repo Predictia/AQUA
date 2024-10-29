@@ -774,19 +774,37 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
 
     def _clean_spourious_coords(self, data, name=None):
         """
-        Function to remove spurious coordinate associated to coordinates
-        e.g. time as a coordinate of lat/lon
+        Remove spurious coordinates from an xarray DataArray or Dataset.
+
+        This function identifies and removes unnecessary coordinates that may 
+        be incorrectly associated with spatial coordinates, such as a time 
+        coordinate being linked to latitude or longitude.
+
+        Parameters:
+        ----------
+        data : xarray.DataArray or xarray.Dataset
+            The input data object from which spurious coordinates will be removed.
+
+        name : str, optional
+            An optional name or identifier for the data. This will be used in 
+            warning messages to indicate which dataset the issue pertains to.
+
+        Returns:
+        -------
+        xarray.DataArray or xarray.Dataset
+            The cleaned data object with spurious coordinates removed.
         """
 
-        drop_coord = []
+        drop_coords = set()
         for coord in list(data.coords):
             if len(data[coord].coords)>1:
-                drop_coord = drop_coord + ([koord for koord in data[coord].coords if koord != coord])
-        if drop_coord:
-            self.logger.warning('Issue found in %s, removing %s coordinates',
-                                name, list(set(drop_coord)))
+                drop_coords.update(koord for koord in data[coord].coords if koord != coord)
+        if not drop_coords:
+            return data
+        self.logger.warning('Issue found in %s, removing %s coordinates',
+                                name, list(drop_coords))
+        return data.drop_vars(drop_coords)
 
-        return data.drop_vars(set(drop_coord))
 
     def fldmean(self, data, lon_limits=None, lat_limits=None, **kwargs):
         """
