@@ -22,7 +22,7 @@ usage() {
                                  Machine supported are Lumi, Levante and MN5
 
     Options:
-        --local                  Enable local mode: AQUA will read from local env variable.
+        --native                 Enable local mode: AQUA will read from local env variable.
         -s <script>              Execute an executable bash or python script.
         -c <command>             Execute a shell command.
         -v <version>             Specify the AQUA container version (default: "latest").
@@ -57,7 +57,7 @@ parse_machine() {
     mode=""    # Container mode: none, script or bash
  
     # Use getopt to parse options
-    OPTIONS=$(getopt -o hc:s:v: --long help,local -n "$0" -- "$@")
+    OPTIONS=$(getopt -o hc:s:v: --long help,native -n "$0" -- "$@")
     if [ $? -ne 0 ]; then
         usage
     fi
@@ -66,7 +66,7 @@ parse_machine() {
     # Process each option
     while true; do
         case "$1" in
-            --local)
+            --native)
                 local_mode=1; shift ;;
             -c)
                 mode="bash"; cmd="exec"; script=$2; shift 2 ;;

@@ -63,9 +63,9 @@ Otherwise some options can be passed to the script to avoid the interactive mode
 
    Mandatory argument, could be Levante, Lumi or MN5. This set env variables and bindings which are specifically required.
 
-.. option:: --local
+.. option:: --native
 
-   Load the container with the local version of AQUA found in the ``$AQUA`` environment variable.
+   Load the container with the local version of AQUA found in the ``$AQUA`` environment variable (which must be defined).
    Without this option, it will load the container with the container version of AQUA.
 
 .. option:: -v <version>
