@@ -63,24 +63,24 @@ Otherwise some options can be passed to the script to avoid the interactive mode
 
    Mandatory argument, could be Levante, Lumi or MN5. This set env variables and bindings which are specifically required.
 
-.. option:: --native
+.. option:: -n, --native
 
    Load the container with the local version of AQUA found in the ``$AQUA`` environment variable (which must be defined).
    Without this option, it will load the container with the container version of AQUA.
 
-.. option:: -v <version>
+.. option:: -v, --version <version>
 
    Load a specific version of the AQUA container. The default is the "latest" version available on the machine
 
-.. option:: -c <script>
+.. option:: -c, --command <script>
 
    Execute a command in the container after loading it.
 
-.. option:: -s <command>
+.. option:: -s, --script <command>
 
    Execute an executable script (e.g. python or bash) after loading it.
 
-.. option:: -h
+.. option:: -h, --help
    
    Show the help message.
 

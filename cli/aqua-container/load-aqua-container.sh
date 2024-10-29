@@ -57,7 +57,7 @@ parse_machine() {
     mode=""    # Container mode: none, script or bash
  
     # Use getopt to parse options
-    OPTIONS=$(getopt -o hc:s:v: --long help,native -n "$0" -- "$@")
+    OPTIONS=$(getopt -o hnc:s:v: --long help,native,version:,command:,script: -n "$0" -- "$@")
     if [ $? -ne 0 ]; then
         usage
     fi
@@ -66,13 +66,13 @@ parse_machine() {
     # Process each option
     while true; do
         case "$1" in
-            --native)
+            -n|--native)
                 native_mode=1; shift ;;
-            -c)
+            -c|command)
                 mode="bash"; cmd="exec"; script=$2; shift 2 ;;
-            -s)
+            -s|script)
                 mode="script"; cmd="exec"; script=$2; shift 2 ;;
-            -v)
+            -v|--version)
                 version="$2"; shift 2 ;;
             -h | --help)
                 usage ;;
