@@ -68,9 +68,9 @@ parse_machine() {
         case "$1" in
             -n|--native)
                 native_mode=1; shift ;;
-            -c|command)
+            -c|--command)
                 mode="bash"; cmd="exec"; script=$2; shift 2 ;;
-            -s|script)
+            -s|--script)
                 mode="script"; cmd="exec"; script=$2; shift 2 ;;
             -v|--version)
                 version="$2"; shift 2 ;;
