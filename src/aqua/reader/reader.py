@@ -775,6 +775,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
     def _clean_spourious_coords(self, data, name=None):
         """
         Function to remove spurious coordinate associated to coordinates
+        e.g. time as a coordinate of lat/lon
         """
 
         drop_coord = []
@@ -786,15 +787,6 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
                                 name, list(set(drop_coord)))
 
         return data.drop_vars(set(drop_coord))
-
-        # for coord in data.coords:
-        #     if len(data[coord].coords)>1:
-        #         # check https://github.com/oloapinivad/AQUA/pull/397 for further info
-        #         drop_coords = [koord for koord in data[coord].coords if koord != coord]
-        #         
-        #         cleaned_coord = data[coord].drop_vars(drop_coords)
-        #         data = data.assign_coords({coord: cleaned_coord})
-        # return data
 
     def fldmean(self, data, lon_limits=None, lat_limits=None, **kwargs):
         """
@@ -840,7 +832,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
                 if coord in space_coord:
                     xcoord = data.coords[coord]
 
-                    # option1: shape different
+                    # first case: shape different
                     if len(grid_area[coord]) != len(xcoord):
                         raise ValueError(f'{coord} has different shape between area files and your dataset.'
                                         'If using the LRA, try setting the regrid=r100 option') from err
@@ -848,13 +840,9 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
                     if not grid_area[coord].equals(xcoord):
                         # if they are fine when sorted, there is a sorting mismatch
                         if grid_area[coord].sortby(coord).equals(xcoord.sortby(coord)):
-                        # change the equality mechanism verifying only the values to avoid issue in metadata
-                        # if np.array_equal(self.grid_area[coord].sortby(coord).values, xcoord.sortby(coord).values):
                             self.logger.warning('%s is sorted in different way between area files and your dataset. Flipping it!',
                                                 coord)
                             grid_area = grid_area.reindex({coord: list(reversed(grid_area[coord]))})
-                            # raise ValueError(f'{coord} is sorted in different way between area files and your dataset.') from err
-                        # something else
                         else:
                             raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
 
