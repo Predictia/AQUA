@@ -7,6 +7,7 @@ import shutil
 import intake_esm
 import intake_xarray
 import xarray as xr
+import numpy as np
 import smmregrid as rg
 
 from aqua.util import load_multi_yaml, files_exist
@@ -771,6 +772,30 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
 
         return att.get("regridded", False)
 
+    def _clean_spourious_coords(self, data, name=None):
+        """
+        Function to remove spurious coordinate associated to coordinates
+        """
+
+        drop_coord = []
+        for coord in list(data.coords):
+            if len(data[coord].coords)>1:
+                drop_coord = drop_coord + ([koord for koord in data[coord].coords if koord != coord])
+        if drop_coord:
+            self.logger.warning('Issue found in %s, removing %s coordinates',
+                                name, list(set(drop_coord)))
+
+        return data.drop_vars(set(drop_coord))
+
+        # for coord in data.coords:
+        #     if len(data[coord].coords)>1:
+        #         # check https://github.com/oloapinivad/AQUA/pull/397 for further info
+        #         drop_coords = [koord for koord in data[coord].coords if koord != coord]
+        #         
+        #         cleaned_coord = data[coord].drop_vars(drop_coords)
+        #         data = data.assign_coords({coord: cleaned_coord})
+        # return data
+
     def fldmean(self, data, lon_limits=None, lat_limits=None, **kwargs):
         """
         Perform a weighted global average.
@@ -802,36 +827,36 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
             data = area_selection(data, lon=lon_limits, lat=lat_limits,
                                   loglevel=self.loglevel, **kwargs)
 
+        # cleaning coordinates which have "multiple" coordinates in their own definition
+        grid_area = self._clean_spourious_coords(grid_area, name = "area")
+        data = self._clean_spourious_coords(data, name = "data")
+
         # check if coordinates are aligned
         try:
             xr.align(grid_area, data, join='exact')
         except ValueError as err:
             # check in the dimensions what is wrong
-            for coord in self.grid_area.coords:
+            for coord in grid_area.coords:
+                if coord in space_coord:
+                    xcoord = data.coords[coord]
 
-                xcoord = data.coords[coord]
-                # HACK to solve minor issue in xarray
-                # check https://github.com/oloapinivad/AQUA/pull/397 for further info
-                if len(xcoord.coords) > 1:
-                    self.logger.warning('Issue found in %s, removing spurious coordinates', coord)
-                    drop_coords = [koord for koord in xcoord.coords if koord != coord]
-                    xcoord = xcoord.drop_vars(drop_coords)
-
-                # option1: shape different
-                if len(self.grid_area[coord]) != len(xcoord):
-                    raise ValueError(f'{coord} has different shape between area files and your dataset.'
-                                     'If using the LRA, try setting the regrid=r100 option') from err
-                # shape are ok, but coords are different
-                if not self.grid_area[coord].equals(xcoord):
-                    # if they are fine when sorted, there is a sorting mismatch
-                    if self.grid_area[coord].sortby(coord).equals(xcoord.sortby(coord)):
-                        self.logger.warning('%s is sorted in different way between area files and your dataset. Flipping it!',
-                                            coord)
-                        self.grid_area = self.grid_area.reindex({coord: list(reversed(self.grid_area[coord]))})
-                        # raise ValueError(f'{coord} is sorted in different way between area files and your dataset.') from err
-                    # something else
-                    else:
-                        raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
+                    # option1: shape different
+                    if len(grid_area[coord]) != len(xcoord):
+                        raise ValueError(f'{coord} has different shape between area files and your dataset.'
+                                        'If using the LRA, try setting the regrid=r100 option') from err
+                    # shape are ok, but coords are different
+                    if not grid_area[coord].equals(xcoord):
+                        # if they are fine when sorted, there is a sorting mismatch
+                        if grid_area[coord].sortby(coord).equals(xcoord.sortby(coord)):
+                        # change the equality mechanism verifying only the values to avoid issue in metadata
+                        #if np.array_equal(self.grid_area[coord].sortby(coord).values, xcoord.sortby(coord).values):
+                            self.logger.warning('%s is sorted in different way between area files and your dataset. Flipping it!',
+                                                coord)
+                            grid_area = grid_area.reindex({coord: list(reversed(grid_area[coord]))})
+                            # raise ValueError(f'{coord} is sorted in different way between area files and your dataset.') from err
+                        # something else
+                        else:
+                            raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
 
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
