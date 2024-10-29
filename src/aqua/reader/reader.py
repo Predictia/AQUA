@@ -849,7 +849,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
                         # if they are fine when sorted, there is a sorting mismatch
                         if grid_area[coord].sortby(coord).equals(xcoord.sortby(coord)):
                         # change the equality mechanism verifying only the values to avoid issue in metadata
-                        #if np.array_equal(self.grid_area[coord].sortby(coord).values, xcoord.sortby(coord).values):
+                        # if np.array_equal(self.grid_area[coord].sortby(coord).values, xcoord.sortby(coord).values):
                             self.logger.warning('%s is sorted in different way between area files and your dataset. Flipping it!',
                                                 coord)
                             grid_area = grid_area.reindex({coord: list(reversed(grid_area[coord]))})
