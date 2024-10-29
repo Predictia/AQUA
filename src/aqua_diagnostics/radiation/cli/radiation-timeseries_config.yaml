@@ -1,0 +1,35 @@
+# The first model in this block can be overridden
+# in the command line by using:
+# --model, --exp, --source, --outputdir, --catalog
+models:
+  - catalog: null
+    model: 'IFS-NEMO'
+    exp: 'historical-1990'
+    source: 'lra-r100-monthly'
+outputdir: "/users/caprioli/AQUA/src/aqua_diagnostics/radiation/cli"
+
+# This is the list of variables that will be plotted as timeseries
+timeseries: ['mtnlwrf', 'mtnswrf']
+timeseries_formulae: ['mtnlwrf+mtnswrf']
+
+gregory:
+  toa: ['mtnlwrf', 'mtnswrf']
+  monthly: True
+  annual: True
+
+timeseries_plot_params:
+# These are options that specify how the data is plotted
+# Default values are used if the variable that is being
+# plotted is not specified here.
+# If you need specific options for a variable, you can
+# add it here.
+  default:
+    plot_ref: True
+    monthly: True
+    annual: True
+    std_startdate: '1990-01-01'
+    std_enddate: '2020-12-31'
+  mtnlwrf+mtnswrf:
+    longname: "Net top radiation" # This is to override title and ylabel
+    std_startdate: '1990-01-01'
+    std_enddate: '2020-12-31'
