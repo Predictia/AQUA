@@ -17,15 +17,17 @@ set -e
 
 AQUA=$HOME/AQUA
 machine={{ machine }}
+version=latest
 
 #----------------------------------------------#
 
-bash $AQUA/cli/aqua-container/load-aqua-container.sh $machine <<EOF
+bash $AQUA/cli/aqua-container/load-aqua-container.sh $machine -v $version <<EOF
 #!/bin/bash
-#--------------
+
 # You can edit below code for your required script.
 # This is just an example to run jupyter-lab in compute node.
-# You can run your own script here.
+
+aqua --version
 
 # To run jupyter-lab in compute node
 # node=$(hostname -s)
