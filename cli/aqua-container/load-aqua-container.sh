@@ -22,14 +22,14 @@ usage() {
                                  Machine supported are Lumi, Levante and MN5
 
     Options:
-        --native                 Enable local mode: AQUA will read from local env variable.
+        --native                 Enable native mode: AQUA will read from native env variable.
         -s <script>              Execute an executable bash or python script.
         -c <command>             Execute a shell command.
         -v <version>             Specify the AQUA container version (default: "latest").
         -h, --help               Display this help message.
 
     Examples:
-        $0 lumi --local
+        $0 lumi --native
         $0 lumi -s my_script.py
         $0 lumi -c "echo 'I love AQUA so much!'"
         $0 lumi -v 0.12.1
@@ -51,7 +51,7 @@ parse_machine() {
     shift  # Shift the first argument to process options
 
     # Default values for options
-    local_mode=0  # AQUA reads from container 
+    native_mode=0  # AQUA reads from container 
     script=""     # Script to be read as argument
     cmd="shell"   # Standard container init
     mode=""    # Container mode: none, script or bash
@@ -67,7 +67,7 @@ parse_machine() {
     while true; do
         case "$1" in
             --native)
-                local_mode=1; shift ;;
+                native_mode=1; shift ;;
             -c)
                 mode="bash"; cmd="exec"; script=$2; shift 2 ;;
             -s)
@@ -86,18 +86,18 @@ parse_machine() {
         esac
     done
 
-    # Set up global variable for local mode
+    # Set up global variable for native mode
     echo "Machine is set to: $machine"
     echo "AQUA version is set to: $version"
 
     # Local model configuration
-    [ "$local_mode" -eq 1 ] && echo "Local mode is enabled: AQUA will use local installation instead of container one."
-    if [[ "$local_mode" -eq 0 ]]; then
+    [ "$native_mode" -eq 1 ] && echo "Local mode is enabled: AQUA will use native installation instead of container one."
+    if [[ "$native_mode" -eq 0 ]]; then
         export AQUA="/app/AQUA"
         echo "Selecting the AQUA path $AQUA from the container."
     else
         # Check if AQUA is set and the file exists 
-        echo "Selecting local AQUA path: $AQUA"
+        echo "Selecting native AQUA path: $AQUA"
         if [ ! -d "$AQUA" ]; then
             echo "ERROR: The AQUA directory does not exist at: $AQUA"
             exit 1
