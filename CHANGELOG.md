@@ -10,7 +10,10 @@ Unreleased in the current development version:
 AQUA core complete list:
 - Introduce `timeshift` option for the fixer to roll forward/back the time axis (#1411)
 - Centralize and refactor in single script the tool to load AQUA container (#1413)
+- Add extra maintenance options to submit-aqua-web (#1415)
+- Update push-analysis.sh removing dependency on full AQUA and option not to convert to png (#1419)
 - Pin to xarray<2024.09 to prevent bug in polyfit requires temporary (#1420)
+- Remove spurious dimensions when running `fldmean()` (#1423)
 
 ## [v0.12.1]
 
