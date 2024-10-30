@@ -13,7 +13,7 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from   cartopy.util import add_cyclic_point
 from seaice.colInterpolatOr import colInterpolatOr
-from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.colors import LinearSegmentedColormap, BoundaryNorm
 
 
 class SeaIceExtent:
@@ -1025,46 +1025,43 @@ class SeaIceThickness:
                             ax1 = [ax1]
                         else:
                             ax1 = ax1.flatten()
-    
-    
-    
-                        # Create color sequence for sic
-                        sourceColors = [[0.0, 0.0, 0.2], [0.0, 0.0, 0.0],
-                        [0.5, 0.5, 0.5], [0.6, 0.6, 0.6], [0.7, 0.7, 0.7], 
-                        [0.8, 0.8, 0.8], [0.9, 0.9, 0.9],[1.0, 1.0, 1.0]]
-                        myCM = LinearSegmentedColormap.from_list('myCM', sourceColors, N = 15)
-    
-                        # Create a figure and axis with the specified projection
+       
+                            # Create color sequence for sic
+                            sourceColors = [
+                            [0.0, 0.0, 0.5],  # Dark blue for very thin ice
+                            [0.0, 0.3, 1.0],  # Intermediate blue for thin ice
+                            [0.0, 0.5, 1.0],  # Light blue for thin ice
+                            [0.0, 0.7, 1.0],  # Very light blue for slightly thicker ice
+                            [0.5, 0.9, 1.0],  # Soft cyan for low thickness
+                            [0.5, 1.0, 0.5],  # Light green for medium ice thickness
+                            [0.7, 1.0, 0.0],  # Yellow-green for thicker ice
+                            [1.0, 1.0, 0.0],  # Yellow for thicker ice
+                            [1.0, 0.8, 0.0],  # Light orange for even thicker ice
+                            [1.0, 0.5, 0.0],  # Orange for thicker ice
+                            [1.0, 0.0, 0.0],  # Red for thick ice
+                            [0.8, 0.0, 0.0],  # Dark red for very thick ice
+                            [0.6, 0.0, 0.0],  # Deeper red for extremely thick ice
+                            [0.4, 0.0, 0.0],  # Dark brown for extreme cases (e.g., 30m)
+                            [0.2, 0.0, 0.0],  # Very dark brown for cases >30m
+                            ] 
     
                         # Add cyclic points to avoid a white Greenwich meridian
                         #varShow, lon1DCyclic = add_cyclic_point(dataPlot, coord = lon1D, axis = 1)
-   
                     
                         maskTime = (data['time.month'] == month_diagnostic)
-    
-                        dataPlot = data[var].where(maskTime, drop=True).sel(time = slice(timespan[0], timespan[1])).mean("time").values
-                        dataPlot[dataPlot < 0.001] = np.nan
-                        # Create color sequence for sit
-                        masterColors = [[0.0, 0.0, 0.2],[0.0, 0.5, 0.5],[0.0, 0.5, 0.0], [1.0, 0.5, 0.0], [0.5, 0.0, 0.0] ]
-
-                        listCol = list()
-                        for m in masterColors:
-                            alpha = 0.80
-                            tmp = colInterpolatOr([m, [mm + alpha * (1 - mm) for mm in m]], 5)
-                            listCol += tmp
-                        myCM = LinearSegmentedColormap.from_list('myCM', listCol, N = len(listCol))
-
                                         
                         # Plot the field data using contourf
-                        if hemi == "nh":
-                            levels = np.arange(0.0, 5.05, 1.0)
-                            levelsShow = levels
-                        else:
-                            levels = np.arange(0.0, 2.55, 0.5)
-                            levelsShow = levels
-                        contour = ax1[jMonth].pcolormesh(lon, lat, dataPlot,  \
-                          transform=ccrs.PlateCarree(), cmap = myCM, vmin = np.min(levels), vmax = np.max(levels)
-                          )
+                        levels = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10, 15, 20, 25, 30]
+                    
+                        myCM = LinearSegmentedColormap.from_list('myCM', sourceColors, N = len(levels)-1)
+                        norm = BoundaryNorm(boundaries=levels, ncolors=len(sourceColors), clip=True)
+
+                        dataPlot = data[var].where(maskTime, drop=True).sel(time=slice(timespan[0], timespan[1])).mean("time").values
+                        dataPlot[dataPlot < 0.001] = np.nan
+
+                        contour = ax1[jMonth].pcolormesh(lon, lat, dataPlot, 
+                                 transform=ccrs.PlateCarree(), cmap=myCM, 
+                                 norm=norm)
 
                         # Add coastlines and gridlines
                         ax1[jMonth].coastlines()
@@ -1074,7 +1071,8 @@ class SeaIceThickness:
                         # Add colorbar
                         cbar = plt.colorbar(contour, ax=ax1[jMonth], orientation='vertical', pad=0.05)
                         cbar.set_label('meters')
-                        cbar.set_ticks(levelsShow)
+                        cbar.set_ticks(levels)
+                        cbar.set_ticklabels([str(level) for level in levels])
     
                         # Set title
                         ax1[jMonth].set_title(monthNames[month_diagnostic - 1] + ' sea ice thickness')
