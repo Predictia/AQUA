@@ -109,9 +109,9 @@ class Submitter():
         else:
             definitions['wipe'] = ''
         if self.native:
-            definitions['nativeaqua'] = '--native'
+            definitions['nativeaqua'] = 'true'
         else:
-            definitions['nativeaqua'] = ''
+            definitions['nativeaqua'] = 'false'
 
         definitions['fresh'] = self.fresh
 
@@ -188,9 +188,9 @@ class Submitter():
         else:
             definitions['wipe'] = ''
         if self.native:
-            definitions['nativeaqua'] = '--native'
+            definitions['nativeaqua'] = 'true'
         else:
-            definitions['nativeaqua'] = ''
+            definitions['nativeaqua'] = 'false'
 
         definitions['fresh'] = self.fresh
 
