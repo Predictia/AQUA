@@ -13,6 +13,7 @@ AQUA core complete list:
 - Update push-analysis.sh removing dependency on full AQUA and option not to convert to png (#1419)
 - Pin to xarray<2024.09 to prevent bug in polyfit requires temporary (#1420)
 - Remove spurious dimensions when running `fldmean()` (#1423)
+- Refactor of plotThickness method in the sea ice diagnostic (#1427)
 
 ## [v0.12.1]
 
