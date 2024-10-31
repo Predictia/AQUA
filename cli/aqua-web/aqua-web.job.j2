@@ -27,7 +27,7 @@ if [[ "{{ nativeaqua }}" == "true" ]]; then
         bash $AQUA/cli/aqua-web/push_analysis.sh {{ wipe }} $OUTDIR {{ explist }}
     fi
 else
-    bash $AQUA/cli/aqua-container/load-aqua-container.sh lumi <<EOF
+    bash $AQUA/cli/aqua-container/load-aqua-container.sh {{ machine }} <<EOF
 #!/bin/bash
 if [[ "{{ push }}" == "false" ]]; then
     bash $AQUA/cli/aqua-analysis/aqua-analysis.sh -l debug -m $model -e $exp -s $source -d $OUTDIR/{{ catalog }} {{ parallel }}
