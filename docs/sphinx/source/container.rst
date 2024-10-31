@@ -66,7 +66,8 @@ Otherwise some options can be passed to the script to avoid the interactive mode
 .. option:: -n, --native
 
    Load the container with the local version of AQUA found in the ``$AQUA`` environment variable (which must be defined).
-   Without this option, it will load the container with the container version of AQUA.
+   Please also notice that to be fully able to exploit the local installation of AQUA you will need to run `pip install -e $AQUA`
+   once you are in the container. Use this option with caution since it is not how the container is meant to work. 
 
 .. option:: -v, --version <version>
 
