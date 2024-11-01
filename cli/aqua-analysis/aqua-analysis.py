@@ -102,20 +102,20 @@ def get_aqua_paths(*, args, logger):
         aqua_path = os.path.abspath(os.path.join(aqua_path, "..", ".."))
         logger.info(f"AQUA path: {aqua_path}")
 
-        aqua_config = os.path.expandvars(args.config) if args.config and args.config.strip() else os.path.join(aqua_path, "cli/aqua-analysis/config.aqua-analysis.yaml")
+        aqua_config_path = os.path.expandvars(args.config) if args.config and args.config.strip() else os.path.join(aqua_path, "cli/aqua-analysis/config.aqua-analysis.yaml")
 
-        if not os.path.exists(aqua_config):
-            logger.error(f"Config file {aqua_config} not found.")
+        if not os.path.exists(aqua_config_path):
+            logger.error(f"Config file {aqua_config_path} not found.")
             sys.exit(1)
 
-        logger.info(f"AQUA config path: {aqua_config}")
-        return aqua_path, aqua_config
+        logger.info(f"AQUA config path: {aqua_config_path}")
+        return aqua_path, aqua_config_path
     except Exception as e:
         logger.error(f"Error getting AQUA path or config: {e}")
         sys.exit(1)
 
 
-def run_diagnostic_func(diagnostic: str, *, parallel: bool, config, model, exp, source, output_dir, loglevel, logger, AQUA):
+def run_diagnostic_func(diagnostic: str, *, parallel: bool, config, model, exp, source, output_dir, loglevel, logger, aqua_path):
     """
     Run the diagnostic and log the output, handling parallel processing if required.
 
@@ -129,7 +129,7 @@ def run_diagnostic_func(diagnostic: str, *, parallel: bool, config, model, exp, 
         output_dir (str): Directory to save output.
         loglevel (str): Log level for the diagnostic.
         logger: Logger instance for logging messages.
-        AQUA (str): AQUA path.
+        aqua_path (str): AQUA path.
     """
     diagnostic_config = config.get('diagnostics', {}).get(diagnostic)
     if diagnostic_config is None:
@@ -150,7 +150,7 @@ def run_diagnostic_func(diagnostic: str, *, parallel: bool, config, model, exp, 
 
     run_diagnostic(
         diagnostic=diagnostic,
-        script_path=os.path.join(AQUA, "diagnostics", diagnostic_config.get('script_path', f"{diagnostic}/cli/cli_{diagnostic}.py")),
+        script_path=os.path.join(aqua_path, "diagnostics", diagnostic_config.get('script_path', f"{diagnostic}/cli/cli_{diagnostic}.py")),
         extra_args=args,
         loglevel=loglevel,
         logger=logger,
@@ -165,7 +165,7 @@ def main():
     args = get_args()
     logger = log_configure('warning', 'AQUA Analysis')
 
-    AQUA, aqua_config_path = get_aqua_paths(args=args, logger=logger)  # Get the AQUA path here
+    aqua_path, aqua_config_path = get_aqua_paths(args=args, logger=logger)  # Get the AQUA path here
     config = load_yaml(aqua_config_path)
     loglevel = config.get('job', {}).get('loglevel', args.loglevel or "WARNING")
     logger = log_configure(loglevel.lower(), 'AQUA Analysis')
@@ -199,7 +199,7 @@ def main():
     run_dummy = config.get('job', {}).get('run_dummy')
     logger.debug(f"run_dummy: {run_dummy}")
     if run_dummy:
-        dummy_script = os.path.join(AQUA, "diagnostics/dummy/cli/cli_dummy.py")
+        dummy_script = os.path.join(aqua_path, "diagnostics/dummy/cli/cli_dummy.py")
         output_log_path = os.path.expandvars(f"{output_dir}/setup_checker.log")
         command = f"python {dummy_script} --model_atm {model} --model_oce {model} --exp {exp} --source {source} -l {loglevel}"
         logger.info("Running setup checker")
@@ -210,9 +210,9 @@ def main():
             logger.critical("Setup checker failed, exiting.")
             sys.exit(1)
         elif result == 2:
-            logger.error("Atmospheric model not found, it will be skipped.")
+            logger.warning("Atmospheric model not found, it will be skipped.")
         elif result == 3:
-            logger.error("Oceanic model not found, it will be skipped.")
+            logger.warning("Oceanic model not found, it will be skipped.")
         else:
             logger.info("Setup checker completed successfully.")
 
@@ -230,7 +230,7 @@ def main():
                 output_dir=output_dir,
                 loglevel=loglevel,
                 logger=logger,
-                AQUA=AQUA
+                aqua_path=aqua_path
             ))
 
         for future in as_completed(futures):
