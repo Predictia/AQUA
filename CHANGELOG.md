@@ -10,6 +10,15 @@ Unreleased in the current development version:
 AQUA diagnostics complete list:
 - Convert `aqua-analysis.sh` to Python with Subprocess and Multiprocessing Support (#1354)
 
+AQUA core complete list:
+- Introduce `timeshift` option for the fixer to roll forward/back the time axis (#1411)
+- Add extra maintenance options to submit-aqua-web (#1415)
+- Update push-analysis.sh removing dependency on full AQUA and option not to convert to png (#1419)
+- Pin to xarray<2024.09 to prevent bug in polyfit requires temporary (#1420)
+- Remove spurious dimensions when running `fldmean()` (#1423)
+- Refactor of plotThickness method in the sea ice diagnostic (#1427)
+
+
 ## [v0.12.1]
 
 AQUA core complete list:
