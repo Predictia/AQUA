@@ -50,14 +50,14 @@ def run_diagnostic(diagnostic: str, *, script_path: str, extra_args: str, loglev
         logger.debug(f"Command: {cmd}")
 
         process = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        _, stderr = process.stdout, process.stderr
 
         if process.returncode != 0:
-            logger.error(f"Error running diagnostic {diagnostic}: {stderr}")
+            logger.error(f"Error running diagnostic {diagnostic}: {process.stderr}")
         else:
             logger.info(f"Diagnostic {diagnostic} completed successfully.")
     except Exception as e:
         logger.error(f"Failed to run diagnostic {diagnostic}: {e}")
+
 
 
 def get_args():
@@ -79,7 +79,7 @@ def get_args():
     parser.add_argument("-t", "--threads", type=int, default=-1, help="Maximum number of threads")
     parser.add_argument("-l", "--loglevel", type=lambda s: s.upper(),
                         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-                        default="WARNING", help="Log level")
+                        default=None, help="Log level")
 
     return parser.parse_args()
 
@@ -103,7 +103,6 @@ def get_aqua_paths(*, args, logger):
         logger.info(f"AQUA path: {aqua_path}")
 
         aqua_config_path = os.path.expandvars(args.config) if args.config and args.config.strip() else os.path.join(aqua_path, "cli/aqua-analysis/config.aqua-analysis.yaml")
-
         if not os.path.exists(aqua_config_path):
             logger.error(f"Config file {aqua_config_path} not found.")
             sys.exit(1)
@@ -167,7 +166,7 @@ def main():
 
     aqua_path, aqua_config_path = get_aqua_paths(args=args, logger=logger)  # Get the AQUA path here
     config = load_yaml(aqua_config_path)
-    loglevel = config.get('job', {}).get('loglevel', args.loglevel or "WARNING")
+    loglevel = args.loglevel or config.get('job', {}).get('loglevel', "info")
     logger = log_configure(loglevel.lower(), 'AQUA Analysis')
 
     model = args.model or config.get('job', {}).get('model')
