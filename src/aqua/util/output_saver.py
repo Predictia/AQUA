@@ -1,5 +1,5 @@
 from aqua.logger import log_configure, log_history
-from aqua.util import add_pdf_metadata, add_png_metadata, update_metadata_with_date, ConfigPath
+from aqua.util import add_pdf_metadata, add_png_metadata, update_metadata_with_date_and_version, ConfigPath
 import os
 import xarray as xr
 from datetime import datetime
@@ -151,7 +151,7 @@ class OutputSaver:
             return full_path
 
         # Add metadata if provided, including the current time
-        metadata = update_metadata_with_date(metadata)
+        metadata = update_metadata_with_date_and_version(metadata)
 
         # If metadata contains a history attribute, log the history
         if 'history' in metadata:
@@ -218,7 +218,7 @@ class OutputSaver:
             raise ValueError("The provided fig parameter is not a valid matplotlib Figure or pyplot figure.")
 
         # Update metadata with the current date and time
-        metadata = update_metadata_with_date(metadata)
+        metadata = update_metadata_with_date_and_version(metadata)
         add_pdf_metadata(full_path, metadata, loglevel=self.loglevel)
 
         self.logger.info(f"Saved PDF file at: {full_path}")
@@ -275,7 +275,7 @@ class OutputSaver:
             raise ValueError("The provided fig parameter is not a valid matplotlib Figure or pyplot figure.")
 
         # Update metadata with the current date and time
-        metadata = update_metadata_with_date(metadata)
+        metadata = update_metadata_with_date_and_version(metadata)
         add_png_metadata(full_path, metadata, loglevel=self.loglevel)
 
         self.logger.info(f"Saved PNG file to path: {full_path}")

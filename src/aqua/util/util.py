@@ -8,6 +8,7 @@ import sys
 import numpy as np
 import xarray as xr
 import datetime
+import subprocess
 from glob import glob
 from pypdf import PdfReader, PdfWriter
 from PIL import Image, PngImagePlugin
@@ -320,22 +321,31 @@ def open_image(file_path: str, loglevel: str = 'WARNING'):
     logger.info(f"Displayed file link for: {file_path}")
 
 
-def update_metadata_with_date(metadata: dict = None) -> dict:
+def update_metadata_with_date_and_version(metadata: dict = None) -> dict:
     """
-    Update the provided metadata dictionary with the current date and time.
+    Update the provided metadata dictionary with the current date, time, and aqua package version.
 
     Args:
         metadata (dict, optional): The original metadata dictionary.
 
     Returns:
-        dict: The updated metadata dictionary with the current date and time.
+        dict: The updated metadata dictionary with the current date, time, and aqua package version.
     """
     if metadata is None:
         metadata = {}
 
+    # Add current date and time to metadata
     now = datetime.datetime.now()
     date_now = now.strftime("%Y-%m-%d %H:%M:%S")
     metadata['date_saved'] = date_now
+
+    # Get aqua package version and add to metadata
+    try:
+        aqua_version = subprocess.run(["aqua", "--version"], stdout=subprocess.PIPE, text=True).stdout.strip()
+        metadata['aqua_version'] = aqua_version
+    except Exception as e:
+        metadata['aqua_version'] = f"Error retrieving version: {str(e)}"
+
     return metadata
 
 
