@@ -1,5 +1,5 @@
 from aqua.logger import log_configure, log_history
-from aqua.util import add_pdf_metadata, add_png_metadata, update_metadata_with_date_and_version, ConfigPath
+from aqua.util import add_pdf_metadata, add_png_metadata, update_metadata, ConfigPath
 import os
 import xarray as xr
 from datetime import datetime
@@ -150,8 +150,18 @@ class OutputSaver:
             self.logger.info(f"File already exists and rebuild is set to False: {full_path}")
             return full_path
 
-        # Add metadata if provided, including the current time
-        metadata = update_metadata_with_date_and_version(metadata)
+        # Add metadata if provided, including the current time and additional fields
+        additional_metadata = {
+            'diagnostic': self.diagnostic,
+            'model': self.model,
+            'experiment': self.exp,
+            'diagnostic_product': diagnostic_product or self.diagnostic_product,
+            'catalog': self.catalog
+        }
+        # Filter out None values from additional_metadata
+        filtered_metadata = {key: value for key, value in additional_metadata.items() if value is not None}
+
+        metadata = update_metadata(metadata, filtered_metadata)
 
         # If metadata contains a history attribute, log the history
         if 'history' in metadata:
@@ -217,8 +227,19 @@ class OutputSaver:
         else:
             raise ValueError("The provided fig parameter is not a valid matplotlib Figure or pyplot figure.")
 
-        # Update metadata with the current date and time
-        metadata = update_metadata_with_date_and_version(metadata)
+        # Add metadata if provided, including the current time and additional fields
+        additional_metadata = {
+            'diagnostic': self.diagnostic,
+            'model': self.model,
+            'experiment': self.exp,
+            'diagnostic_product': diagnostic_product or self.diagnostic_product,
+            'catalog': self.catalog
+        }
+        # Filter out None values from additional_metadata
+        filtered_metadata = {key: value for key, value in additional_metadata.items() if value is not None}
+
+        metadata = update_metadata(metadata, filtered_metadata)
+
         add_pdf_metadata(full_path, metadata, loglevel=self.loglevel)
 
         self.logger.info(f"Saved PDF file at: {full_path}")
@@ -274,8 +295,19 @@ class OutputSaver:
         else:
             raise ValueError("The provided fig parameter is not a valid matplotlib Figure or pyplot figure.")
 
-        # Update metadata with the current date and time
-        metadata = update_metadata_with_date_and_version(metadata)
+        # Add metadata if provided, including the current time and additional fields
+        additional_metadata = {
+            'diagnostic': self.diagnostic,
+            'model': self.model,
+            'experiment': self.exp,
+            'diagnostic_product': diagnostic_product or self.diagnostic_product,
+            'catalog': self.catalog
+        }
+        # Filter out None values from additional_metadata
+        filtered_metadata = {key: value for key, value in additional_metadata.items() if value is not None}
+
+        metadata = update_metadata(metadata, filtered_metadata)
+
         add_png_metadata(full_path, metadata, loglevel=self.loglevel)
 
         self.logger.info(f"Saved PNG file to path: {full_path}")

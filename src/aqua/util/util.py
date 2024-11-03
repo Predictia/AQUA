@@ -321,15 +321,17 @@ def open_image(file_path: str, loglevel: str = 'WARNING'):
     logger.info(f"Displayed file link for: {file_path}")
 
 
-def update_metadata_with_date_and_version(metadata: dict = None) -> dict:
+def update_metadata(metadata: dict = None, additional_metadata: dict = None) -> dict:
     """
-    Update the provided metadata dictionary with the current date, time, and aqua package version.
+    Update the provided metadata dictionary with the current date, time, aqua package version,
+    and additional diagnostic information.
 
     Args:
         metadata (dict, optional): The original metadata dictionary.
+        additional_metadata (dict, optional): A dictionary containing additional metadata fields (e.g., diagnostic, model, experiment, etc.).
 
     Returns:
-        dict: The updated metadata dictionary with the current date, time, and aqua package version.
+        dict: The updated metadata dictionary.
     """
     if metadata is None:
         metadata = {}
@@ -345,6 +347,10 @@ def update_metadata_with_date_and_version(metadata: dict = None) -> dict:
         metadata['aqua_version'] = aqua_version
     except Exception as e:
         metadata['aqua_version'] = f"Error retrieving version: {str(e)}"
+
+    # Add additional metadata fields
+    if additional_metadata:
+        metadata.update(additional_metadata)
 
     return metadata
 
