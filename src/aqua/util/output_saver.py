@@ -1,5 +1,5 @@
 from aqua.logger import log_configure, log_history
-from aqua.util import add_pdf_metadata, add_png_metadata, update_metadata, ConfigPath
+from aqua.util import create_folder, add_pdf_metadata, add_png_metadata, update_metadata, ConfigPath
 import os
 import xarray as xr
 from datetime import datetime
@@ -144,6 +144,7 @@ class OutputSaver:
 
         if path is None:
             path = self.default_path
+        create_folder(folder=str(path), loglevel=self.loglevel)
         full_path = os.path.join(path, filename)
 
         if not self.rebuild and os.path.exists(full_path):
@@ -155,9 +156,20 @@ class OutputSaver:
             'diagnostic': self.diagnostic,
             'model': self.model,
             'experiment': self.exp,
-            'diagnostic_product': diagnostic_product or self.diagnostic_product,
-            'catalog': self.catalog
+            'diagnostic_product': diagnostic_product,
+            'var': var,
+            'model_2': model_2,
+            'exp_2': exp_2,
+            'time_start': time_start,
+            'time_end': time_end,
+            'time_precision': time_precision,
+            'area': area,
+            'catalog': self.catalog,
+            'catalog_2': catalog_2
         }
+        # Include kwargs in additional_metadata
+        additional_metadata.update(kwargs)
+
         # Filter out None values from additional_metadata
         filtered_metadata = {key: value for key, value in additional_metadata.items() if value is not None}
 
@@ -209,6 +221,8 @@ class OutputSaver:
         """
         if path is None:
             path = self.default_path
+        create_folder(folder=str(path), loglevel=self.loglevel)
+
         filename = self.generate_name(diagnostic_product=diagnostic_product, var=var, model_2=model_2, exp_2=exp_2,
                                       time_start=time_start, time_end=time_end, time_precision=time_precision, area=area,
                                       suffix='pdf', catalog_2=catalog_2, **kwargs)
@@ -232,9 +246,20 @@ class OutputSaver:
             'diagnostic': self.diagnostic,
             'model': self.model,
             'experiment': self.exp,
-            'diagnostic_product': diagnostic_product or self.diagnostic_product,
-            'catalog': self.catalog
+            'diagnostic_product': diagnostic_product,
+            'var': var,
+            'model_2': model_2,
+            'exp_2': exp_2,
+            'time_start': time_start,
+            'time_end': time_end,
+            'time_precision': time_precision,
+            'area': area,
+            'catalog': self.catalog,
+            'catalog_2': catalog_2
         }
+        # Include kwargs in additional_metadata
+        additional_metadata.update(kwargs)
+
         # Filter out None values from additional_metadata
         filtered_metadata = {key: value for key, value in additional_metadata.items() if value is not None}
 
@@ -280,6 +305,8 @@ class OutputSaver:
 
         if path is None:
             path = self.default_path
+        create_folder(folder=str(path), loglevel=self.loglevel)
+
         full_path = os.path.join(path, filename)
 
         if not self.rebuild and os.path.exists(full_path):
@@ -300,9 +327,20 @@ class OutputSaver:
             'diagnostic': self.diagnostic,
             'model': self.model,
             'experiment': self.exp,
-            'diagnostic_product': diagnostic_product or self.diagnostic_product,
-            'catalog': self.catalog
+            'diagnostic_product': diagnostic_product,
+            'var': var,
+            'model_2': model_2,
+            'exp_2': exp_2,
+            'time_start': time_start,
+            'time_end': time_end,
+            'time_precision': time_precision,
+            'area': area,
+            'catalog': self.catalog,
+            'catalog_2': catalog_2
         }
+        # Include kwargs in additional_metadata
+        additional_metadata.update(kwargs)
+
         # Filter out None values from additional_metadata
         filtered_metadata = {key: value for key, value in additional_metadata.items() if value is not None}
 

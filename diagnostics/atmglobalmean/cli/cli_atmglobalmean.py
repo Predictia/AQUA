@@ -124,9 +124,6 @@ if __name__ == '__main__':
     start_date2 = config['diagnostic_attributes'].get('start_date2', "1980-01-01")
     end_date2 = config['diagnostic_attributes'].get('end_date2', "2010-12-31")
 
-    model_label = model+'_'+exp
-    model_label_obs = model_obs+'_'+exp_obs
-
     try:
         reader_obs = Reader(model=model_obs, exp=exp_obs, source=source_obs, loglevel=loglevel)
         data_obs = reader_obs.retrieve()
@@ -155,7 +152,7 @@ if __name__ == '__main__':
             try:
                 seasonal_bias(dataset1=data, dataset2=data_obs,
                               var_name=var_name, plev=plev, statistic=statistic,
-                              model_label1=model_label, model_label2=model_label_obs,
+                              model=model, exp=exp, model_2=model_obs, exp_2=exp_obs,
                               start_date1=start_date1, end_date1=end_date1,
                               start_date2=start_date2, end_date2=end_date2,
                               outputdir=outputdir, outputfig=outputfig,
@@ -178,7 +175,7 @@ if __name__ == '__main__':
             
             try:
                 compare_datasets_plev(dataset1=data, dataset2=data_obs, var_name=var_name,
-                                      model_label1=model_label, model_label2=model_label_obs,
+                                      model=model, exp=exp, model_2=model_obs, exp_2=exp_obs,
                                       start_date1=start_date1, end_date1=end_date1,
                                       start_date2=start_date2, end_date2=end_date2,
                                       outputdir=outputdir, outputfig=outputfig,
@@ -192,7 +189,7 @@ if __name__ == '__main__':
         for var_name in variables_no_plev:
             logger.info(f"Running plot map with stats diagnostic for {var_name}...")
             try:
-                plot_map_with_stats(dataset=data, var_name=var_name,  model_label=model_label,
+                plot_map_with_stats(dataset=data, var_name=var_name,  model=model, exp=exp,
                                     outputdir=outputdir, outputfig=outputfig, loglevel=loglevel)
             except Exception as e:
                 logger.error(f"An unexpected error occurred: {e}")
