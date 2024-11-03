@@ -92,18 +92,13 @@ if __name__ == '__main__':
 
     logger.debug(f"Running for {model} {exp} {source}.")
 
-    path_to_output = get_arg(
-        args, 'outputdir', config['path']['path_to_output'])
+    path_to_output = get_arg(args, 'outputdir', config['path']['path_to_output'])
     if path_to_output:
-        outputdir = os.path.join(path_to_output, 'netcdf/')
-        outputfig = os.path.join(path_to_output, 'pdf/')
+        logger.info(f"Path_to_output: {path_to_output}")
     else:
         logger.error("No output directory provided.")
         logger.critical("Atmospheric global mean biases diagnostic is terminated.")
         sys.exit(0)
-
-    logger.debug(f"outputdir: {outputdir}")
-    logger.debug(f"outputfig: {outputfig}")
 
     # This is the model to compare with
     model_obs = config['data']['model_obs']
@@ -155,8 +150,7 @@ if __name__ == '__main__':
                               model=model, exp=exp, model_2=model_obs, exp_2=exp_obs,
                               start_date1=start_date1, end_date1=end_date1,
                               start_date2=start_date2, end_date2=end_date2,
-                              outputdir=outputdir, outputfig=outputfig,
-                              vmin=vmin, vmax=vmax,
+                              path_to_output=path_to_output, vmin=vmin, vmax=vmax,
                               loglevel=loglevel, seasons=seasons)
             except Exception as e:
                 logger.error(f"An unexpected error occurred: {e}")
@@ -178,8 +172,7 @@ if __name__ == '__main__':
                                       model=model, exp=exp, model_2=model_obs, exp_2=exp_obs,
                                       start_date1=start_date1, end_date1=end_date1,
                                       start_date2=start_date2, end_date2=end_date2,
-                                      outputdir=outputdir, outputfig=outputfig,
-                                      vmin=vmin, vmax=vmax,
+                                      path_to_output=path_to_output, vmin=vmin, vmax=vmax,
                                       plev_min=plev_min, plev_max=plev_max,
                                       loglevel=loglevel)
             except Exception as e:
@@ -190,7 +183,7 @@ if __name__ == '__main__':
             logger.info(f"Running plot map with stats diagnostic for {var_name}...")
             try:
                 plot_map_with_stats(dataset=data, var_name=var_name,  model=model, exp=exp,
-                                    outputdir=outputdir, outputfig=outputfig, loglevel=loglevel)
+                                    path_to_output=path_to_output, loglevel=loglevel)
             except Exception as e:
                 logger.error(f"An unexpected error occurred: {e}")
 

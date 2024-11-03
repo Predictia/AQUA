@@ -143,7 +143,7 @@ class OutputSaver:
                                       time_precision=time_precision, area=area, suffix='nc', catalog_2=catalog_2, **kwargs)
 
         if path is None:
-            path = self.default_path
+            path = os.path.join(self.default_path, 'netcdf')
         create_folder(folder=str(path), loglevel=self.loglevel)
         full_path = os.path.join(path, filename)
 
@@ -220,7 +220,7 @@ class OutputSaver:
             ValueError: If the provided fig parameter is not a valid matplotlib Figure.
         """
         if path is None:
-            path = self.default_path
+            path = os.path.join(self.default_path, 'pdf')
         create_folder(folder=str(path), loglevel=self.loglevel)
 
         filename = self.generate_name(diagnostic_product=diagnostic_product, var=var, model_2=model_2, exp_2=exp_2,
@@ -304,7 +304,7 @@ class OutputSaver:
                                       area=area, suffix='png', catalog_2=catalog_2, **kwargs)
 
         if path is None:
-            path = self.default_path
+            path = os.path.join(self.default_path, 'png')
         create_folder(folder=str(path), loglevel=self.loglevel)
 
         full_path = os.path.join(path, filename)

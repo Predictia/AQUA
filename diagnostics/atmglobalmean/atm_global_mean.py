@@ -30,7 +30,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
                   model=None, exp=None, model_2=None, exp_2=None,
                   start_date1=None, end_date1=None,
                   start_date2=None, end_date2=None,
-                  outputdir=None, outputfig=None,
+                  path_to_output=None,
                   dataset2_precomputed=None,
                   loglevel='WARNING', seasons=True, **kwargs):
     '''
@@ -51,8 +51,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
         end_date1 (str): The end date of the time range for dataset1 in 'YYYY-MM-DD' format.
         start_date2 (str): The start date of the time range for dataset2 in 'YYYY-MM-DD' format.
         end_date2 (str): The end date of the time range for dataset2 in 'YYYY-MM-DD' format.
-        outputdir (str): The directory to save the output files.
-        outputfig (str): The directory to save the output figures.
+        path_to_output (str): The directory to save the output files.
         dataset2_precomputed (xarray.Dataset or None): Pre-computed climatology for dataset2.
         loglevel (str): The desired level of logging.
         seasons (bool): If True, plot bias maps for individual seasons. If False, only plot climatological bias.
@@ -326,45 +325,38 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
     fig.suptitle(overall_title, fontsize=14)
     plt.subplots_adjust(hspace=0.5)
 
-    output_names = OutputSaver(diagnostic='atmglobalmean', model=model, exp=exp, loglevel=loglevel)
+    output_names = OutputSaver(diagnostic='atmglobalmean', model=model, exp=exp, default_path=path_to_output, loglevel=loglevel)
     
-    if outputdir is not None:
+    if path_to_output is not None:
         data_array = xr.concat(results, dim='season')
         data_array.attrs = var1.attrs  # Copy attributes from var1 to the data_array
         metadata = {
             'climatology_range1': f'{start_date1}-{end_date1}',
             'climatology_range2': f'{start_date2}-{end_date2}',
         }
-        output_names.save_netcdf(data_array, path=outputdir, diagnostic_product='seasonal_bias', var=var_name,
+        output_names.save_netcdf(data_array, diagnostic_product='seasonal_bias', var=var_name,
                                  statistic=statistic, model_2=model_2, exp_2=exp_2,  time_start=start_date1, time_end=end_date1,
                                  metadata=metadata)
-        logger.info(f"The seasonal bias data has been saved to {outputdir} for {var_name} variable.")
+        logger.info(f"The seasonal bias data has been saved for {var_name} variable.")
 
-
-    if outputfig:
-        output_names.save_pdf(fig, path=outputfig, diagnostic_product='seasonal_bias', var=var_name,
+        output_names.save_pdf(fig, diagnostic_product='seasonal_bias', var=var_name,
                               statistic=statistic, model_2=model_2, exp_2=exp_2, time_start=start_date1, time_end=end_date1,
                               metadata=metadata, dpi=300)
-        output_names.save_png(fig, path=outputfig, diagnostic_product='seasonal_bias', var=var_name,
+        output_names.save_png(fig, diagnostic_product='seasonal_bias', var=var_name,
                               statistic=statistic, model_2=model_2, exp_2=exp_2, time_start=start_date1, time_end=end_date1,
                               metadata=metadata, dpi=300)
-        logger.info(f"The seasonal bias plots have been saved to {outputfig} for {var_name} variable.")
+        logger.info(f"The seasonal bias plots have been saved for {var_name} variable.")
     else:
         plt.show()
-
-    if outputfig and outputdir:
-        logger.info(
-            f"The seasonal bias maps were calculated and plotted for {var_name} variable.")
+        logger.info(f"The seasonal bias maps were calculated and plotted for {var_name} variable.")
 
 
 def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
                           start_date1=None, end_date1=None,
                           start_date2=None, end_date2=None,
                           model=None, exp=None, model_2=None, exp_2=None,
-                          outputdir=None, outputfig=None,
-                          dataset2_precomputed=None, loglevel='WARNING',
-                          plev_min=None, plev_max=None,
-                          **kwargs):
+                          path_to_output=None, dataset2_precomputed=None, loglevel='WARNING',
+                          plev_min=None, plev_max=None, **kwargs):
     """
     Compare two datasets and plot the zonal bias for a selected model time range with respect to the second dataset.
 
@@ -380,8 +372,7 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
         exp (str): The name of the experiment for the first dataset.
         model_2 (str): The name of the model for the second dataset.
         exp_2 (str): The name of the experiment for the second dataset.
-        outputdir (str): The directory to save the output files.
-        outputfig (str): The directory to save the output figures.
+        path_to_output (str): The directory to save the output files.
         dataset2_precomputed (xarray.Dataset or None): Pre-computed climatology for dataset2.
         loglevel (str): The desired level of logging. Default is 'WARNING'.
         plev_min (float or None): The minimum pressure level in Pa. Default is None.
@@ -495,38 +486,35 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
         cbar.ax.tick_params(labelsize=14)
         cbar.set_ticks(np.linspace(vmin, vmax, nlevels + 1))
 
-        output_names = OutputSaver(diagnostic='atmglobalmean', model=model, exp=exp, loglevel=loglevel)
+        output_names = OutputSaver(diagnostic='atmglobalmean', model=model, exp=exp, default_path=path_to_output, loglevel=loglevel)
         
-        if outputdir:
+        if path_to_output:
             metadata = {
                 'climatology_range1': f'{start_date1}-{end_date1}',
                 'climatology_range2': f'{start_date2}-{end_date2}',
             }
-            output_names.save_netcdf(mean_bias, path=outputdir, diagnostic_product='vertical_bias', var=var_name,
+            output_names.save_netcdf(mean_bias, diagnostic_product='vertical_bias', var=var_name,
                                      model_2=model_2, exp_2=exp_2,  time_start=start_date1, time_end=end_date1,
                                      metadata=metadata)
-            logger.info(f"The zonal bias / difference for a selected models has been saved to {outputdir} for {var_name} variable.")
+            logger.info(f"The zonal bias / difference for a selected models has been saved for {var_name} variable.")
 
-        if outputfig:
-            output_names.save_pdf(fig, path=outputfig, diagnostic_product='vertical_bias', var=var_name,
+            output_names.save_pdf(fig, diagnostic_product='vertical_bias', var=var_name,
                                   model_2=model_2, exp_2=exp_2, time_start=start_date1, time_end=end_date1,
                                   metadata=metadata, dpi=300)
-            output_names.save_png(fig, path=outputfig, diagnostic_product='vertical_bias', var=var_name,
+            output_names.save_png(fig, diagnostic_product='vertical_bias', var=var_name,
                                   model_2=model_2, exp_2=exp_2, time_start=start_date1, time_end=end_date1,
                                   metadata=metadata, dpi=300)
-            logger.info(f"The zonal bias / difference plot for a selected models have been saved to {outputfig} for {var_name} variable.")
+            logger.info(f"The zonal bias / difference plot for a selected models have been saved for {var_name} variable.")
         else:
             plt.show()
-
-        if outputfig and outputdir:
-            logger.info(
-                    f"The comparison of the two datasets is calculated and plotted for {var_name} variable.")
+            logger.info(f"The comparison of the two datasets is calculated and plotted for {var_name} variable.")
+            
     else:
         raise NoDataError(f"The dataset for {var_name} variable does not have a 'plev' coordinate. Please try again.")
 
 
 def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=None,
-                        model=None, exp=None, outputdir=None, outputfig=None, loglevel='WARNING'):
+                        model=None, exp=None, path_to_output=None, loglevel='WARNING'):
     """
     Plot a map of a chosen variable from a dataset with colorbar and statistics.
 
@@ -537,8 +525,7 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
         end_date (str): The end date of the time range in 'YYYY-MM-DD' format.
         model (str): The name of the model for the dataset.
         exp (str): The name of the experiment for the dataset.
-        outputdir (str): The directory to save the output files.
-        outputfig (str): The directory to save the output figures.
+        path_to_output (str): The directory to save the output files.
         loglevel (str): The desired level of logging. Default is 'WARNING'.
     """
     logger = log_configure(log_level=loglevel, log_name='Statistics map')
@@ -609,30 +596,26 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
     stat_text = f'Mean: {var_mean:.2f} {dataset[var_name].units}    Std: {var_std:.2f}    Min: {var_min:.2f}    Max: {var_max:.2f}'
     ax.text(0.5, -0.3, stat_text, transform=ax.transAxes, ha='center')
 
-    output_names = OutputSaver(diagnostic='atmglobalmean', model=model, exp=exp, loglevel=loglevel)
+    output_names = OutputSaver(diagnostic='atmglobalmean', model=model, exp=exp, default_path=path_to_output, loglevel=loglevel)
 
-    if outputdir is not None:
+    if path_to_output is not None:
         data_array = var_data.to_dataset(name=var_name)
         data_array.attrs = dataset[var_name].attrs
         metadata = {
                 'climatology_range': f'{start_date}-{end_date}',
             }
-        output_names.save_netcdf(data_array, path=outputdir, diagnostic_product='statistics_maps', var=var_name,
+        output_names.save_netcdf(data_array, diagnostic_product='statistics_maps', var=var_name,
                                  time_start=start_date, time_end=end_date,
                                  metadata=metadata)
-        logger.info(f"A {var_name} variable has been saved to {outputdir}.")
+        logger.info(f"A {var_name} variable has been saved to {path_to_output}.")
 
-    if outputfig is not None:
-        output_names.save_pdf(fig, path=outputfig, diagnostic_product='statistics_maps', var=var_name,
+        output_names.save_pdf(fig, diagnostic_product='statistics_maps', var=var_name,
                               time_start=start_date, time_end=end_date,
                               metadata=metadata, dpi=300)
-        output_names.save_png(fig, path=outputfig, diagnostic_product='statistics_maps', var=var_name,
+        output_names.save_png(fig, diagnostic_product='statistics_maps', var=var_name,
                               time_start=start_date, time_end=end_date,
                               metadata=metadata, dpi=300)
-        logger.info(f"Plot a map of {var_name} variable have been saved to {outputfig}.")
+        logger.info(f"Plot a map of {var_name} variable have been saved.")
     else:
         plt.show()
-
-    if outputfig is not None and outputdir is not None:
-        logger.info(
-                    f"The map of a chosen variable from a dataset is calculated and plotted for {var_name} variable.")
+        logger.info(f"The map of a chosen variable from a dataset is calculated and plotted for {var_name} variable.")
