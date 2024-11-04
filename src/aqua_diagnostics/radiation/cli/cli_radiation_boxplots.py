@@ -84,11 +84,12 @@ if __name__ == '__main__':
     create_folder(out_pdf, loglevel)
 
     # Output naming and saving
-    names = OutputSaver(diagnostic='radiation', model=models_list[0], exp=exp_list[0], loglevel=loglevel)
+    names = OutputSaver(diagnostic='radiation', exp = exp_list[0], model= models_list[0], loglevel=loglevel)
     logger.info("Boxplot generation")
     radiation = Radiation()
     result = radiation.boxplot(datasets=datasets, model_names=models_list, variables=variables)
 
     if result:
         fig, ax = result  
-       
+        names.generate_name(diagnostic_product='boxplot')
+        names.save_pdf(fig, path=out_pdf)

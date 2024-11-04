@@ -31,13 +31,16 @@ job:
     exp: "historical-1990"
     source: "lra-r100-monthly"
 
-    script_path_base: "${AQUA}/diagnostics"  # Base directory for the diagnostic scripts
+    script_path_base: "${AQUA}/src/aqua_diagnostics/"  # Base directory for the diagnostic scripts
 
 diagnostics:
 
   # List of diagnostics to run
+  run: ["radiation-boxplots"]
+
   run: ["tropical_rainfall", "global_time_series_atm", "seasonal_cycles",
-        "radiation", "teleconnections_atm", "atmglobalmean",
+        "radiation-boxplots", "radiation-timeseries", "radiation-biases",
+        "teleconnections_atm", "global_biases",
         "global_time_series_oce", "teleconnections_oce", "ocean3d_drift",
         "ocean3d_circulation", "seaice_extent", "seaice_conc",
         "seaice_volume", "seaice_thick", "ecmean"]
@@ -52,8 +55,10 @@ diagnostics:
   # script_path: the location of the script to run the diagnostic.
   #              Default script_path is "$script_path_base/$diagnostic/cli/cli_${diagnostic}.py"
 
-  atmglobalmean:
+  global_biases:
     nworkers: 16
+    script_path: "global_biases/cli/cli_global_biases.py"
+    extra: "--config ${script_path_base}/global_biases/cli/global_biases_config.yaml"
   global_time_series_atm:
     script_path: "global_time_series/cli/cli_global_time_series.py"
     extra: "--config ${AQUA}/diagnostics/global_time_series/cli/config_time_series_atm.yaml"
@@ -68,8 +73,18 @@ diagnostics:
     script_path: "global_time_series/cli/cli_global_time_series.py"
     nworkers: 16
     extra: "--config ${AQUA}/diagnostics/global_time_series/cli/config_seasonal_cycles_atm.yaml"
-  radiation:
+  radiation-biases:
+    script_path: "global_biases/cli/cli_global_biases.py"
     nworkers: 8
+    extra: "--config ${script_path_base}/radiation/cli/radiation-biases_config.yaml"
+  radiation-boxplots:
+    script_path: "radiation/cli/cli_radiation_boxplots.py"
+    nworkers: 8
+    extra: "--config ${script_path_base}/radiation/cli/radiation-boxplots_config.yaml"
+  radiation-timeseries:
+    script_path: "../../diagnostics/global_time_series/cli/cli_global_time_series.py"
+    nworkers: 8
+    extra: "--config ${script_path_base}/radiation/cli/radiation-timeseries_config.yaml"
   teleconnections_atm:
     script_path: "teleconnections/cli/cli_teleconnections.py"
     nworkers: 8

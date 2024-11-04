@@ -6,7 +6,8 @@ models:
     model: 'IFS-NEMO'
     exp: 'historical-1990'
     source: 'lra-r100-monthly'
-outputdir: "/users/caprioli/AQUA/src/aqua_diagnostics/radiation/cli"
+
+outputdir: "./"
 
 # This is the list of variables that will be plotted as timeseries
 timeseries: ['mtnlwrf', 'mtnswrf']
