@@ -1014,7 +1014,7 @@ class SeaIceThickness:
                     dataPlot = np.where(lat2D >= lat_limit, dataPlot, np.nan) if hemi == "nh" else np.where(lat2D <= lat_limit, dataPlot, np.nan)
 
                     # Set contour levels and colormap
-                    levels = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25, 27.5, 30]
+                    levels = [0, 1.5, 3, 4.5, 6, 7.5, 9, 10.5, 12, 13.5, 15, 16.5, 18, 19.5, 21, 22.5, 24, 25.5, 27, 28.5, 30]
                     myCM = plt.get_cmap('turbo')
                     norm = BoundaryNorm(boundaries=levels, ncolors=myCM.N, clip=True)
 
