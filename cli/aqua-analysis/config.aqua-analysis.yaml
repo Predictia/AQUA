@@ -36,8 +36,7 @@ job:
 diagnostics:
 
   # List of diagnostics to run
-  run: ["radiation-boxplots"]
-
+  
   run: ["tropical_rainfall", "global_time_series_atm", "seasonal_cycles",
         "radiation-boxplots", "radiation-timeseries", "radiation-biases",
         "teleconnections_atm", "global_biases",
