@@ -23,10 +23,19 @@ class GlobalBiases:
         plev (float): Pressure level to select.
         outputdir (str): Directory to save output plots.
         loglevel (str): Logging level.
+        model (str, optional): Model name for labeling.
+        exp (str, optional): Experiment name for labeling.
+        startdate_data (str, optional): Start date of data period.
+        enddate_data (str, optional): End date of data period.
+        model_obs (str, optional): Obs name for labeling.
+        startdate_obs (str, optional): Start date of reference period.
+        enddate_obs (str, optional): End date of reference period.
+
     """
     def __init__(self, data=None, data_ref=None, var_name=None, plev=None, outputdir=None, loglevel='WARNING', 
                  model=None, exp=None, startdate_data=None, enddate_data=None, 
                  model_obs=None, startdate_obs=None, enddate_obs=None):
+        
         self.data = data
         self.data_ref = data_ref
         self.var_name = var_name
@@ -47,58 +56,58 @@ class GlobalBiases:
 
     def _process_data(self, data):
         """
-        Process the input data, fix precipitation units, select pressure level.
-        """
-        # Fix precipitation units if necessary
-        if self.var_name in ['tprate', 'mtpr']:
-            self.logger.info(f'Fixing precipitation units for variable {self.var_name}.')
-            data = self.fix_precipitation_units(data, self.var_name)
+        Processes the dataset, converting precipitation units if necessary 
+        and selecting the specified pressure level.
 
-        # Select pressure level if necessary
+        Args:
+            data (xr.Dataset): The dataset to process.
+        """
+        if self.var_name in ['tprate', 'mtpr']:
+            self.logger.info(f'Adjusting units for precipitation variable: {self.var_name}.')
+            data = self._fix_precipitation_units(data, self.var_name)
+
         if self.plev is not None:
             self.logger.info(f'Selecting pressure level {self.plev} for variable {self.var_name}.')
             data = self.select_pressure_level(data, self.plev, self.var_name)
-        else:
-            # Check if the variable has pressure levels and warn
-            if 'plev' in data[self.var_name].dims:
-                self.logger.warning(f"Variable {self.var_name} has multiple pressure levels, but no specific level was selected. Skipping 2D plotting for bias maps.")
+        elif 'plev' in data[self.var_name].dims:
+            self.logger.warning(f"Variable {self.var_name} has multiple pressure levels but none selected. Skipping 2D plotting for bias maps.")
 
-        
 
     @staticmethod
     def select_pressure_level(data, plev, var_name):
         """
-        Select a specific pressure level from the data.
+        Selects a specified pressure level from the dataset.
 
         Args:
-            data (xr.Dataset): Input dataset.
+            data (xr.Dataset): Dataset to select from.
             plev (float): Desired pressure level.
-            var_name (str): Name of the variable.
-        
-        Raises:
-            NoDataError: If the pressure level is not present in the dataset.
-        """
+            var_name (str): Variable name to filter by.
 
+        Returns:
+            xr.Dataset: Filtered dataset at specified pressure level.
+
+        Raises:
+            NoDataError: If specified pressure level is not available.
+        """
         if 'plev' in data[var_name].dims:
             try:
                 return data.sel(plev=plev)
             except KeyError:
-                raise NoDataError("The provided pressure level is absent in the dataset. Please try again.")
+                raise NoDataError("The specified pressure level is not in the dataset.")
         else:
-            raise NoDataError(f"The dataset for {var_name} variable does not have a 'plev' coordinate.")
+            raise NoDataError(f"{var_name} does not have a 'plev' coordinate.")
 
     @staticmethod
-    def fix_precipitation_units(data, var_name):
+    def _fix_precipitation_units(data, var_name):
         """
-        Fix the units of precipitation variables from kg m-2 s-1 to mm/day.
-        
+        Converts precipitation units from kg m-2 s-1 to mm/day.
+
         Args:
-            data (xr.Dataset): Input dataset.
-            var_name (str): Name of the variable.
-            target_units (str): Target units for precipitation.
-        
+            data (xr.Dataset): Dataset to adjust.
+            var_name (str): Variable name for precipitation.
+
         Returns:
-            xr.Dataset: Dataset with corrected units.
+            xr.Dataset: Dataset with adjusted units.
         """
         if data[var_name].attrs['units'] != 'mm/day':
             data[var_name] *= 86400
@@ -107,18 +116,20 @@ class GlobalBiases:
 
     def plot_bias(self, stat='mean', vmin=None, vmax=None):
         """
-        Plot the global biases.
+        Plots global biases or a single dataset map if reference data is unavailable.
 
         Args:
-            vmin (float): Minimum value for colorbar.
-            vmax (float): Maximum value for colorbar.
+            stat (str): Statistic for calculation ('mean' by default).
+            vmin (float, optional): Minimum colorbar value.
+            vmax (float, optional): Maximum colorbar value.
+
+        Returns:
+            tuple: Matplotlib figure and axis objects.
         """
         self.logger.info('Plotting global biases.')
 
-        if vmin is None or vmax is None:
-            sym = True
-        else:
-            sym = False
+        # Set 'sym' to True if either 'vmin' or 'vmax' is None, indicating a symmetric colorbar.
+        sym = vmin is None or vmax is None
 
         # Check if pressure levels exist but are not specified
         if 'plev' in self.data[self.var_name].dims and self.plev is None:
@@ -152,28 +163,24 @@ class GlobalBiases:
                                            sym=sym,
                                            vmin_fill=vmin, vmax_fill=vmax)                                      
         return fig, ax
+        
 
     def plot_seasonal_bias(self, seasons_stat='mean', vmin=None, vmax=None):
         """
-        Plot the seasonal biases.
+        Plots seasonal biases for each season (DJF, MAM, JJA, SON).
 
         Args:
-            seasons_stat (str): Statistic to use for seasonal analysis.
-            vmin (float): Minimum value for colorbar.
-            vmax (float): Maximum value for colorbar.
+            seasons_stat (str): Statistic for seasonal analysis ('mean' by default).
+            vmin (float, optional): Minimum colorbar value.
+            vmax (float, optional): Maximum colorbar value.
 
-        
         Returns:
-            fig, ax: figure and axis objects.
+            tuple: Matplotlib figure and axis objects.
         """
-
         self.logger.info('Plotting seasonal biases.')
-        self.seasons_stat = seasons_stat
 
-        if vmin is None or vmax is None:
-            sym = True
-        else:
-            sym = False
+        # Set 'sym' to True if either 'vmin' or 'vmax' is None, indicating a symmetric colorbar.
+        sym = vmin is None or vmax is None
 
         # Check if pressure levels exist but are not specified
         if 'plev' in self.data[self.var_name].dims and self.plev is None:
@@ -185,7 +192,7 @@ class GlobalBiases:
         season_list = ['DJF', 'MAM', 'JJA', 'SON']    
         stat_funcs = {'mean': 'mean', 'max': 'max', 'min': 'min', 'std': 'std'}
 
-        if self.seasons_stat not in stat_funcs:
+        if seasons_stat not in stat_funcs:
             raise ValueError("Invalid statistic. Please choose one of 'mean', 'std', 'max', 'min'.")
 
         seasonal_data = []
@@ -195,7 +202,7 @@ class GlobalBiases:
             data_season = select_season(self.data[self.var_name], season)
             data_ref_season = select_season(self.data_ref[self.var_name], season)
             data_stat =  getattr(data_season, stat_funcs[self.seasons_stat])(dim='time') 
-            data_ref_stat = getattr(data_ref_season, stat_funcs[self.seasons_stat])(dim='time')
+            data_ref_stat = getattr(data_ref_season, stat_funcs[seasons_stat])(dim='time')
 
             seasonal_data.append(data_stat)  
             seasonal_data_ref.append(data_ref_stat)  
@@ -214,35 +221,29 @@ class GlobalBiases:
             plot_kwargs['vmax_fill'] = vmax
 
         fig, ax = plot_maps_diff(**plot_kwargs)
-    
         
         return fig, ax
 
     def plot_vertical_bias(self, data=None, data_ref=None, var_name=None, plev_min=None, plev_max=None, vmin=None, vmax=None):
         """
-        Calculate and plot the vertical bias between two datasets.
+        Calculates and plots the vertical bias between two datasets.
 
         Args:
-            data (xr.Dataset, optional): Input dataset.
-            data_ref (xr.Dataset, optional): Reference dataset.
-            var_name (str, optional): Name of the variable.
-            plev_min (float, optional): Minimum pressure level for bias calculation.
-            plev_max (float, optional): Maximum pressure level for bias calculation.
-            vmin (float, optional): Minimum value for colorbar.
-            vmax (float, optional): Maximum value for colorbar.
+            data (xr.Dataset, optional): Dataset for analysis.
+            data_ref (xr.Dataset, optional): Reference dataset for comparison.
+            var_name (str, optional): Variable name to analyze.
+            plev_min (float, optional): Minimum pressure level.
+            plev_max (float, optional): Maximum pressure level.
+            vmin (float, optional): Minimum colorbar value.
+            vmax (float, optional): Maximum colorbar value.
 
         Returns:
-            fig, ax: figure and axis objects.
+            tuple: Matplotlib figure and axis objects.
         """
 
         self.logger.info('Plotting vertical biases.')
 
-        if data:
-            self.data = data
-        if data_ref:
-            self.data_ref = data_ref
-        if var_name:
-            self.var_name = var_name
+        data, data_ref, var_name = data or self.data, data_ref or self.data_ref, var_name or self.var_name
 
         # Compute climatology for reference dataset
         ref_climatology = self.data_ref[var_name].mean(dim='time')
