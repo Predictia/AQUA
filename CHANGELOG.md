@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA diagnostic complete list:
-- Hotfix for sea ice plots
+- Hotfix for sea ice plots (#1432)
 
 ## [v0.12.2]
 
