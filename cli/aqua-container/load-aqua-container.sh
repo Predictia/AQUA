@@ -19,7 +19,7 @@ usage() {
 
     Mandatory Argument:
         machine_name             The name of the machine to set.
-                                 Machine supported are Lumi, Levante and MN5
+                                 Machine supported are lumi, levante and MN5
 
     Options:
         --native                 Enable native mode: AQUA will read from native env variable.
@@ -88,14 +88,18 @@ parse_machine() {
 
     # Set up global variable for native mode
     echo "Machine is set to: $machine"
-    echo "AQUA version is set to: $version"
 
     # Local model configuration
     [ "$native_mode" -eq 1 ] && echo "Local mode is enabled: AQUA will use native installation instead of container one."
     if [[ "$native_mode" -eq 0 ]]; then
         export AQUA="/app/AQUA"
         echo "Selecting the AQUA path $AQUA from the container."
+        echo "AQUA version is set to: $version"
     else
+        if [ -z $AQUA ]; then
+            echo "ERROR: AQUA directory is not set!"
+            exit 1
+        fi
         # Check if AQUA is set and the file exists 
         echo "Selecting native AQUA path: $AQUA"
         echo "Please use this with caution since it is not how the container is meant to be used!"
@@ -151,6 +155,14 @@ function setup_container_path(){
             ;;
     esac
 
+    
+    if [ ${version} == "latest" ] ; then
+        echo "Asking for latest AQUA version, detecting the more recent available in ${AQUA_folder}" >&2
+        available_versions=$(find ${AQUA_folder} -type f -name 'aqua_*.sif' -exec basename {} .sif \; | sed 's/^aqua_//')
+        version=$(printf "%s\n" "${available_versions[@]}" | sort -V -r | head -n 1 )
+        echo "AQUA v${version} selected! If you are not happy, please specify your version with -v flag" >&2
+    fi 
+
     AQUA_container="$AQUA_folder/aqua_${version}.sif"
 
     if [ ! -f "$AQUA_container" ]; then
@@ -158,15 +170,15 @@ function setup_container_path(){
         return 1
     fi
 
-    if [ ${version} == "latest" ] ; then
-        resolved_path=$(readlink "$AQUA_container")
+    # if [ ${version} == "latest" ] ; then
+    #     resolved_path=$(readlink "$AQUA_container")
 
-        if [ -n "$resolved_path" ]; then
-            AQUA_container="$AQUA_folder/$resolved_path"
-        else
-            echo "Warning: Unable to resolve the symlink for $AQUA_container. Using the specified path instead." >&2
-        fi
-    fi
+    #     if [ -n "$resolved_path" ]; then
+    #         AQUA_container="$AQUA_folder/$resolved_path"
+    #     else
+    #         echo "Warning: Unable to resolve the symlink for $AQUA_container. Using the specified path instead." >&2
+    #     fi
+    # fi
 
     echo "${AQUA_container}"
 }
