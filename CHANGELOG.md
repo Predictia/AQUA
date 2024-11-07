@@ -7,9 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
-AQUA diagnostic complete list:
-- Hotfix for sea ice plots (#1432)
+AQUA core complete list:
 - Autodetection of latest AQUA in `load-aqua-container.sh` script (#1437)
+
+AQUA diagnostic complete list:
+- Tropical Cyclones: Adaptation to IFS-FESOM and tool to compute orography from data (#1393)
+- Seaice: Hotfix for sea ice plots (#1432)
 
 ## [v0.12.2]
 
