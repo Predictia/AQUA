@@ -19,7 +19,7 @@ usage() {
 
     Mandatory Argument:
         machine_name             The name of the machine to set.
-                                 Machine supported are Lumi, Levante and MN5
+                                 Machine supported are lumi, levante and MN5
 
     Options:
         --native                 Enable native mode: AQUA will read from native env variable.
