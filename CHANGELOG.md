@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA diagnostic complete list:
 - Hotfix for sea ice plots (#1432)
+- Autodetection of latest AQUA in `load-aqua-container.sh` script (#1437)
 
 ## [v0.12.2]
 
