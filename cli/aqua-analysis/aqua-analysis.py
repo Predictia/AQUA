@@ -4,8 +4,7 @@ import sys
 import subprocess
 import argparse
 from aqua.logger import log_configure
-from aqua.util import load_yaml
-
+from aqua.util import load_yaml, create_folder
 
 def run_command(cmd: str, *, log_file: str = None, logger=None) -> int:
     """
@@ -22,15 +21,14 @@ def run_command(cmd: str, *, log_file: str = None, logger=None) -> int:
     try:
         log_file = os.path.expandvars(log_file)
         log_dir = os.path.dirname(log_file)
-        os.makedirs(log_dir, exist_ok=True)
-
+        create_folder(log_dir)
+        
         with open(log_file, 'w') as log:
             process = subprocess.run(cmd, shell=True, stdout=log, stderr=log, text=True)
             return process.returncode
     except Exception as e:
         logger.error(f"Error running command {cmd}: {e}")
         raise
-
 
 def run_diagnostic(diagnostic: str, *, script_path: str, extra_args: str, loglevel: str, logger, logfile: str):
     """
@@ -45,6 +43,10 @@ def run_diagnostic(diagnostic: str, *, script_path: str, extra_args: str, loglev
         logfile (str): Path to the logfile for capturing the command output.
     """
     try:
+        logfile = os.path.expandvars(logfile)
+        create_folder(os.path.dirname(logfile))
+        logger.critical(f"folder created {os.path.dirname(logfile)}")
+    
         cmd = f"python {script_path} {extra_args} -l {loglevel} > {logfile} 2>&1"
         logger.info(f"Running diagnostic {diagnostic}")
         logger.debug(f"Command: {cmd}")
@@ -58,7 +60,50 @@ def run_diagnostic(diagnostic: str, *, script_path: str, extra_args: str, loglev
     except Exception as e:
         logger.error(f"Failed to run diagnostic {diagnostic}: {e}")
 
+def run_diagnostic_func(diagnostic: str, *, parallel: bool, config, model, exp, source, output_dir, loglevel, logger, aqua_path):
+    """
+    Run the diagnostic and log the output, handling parallel processing if required.
 
+    Args:
+        diagnostic (str): Name of the diagnostic to run.
+        parallel (bool): Whether to run in parallel mode.
+        config (dict): Configuration dictionary loaded from YAML.
+        model (str): Model name.
+        exp (str): Experiment name.
+        source (str): Source name.
+        output_dir (str): Directory to save output.
+        loglevel (str): Log level for the diagnostic.
+        logger: Logger instance for logging messages.
+        aqua_path (str): AQUA path.
+    """
+    diagnostic_config = config.get('diagnostics', {}).get(diagnostic)
+    if diagnostic_config is None:
+        logger.error(f"Diagnostic '{diagnostic}' not found in the configuration.")
+        return
+    
+    output_dir = os.path.expandvars(output_dir)
+    create_folder(output_dir)
+
+    logfile = f"{output_dir}/{diagnostic}.log"
+    extra_args = diagnostic_config.get('extra', "")
+
+    # Add parallel processing logic
+    if parallel:
+        nworkers = diagnostic_config.get('nworkers')
+        if nworkers is not None:
+            extra_args += f" --nworkers {nworkers}"
+
+    outname = f"{output_dir}/{diagnostic_config.get('outname', diagnostic)}"
+    args = f"--model {model} --exp {exp} --source {source} --outputdir {outname} {extra_args}"
+
+    run_diagnostic(
+        diagnostic=diagnostic,
+        script_path=os.path.join(aqua_path, "diagnostics", diagnostic_config.get('script_path', f"{diagnostic}/cli/cli_{diagnostic}.py")),
+        extra_args=args,
+        loglevel=loglevel,
+        logger=logger,
+        logfile=logfile
+    )
 
 def get_args():
     """
@@ -192,8 +237,9 @@ def main():
         logger.info(f"Successfully validated inputs: Model = {model}, Experiment = {exp}, Source = {source}.")
 
     output_dir = f"{outputdir}/{model}/{exp}"
+    output_dir = os.path.expandvars(output_dir)
     os.environ["OUTPUT"] = output_dir
-    os.makedirs(output_dir, exist_ok=True)
+    create_folder(output_dir)
 
     run_dummy = config.get('job', {}).get('run_dummy')
     logger.debug(f"run_dummy: {run_dummy}")
