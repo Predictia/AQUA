@@ -6,7 +6,7 @@ import argparse
 from aqua.logger import log_configure
 from aqua.util import load_yaml, create_folder
 
-def run_command(cmd: str, *, log_file: str = None, logger=None) -> int:
+def run_command(cmd: str, log_file: str = None, logger=None) -> int:
     """
     Run a system command and capture the exit code, redirecting output to the specified log file.
 
@@ -22,15 +22,16 @@ def run_command(cmd: str, *, log_file: str = None, logger=None) -> int:
         log_file = os.path.expandvars(log_file)
         log_dir = os.path.dirname(log_file)
         create_folder(log_dir)
-        
+
         with open(log_file, 'w') as log:
             process = subprocess.run(cmd, shell=True, stdout=log, stderr=log, text=True)
             return process.returncode
     except Exception as e:
-        logger.error(f"Error running command {cmd}: {e}")
+        if logger:
+            logger.error(f"Error running command {cmd}: {e}")
         raise
 
-def run_diagnostic(diagnostic: str, *, script_path: str, extra_args: str, loglevel: str, logger, logfile: str):
+def run_diagnostic(diagnostic: str, script_path: str, extra_args: str, loglevel: str = 'INFO', logger=None, logfile: str = 'diagnostic.log'):
     """
     Run the diagnostic script with specified arguments.
 
@@ -45,8 +46,7 @@ def run_diagnostic(diagnostic: str, *, script_path: str, extra_args: str, loglev
     try:
         logfile = os.path.expandvars(logfile)
         create_folder(os.path.dirname(logfile))
-        logger.critical(f"folder created {os.path.dirname(logfile)}")
-    
+
         cmd = f"python {script_path} {extra_args} -l {loglevel} > {logfile} 2>&1"
         logger.info(f"Running diagnostic {diagnostic}")
         logger.debug(f"Command: {cmd}")
@@ -60,7 +60,7 @@ def run_diagnostic(diagnostic: str, *, script_path: str, extra_args: str, loglev
     except Exception as e:
         logger.error(f"Failed to run diagnostic {diagnostic}: {e}")
 
-def run_diagnostic_func(diagnostic: str, *, parallel: bool, config, model, exp, source, output_dir, loglevel, logger, aqua_path):
+def run_diagnostic_func(diagnostic: str, parallel: bool = False, config=None, model='default_model', exp='default_exp', source='default_source', output_dir='./output', loglevel='INFO', logger=None, aqua_path=''):
     """
     Run the diagnostic and log the output, handling parallel processing if required.
 
@@ -80,14 +80,13 @@ def run_diagnostic_func(diagnostic: str, *, parallel: bool, config, model, exp, 
     if diagnostic_config is None:
         logger.error(f"Diagnostic '{diagnostic}' not found in the configuration.")
         return
-    
+
     output_dir = os.path.expandvars(output_dir)
     create_folder(output_dir)
 
     logfile = f"{output_dir}/{diagnostic}.log"
     extra_args = diagnostic_config.get('extra', "")
 
-    # Add parallel processing logic
     if parallel:
         nworkers = diagnostic_config.get('nworkers')
         if nworkers is not None:
@@ -116,9 +115,9 @@ def get_args():
     parser.add_argument("-m", "--model", type=str, help="Model (atmospheric and oceanic)")
     parser.add_argument("-e", "--exp", type=str, help="Experiment")
     parser.add_argument("-s", "--source", type=str, help="Source")
+    parser.add_argument("-d", "--outputdir", type=str, help="Output directory")
     parser.add_argument("-f", "--config", type=str, default="$AQUA/cli/aqua-analysis/config.aqua-analysis.yaml",
                         help="Configuration file")
-    parser.add_argument("-d", "--outputdir", type=str, help="Output directory")
     parser.add_argument("-c", "--catalog", type=str, help="Catalog")
     parser.add_argument("-p", "--parallel", action="store_true", help="Run diagnostics in parallel")
     parser.add_argument("-t", "--threads", type=int, default=-1, help="Maximum number of threads")
@@ -159,49 +158,6 @@ def get_aqua_paths(*, args, logger):
         sys.exit(1)
 
 
-def run_diagnostic_func(diagnostic: str, *, parallel: bool, config, model, exp, source, output_dir, loglevel, logger, aqua_path):
-    """
-    Run the diagnostic and log the output, handling parallel processing if required.
-
-    Args:
-        diagnostic (str): Name of the diagnostic to run.
-        parallel (bool): Whether to run in parallel mode.
-        config (dict): Configuration dictionary loaded from YAML.
-        model (str): Model name.
-        exp (str): Experiment name.
-        source (str): Source name.
-        output_dir (str): Directory to save output.
-        loglevel (str): Log level for the diagnostic.
-        logger: Logger instance for logging messages.
-        aqua_path (str): AQUA path.
-    """
-    diagnostic_config = config.get('diagnostics', {}).get(diagnostic)
-    if diagnostic_config is None:
-        logger.error(f"Diagnostic '{diagnostic}' not found in the configuration.")
-        return
-
-    logfile = f"{output_dir}/{diagnostic}.log"
-    extra_args = diagnostic_config.get('extra', "")
-
-    # Add parallel processing logic
-    if parallel:
-        nworkers = diagnostic_config.get('nworkers')
-        if nworkers is not None:
-            extra_args += f" --nworkers {nworkers}"
-
-    outname = f"{output_dir}/{diagnostic_config.get('outname', diagnostic)}"
-    args = f"--model {model} --exp {exp} --source {source} --outputdir {outname} {extra_args}"
-
-    run_diagnostic(
-        diagnostic=diagnostic,
-        script_path=os.path.join(aqua_path, "diagnostics", diagnostic_config.get('script_path', f"{diagnostic}/cli/cli_{diagnostic}.py")),
-        extra_args=args,
-        loglevel=loglevel,
-        logger=logger,
-        logfile=logfile
-    )
-
-
 def main():
     """
     Main entry point for running the diagnostics.
@@ -209,7 +165,7 @@ def main():
     args = get_args()
     logger = log_configure('warning', 'AQUA Analysis')
 
-    aqua_path, aqua_config_path = get_aqua_paths(args=args, logger=logger)  # Get the AQUA path here
+    aqua_path, aqua_config_path = get_aqua_paths(args=args, logger=logger)
     config = load_yaml(aqua_config_path)
     loglevel = args.loglevel or config.get('job', {}).get('loglevel', "info")
     logger = log_configure(loglevel.lower(), 'AQUA Analysis')
@@ -217,7 +173,7 @@ def main():
     model = args.model or config.get('job', {}).get('model')
     exp = args.exp or config.get('job', {}).get('exp')
     source = args.source or config.get('job', {}).get('source')
-    outputdir = args.outputdir or config.get('job', {}).get('outputdir', './output')
+    outputdir = os.path.expandvars(args.outputdir or config.get('job', {}).get('outputdir', './output'))
     max_threads = args.threads
     catalog = args.catalog or config.get('job', {}).get('catalog')
 
