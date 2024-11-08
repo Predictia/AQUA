@@ -339,7 +339,7 @@ def update_metadata(metadata: dict = None, additional_metadata: dict = None) -> 
     # Add current date and time to metadata
     now = datetime.datetime.now()
     date_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    metadata['date_saved'] = date_now
+    metadata['timestamp'] = date_now
 
     # Get aqua package version and add to metadata
     try:

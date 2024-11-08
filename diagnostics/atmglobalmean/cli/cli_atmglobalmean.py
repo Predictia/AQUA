@@ -92,13 +92,18 @@ if __name__ == '__main__':
 
     logger.debug(f"Running for {model} {exp} {source}.")
 
-    path_to_output = get_arg(args, 'outputdir', config['path']['path_to_output'])
+    path_to_output = get_arg(
+        args, 'outputdir', config['path']['path_to_output'])
     if path_to_output:
-        logger.info(f"Path_to_output: {path_to_output}")
+        outputdir = os.path.join(path_to_output, 'netcdf/')
+        outputfig = os.path.join(path_to_output, 'pdf/')
     else:
         logger.error("No output directory provided.")
         logger.critical("Atmospheric global mean biases diagnostic is terminated.")
         sys.exit(0)
+
+    logger.debug(f"outputdir: {outputdir}")
+    logger.debug(f"outputfig: {outputfig}")
 
     # This is the model to compare with
     model_obs = config['data']['model_obs']
@@ -118,6 +123,9 @@ if __name__ == '__main__':
     end_date1 = config['diagnostic_attributes'].get('end_date1', None)
     start_date2 = config['diagnostic_attributes'].get('start_date2', "1980-01-01")
     end_date2 = config['diagnostic_attributes'].get('end_date2', "2010-12-31")
+
+    model_label = model+'_'+exp
+    model_label_obs = model_obs+'_'+exp_obs
 
     try:
         reader_obs = Reader(model=model_obs, exp=exp_obs, source=source_obs, loglevel=loglevel)
@@ -147,10 +155,11 @@ if __name__ == '__main__':
             try:
                 seasonal_bias(dataset1=data, dataset2=data_obs,
                               var_name=var_name, plev=plev, statistic=statistic,
-                              model=model, exp=exp, model_2=model_obs, exp_2=exp_obs,
+                              model_label1=model_label, model_label2=model_label_obs,
                               start_date1=start_date1, end_date1=end_date1,
                               start_date2=start_date2, end_date2=end_date2,
-                              path_to_output=path_to_output, vmin=vmin, vmax=vmax,
+                              outputdir=outputdir, outputfig=outputfig,
+                              vmin=vmin, vmax=vmax,
                               loglevel=loglevel, seasons=seasons)
             except Exception as e:
                 logger.error(f"An unexpected error occurred: {e}")
@@ -169,10 +178,11 @@ if __name__ == '__main__':
             
             try:
                 compare_datasets_plev(dataset1=data, dataset2=data_obs, var_name=var_name,
-                                      model=model, exp=exp, model_2=model_obs, exp_2=exp_obs,
+                                      model_label1=model_label, model_label2=model_label_obs,
                                       start_date1=start_date1, end_date1=end_date1,
                                       start_date2=start_date2, end_date2=end_date2,
-                                      path_to_output=path_to_output, vmin=vmin, vmax=vmax,
+                                      outputdir=outputdir, outputfig=outputfig,
+                                      vmin=vmin, vmax=vmax,
                                       plev_min=plev_min, plev_max=plev_max,
                                       loglevel=loglevel)
             except Exception as e:
@@ -182,8 +192,8 @@ if __name__ == '__main__':
         for var_name in variables_no_plev:
             logger.info(f"Running plot map with stats diagnostic for {var_name}...")
             try:
-                plot_map_with_stats(dataset=data, var_name=var_name,  model=model, exp=exp,
-                                    path_to_output=path_to_output, loglevel=loglevel)
+                plot_map_with_stats(dataset=data, var_name=var_name,  model_label=model_label,
+                                    outputdir=outputdir, outputfig=outputfig, loglevel=loglevel)
             except Exception as e:
                 logger.error(f"An unexpected error occurred: {e}")
 
