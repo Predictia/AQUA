@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 from aqua.exceptions import NoDataError
-from aqua.graphics import plot_single_map, plot_single_map_diff, plot_maps_diff
+from aqua.graphics import plot_single_map, plot_single_map_diff, plot_maps
 from aqua.util import create_folder, add_cyclic_lon, select_season
 from aqua.util import evaluate_colorbar_limits, ticks_round
 from aqua.logger import log_configure
@@ -128,9 +128,6 @@ class GlobalBiases:
         """
         self.logger.info('Plotting global biases.')
 
-        # Set 'sym' to True if either 'vmin' or 'vmax' is None, indicating a symmetric colorbar.
-        sym = vmin is None or vmax is None
-
         # Check if pressure levels exist but are not specified
         if 'plev' in self.data[self.var_name].dims and self.plev is None:
             self.logger.warning(f"Variable {self.var_name} has multiple pressure levels, but no specific level was selected. Skipping 2D bias plotting.")
@@ -145,12 +142,14 @@ class GlobalBiases:
             fig, ax = plot_single_map(self.data[self.var_name].mean(dim='time'), 
                                       return_fig=True, 
                                       title=title,
-                                      sym=sym,
                                       vmin=vmin, vmax=vmax)
             
         else:
             # Plot the bias map if two datasets are provided
             self.logger.info('Plotting bias map between two datasets.')
+            
+            # Set 'sym' to True if either 'vmin' or 'vmax' is None, indicating a symmetric colorbar.
+            sym = vmin is None or vmax is None
 
             title = (f"{self.var_name} global bias of {self.model} {self.exp} {self.startdate_data}/{self.enddate_data}\n" 
                      f"relative to {self.model_obs} climatology {self.startdate_obs}/{self.enddate_obs}\n" )
@@ -201,18 +200,16 @@ class GlobalBiases:
         for season in season_list:
             data_season = select_season(self.data[self.var_name], season)
             data_ref_season = select_season(self.data_ref[self.var_name], season)
-            data_stat =  getattr(data_season, stat_funcs[self.seasons_stat])(dim='time') 
+            data_stat =  getattr(data_season, stat_funcs[seasons_stat])(dim='time') 
             data_ref_stat = getattr(data_ref_season, stat_funcs[seasons_stat])(dim='time')
 
-            seasonal_data.append(data_stat)  
-            seasonal_data_ref.append(data_ref_stat)  
-        
+            seasonal_data.append(data_stat-data_ref_stat)          
         plot_kwargs = {
             'maps': seasonal_data,
             'maps_ref': seasonal_data_ref,
             'return_fig': True,
             'titles': season_list,
-            'contour': False,
+            'contour': True,
             'sym': sym }
         
         if vmin is not None:
@@ -220,7 +217,7 @@ class GlobalBiases:
         if vmax is not None:
             plot_kwargs['vmax_fill'] = vmax
 
-        fig, ax = plot_maps_diff(**plot_kwargs)
+        fig, ax = plot_maps(**plot_kwargs)
         
         return fig, ax
 
