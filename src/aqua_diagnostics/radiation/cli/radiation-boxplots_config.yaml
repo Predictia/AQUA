@@ -22,3 +22,4 @@ outputdir: "./"
 
 diagnostic_attributes:
   variables: ['-mtnlwrf', 'mtnswrf']
+  variable_names: ['Mean top net long-wave radiation flux', 'Mean top net short-wave radiation flux']
