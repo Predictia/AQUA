@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Autodetection of latest AQUA in `load-aqua-container.sh` script (#1437)
+- Update Metadata Handling for NetCDF, PDF, and PNG Outputs (#1430)
 
 AQUA diagnostic complete list:
 - Tropical Cyclones: Adaptation to IFS-FESOM and tool to compute orography from data (#1393)
