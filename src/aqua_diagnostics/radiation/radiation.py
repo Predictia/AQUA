@@ -36,8 +36,7 @@ class Radiation:
                 label_map[variable] = name
         else:
             for variable in variables:
-                var_name = variable[1:] if variable.startswith('-') else variable
-                label_map[variable] = short_name_map.get(var_name, var_name)
+                label_map[variable] = variable
 
         for dataset, model_name in zip(datasets, model_names):
             for variable in variables:
