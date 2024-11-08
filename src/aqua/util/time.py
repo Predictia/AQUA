@@ -64,7 +64,7 @@ def _xarray_timedelta_string(xdataset):
     if years >= 1:
         return f"{years}Y"
     elif months >= 1:
-        return f"{months}M"
+        return f"{months}MS"
     elif days >= 1:
         return f"{days}D"
     else:
