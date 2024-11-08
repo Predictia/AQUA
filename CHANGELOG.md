@@ -13,6 +13,7 @@ AQUA core complete list:
 AQUA diagnostic complete list:
 - Tropical Cyclones: Adaptation to IFS-FESOM and tool to compute orography from data (#1393)
 - Seaice: Hotfix for sea ice plots (#1432)
+- Eccodes version 2.38.3 and new base container for aqua-container (#1441)
 
 ## [v0.12.2]
 
