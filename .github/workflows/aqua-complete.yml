@@ -69,7 +69,7 @@ jobs:
       - name: Set up Micromamba
         uses: mamba-org/setup-micromamba@v2
         with:
-          micromamba-version: '2.0.2'
+          micromamba-version: 'latest'
           environment-file: environment.yml 
           environment-name: aqua
           cache-downloads: true
