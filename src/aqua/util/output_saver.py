@@ -207,7 +207,8 @@ class OutputSaver:
             'time_precision': time_precision,
             'area': area,
             'catalog': self.catalog,
-            'catalog_2': catalog_2
+            'catalog_2': catalog_2,
+            'rebuild': str(self.rebuild)  # Convert rebuild to a string to make it compatible with NetCDF
         }
         # Include kwargs in additional_metadata
         additional_metadata.update(kwargs)
@@ -231,6 +232,8 @@ class OutputSaver:
 
         self.logger.info(f"Saved netCDF file to path: {full_path}")
         return full_path
+
+
 
     def save_pdf(self, fig: Figure, path: str = None, diagnostic_product: str = None, var: str = None,
                  model_2: str = None, exp_2: str = None, time_start: str = None, time_end: str = None,
@@ -297,7 +300,8 @@ class OutputSaver:
             'time_precision': time_precision,
             'area': area,
             'catalog': self.catalog,
-            'catalog_2': catalog_2
+            'catalog_2': catalog_2,
+            'rebuild': str(self.rebuild)  # Convert rebuild to a string to make it compatible with NetCDF
         }
         # Include kwargs in additional_metadata
         additional_metadata.update(kwargs)
@@ -378,7 +382,8 @@ class OutputSaver:
             'time_precision': time_precision,
             'area': area,
             'catalog': self.catalog,
-            'catalog_2': catalog_2
+            'catalog_2': catalog_2,
+            'rebuild': str(self.rebuild)  # Convert rebuild to a string to make it compatible with NetCDF
         }
         # Include kwargs in additional_metadata
         additional_metadata.update(kwargs)

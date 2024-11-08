@@ -3,7 +3,7 @@ import pytest
 import xarray as xr
 import matplotlib.pyplot as plt
 from aqua.logger import log_configure
-from aqua.util import OutputSaver
+from aqua.util import OutputSaver, open_image
 
 # Initialize the logger for the tests
 log_configure(log_level='DEBUG', log_name='OutputSaverTest')
@@ -142,7 +142,11 @@ def test_metadata_addition(output_saver):
 
     # Save PDF file with metadata
     pdf_path = output_saver.save_pdf(fig=fig, diagnostic_product='mean', metadata=metadata)
-    # Check metadata in PDF (this is more complex, requires reading PDF metadata, which is skipped here for simplicity)
+
+    # Use the open_image function to open the PDF and verify the metadata
+    pdf_metadata = open_image(pdf_path, loglevel='DEBUG')
+    assert pdf_metadata.get('description').get('author') == 'test'
+    assert pdf_metadata.get('description').get('description') == 'test metadata'
 
 @pytest.mark.aqua
 def test_overwriting_files(output_saver):
