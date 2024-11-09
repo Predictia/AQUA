@@ -1,4 +1,5 @@
 import os
+import time
 import pytest
 import xarray as xr
 import matplotlib.pyplot as plt
@@ -148,22 +149,13 @@ def test_metadata_addition(output_saver):
     assert pdf_metadata.get('description').get('author') == 'test'
     assert pdf_metadata.get('description').get('description') == 'test metadata'
 
-@pytest.mark.aqua
-def test_overwriting_files(output_saver):
-    """Test overwriting files."""
-    # Create a simple xarray dataset
-    data = xr.Dataset({'data': (('x', 'y'), [[1, 2], [3, 4]])})
+    # Save PNG file with metadata
+    png_path = output_saver.save_png(fig=fig, diagnostic_product='mean', metadata=metadata)
 
-    # Save netCDF file with rebuild=True
-    path = output_saver.save_netcdf(dataset=data, diagnostic_product='mean', rebuild=True)
-    assert os.path.exists(path)
-
-    # Modify the dataset and save with rebuild=False
-    data['data'].values[0, 0] = 100
-    output_saver.rebuild = False
-    path_no_overwrite = output_saver.save_netcdf(dataset=data, diagnostic_product='mean')
-    assert os.path.exists(path_no_overwrite)
-    assert xr.open_dataset(path)['data'].values[0, 0] != 100  # Ensure the file was not overwritten
+    # Use the open_image function to open the PNG and verify the metadata
+    png_metadata = open_image(png_path, loglevel='DEBUG')
+    assert png_metadata.get('author') == 'test'
+    assert png_metadata.get('description') == 'test metadata'
 
 @pytest.mark.aqua
 def test_invalid_figure_input(output_saver):

@@ -233,8 +233,6 @@ class OutputSaver:
         self.logger.info(f"Saved netCDF file to path: {full_path}")
         return full_path
 
-
-
     def save_pdf(self, fig: Figure, path: str = None, diagnostic_product: str = None, var: str = None,
                  model_2: str = None, exp_2: str = None, time_start: str = None, time_end: str = None,
                  time_precision: str = 'ymd', area: str = None, metadata: dict = None, dpi: int = 300, catalog_2: str = None, **kwargs) -> str:
