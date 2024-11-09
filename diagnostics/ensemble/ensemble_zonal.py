@@ -45,9 +45,9 @@ class EnsembleZonal():
         self.outdir = './'
         self.outfile = None
         self.pdf_save = True
-        self.mean_plot_title = 'Ensemble mean of zonal average of '+self.var[0]
-        self.std_plot_title = 'Ensemble standard deviation of zonal average of '+self.var[0]
-        self.cbar_label = self.var[0]
+        self.mean_plot_title = 'Ensemble mean of zonal average of '+self.var
+        self.std_plot_title = 'Ensemble standard deviation of zonal average of '+self.var
+        self.cbar_label = self.var
 
         if self.pdf_save is False:
             self.logger.info("Figure will not be saved")
@@ -82,13 +82,18 @@ class EnsembleZonal():
         self.logger.info('Plotting the ensemble computation')
         # projection = ccrs.PlateCarree()
         cmap = 'RdBu_r'
-        var = self.var[0]
+        var = self.var
         if self.dataset_mean.sizes != 0:
+            if isinstance(self.dataset_mean,xr.Dataset):
+                dataset_mean = self.dataset_mean[var]
+            else:
+                dataset_mean = self.dataset_mean
+ 
             fig0 = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
             if self.outfile is None:
                 self.outfile = f'multimodel_zonal_average_{var}'
             ax0 = fig0.add_subplot(111)
-            im = ax0.contourf(self.dataset_mean.lat,self.dataset_mean.lev,self.dataset_mean[var],cmap=cmap, levels=20, extend='both')
+            im = ax0.contourf(dataset_mean.lat,dataset_mean.lev,dataset_mean,cmap=cmap, levels=20, extend='both')
             ax0.set_ylim((5500, 0))
             ax0.set_ylabel("Depth (in m)", fontsize=9)
             ax0.set_xlabel("Latitude (in deg North)", fontsize=9)
@@ -105,12 +110,17 @@ class EnsembleZonal():
             fig0.savefig(os.path.join(outfig, outfile))
 
         if self.dataset_std.sizes != 0:
+            if isinstance(self.dataset_std,xr.Dataset):
+                dataset_std = self.dataset_std[var]
+            else:
+                dataset_std = self.dataset_std
+ 
             fig1 = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
             if self.outfile is None:
                 self.outfile = f'multimodel_zonal_average_{var}'
             ax1 = fig1.add_subplot(111)
             #im = self.dataset_std[var].contourf(ax=ax1, cmap=cmap, levels=20, extend='both')
-            im = ax1.contourf(self.dataset_std.lat,self.dataset_std.lev,self.dataset_std[var],cmap=cmap,levels=20,extend='both')
+            im = ax1.contourf(dataset_std.lat,dataset_std.lev,dataset_std,cmap=cmap,levels=20,extend='both')
             ax1.set_ylim((5500, 0))
             ax1.set_ylabel("Depth (in m)", fontsize=9)
             ax1.set_xlabel("Latitude (in deg North)", fontsize=9)

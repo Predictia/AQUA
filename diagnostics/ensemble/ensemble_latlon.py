@@ -41,14 +41,14 @@ class EnsembleLatLon():
             self.units = self.dataset[self.var].units
         self.dim = ensemble_dimension_name
         self.plot_std = True
-        self.figure_size = [15, 15]
+        self.figure_size = [5,5]
         self.plot_label = True
         self.outdir = './'
         self.outfile = None
         self.pdf_save = True
-        self.mean_plot_title = 'Map of '+self.var[0]+' for Ensemble mean'
-        self.std_plot_title = 'Map of '+self.var[0]+' for Ensemble standard deviation'
-        self.cbar_label = self.var[0]+' in '+self.units
+        self.mean_plot_title = 'Map of '+self.var+' for Ensemble mean'
+        self.std_plot_title = 'Map of '+self.var+' for Ensemble standard deviation'
+        self.cbar_label = self.var+' in '+self.units
 
         if self.pdf_save is False:
             self.logger.info("Figure will not be saved")
@@ -83,10 +83,16 @@ class EnsembleLatLon():
         self.logger.info('Plotting the ensemble computation')
         projection = ccrs.PlateCarree()
         cmap = 'RdBu_r'
-        var = self.var[0]
+        var = self.var
         if self.dataset_mean.sizes != 0:
+            if isinstance(self.dataset_mean,xr.Dataset):
+                dataset_mean = self.dataset_mean[var]
+            else:
+                dataset_mean = self.dataset_mean
+            
+
             fig0 = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
-            levels = np.linspace(self.dataset_mean[var].values.min(), self.dataset_mean[var].values.max(), num=21)
+            levels = np.linspace(dataset_mean.values.min(), dataset_mean.values.max(), num=21)
             if self.outfile is None:
                 self.outfile = f'multimodel_global_2D_map_{var}'
             gs = gridspec.GridSpec(1, 1, figure=fig0)
@@ -97,12 +103,12 @@ class EnsembleLatLon():
             ax0.xaxis.set_major_formatter(LongitudeFormatter())
             ax0.yaxis.set_major_formatter(LatitudeFormatter())
             ax0.gridlines(draw_labels=True)
-            im = ax0.contourf(self.dataset_mean.lon, self.dataset_mean.lat,
-                              self.dataset_mean[var], cmap=cmap, levels=levels, extend='both')
+            im = ax0.contourf(dataset_mean.lon, dataset_mean.lat,
+                              dataset_mean, cmap=cmap, levels=levels, extend='both')
             ax0.set_title(self.mean_plot_title)
             ax0.set_xlabel('Longitude')
             ax0.set_ylabel('Latitude')
-            cbar = fig0.colorbar(im, ax=ax0, shrink=0.4, extend='both')
+            cbar = fig0.colorbar(im, ax=ax0, shrink=0.9, extend='both')
             cbar.set_label(self.cbar_label)
             self.logger.info("Saving ensemble mean map to pdf")
             outfig = os.path.join(self.outdir, 'mean_pdf')
@@ -113,8 +119,13 @@ class EnsembleLatLon():
             fig0.savefig(os.path.join(outfig, outfile))
 
         if self.dataset_std.sizes != 0:
+            if isinstance(self.dataset_std,xr.Dataset):
+                dataset_std = self.dataset_std[var]
+            else:
+                dataset_std = self.dataset_std
+
             fig1 = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
-            levels = np.linspace(self.dataset_std[var].values.min(), self.dataset_std[var].values.max(), num=21)
+            levels = np.linspace(dataset_std.values.min(), dataset_std.values.max(), num=21)
             gs = gridspec.GridSpec(1, 1, figure=fig1)
             ax1 = fig1.add_subplot(gs[0, :], projection=projection)
             ax1.coastlines()
@@ -123,12 +134,12 @@ class EnsembleLatLon():
             ax1.xaxis.set_major_formatter(LongitudeFormatter())
             ax1.yaxis.set_major_formatter(LatitudeFormatter())
             ax1.gridlines(draw_labels=True)
-            im = ax1.contourf(self.dataset_std.lon, self.dataset_std.lat,
-                              self.dataset_std[var], cmap=cmap, levels=levels, extend='both')
+            im = ax1.contourf(dataset_std.lon, dataset_std.lat,
+                              dataset_std, cmap=cmap, levels=levels, extend='both')
             ax1.set_title(self.std_plot_title)
             ax1.set_xlabel('Longitude')
             ax1.set_ylabel('Latitude')
-            cbar = fig1.colorbar(im, ax=ax1, shrink=0.4, extend='both')
+            cbar = fig1.colorbar(im, ax=ax1, shrink=0.9, extend='both')
             cbar.set_label(self.cbar_label)
             self.logger.info("Saving ensemble std map to pdf")
             outfig = os.path.join(self.outdir, 'std_pdf')

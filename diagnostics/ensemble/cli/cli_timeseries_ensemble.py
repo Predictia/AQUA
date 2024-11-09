@@ -18,9 +18,9 @@ from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.logger import log_configure
 from aqua import Reader
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
-ensemble_module_path = os.path.join(script_dir, "../../")
-sys.path.insert(0, ensemble_module_path)
+#script_dir = os.path.dirname(os.path.abspath(__file__))
+#ensemble_module_path = os.path.join(script_dir, "../../")
+#sys.path.insert(0, ensemble_module_path)
 from ensemble import EnsembleTimeseries
 
 

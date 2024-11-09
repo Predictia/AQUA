@@ -46,11 +46,7 @@ class EnsembleTimeseries():
         self.mon_ref_data = mon_ref_data
         self.ann_ref_data = ann_ref_data
 
-        self.plot_std = True
         self.plot_label = True
-
-        self.outdir = None
-        self.outfile = None
 
         self.mon_dataset_mean = None
         self.mon_dataset_std = None
@@ -67,9 +63,9 @@ class EnsembleTimeseries():
         self.label_size = 7.5
         self.ensemble_label = 'Ensemble'
         self.ref_label = 'ERA5'
-        self.plot_title = None
+        self.plot_title = 'Ensemble statistics for '+self.var
         self.dim = ensemble_dimension_name
-        self.label_ncol = 4
+        self.label_ncol = 3
         self.pdf_save = True
         if self.pdf_save is False:
             self.logger.info("Figure will not be saved")
@@ -87,14 +83,14 @@ class EnsembleTimeseries():
         The default dim="Ensembles". This can be reassianged with the method "edit_attributes".
         """
         if self.mon_model_dataset != None:
-            self.mon_dataset_mean = self.ensemble_mean(self.mon_model_dataset)
+            self.mon_dataset_mean = self.mon_model_dataset[self.var].mean(dim=self.dim)
         if self.ann_model_dataset != None:
-            self.ann_dataset_mean = self.ensemble_mean(self.ann_model_dataset)
+            self.ann_dataset_mean = self.ann_model_dataset[self.var].mean(dim=self.dim)
 
         if self.mon_model_dataset != None:
-            self.mon_dataset_std = self.ensemble_std(self.mon_model_dataset)
+            self.mon_dataset_std = self.mon_model_dataset[self.var].std(dim=self.dim)
         if self.ann_model_dataset != None:
-            self.ann_dataset_std = self.ensemble_std(self.ann_model_dataset)
+            self.ann_dataset_std = self.ann_model_dataset[self.var].std(dim=self.dim)
 
     def edit_attributes(self, **kwargs):
         """
@@ -112,43 +108,69 @@ class EnsembleTimeseries():
         To edit the default settings please call the method "edit_attributes"
         """
         self.logger.info('Plotting the ensemble timeseries')
-        var = self.var[0]  # Only one variable can be plotted at a time
+        var = self.var  # Only one variable can be plotted at a time
         plt.rcParams["figure.figsize"] = (self.figure_size[0], self.figure_size[1])
         fig, ax = plt.subplots(1, 1)
         color_list = ["#1898e0", "#8bcd45", "#f89e13", "#d24493", "#00b2ed", "#dbe622",
                       "#fb4c27", "#8f57bf", "#00bb62", "#f9c410", "#fb4865", "#645ccc"]
-
+        
         # Plotting monthly ensemble data
-        if self.mon_dataset_mean != None:
-            self.mon_dataset_mean[var].plot(ax=ax, label=self.ensemble_label+'-mon-mean', color=color_list[0], zorder=2)
+        if self.mon_dataset_mean.sizes != 0:
+            if isinstance(self.mon_dataset_mean,xr.Dataset):
+                mon_dataset_mean = self.mon_dataset_mean[var]
+            else:
+                mon_dataset_mean = self.mon_dataset_mean
+            if isinstance(self.mon_dataset_std,xr.Dataset):
+                mon_dataset_std = self.mon_dataset_std[var]
+            else:
+                mon_dataset_std = self.mon_dataset_std
+            mon_dataset_mean.plot(ax=ax, label=self.ensemble_label+'-mon-mean', color=color_list[0], zorder=2)
             if self.plot_std:
-                ax.fill_between(self.mon_dataset_mean.time, self.mon_dataset_mean[var] - 2.*self.mon_dataset_std[var], self.mon_dataset_mean[var] +
-                                2.*self.mon_dataset_std[var], facecolor=color_list[0], alpha=0.25, label=self.ensemble_label+'-mon-mean'+r'$\pm2$std', zorder=0)
+                ax.fill_between(mon_dataset_mean.time, mon_dataset_mean - 2.*mon_dataset_std, mon_dataset_mean +
+                                2.*mon_dataset_std, facecolor=color_list[0], alpha=0.25, label=self.ensemble_label+'-mon-mean'+r'$\pm2$std', zorder=0)
             if self.plot_ensemble_members:
-                for i in range(len(self.mon_model_dataset)):
+                for i in range(0,len(self.mon_model_dataset[var][:,0])):
                     self.mon_model_dataset[var][i, :].plot(ax=ax, color='grey', lw=0.7, zorder=1)
-
+        
         # Plotting monthy reference
-        if self.mon_ref_data != None:
-            self.mon_ref_data[var].plot(ax=ax, label=self.ref_label+'-mon', color='black', lw=0.95, zorder=2)
-
+        if self.mon_ref_data.sizes != 0:
+            if isinstance(self.mon_ref_data,xr.Dataset):
+                mon_ref_data = self.mon_ref_data[var]
+            else:
+                 mon_ref_data = self.mon_ref_data
+            mon_ref_data.plot(ax=ax, label=self.ref_label+'-mon', color='black', lw=0.95, zorder=2)
+        
         # Plotting annual ensemble data
-        if self.ann_dataset_mean != None:
-            self.ann_dataset_mean[var].plot(ax=ax, label=self.ensemble_label+'-ann-mean',
+        if self.ann_dataset_mean.sizes != 0:
+            if isinstance(self.ann_dataset_mean,xr.Dataset):
+                ann_dataset_mean = self.ann_dataset_mean[var]
+            else:
+                ann_dataset_mean = self.ann_dataset_mean
+
+            if isinstance(self.ann_dataset_std,xr.Dataset):
+                ann_dataset_std = self.ann_dataset_std[var]
+            else:
+                ann_dataset_std = self.ann_dataset_std
+            ann_dataset_mean.plot(ax=ax, label=self.ensemble_label+'-ann-mean',
                                             color=color_list[2], linestyle='--', zorder=2)
             if self.plot_std:
-                ax.fill_between(self.ann_dataset_mean.time, self.ann_dataset_mean[var] - 2.*self.ann_dataset_std[var], self.ann_dataset_mean[var] +
-                                2.*self.ann_dataset_std[var], facecolor=color_list[2], alpha=0.25, label=self.ensemble_label+'-ann-mean'+r'$\pm2$std', zorder=0)
+                ax.fill_between(ann_dataset_mean.time,ann_dataset_mean - 2.*ann_dataset_std,ann_dataset_mean +
+                                2.*ann_dataset_std, facecolor=color_list[2], alpha=0.25, label=self.ensemble_label+'-ann-mean'+r'$\pm2$std', zorder=0)
             if self.plot_ensemble_members:
-                for i in range(len(self.ann_model_dataset)):
+                for i in range(0,len(self.ann_model_dataset[var][:,0])):
                     self.ann_model_dataset[var][i, :].plot(ax=ax, color='grey', lw=0.7, linestyle='--', zorder=1)
-
+        
         # Plotting annual reference
-        if self.ann_ref_data != None:
-            self.ann_ref_data[var].plot(ax=ax, label=self.ref_label+'-ann', color='black', linestyle='--', lw=0.95, zorder=2)
+        if self.ann_ref_data.sizes != 0:
+            if isinstance(self.ann_ref_data,xr.Dataset):
+                ann_ref_data = self.ann_ref_data[var]
+            else:
+                ann_ref_data = self.ann_ref_data
+            ann_ref_data.plot(ax=ax, label=self.ref_label+'-ann', color='black', linestyle='--', lw=0.95, zorder=2)
+
         ax.set_title(self.plot_title)
         ax.legend(ncol=self.label_ncol, fontsize=self.label_size, framealpha=0)
-
+        
         # Save PDF
         if self.pdf_save:
             self.save_pdf(fig, self.ref_label)
@@ -171,5 +193,3 @@ class EnsembleTimeseries():
         self.compute()
         self.edit_attributes()
         self.plot()
-
-
