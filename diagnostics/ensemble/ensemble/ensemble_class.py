@@ -191,7 +191,7 @@ class EnsembleTimeseries():
             self.outfile = f'multimodel_global_time_series_timeseries_{self.var}'
         self.outfile += '.pdf'
         self.logger.debug(f"Outfile: {self.outfile}")
-        fig.savefig(os.path.join(outfig, self.outfile))
+        fig.savefig(os.path.join(outfig, self.outfile),bbox_inches='tight', pad_inches=0.1)
 
     def run(self):
         self.compute()
@@ -290,7 +290,7 @@ class EnsembleLatLon():
             ax0.set_title(self.mean_plot_title)
             ax0.set_xlabel('Longitude')
             ax0.set_ylabel('Latitude')
-            cbar = fig0.colorbar(im, ax=ax0, shrink=0.4, extend='both')
+            cbar = fig0.colorbar(im, ax=ax0, shrink=0.55, extend='both')
             cbar.set_label(self.cbar_label)
             self.logger.info("Saving ensemble mean map to pdf")
             outfig = os.path.join(self.outdir, 'mean_pdf')
@@ -298,7 +298,7 @@ class EnsembleLatLon():
             create_folder(outfig, self.loglevel)
             outfile = self.outfile + '_mean.pdf'
             self.logger.debug(f"Outfile: {outfile}")
-            fig0.savefig(os.path.join(outfig, outfile))
+            fig0.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1)
 
         if self.dataset_std.sizes != 0:
             if isinstance(self.dataset_std,xr.Dataset):
@@ -321,7 +321,7 @@ class EnsembleLatLon():
             ax1.set_title(self.std_plot_title)
             ax1.set_xlabel('Longitude')
             ax1.set_ylabel('Latitude')
-            cbar = fig1.colorbar(im, ax=ax1, shrink=0.4, extend='both')
+            cbar = fig1.colorbar(im, ax=ax1, shrink=0.55, extend='both')
             cbar.set_label(self.cbar_label)
             self.logger.info("Saving ensemble std map to pdf")
             outfig = os.path.join(self.outdir, 'std_pdf')
@@ -331,7 +331,7 @@ class EnsembleLatLon():
             self.logger.debug(f"Outfile: {outfile}")
             fig1.savefig(os.path.join(outfig, outfile))
             self.logger.debug(f"Outfile: {outfile}")
-            fig1.savefig(os.path.join(outfig, outfile))
+            fig1.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1)
 
     def run(self):
         self.compute()
@@ -421,7 +421,7 @@ class EnsembleZonal():
             ax0.set_xlabel("Latitude (in deg North)", fontsize=9)
             ax0.set_facecolor('grey')
             ax0.set_title(self.mean_plot_title)
-            cbar = fig0.colorbar(im, ax=ax0, shrink=0.4, extend='both')
+            cbar = fig0.colorbar(im, ax=ax0, shrink=0.9, extend='both')
             cbar.set_label(self.cbar_label)
             self.logger.info("Saving ensemble mean map to pdf")
             outfig = os.path.join(self.outdir, 'mean_pdf')
@@ -429,7 +429,7 @@ class EnsembleZonal():
             create_folder(outfig, self.loglevel)
             outfile = self.outfile + '_mean.pdf'
             self.logger.debug(f"Outfile: {outfile}")
-            fig0.savefig(os.path.join(outfig, outfile))
+            fig0.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1)
 
         if self.dataset_std.sizes != 0:
             if isinstance(self.dataset_std,xr.Dataset):
@@ -448,7 +448,7 @@ class EnsembleZonal():
             ax1.set_xlabel("Latitude (in deg North)", fontsize=9)
             ax1.set_facecolor('grey')
             ax1.set_title(self.std_plot_title)
-            cbar = fig1.colorbar(im, ax=ax1, shrink=0.4, extend='both')
+            cbar = fig1.colorbar(im, ax=ax1, shrink=0.9, extend='both')
             cbar.set_label(self.cbar_label)
             self.logger.info("Saving ensemble std map to pdf")
             outfig = os.path.join(self.outdir, 'std_pdf')
@@ -456,7 +456,7 @@ class EnsembleZonal():
             create_folder(outfig, self.loglevel)
             outfile = self.outfile + '_std.pdf'
             self.logger.debug(f"Outfile: {outfile}")
-            fig1.savefig(os.path.join(outfig, outfile))
+            fig1.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1)
 
     def run(self):
         self.compute()
