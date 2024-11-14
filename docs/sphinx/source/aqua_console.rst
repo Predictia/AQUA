@@ -70,13 +70,15 @@ which can keep their catalog or fixes files under version control.
     Since version ``v0.10`` the configuration file provided in the AQUA release is a template.
     Even if the ``aqua install`` is done in editable mode, the configuration file will be copied to the destination folder.
 
-Optional arguments are:
+Mandatory arguments are:
 
 .. option:: machine-name
 
     The name of the machine where you are installing. **It is a mandatory argument.**
     Even if you are working on your local machine, always define it (even a random name would suffice!)
     Setting machine to `lumi`, `levante` or `MN5` is fundamental to use AQUA on these platforms.
+
+Optional arguments are:
 
 .. option:: --path, -p <path>
 
