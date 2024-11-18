@@ -195,6 +195,7 @@ def main():
     output_dir = f"{outputdir}/{model}/{exp}"
     output_dir = os.path.expandvars(output_dir)
     os.environ["OUTPUT"] = output_dir
+    os.environ["AQUA"] = aqua_path
     create_folder(output_dir)
 
     run_dummy = config.get('job', {}).get('run_dummy')
