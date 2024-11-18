@@ -153,16 +153,21 @@ Also in this case, you can set the environment variable in your ``.bash_profile`
 Installation on MareNostrum 5 (MN5) HPC at Barcelona Supercomputing Center (BSC)
 --------------------------------------------------------------------------------
 
-To enable git, pip-install, conda etc. on MN5, configure an SSH tunnel and set up proxy environment variables:
+To enable internet-dependent operations like git, pip install, or conda on MN5, you can configure an SSH tunnel and set up proxy environment variables.
 
-Add a ``RemoteForward`` directive for a high five-digit port number (e.g., ``52698``) under the MN5 section of your ``.ssh/config`` file:
+Note: We recommend using a machine with a stable connection, such as Levante or LUMI, for these configurations, as connections to MN5 from personal computers may be unstable
+
+Add a ``RemoteForward`` directive for a high five-digit port number under the MN5 section of your ``~/.ssh/config`` file.
+Use the following configuration, replacing ``<port_number>`` with a unique high five-digit port to avoid conflicts:
 
 .. code-block:: plaintext
 
     Host mn5
         RemoteForward 52698
 
-Use a unique high five-digit port number to avoid conflicts. Replace ``52698`` with your chosen port.
+After logging into MN5, export the following proxy environment variables export the proxy variables to direct traffic through the SSH tunnel. 
+Replace ``<port_number>`` with the same port number used in your SSH configuration:
+
 After logging into MN5, export the proxy variables to direct traffic through the SSH tunnel:
 
 .. code-block:: bash
@@ -171,6 +176,11 @@ After logging into MN5, export the proxy variables to direct traffic through the
     export http_proxy=socks5://localhost:52698
 
 Once this setup is complete, you can use commands like ``git clone`` with internet access.
+
+.. warning::
+
+   The ``wget`` command does not work properly in this setup. Use ``curl`` as an alternative for downloading files.
+
 
 To use the FDB5 binary library on MN5, set the following environment variable:
 
