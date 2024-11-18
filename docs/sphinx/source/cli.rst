@@ -19,7 +19,7 @@ Basic usage
 
 .. code-block:: bash
 
-    bash aqua-analysis.sh
+    python aqua-analysis.py
 
 Without any argument, the script will run all the diagnostics available in AQUA on an hard-coded dataset,
 with LUMI configuration and output directory in the ``cli/aqua-analysis/output`` folder.
@@ -218,7 +218,7 @@ Options
 
 .. option:: -r, --serial
 
-    Run in serial mode (only one core). This is passed to the ``aqua-analysis.sh`` script.
+    Run in serial mode (only one core). This is passed to the ``aqua-analysis.py`` script.
 
 .. option:: -x <max>, --max <max>
 
