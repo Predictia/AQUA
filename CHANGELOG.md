@@ -7,10 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
-AQUA diagnostics complete list:
-- Convert `aqua-analysis.sh` to Python with Subprocess and Multiprocessing Support (#1354)
-
 AQUA core complete list:
+- Convert `aqua-analysis.sh` to Python with Subprocess and Multiprocessing Support (#1354)
 - Eccodes version 2.38.3 and new base container for aqua-container (#1441)
 - Autodetection of latest AQUA in `load-aqua-container.sh` script (#1437)
 - Update Metadata Handling for NetCDF, PDF, and PNG Outputs (#1430)
