@@ -155,27 +155,26 @@ Installation on MareNostrum 5 (MN5) HPC at Barcelona Supercomputing Center (BSC)
 
 To enable internet-dependent operations like git, pip install, or conda on MN5, you can configure an SSH tunnel and set up proxy environment variables.
 
-Note: We recommend using a machine with a stable connection, such as Levante or LUMI, for these configurations, as connections to MN5 from personal computers may be unstable
+Note: we recommend using a machine with a stable connection, such as Levante or LUMI, for these configurations, as connections to MN5 from personal computers may be unstable
 
 Add a ``RemoteForward`` directive for a high five-digit port number under the MN5 section of your ``~/.ssh/config`` file.
-Use the following configuration, replacing ``<port_number>`` with a unique high five-digit port to avoid conflicts:
+Use the following configuration, replacing ``<port_number>`` with a unique port number to avoid conflicts (on most systems the valid range for ports is from 1024 to 49151 for user-level applications).
 
 .. code-block:: plaintext
 
     Host mn5
-        RemoteForward 52698
+        RemoteForward <port_number>
 
 After logging into MN5, export the following proxy environment variables export the proxy variables to direct traffic through the SSH tunnel. 
 Replace ``<port_number>`` with the same port number used in your SSH configuration:
 
-After logging into MN5, export the proxy variables to direct traffic through the SSH tunnel:
-
 .. code-block:: bash
 
-    export https_proxy=socks5://localhost:52698
-    export http_proxy=socks5://localhost:52698
+    export https_proxy=socks5://localhost:<port_number>
+    export http_proxy=socks5://localhost:<port_number>
 
 You can add these exports to your ``.bash_profile`` and ``.bashrc`` files in your home directory for persistence.
+
 Check if the forwarding is running by using the following command with your chosen port number:
 
 .. code-block:: bash
@@ -200,6 +199,7 @@ To verify the configuration, try testing the SSH connection with:
     ssh -T git@github.com
 
 Once verified, you can successfully use ``git clone`` and other Git commands with SSH.
+
 To install AQUA, you can follow the mamba installation process described in the previous section.
 
 .. warning::
