@@ -8,9 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Convert `aqua-analysis.sh` to Python with Subprocess and Multiprocessing Support (#1354)
 - Eccodes version 2.38.3 and new base container for aqua-container (#1441)
 - Autodetection of latest AQUA in `load-aqua-container.sh` script (#1437)
-- Add instructions to install AQUA on MN5
+- Update Metadata Handling for NetCDF, PDF, and PNG Outputs (#1430)
+- Add instructions to install AQUA on MN5 (#1468)
 
 AQUA diagnostic complete list:
 - Tropical Cyclones: Adaptation to IFS-FESOM and tool to compute orography from data (#1393)
@@ -32,6 +34,7 @@ AQUA core complete list:
 AQUA diagnostic complete list:
 - Refactor of plotThickness method in the sea ice diagnostic (#1427)
 
+
 ## [v0.12.1]
 
 AQUA core complete list:
@@ -49,7 +52,6 @@ Main changes are:
 3. A diagnostic module, called `aqua.diagnostics`, is under development. The module is not yet active, diagnostics are still available with the previous structure.
 
 AQUA core complete list:
-
 - Mixed updates to support data for NextGEMS cycle4 hackathon (#1375)
 - Preprocess functionality added to the `Reader` class (#1298)
 - The AQUAthon material has been moved under the `notebooks` folder (#1342)
