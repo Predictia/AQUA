@@ -175,7 +175,32 @@ After logging into MN5, export the proxy variables to direct traffic through the
     export https_proxy=socks5://localhost:52698
     export http_proxy=socks5://localhost:52698
 
-Once this setup is complete, you can use commands like ``git clone`` with internet access.
+You can add these exports to your ``.bash_profile`` and ``.bashrc`` files in your home directory for persistence.
+Check if the forwarding is running by using the following command with your chosen port number:
+
+.. code-block:: bash
+
+    netstat -tlnp | grep <port_number>
+
+Next, create your GitHub SSH key as usual, and then update your ``~/.ssh/config`` file with the following configuration:
+
+.. code-block:: plaintext
+
+    Host github.com
+        Hostname ssh.github.com
+        Port 443
+        User git
+        IdentityFile ~/.ssh/id_github
+        ProxyCommand nc -x localhost:<port_number> %h %p
+
+To verify the configuration, try testing the SSH connection with:
+
+.. code-block:: bash
+
+    ssh -T git@github.com
+
+Once verified, you can successfully use ``git clone`` and other Git commands with SSH.
+To install AQUA, you can follow the mamba installation process described in the previous section.
 
 .. warning::
 
@@ -188,7 +213,6 @@ To use the FDB5 binary library on MN5, set the following environment variable:
 
     export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/gpfs/projects/ehpc01/sbeyer/models/DE_CY48R1.0_climateDT_tco399_fesom2.6/build/lib"
     
-You can add these exports to your ``.bash_profile`` and ``.bashrc`` files in your home directory for persistence.
 
 
 Installation and use of the AQUA container
