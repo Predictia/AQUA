@@ -101,8 +101,7 @@ if __name__ == '__main__':
         f"The analysis includes the {models_list[0]} model (experiment {exp_list[0]}) from the provided catalog, "
         f"alongside other models defined in the configuration ({', '.join(models_list[1:])} if applicable). "
         f"This boxplot provides a comparison of radiation fluxes across the models, allowing an evaluation of "
-        f"the variability and bias among different datasets. Each model's radiation flux data was processed with the "
-        f"appropriate settings to ensure consistent comparability."
+        f"the variability and bias among different datasets. "
     )
     metadata = {"Description": description}
     if result:

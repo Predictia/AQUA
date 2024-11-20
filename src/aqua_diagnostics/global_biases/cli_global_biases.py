@@ -145,8 +145,6 @@ def main():
                         f"Spatial map of the total bias of the variable {var_name} from {startdate_data} to {enddate_data} "
                         f"for the {model_data} model, experiment {exp_data} from the {catalog_data} catalog, with {model_obs} "
                         f"(experiment {exp_obs}, catalog {catalog_obs}) used as reference data. "
-                        f"The reference range includes adjustments for seasonal cycles to align with the model outputs, "
-                        f"ensuring comparability."
                     )
                 metadata = {"Description": description}
                 if save_pdf:
@@ -165,8 +163,7 @@ def main():
                         f"Seasonal bias map of the variable {var_name} for the {model_data} model, experiment {exp_data} "
                         f"from the {catalog_data} catalog, using {model_obs} (experiment {exp_obs}, catalog {catalog_obs}) as reference data. "
                         f"The bias is computed for each season over the period from {startdate_data} to {enddate_data}, "
-                        f"providing insights into seasonal discrepancies between the model and the reference. Adjustments have been "
-                        f"made to align seasonal cycles, ensuring accurate comparability."
+                        f"providing insights into seasonal discrepancies between the model and the reference. "
                     )
                     metadata = {"Description": description}
                     if save_pdf:
