@@ -13,7 +13,13 @@ obs:
   exp: 'era5'
   source: 'monthly'
 
-outputdir: "./"
+output:
+  outputdir: "./"
+  rebuild: true
+  filename_keys: null # or, for example,  ['diagnostic', 'catalog', 'model', 'diagnostic_product', 'var']
+  save_pdf: true
+  save_png: true
+  dpi: 300
 
 diagnostic_attributes:
   variables: ['mtpr', '2t', 'msl', 'mtpr', 'mtnlwrf', 't', 'u', 'v', 'q']
@@ -29,7 +35,6 @@ diagnostic_attributes:
 # Here you can specify the colorbar limits for each variable
 # If you don't specify them, the colorbar limits will be automatically calculated
 # based on the data.
-
 
 biases_plot_params:
   bias_maps:

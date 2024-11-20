@@ -278,9 +278,6 @@ class OutputSaver:
         # Ensure fig is a Figure object
         if isinstance(fig, plt.Axes):
             fig = fig.figure
-        
-        # Adjust layout to prevent cropping of labels
-        fig.tight_layout()
 
         if isinstance(fig, (plt.Figure, Figure)):
             fig.savefig(full_path, dpi=dpi, bbox_inches='tight')

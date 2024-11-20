@@ -69,9 +69,12 @@ def main():
     startdate_obs = config['diagnostic_attributes'].get('startdate_obs')
     enddate_obs = config['diagnostic_attributes'].get('enddate_obs')
 
-    outputdir = get_arg(args, "outputdir", config["outputdir"])
-    out_pdf = os.path.join(outputdir, 'pdf')
-    create_folder(out_pdf, loglevel)
+    outputdir = get_arg(args, "outputdir", config['output'].get("outputdir"))
+    rebuild = config['output'].get("rebuild")
+    filename_keys = config['output'].get("filename_keys")
+    save_pdf = config['output'].get("save_pdf")
+    save_png = config['output'].get("save_png")
+    dpi = config['output'].get("dpi")
 
     variables = config['diagnostic_attributes'].get('variables', [])
     plev = config['diagnostic_attributes'].get('plev')
@@ -79,7 +82,8 @@ def main():
     seasons_stat = config['diagnostic_attributes'].get('seasons_stat', 'mean')
     vertical = config['diagnostic_attributes'].get('vertical', False)
 
-    names = OutputSaver(diagnostic='global_biases', model=model_data, exp=exp_data, loglevel=loglevel)
+    output_saver = OutputSaver(diagnostic='global_biases', catalog=catalog_data, model=model_data, exp=exp_data, loglevel=loglevel,
+                               default_path=outputdir, rebuild=rebuild, filename_keys=filename_keys)
 
     # Retrieve data and handle potential errors
     try:
@@ -129,8 +133,14 @@ def main():
             result = global_biases.plot_bias(vmin=vmin, vmax=vmax)
             if result:
                 fig, ax = result
-                names.generate_name(diagnostic_product='total_bias_map', var=var_name)
-                names.save_pdf(fig, path=out_pdf, var=var_name)
+                if save_pdf:
+                    output_saver.save_pdf(fig, var=var_name, diagnostic_product='total_bias_map', dpi=dpi,
+                                          catalog_2=catalog_obs, model_2=model_obs, exp_2=exp_obs,
+                                          time_start=startdate_data, time_end=enddate_data)
+                if save_png:
+                    output_saver.save_png(fig, var=var_name, diagnostic_product='total_bias_map', dpi=dpi,
+                                          catalog_2=catalog_obs, model_2=model_obs, exp_2=exp_obs,
+                                          time_start=startdate_data, time_end=enddate_data)
             else:
                 logger.warning(f"Total bias plot not generated for {var_name}.")
 
@@ -139,8 +149,14 @@ def main():
                 result = global_biases.plot_seasonal_bias(vmin=vmin, vmax=vmax)
                 if result:
                     fig, ax = result
-                    names.generate_name(diagnostic_product='seasonal_bias_map', var=var_name)
-                    names.save_pdf(fig, path=out_pdf, var=var_name)
+                    if save_pdf:
+                        output_saver.save_pdf(fig, var=var_name, diagnostic_product='seasonal_bias_map', dpi=dpi,
+                                              catalog_2=catalog_obs, model_2=model_obs, exp_2=exp_obs,
+                                              time_start=startdate_data, time_end=enddate_data)
+                    if save_png:
+                        output_saver.save_png(fig, var=var_name, diagnostic_product='seasonal_bias_map', dpi=dpi,
+                                              catalog_2=catalog_obs, model_2=model_obs, exp_2=exp_obs,
+                                              time_start=startdate_data, time_end=enddate_data)
                 else:
                     logger.warning(f"Seasonal bias plot not generated for {var_name}.")
 
@@ -152,8 +168,14 @@ def main():
                 result = global_biases.plot_vertical_bias(var_name=var_name, vmin=vmin, vmax=vmax)
                 if result:
                     fig, ax = result
-                    names.generate_name(diagnostic_product='vertical_bias', var=var_name)
-                    names.save_pdf(fig, path=out_pdf, var=var_name)
+                    if save_pdf:
+                        output_saver.save_pdf(fig, var=var_name, diagnostic_product='vertical_bias', dpi=dpi,
+                                              catalog_2=catalog_obs, model_2=model_obs, exp_2=exp_obs,
+                                              time_start=startdate_data, time_end=enddate_data)
+                    if save_png:
+                        output_saver.save_png(fig, var=var_name, diagnostic_product='vertical_bias', dpi=dpi,
+                                              catalog_2=catalog_obs, model_2=model_obs, exp_2=exp_obs,
+                                              time_start=startdate_data, time_end=enddate_data)
                 else:
                     logger.warning(f"Vertical bias plot not generated for {var_name}.")
 
