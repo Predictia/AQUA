@@ -19,7 +19,7 @@ Basic usage
 
 .. code-block:: bash
 
-    bash aqua-analysis.sh
+    python aqua-analysis.py
 
 Without any argument, the script will run all the diagnostics available in AQUA on an hard-coded dataset,
 with LUMI configuration and output directory in the ``cli/aqua-analysis/output`` folder.
@@ -218,7 +218,7 @@ Options
 
 .. option:: -r, --serial
 
-    Run in serial mode (only one core). This is passed to the ``aqua-analysis.sh`` script.
+    Run in serial mode (only one core). This is passed to the ``aqua-analysis.py`` script.
 
 .. option:: -x <max>, --max <max>
 
@@ -401,3 +401,18 @@ A CLI script (``eccodes/fix_eccodes.sh``) is available to create such 'fixed' de
     Please notice that this also means that earlier versions of the ecCodes binary will not work using these 'fixed' definition files.
     If you are planning to use older versions of AQUA (with older versions of ecCodes) you should not use these 'fixed' definition files
     and you may need to modify the ecCodes path in the catalog entries.
+
+Orography generator
+-------------------
+
+A tool to generate orography files from a source that can be accessed via AQUA.
+It is located in the ``cli/orography_from_data`` folder and it contains all the configurations to generate orography files
+inside the script file itself.
+
+It has been used to produce the orography files for the Tropical Cyclone diagnostic.
+
+Basic usage:
+
+.. code-block:: bash
+
+    python orography_generator.py

@@ -47,7 +47,7 @@ class AquaFDBGenerator:
         self.model = self.config["model"].lower()
         self.portfolio = self.config["portfolio"]
         self.ocean_grid = self.config["ocean_grid"]
-        self.num_of_realizations = self.config["num_of_realizations"]
+        self.num_of_realizations = int(self.config.get("num_of_realizations", 1))
 
         # portfolio
         self.logger.info("Running FDB catalog generator for %s portfolio for model %s", data_portfolio, self.model)

@@ -57,9 +57,10 @@ To set up the configuration folder, run the following shell command:
 
 .. code-block:: bash
 
-    aqua install
+    aqua install <machine>
 
 This command will create the configuration folder in the ``$HOME/.aqua`` directory and it will copy there the essential files.
+You will need to specify the machine name on which you are installing (e.g. "lumi", "levante" or "MN5")
 Check the :ref:`aqua-install` section for more information.
 
 .. warning::
