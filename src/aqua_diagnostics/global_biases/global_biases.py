@@ -272,7 +272,7 @@ class GlobalBiases:
 
         levels = np.linspace(vmin, vmax, nlevels)
 
-        title = (f"{self.var_name} vertical bias of {self.model} {self.exp} {self.startdate_data}/{self.enddate_data}\n" 
+        title = (f"{var_name} vertical bias of {self.model} {self.exp} {self.startdate_data}/{self.enddate_data}\n" 
             f"relative to {self.model_obs} climatology {self.startdate_obs}/{self.enddate_obs}\n")
 
         # Plotting the zonal bias
@@ -283,7 +283,7 @@ class GlobalBiases:
         ax.set_ylabel('Pressure Level (Pa)')
         ax.set_xlabel('Latitude')
         ax.invert_yaxis()
-        fig.colorbar(cax, ax=ax, label=f'{var_name} [{self.data[self.var_name].attrs.get("units", "")}]')
+        fig.colorbar(cax, ax=ax, label=f'{var_name} [{self.data[var_name].attrs.get("units", "")}]')
         ax.grid(True)
 
         return fig, ax
