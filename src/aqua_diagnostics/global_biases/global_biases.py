@@ -213,9 +213,9 @@ class GlobalBiases:
             'sym': sym }
         
         if vmin is not None:
-            plot_kwargs['vmin_fill'] = vmin
+            plot_kwargs['vmin'] = vmin
         if vmax is not None:
-            plot_kwargs['vmax_fill'] = vmax
+            plot_kwargs['vmax'] = vmax
 
         fig, ax = plot_maps(**plot_kwargs)
         
