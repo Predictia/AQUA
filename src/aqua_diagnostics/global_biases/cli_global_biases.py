@@ -14,7 +14,7 @@ from aqua.diagnostics import GlobalBiases
 def parse_arguments(args):
     """Parse command line arguments for Global Biases CLI."""
     parser = argparse.ArgumentParser(description='Global Biases CLI')
-    parser.add_argument('-c', '--config', type=str, required=True, help='YAML configuration file')
+    parser.add_argument('-c', '--config', type=str, required=False, help='YAML configuration file')
     parser.add_argument('-n', '--nworkers', type=int, help='Number of Dask distributed workers')
     parser.add_argument("--loglevel", "-l", type=str, help="Logging level")
 
@@ -50,8 +50,11 @@ def main():
 
     client = initialize_dask(get_arg(args, 'nworkers', None), logger)
 
-    # Load configuration and set diagnostic attributes
-    config_file = get_arg(args, "config", "global_bias_config.yaml")
+    homedir = os.environ.get('HOME')
+    config_filename = os.path.join(homedir, '.aqua', 'diagnostics', 'global_biases', 'cli', 'config_global_biases.yaml')
+
+    # Load the configuration
+    config_file = get_arg(args, "config", config_filename)
     logger.info(f"Reading configuration file {config_file}")
     config = load_yaml(config_file)
 

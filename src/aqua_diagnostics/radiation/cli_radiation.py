@@ -50,8 +50,11 @@ if __name__ == '__main__':
     if nworkers:
         client = initialize_dask(nworkers, logger)
 
-    # Load configuration
-    file = get_arg(args, "config", "radiation_config.yaml")
+    homedir = os.environ.get('HOME')
+    config_filename = os.path.join(homedir, '.aqua', 'diagnostics', 'radiation', 'cli', 'config_radiation-boxplots.yaml')
+
+    # Load the configuration
+    file = get_arg(args, "config", config_filename)
     logger.info(f"Reading configuration file {file}")
     config = load_yaml(file)
 
