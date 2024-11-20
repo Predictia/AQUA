@@ -266,6 +266,29 @@ It will be replaced in future by more robust performance machinery.
 
 .. _grids-from-data:
 
+Checksum verification of grid files
+-----------------------------------
+
+AQUA built on many grids files to speed up operations for interpolation and area evaluation, especially within
+the ClimateDT workflow. These are available on multiple HPC but sometimes the synchronization
+might not be complete following an update. In order to verify that all the grids files are ported on the used machine
+the `cli/grids-checker/grids-checker.py` script is available to verify the checksum of the grid files
+is the same as it is planned.
+
+To verify that everything is at it should be please run:
+
+.. code-block:: bash
+
+    ./grid-checker.py verify
+
+To generate a new checksum should be please run:
+
+.. code-block:: bash
+
+    ./grid-checker.py generate -o checksum_file.md5
+
+
+
 Generation of grid from data
 ----------------------------
 
