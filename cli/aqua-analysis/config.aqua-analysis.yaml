@@ -31,7 +31,7 @@ job:
     exp: "historical-1990"
     source: "lra-r100-monthly"
 
-    script_path_base: "${AQUA}/src/aqua_diagnostics/"  # Base directory for the diagnostic scripts
+    script_path_base: "${AQUA}/diagnostics"  # Base directory for the diagnostic scripts
 
 diagnostics:
 
@@ -56,8 +56,8 @@ diagnostics:
 
   global_biases:
     nworkers: 16
-    script_path: "global_biases/cli/cli_global_biases.py"
-    extra: "--config ${script_path_base}/global_biases/cli/global_biases_config.yaml"
+    script_path: "../src/aqua_diagnostics/global_biases/cli_global_biases.py"
+    extra: "--config ${AQUA}/config/diagnostics/global_biases/config_global_biases.yaml"
   global_time_series_atm:
     script_path: "global_time_series/cli/cli_global_time_series.py"
     extra: "--config ${AQUA}/diagnostics/global_time_series/cli/config_time_series_atm.yaml"
@@ -73,17 +73,17 @@ diagnostics:
     nworkers: 16
     extra: "--config ${AQUA}/diagnostics/global_time_series/cli/config_seasonal_cycles_atm.yaml"
   radiation-biases:
-    script_path: "global_biases/cli/cli_global_biases.py"
+    script_path: "../src/aqua_diagnostics/global_biases/cli_global_biases.py"
     nworkers: 8
-    extra: "--config ${script_path_base}/radiation/cli/radiation-biases_config.yaml"
+    extra: "--config ${AQUA}/config/diagnostics/radiation/config_radiation-biases.yaml"
   radiation-boxplots:
-    script_path: "radiation/cli/cli_radiation_boxplots.py"
+    script_path: "../src/aqua_diagnostics/radiation/cli_radiation.py"
     nworkers: 8
-    extra: "--config ${script_path_base}/radiation/cli/radiation-boxplots_config.yaml"
+    extra: "--config ${AQUA}/config/diagnostics/radiation/config_radiation-boxplots.yaml"
   radiation-timeseries:
-    script_path: "../../diagnostics/global_time_series/cli/cli_global_time_series.py"
+    script_path: "global_time_series/cli/cli_global_time_series.py"
     nworkers: 8
-    extra: "--config ${script_path_base}/radiation/cli/radiation-timeseries_config.yaml"
+    extra: "--config ${AQUA}/config/diagnostics/radiation/config_radiation-timeseries.yaml"
   teleconnections_atm:
     script_path: "teleconnections/cli/cli_teleconnections.py"
     nworkers: 8
