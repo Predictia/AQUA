@@ -5,22 +5,49 @@ conversion_name:
     description: 'Target variables according to GRIB2 encoding and eccodes. Shortname changes due to statistical processing are dropped.'
 
     vars:
+      2t: # 2 meter temperature
+        - 167 # original GRIB2 code
+        - 235167
+        - tas # cmor
+        - mean2t # legacy eccodes
+        - avg_2t 
+        - T2M # AQUA ERA5
+      10u: # 10 meter U wind component
+        - 165 # original GRIB2 code
+        - 235165
+        - uas # cmor
+        - m10u # legacy eccodes
+        - avg_10u 
+        - U10M # AQUA ERA5
+      10v: # 10 meter V wind component
+        - 166 # original GRIB2 code
+        - 235166
+        - vas # cmor
+        - m10v # legacy eccodes
+        - avg_10v
+        - V10M # AQUA ERA5
       msl: # Mean sea level pressure
-        - 151 # original GRIB2 code
+        - 151  original GRIB2 code
         - 235151 # avg corresponding to 151
         - msl
         - avg_msl
         - mmsl # eccodes 2.35.*
-        - psl # https://easy.gems.dkrz.de/DYAMOND/NextGEMS/Models/c2_icon_ngc2013_output.html
+        - psl # cmor
         - sea_level_pressure # from ICON-hpx fixer_name, {src_units: Pa}
-        - MSL # ERA5
+        - MSL  # AQUA ERA5
+      skt: # skin (surface?) temperature: TO BE CHECKED 
+        - 235 # original GRIB2 code
+        - 235079 
+        - ts # cmor
+        - avg_skt
+        - mskt # legacy eccodes
       sd: # Snow depth water equivalent
         - 228141 # original GRIB2 code
         - 235141 # avg corresponding to the m of water equivalent units
         - 235078 # avg corresponding to 141
         - sd
         - avg_sd
-        - sd # https://easy.gems.dkrz.de/DYAMOND/NextGEMS/Models/c2_icon_ngc2013_output.html
+        - sd # cmor
         - msd # eccodes 2.35.*
         - avg_sd_m # corresponding to 235141
       sp: # Surface pressure
@@ -28,7 +55,13 @@ conversion_name:
         - 235134 # avg corresponding to 134
         - sp
         - avg_sp
-        - ps # https://easy.gems.dkrz.de/DYAMOND/NextGEMS/Models/c2_icon_ngc2013_output.html
+        - ps # cmor
+      tcc: # Total cloud cover
+        - 164 # original GRIB2 code
+        - 228006 # meantcc GRIB2 code
+        - clt # cmor
+        - meantcc #legacy eccodes name
+        - TCC # AQUA ERA5
       tciw: # Total column cloud ice water
         - 79 # original GRIB2 code
         - 235088 # avg corresponding to 79
