@@ -1,0 +1,13 @@
+conversion_name:
+  eccodes-2.39.0:
+    standard: eccodes
+    version: 2.39.0
+    description: 'Target variables according to GRIB2 encoding and eccodes. Shortname changes due to statistical processing are dropped.'
+
+    vars:
+      tclw: # Total column cloud liquid water
+        - 78 # original GRIB2 code
+        - 235087 # avg corresponding to 78
+        - tclw
+        - avg_tclw
+        - cllvi # vertically integrated cloud water (https://easy.gems.dkrz.de/DYAMOND/NextGEMS/Models/c2_icon_ngc2013_output.html)
