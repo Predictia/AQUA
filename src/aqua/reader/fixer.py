@@ -65,11 +65,34 @@ class FixerMixin():
         self.logger.debug('Final fixes are: %s', final_fixes)
         return final_fixes
 
-    def _load_conversion_dictionary(self):
+    def _load_conversion_dictionary(self, conversion='eccodes', version='2.39.0'):
         """
         Load the conversion dictionary from the fixer file
         """
-        pass
+        conversion_dictionary = self.fixes_dictionary.get("conversion_name", None)
+        conversion_name = conversion + '-' + version
+        self.logger.debug("Conversion dictionary: %s", conversion_name)
+
+        if conversion_dictionary is None:
+            self.logger.error("No conversion dictionary found in the fixes file")
+            return None
+        
+        conversion_dictionary = conversion_dictionary.get(conversion_name, None)
+        if conversion_dictionary is None:
+            self.logger.error("No conversion dictionary found for %s", conversion_name)
+            return None
+
+        # Double check the conversion dictionary
+        dict_standard = conversion_dictionary.get('standard', None)
+        dict_version = conversion_dictionary.get('version', None)
+
+        if dict_standard != conversion or dict_version != version:
+            self.logger.error("Conversion dictionary is not consistent with the requested version")
+            return None
+        
+        self.logger.debug("Conversion dictionary %s", conversion_dictionary)
+
+        return conversion_dictionary
 
     def _combine_fixes(self, default_fixes, model_fixes):
         """
