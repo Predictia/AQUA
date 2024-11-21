@@ -362,7 +362,7 @@ class OutputSaver:
             fig = fig.figure
         # Save the figure to the specified path
         if isinstance(fig, (plt.Figure, Figure)):
-            fig.savefig(full_path, format='png', dpi=dpi)
+            fig.savefig(full_path, format='png', dpi=dpi, bbox_inches='tight')
         else:
             raise ValueError("The provided fig parameter is not a valid matplotlib Figure or pyplot figure.")
 
