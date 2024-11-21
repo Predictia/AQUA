@@ -5,6 +5,7 @@ conversion_name:
     description: 'Target variables according to GRIB2 encoding and eccodes. Shortname changes due to statistical processing are dropped.'
 
     vars:
+      #### INSTANTANEOUS VARIABLES ####
       2t: # 2 meter temperature
         - 167 # original GRIB2 code
         - 235167
@@ -80,3 +81,84 @@ conversion_name:
         - tcwv
         - avg_tcwv
         - prw # https://easy.gems.dkrz.de/DYAMOND/NextGEMS/Models/c2_icon_ngc2013_output.html
+      
+      #### FLUXES VARIABLES ####
+      sshfl: # Mean surface sensible heat flux
+        - avg_ishf # GRIB 2.39 standard, ignored
+        - 235033
+      slhfl:
+        - avg_slhtf # GRIB 2.39 standard, ignored
+        - 235034
+
+      #### OCEAN 2D VARIABLES ####
+      avg_hc300m: # Average heat content in first 300m (legacy)
+        - 263121
+        - hc300m
+      avg_hc700m:  # Average heat content in first 700m (legacy)
+        - 263122
+        - hc700m
+      avg_tos: #Sea surface temperature
+        - 263101
+        - tos # cmor
+        - sst
+        - analysed_sst
+        - SSTK # AQUA ERA5
+        - avg_sst
+      avg_zos: # Sea surface height
+        - 263124
+        - zos # cmor
+        - ssh # FESOM legacy
+
+      #### OCEAN 3D VARIABLES ####
+      avg_so: # Sea water salinity
+        - 263500
+        - so # cmor
+        - salt # PHC3
+      avg_thetao: # Sea water potential temperature
+        - 263501
+        - thetao # cmor
+        - temp # PHC3, FESOM legacy
+      avg_uoe: # Sea water zonal current
+        - 263506
+        - uoe
+        - u # FESOM legacy
+      avg_von: # Sea water meridional current
+        - 263505
+        - von
+        - v # FESOM legacy
+      avg_wo: # Sea water vertical current
+        - 263507
+        - wo
+        - w # FESOM legacy
+
+      #### ICE VARIABLES ####
+      avg_siconc: #Sea ice concentration
+        - 263001
+        - sic # cmor
+        - sea_ice_fraction
+        - ci
+        - CI # AQUA ERA5
+        - a_ice # FESOM legacy
+        - ice_conc #OSI-SAF
+      avg_sithick: #Sea ice thickness
+        - 263000
+        - sit 
+        - m_ice # FESOM legacy
+      avg_siue: # Sea ice zonal velocity
+        - 263003
+        - siue
+        - uice # FESOM legacy
+      avg_sivn: # Sea ice meridional velocity
+        - 263004
+        - sivn
+        - vice # FESOM legacy
+      avg_sivol: # Sea ice volume
+        - 263008
+        - sivol
+      avg_snvol:
+        - 263009
+        - snvol
+      avg_sos: # Sea surface salinity
+        - 263100
+        - sos
+        - sss # FESOM legacy
