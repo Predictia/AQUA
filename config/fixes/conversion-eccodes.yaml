@@ -5,9 +5,45 @@ conversion_name:
     description: 'Target variables according to GRIB2 encoding and eccodes. Shortname changes due to statistical processing are dropped.'
 
     vars:
+      msl: # Mean sea level pressure
+        - 151 # original GRIB2 code
+        - 235151 # avg corresponding to 151
+        - msl
+        - avg_msl
+        - mmsl # eccodes 2.35.*
+        - psl # https://easy.gems.dkrz.de/DYAMOND/NextGEMS/Models/c2_icon_ngc2013_output.html
+        - sea_level_pressure # from ICON-hpx fixer_name, {src_units: Pa}
+        - MSL # ERA5
+      sd: # Snow depth water equivalent
+        - 228141 # original GRIB2 code
+        - 235141 # avg corresponding to the m of water equivalent units
+        - 235078 # avg corresponding to 141
+        - sd
+        - avg_sd
+        - sd # https://easy.gems.dkrz.de/DYAMOND/NextGEMS/Models/c2_icon_ngc2013_output.html
+        - msd # eccodes 2.35.*
+        - avg_sd_m # corresponding to 235141
+      sp: # Surface pressure
+        - 134 # original GRIB2 code
+        - 235134 # avg corresponding to 134
+        - sp
+        - avg_sp
+        - ps # https://easy.gems.dkrz.de/DYAMOND/NextGEMS/Models/c2_icon_ngc2013_output.html
+      tciw: # Total column cloud ice water
+        - 79 # original GRIB2 code
+        - 235088 # avg corresponding to 79
+        - tciw
+        - avg_tciw
+        - clivi # vertically integrated cloud ice (https://easy.gems.dkrz.de/DYAMOND/NextGEMS/Models/c2_icon_ngc2013_output.html)
       tclw: # Total column cloud liquid water
         - 78 # original GRIB2 code
         - 235087 # avg corresponding to 78
         - tclw
         - avg_tclw
         - cllvi # vertically integrated cloud water (https://easy.gems.dkrz.de/DYAMOND/NextGEMS/Models/c2_icon_ngc2013_output.html)
+      tcwv: # Total column vertically-integrated water vapour
+        - 137 # original GRIB2 code
+        - 235137 # avg corresponding to 137
+        - tcwv
+        - avg_tcwv
+        - prw # https://easy.gems.dkrz.de/DYAMOND/NextGEMS/Models/c2_icon_ngc2013_output.html
