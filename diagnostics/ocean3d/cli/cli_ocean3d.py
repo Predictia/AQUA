@@ -56,6 +56,10 @@ class Ocean3DCLI:
 
         self.logger.debug(f"Configuration file: {self.ocean3d_config_dict}")
 
+        if self.ocean3d_config_dict["loglevel"]:
+            self.loglevel = self.get_arg('loglevel', self.ocean3d_config_dict["loglevel"])
+            self.logger = log_configure(log_name='Ocean3D CLI', log_level=self.loglevel)
+            
         self.config["model"] = self.get_arg('model', self.ocean3d_config_dict['model'])
         self.config["exp"] = self.get_arg('exp', self.ocean3d_config_dict['exp'])
         self.config["source"] = self.get_arg('source', self.ocean3d_config_dict['source'])
@@ -96,9 +100,9 @@ class Ocean3DCLI:
             
         self.data["catalog_data"] = check_variable_name(self.data["catalog_data"])
 
-        if self.config["compare_model"]== True:
+        if self.config["ocean_circulation"]["compare_model_with_obs"]:
             self.data["obs_data"] = load_obs_data(model='EN4', exp='en4', source='monthly')
-        self.data["obs_data"] = check_variable_name(self.data["obs_data"])
+            self.data["obs_data"] = check_variable_name(self.data["obs_data"])
         
         return
 
@@ -133,23 +137,28 @@ class Ocean3DCLI:
         o3d_request = self.make_request(kwargs)
 
         self.logger.warning("Running the Ocean Drift diags for %s", region)
-        self.logger.info("Evaluating Hovmoller plot")
-        hovmoller_plot_init = hovmoller_plot(o3d_request)
-        hovmoller_plot_init.plot()
+        
+        if self.config["ocean_drift"]["plots"]["hovmoller"]== True:
+            self.logger.info("Evaluating Hovmoller plot")
+            hovmoller_plot_init = hovmoller_plot(o3d_request)
+            hovmoller_plot_init.plot()
 
-        self.logger.info("Evaluating time series plot")
-        time_series_plot = time_series(o3d_request)
-        time_series_plot.plot()
+        if self.config["ocean_drift"]["plots"]["time_series"]== True:
+            self.logger.info("Evaluating time series plot")
+            time_series_plot = time_series(o3d_request)
+            time_series_plot.plot()
 
-        self.logger.info("Evaluating multilevel trend")
-        trend = multilevel_trend(o3d_request)
-        trend.plot()
+        if self.config["ocean_drift"]["plots"]["multilevel_trend"]== True:
+            self.logger.info("Evaluating multilevel trend")
+            trend = multilevel_trend(o3d_request)
+            trend.plot()
 
-        self.logger.info("Evaluating zonal mean trend")
-        zonal_trend = zonal_mean_trend(o3d_request)
-        zonal_trend.plot()
+        if self.config["ocean_drift"]["plots"]["zonal_trend"]== True:
+            self.logger.info("Evaluating zonal mean trend")
+            zonal_trend = zonal_mean_trend(o3d_request)
+            zonal_trend.plot()
 
-        self.logger.warning(f"Finished the diags for {region}")
+        self.logger.warning(f"Finished ocean drift diags for {region}")
 
     def ocean_circulation_diag_list(self, **kwargs):
         region = kwargs.get("region", None)
@@ -158,14 +167,16 @@ class Ocean3DCLI:
         time = kwargs.get("time")
         o3d_request = self.make_request(kwargs)
 
-        self.logger.info("Evaluating stratification")
-        o3d_request["time"] = time
-        strat = stratification(o3d_request)
-        strat.plot()
+        if self.config["ocean_circulation"]["plots"]["stratification"]== True:
+            self.logger.info("Evaluating stratification")
+            o3d_request["time"] = time
+            strat = stratification(o3d_request)
+            strat.plot()
         
-        self.logger.info("Evaluating Mixed layer depth")
-        o3d_request["time"] = time
-        plot_spatial_mld_clim(o3d_request)
+        if self.config["ocean_circulation"]["plots"]["mixed-layer-depth"]== True:
+            self.logger.info("Evaluating Mixed layer depth")
+            o3d_request["time"] = time
+            plot_spatial_mld_clim(o3d_request)
         
         self.logger.warning(f"Finished the diags for {region}")
 
