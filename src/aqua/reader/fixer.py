@@ -32,6 +32,8 @@ class FixerMixin():
         Return:
             The fixer dictionary
         """
+        # look for conversion dictionary
+        conversion_dictionary = self._load_conversion_dictionary()
 
         # look for family fixes and set them as default
         base_fixes = self._load_fixer_name()
@@ -62,6 +64,12 @@ class FixerMixin():
 
         self.logger.debug('Final fixes are: %s', final_fixes)
         return final_fixes
+
+    def _load_conversion_dictionary(self):
+        """
+        Load the conversion dictionary from the fixer file
+        """
+        pass
 
     def _combine_fixes(self, default_fixes, model_fixes):
         """
@@ -226,16 +234,18 @@ class FixerMixin():
 
         default_fix_exp = fix_model.get('default', None)
         if default_fix_exp is None:
-            self.logger.info("Default fixes not found for %s", self.model)
+            self.logger.debug("Default fixes not found for %s", self.model)
             default_fixes = None
         else:
             if 'default' in default_fix_exp:
                 default_fixes = default_fix_exp.get('default', None)
                 if default_fixes is not None:
                     self.logger.debug("Default based fixes found for %s-%s", self.model, self.exp)
+                    self.logger.warning("Default fixes are deprecated and they will be removed in the future")
 
             else:
                 self.logger.debug("Default based fixes found for %s", self.model)
+                self.logger.warning("Default fixes are deprecated and they will be removed in the future")
                 default_fixes = default_fix_exp
 
         return default_fixes
@@ -491,9 +501,8 @@ class FixerMixin():
             field['time'] = field['time'] + pd.Timedelta(timeshift)
         else:
             raise TypeError('timeshift should be either a integer (timesteps) or a pandas Timedelta!')
-     
-        return field
 
+        return field
 
     def _wrapper_decumulate(self, data, variables, varlist, keep_memory, jump):
         """
