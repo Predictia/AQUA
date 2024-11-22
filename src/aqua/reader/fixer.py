@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from metpy.units import units
 
-from aqua.util import eval_formula, get_eccodes_attr, find_lat_dir, check_direction
+from aqua.util import eval_formula, get_eccodes_attr, find_lat_dir, check_direction, to_list
 from aqua.logger import log_history
 from aqua.data_models import translate_coords
 
@@ -125,28 +125,30 @@ class FixerMixin():
             The final fixes, with the conversion dictionary merged
         """
         if conversion_dictionary is None:
-            self.logger.warning("No conversion dictionary found, no conversion will be applied")
+            self.logger.info("No conversion dictionary found, no conversion will be applied")
             return base_fixes
 
         if base_fixes is None:
-            self.logger.warning("No fixes available, only conversion will be applied")
+            self.logger.info("No fixes available, only conversion will be applied")
             # Create a dummy fixer
             base_fixes = {'vars': {}}
 
         # Merge one by one the variables
         for item in conversion_dictionary.keys():
-            if item == 'vars' and item in base_fixes:
-                for var_key in conversion_dictionary[item].keys():
-                    self.logger.debug("Merging conversion dictionary for %s", var_key)
-                    if var_key in base_fixes[item]:
-                        base_fixes[item][var_key].update(conversion_dictionary[item][var_key])
-                    else:
-                        # We need to manipulate the conversion_dictionary
-                        new_var = conversion_dictionary[item][var_key]
-                        if conversion_dictionary['standard'] == 'eccodes':
-                            self.logger.debug("Adding new variable %s to the fixer to be decoded with GRIB", var_key)
-                            new_var['grib'] = True
-                        base_fixes[item][var_key] = conversion_dictionary[item][var_key]
+            if item == 'vars':
+                if item not in base_fixes:
+                    base_fixes[item] = conversion_dictionary[item]
+                else:
+                    for var_key in conversion_dictionary[item].keys():
+                        if var_key in base_fixes[item]:
+                            base_fixes[item][var_key].update(conversion_dictionary[item][var_key])
+                        else:  # This is a new variable to fix
+                            # We need to manipulate the conversion_dictionary to set the grib flag
+                            # (other may be expanded in the future)
+                            new_var = conversion_dictionary[item][var_key]
+                            if conversion_dictionary['standard'] == 'eccodes':
+                                new_var['grib'] = conversion_dictionary[item][var_key].get('grib', True)
+                            base_fixes[item][var_key] = conversion_dictionary[item][var_key]
 
         return base_fixes
 
@@ -404,13 +406,19 @@ class FixerMixin():
         if vars_to_fix:
             for var in vars_to_fix:
 
-                # dictionary of fixes of the single var
+                # Dictionary of fixes of the single var
                 varfix = vars_to_fix[var]
 
-                # get grib attributes if requested and fix name
+                # Get grib attributes if requested and fix name
+                # This can be expanded to other formats in the future
                 grib = varfix.get("grib", None)
-                if grib:
-                    attributes, shortname = self._get_variables_grib_attributes(var)
+                if grib is not None:
+                    if isinstance(grib, bool):
+                        attributes, shortname = self._get_variables_grib_attributes(var)
+                    elif isinstance(grib, int):
+                        attributes, shortname = self._get_variables_grib_attributes(f"var{grib}")
+                    else:
+                        raise ValueError("grib should be either a boolean or an integer")
                 else:
                     attributes = {}
                     shortname = var
@@ -418,23 +426,37 @@ class FixerMixin():
                 # Get extra attributes from fixer, leave empty dict otherwise
                 attributes.update(varfix.get("attributes", {}))
 
-                # define the list of name changes
+                # Define the list of name changes
                 varlist[var] = shortname
 
-                # 1. source case
-                source = varfix.get("source", None)
-                # if we are using a gribcode as a source, convert it to shortname to access it
-                if str(source).isdigit():
-                    self.logger.info(f'The source {source} is a grib code, need to convert it')
-                    source = get_eccodes_attr(f'var{source}', loglevel=self.loglevel)['shortName']
-                # This is a renamed variable. This will be done at the end.
-                if source:
-                    if source not in data.variables:
-                        continue
-                    if source != shortname:
-                        fixd.update({f"{source}": f"{shortname}"})
+                # 1. source case. We want to be able to work with a list of sources to scan
+                source = to_list(varfix.get("source", None))
+                self.logger.debug("Source for %s: %s", var, source)
+                # We want to process a list of sources
+                if isinstance(source, list):
+                    match = list(set(source) & set(data.variables))
+                    if match:
+                        if len(match) > 1:
+                            self.logger.warning("Multiple matches found for variable %s: %s", var, match)
+                        src = match[0]
 
-                    log_history(data[source], f"Variable renamed {shortname} by fixer")
+                        # if we are using a gribcode as a source, convert it to shortname to access it
+                        if str(src).isdigit():
+                            self.logger.info(f'The source {src} is a grib code, need to convert it')
+                            src = get_eccodes_attr(f'var{src}', loglevel=self.loglevel)['shortName']
+                        # This is a renamed variable. This will be done at the end.
+                        else:
+                            # self.logger.debug("Variable %s found in the dataset", src)
+                            if src != var:
+                                fixd.update({f"{src}": f"{var}"})
+
+                            log_history(data[src], f"Variable renamed {var} from {src} by fixer")
+                            source = src
+                    else:
+                        self.logger.debug('Variable %s not found in the dataset, skipping', source)
+                        continue
+                else:
+                    raise ValueError("Source should be a list of variables (it should be converted internally)")
 
                 # 2. derived case: let's compute the formula it and create the new variable
                 formula = varfix.get("derived", None)
@@ -454,7 +476,7 @@ class FixerMixin():
                             self.logger.info('%s is defined in the fixes but cannot be computed, is it available?',
                                              shortname)
                         continue
-                
+
                 # safe check debugging
                 self.logger.debug('Name of fixer var: %s', var)
                 self.logger.debug('Name of data source var: %s', source)
