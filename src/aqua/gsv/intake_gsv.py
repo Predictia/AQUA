@@ -7,7 +7,7 @@ import xarray as xr
 import numpy as np
 import dask
 from ruamel.yaml import YAML
-from aqua.util.eccodes import init_get_eccodes_shortname
+from aqua.util.eccodes import init_get_eccodes_shortname, get_eccodes_attr
 from intake.source import base
 from .timeutil import check_dates, shift_time_dataset, todatetime, read_bridge_end_date
 from .timeutil import split_date, make_timeaxis, date2str, date2yyyymm, add_offset
@@ -102,6 +102,16 @@ class GSVSource(base.DataSource):
         else:
             self._var = var
 
+        if not isinstance(self._var, list):  # Make sure self._var is a list
+                self._var = [self._var]
+
+        # convert var names to paramId
+        for i, v in enumerate(self._var):
+            if isinstance(v, str):
+                self._var[i] = int(get_eccodes_attr(v)['paramId'])
+
+        self.logger.debug("List of paramid to retrieve %s", self._var)
+                
         self._kwargs = kwargs
 
         if data_start_date == 'auto' or data_end_date == 'auto':
