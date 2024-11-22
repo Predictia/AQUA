@@ -38,7 +38,7 @@ class GSVSource(base.DataSource):
     def __init__(self, request, data_start_date, data_end_date, bridge_end_date=None, timestyle="date",
                  chunks="S", savefreq="h", timestep="h", timeshift=None,
                  startdate=None, enddate=None, var=None, metadata=None, level=None,
-                 loglevel='WARNING', **kwargs):
+                 switch_eccodes=False, loglevel='WARNING', **kwargs):
         """
         Initializes the GSVSource class. These are typically specified in the catalog entry,
         but can also be specified upon accessing the catalog.
@@ -63,6 +63,7 @@ class GSVSource(base.DataSource):
             var (str, optional): Variable ID. Defaults to those in the catalog.
             metadata (dict, optional): Metadata read from catalog. Contains path to FDB.
             level (int, float, list): optional level(s) to be read. Must use the same units as the original source.
+            switch_eccodes (bool, optional): Flag to activate switch of eccodes path. Defaults to False.
             loglevel (string) : The loglevel for the GSVSource
             kwargs: other keyword arguments.
         """
@@ -81,7 +82,12 @@ class GSVSource(base.DataSource):
             self.fdbpath = metadata.get('fdb_path', None)
             self.fdbhome_bridge = metadata.get('fdb_home_bridge', None)
             self.fdbpath_bridge = metadata.get('fdb_path_bridge', None)
-            self.eccodes_path = metadata.get('eccodes_path', None)
+            if switch_eccodes:
+                self.eccodes_path = metadata.get('eccodes_path', None)
+                self.logger.debug("ECCODES switching to %s", self.eccodes_path)
+            else:
+                self.logger.debug("ECCODES switching is off")
+                self.eccodes_path = None
             self.levels = metadata.get('levels', None)
         else:
             self.fdbpath = None
