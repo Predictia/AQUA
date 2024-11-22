@@ -153,6 +153,9 @@ def _init_get_eccodes_attr():
         logger = log_configure(log_level=loglevel, log_name='eccodes')
         nonlocal shortname, paramid, name, cfname, cfvarname, units
 
+        if isinstance(sn, int):
+            sn = f'var{sn}'
+
         for grib_version, tables in shortname.items():
             for table in tables:
                 try:
@@ -168,7 +171,6 @@ def _init_get_eccodes_attr():
                             logger.warning('AQUA will take the first so that %s -> %s, please set up a correct fix if this does not look right',  # noqa E501
                                            sn, paramid[grib_version][table][indices[0]])
                         i = indices[0]
-
 
                     dic = {"paramId": paramid[grib_version][table][i],
                            "long_name": name[grib_version][table][i],
