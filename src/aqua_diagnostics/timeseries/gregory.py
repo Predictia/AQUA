@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import xarray as xr
 from aqua import Reader
 from aqua.logger import log_configure
-from aqua.util import create_folder, add_pdf_metadata
+from aqua.util import OutputSaver
 from aqua.util import time_to_string, evaluate_colorbar_limits
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from .reference_data import get_reference_ts_gregory, get_reference_toa_gregory
@@ -315,22 +315,11 @@ class GregoryPlot():
 
     def save_pdf(self, fig):
         """Save the figure to a pdf file."""
-        self.logger.info("Saving figure to pdf")
-        # Save to outdir/pdf/filename
-        outfig = os.path.join(self.outdir, 'pdf')
-        self.logger.debug(f"Saving figure to {outfig}")
-        create_folder(outfig, self.loglevel)
-        if self.outfile is None:
-            self.outfile = 'global_time_series_gregory_plot'
-            for i, model in enumerate(self.models):
-                if self.catalogs[i] is not None:
-                    self.outfile += f'_{self.catalogs[i]}'
-                self.outfile += f"_{model}_{self.exps[i]}"
-            if self.ref:
-                self.outfile += "_ref_ERA5_CERES"
-            self.outfile += '.pdf'
-        self.logger.debug(f"Output file: {self.outfile}")
-        fig.savefig(os.path.join(outfig, self.outfile))
+        diagnostic_product='gregory_plot'
+        diagnostic='timeseries'
+        output_saver = OutputSaver(diagnostic=diagnostic, catalog=self.catalogs[0], model=self.models[0], exp=self.exps[0],
+                                   loglevel=self.loglevel, default_path=self.outdir) 
+        common_save_args = {'diagnostic_product': diagnostic_product, 'dpi': dpi}
 
         description = "Gregory plot"
         for i, model in enumerate(self.models):
@@ -338,45 +327,46 @@ class GregoryPlot():
         if self.ref:
             description += f" with reference data ERA5 for 2m temperature from {self.ts_std_start} to {self.ts_std_end}"
             description += f" and CERES for net radiation at TOA from {self.toa_std_start} to {self.toa_std_end}."
+            common_save_args.update({'model_2': 'ERA5', 'exp_2': 'CERES'})
         self.logger.debug(f"Description: {description}")
-        add_pdf_metadata(filename=os.path.join(outfig, self.outfile),
-                         metadata_value=description)
+
+       
+        metadata = {"Description": description}
+        #if save_pdf:
+        self.output_saver.save_pdf(fig, metadata=metadata, **common_save_args)
+        #if save_png:
+        self.output_saver.save_png(fig, metadata=metadata, **common_save_args)
 
     def save_netcdf(self):
         """Save the data to a netcdf file."""
-        self.logger.info("Saving data to netcdf")
-        outdir = os.path.join(self.outdir, 'netcdf')
-        create_folder(outdir, self.loglevel)
+        #self.logger.info("Saving data to netcdf")
+        diagnostic_product='gregory_plot'
+        diagnostic='timeseries'
 
         for i, model in enumerate(self.models):
-            try:
-                if self.monthly:
-                    outfile = 'global_time_series_gregory_plot_monthly'
-                    if self.catalogs[i] is not None:
-                        outfile += f'_{self.catalogs[i]}'
-                    outfile += f'_{model}_{self.exps[i]}.nc'
-                    self.data_ts_mon[i].to_netcdf(os.path.join(outdir, outfile), mode='w')
-                    self.data_toa_mon[i].to_netcdf(os.path.join(outdir, outfile), mode='a')
-                if self.annual:
-                    outfile = 'global_time_series_gregory_plot_annual'
-                    if self.catalogs[i] is not None:
-                        outfile += f'_{self.catalogs[i]}'
-                    outfile += f'_{model}_{self.exps[i]}.nc'
-                    self.data_ts_annual[i].to_netcdf(os.path.join(outdir, outfile), mode='w')
-                    self.data_toa_annual[i].to_netcdf(os.path.join(outdir, outfile), mode='a')
-            except Exception as e:
-                self.logger.error(f"Error: {e}")
-                self.logger.error(f"Could not save data to {outfile}")
+            output_saver = OutputSaver(diagnostic=diagnostic, catalog=self.catalogs[i], model=model, exp=self.exps[i],
+                                       loglevel=self.loglevel, default_path=self.outdir)  #, rebuild=rebuild, filename_keys=filename_keys)
+            if self.monthly:
+                frequency='monthly'
+                output_saver.save_netcdf(self.data_ts_mon[i], diagnostic_product=diagnostic_product, mode='w',
+                                                frequency=frequency)
+                output_saver.save_netcdf(self.data_toa_mon[i], diagnostic_product=diagnostic_product, mode='a',
+                                                frequency=frequency)
+            if self.annual:
+                frequency='annual'
+                output_saver.save_netcdf(self.data_ts_annual[i], diagnostic_product=diagnostic_product, mode='w',
+                                         frequency=frequency)
+                output_saver.save_netcdf(self.data_toa_annual[i], diagnostic_product=diagnostic_product, mode='a',
+                                         frequency=frequency)
 
         if self.ref:
-            try:
-                outfile = 'global_time_series_gregory_plot_ref_ERA5_CERES.nc'
-                xr.Dataset({'ts_mean': self.ref_ts_mean, 'ts_std': self.ref_ts_std,
-                            'toa_mean': self.ref_toa_mean,
-                            'toa_std': self.ref_toa_std}).to_netcdf(os.path.join(outdir, outfile), mode='w')
-            except Exception as e:
-                self.logger.error(f"Error: {e}")
-                self.logger.error(f"Could not save reference data to {outfile}")
+            output_saver_ref = OutputSaver(diagnostic=diagnostic, model='ERA5', exp='CERES',
+                                           loglevel=self.loglevel, default_path=self.outdir) #, rebuild=rebuild, filename_keys=filename_keys)
+            ref_dataset = xr.Dataset({'ts_mean': self.ref_ts_mean,
+                                        'ts_std': self.ref_ts_std,
+                                        'toa_mean': self.ref_toa_mean,
+                                        'toa_std': self.ref_toa_std})
+            output_saver.save_netcdf(ref_dataset, diagnostic_product=diagnostic_product)
 
     def _catalogs(self, catalogs=None):
         """
