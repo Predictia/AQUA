@@ -38,6 +38,18 @@ diagnostic_attributes:
 
 biases_plot_params:
   bias_maps:
+    2t:
+      vmin: -15
+      vmax: 15
+    avg_tos:
+      vmin: -10
+      vmax: 10
+    msl:
+      vmin: -1000
+      vmax: 1000
+    mtnlwrf:
+      vmin: -40
+      vmax: 40
     mtpr:
       vmin: -8
       vmax: 8
