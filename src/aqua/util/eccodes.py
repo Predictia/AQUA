@@ -153,7 +153,7 @@ def _init_get_eccodes_attr():
         logger = log_configure(log_level=loglevel, log_name='eccodes')
         nonlocal shortname, paramid, name, cfname, cfvarname, units
 
-        if isinstance(sn, int):
+        if isinstance(sn, int) or (isinstance(sn, str) and sn.isdigit()):
             sn = f'var{sn}'
 
         for grib_version, tables in shortname.items():
