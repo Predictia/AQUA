@@ -38,11 +38,18 @@ class FixerMixin():
         # look for family fixes and set them as default
         base_fixes = self._load_fixer_name()
 
+        # merge conversion dictionary with the family fixes
+        base_fixes = self._combine_conversion(base_fixes, conversion_dictionary)
+
         # check the presence of model-specific fix
         fix_model = self.fixes_dictionary["models"].get(self.model, None)
+        if fix_model is not None:
+            self.logger.warning("Model-specific fixes are deprecated and they will be removed in the future")
 
         # browse for source-specific fixes
         source_fixes = self._load_source_fixes(fix_model)
+        if source_fixes is not None:
+            self.logger.warning("Source-specific fixes are deprecated and they will be removed in the future")
 
         # if only fixes family/default is available, return them
         if source_fixes is None:
@@ -67,16 +74,24 @@ class FixerMixin():
 
     def _load_conversion_dictionary(self, conversion='eccodes', version='2.39.0'):
         """
-        Load the conversion dictionary from the fixer file
+        Load the conversion dictionary from the fixer file.
+        The conversion_name block should be called <conversion>-<version>.
+
+        Args:
+            conversion (str, opt): The conversion name. Default is eccodes
+            version: The conversion name version. Default is 2.39.0
+
+        Returns:
+            The conversion dictionary
         """
         conversion_dictionary = self.fixes_dictionary.get("conversion_name", None)
         conversion_name = conversion + '-' + version
-        self.logger.debug("Conversion dictionary: %s", conversion_name)
+        self.logger.info("Conversion dictionary: %s", conversion_name)
 
         if conversion_dictionary is None:
             self.logger.error("No conversion dictionary found in the fixes file")
             return None
-        
+
         conversion_dictionary = conversion_dictionary.get(conversion_name, None)
         if conversion_dictionary is None:
             self.logger.error("No conversion dictionary found for %s", conversion_name)
@@ -89,10 +104,51 @@ class FixerMixin():
         if dict_standard != conversion or dict_version != version:
             self.logger.error("Conversion dictionary is not consistent with the requested version")
             return None
-        
+
         self.logger.debug("Conversion dictionary %s", conversion_dictionary)
 
         return conversion_dictionary
+
+    def _combine_conversion(self, base_fixes, conversion_dictionary):
+        """
+        Combine conversion dictionary with the fixes.
+        It scan the 'vars' block and merge the conversion dictionary with the fixer_name.
+        If an item is new in the conversion dictionary, it is added to the fixes.
+        If the item is already present, non existing keys are added,
+        otherwise the existing keys (in the base file) are kept.
+
+        Args:
+            base_fixes: The base fixes (coming from the fixer_name)
+            conversion_dictionary: The conversion dictionary
+
+        Returns:
+            The final fixes, with the conversion dictionary merged
+        """
+        if conversion_dictionary is None:
+            self.logger.warning("No conversion dictionary found, no conversion will be applied")
+            return base_fixes
+
+        if base_fixes is None:
+            self.logger.warning("No fixes available, only conversion will be applied")
+            # Create a dummy fixer
+            base_fixes = {'vars': {}}
+
+        # Merge one by one the variables
+        for item in conversion_dictionary.keys():
+            if item == 'vars' and item in base_fixes:
+                for var_key in conversion_dictionary[item].keys():
+                    self.logger.debug("Merging conversion dictionary for %s", var_key)
+                    if var_key in base_fixes[item]:
+                        base_fixes[item][var_key].update(conversion_dictionary[item][var_key])
+                    else:
+                        # We need to manipulate the conversion_dictionary
+                        new_var = conversion_dictionary[item][var_key]
+                        if conversion_dictionary['standard'] == 'eccodes':
+                            self.logger.debug("Adding new variable %s to the fixer to be decoded with GRIB", var_key)
+                            new_var['grib'] = True
+                        base_fixes[item][var_key] = conversion_dictionary[item][var_key]
+
+        return base_fixes
 
     def _combine_fixes(self, default_fixes, model_fixes):
         """
@@ -117,7 +173,7 @@ class FixerMixin():
                              self.model, self.exp, self.source)
             return default_fixes
         else:
-            # get method for replacement: replace is the default
+            # get method to combine fixes: replace is the default
             method = model_fixes.get('method', 'replace')
             self.logger.info("For source %s, method for fixes is: %s", self.source, method)
 
@@ -143,7 +199,6 @@ class FixerMixin():
         Load the fixer_name reading from the metadata of the catalog.
         If the fixer_name has a parent, load it and merge it giving priority to the child.
         """
-        
         # if fixer name is found, get it
         if self.fixer_name is not None:
             self.logger.info('Fix names in metadata is %s', self.fixer_name)
@@ -164,15 +219,15 @@ class FixerMixin():
                         self.logger.error("Parent fix %s defined but not available in the fixes file.", fixes['parent'])
 
         # check the default in alternative
-        else:   
+        else:
             default_fixer_name = self.model + '-default'
-            self.logger.info('No specific fix found, will call the default fix %s', default_fixer_name)
+            self.logger.warning('No specific fix found, will call the default fix %s, this is deprecated and will be removed', default_fixer_name)
             fixes = self.fixes_dictionary["fixer_name"].get(default_fixer_name)
             if fixes is None:
                 self.logger.warning("The requested default fixer name %s does not exist in fixes files", default_fixer_name)
                 return None
             else:
-                self.logger.info("Fix names %s found in fixes files", default_fixer_name)
+                self.logger.warning("Fix names %s found in fixes files. This is a default fixer_name and will be deprecated", default_fixer_name)
 
         # # if found, proceed as expected
         # if fixes is not None:
