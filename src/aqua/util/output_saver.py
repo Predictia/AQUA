@@ -278,9 +278,6 @@ class OutputSaver:
         # Ensure fig is a Figure object
         if isinstance(fig, plt.Axes):
             fig = fig.figure
-        
-        # Adjust layout to prevent cropping of labels
-        fig.tight_layout()
 
         if isinstance(fig, (plt.Figure, Figure)):
             fig.savefig(full_path, dpi=dpi, bbox_inches='tight')
@@ -365,7 +362,7 @@ class OutputSaver:
             fig = fig.figure
         # Save the figure to the specified path
         if isinstance(fig, (plt.Figure, Figure)):
-            fig.savefig(full_path, format='png', dpi=dpi)
+            fig.savefig(full_path, format='png', dpi=dpi, bbox_inches='tight')
         else:
             raise ValueError("The provided fig parameter is not a valid matplotlib Figure or pyplot figure.")
 

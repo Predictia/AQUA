@@ -14,7 +14,7 @@ from aqua.diagnostics import GlobalBiases
 def parse_arguments(args):
     """Parse command line arguments for Global Biases CLI."""
     parser = argparse.ArgumentParser(description='Global Biases CLI')
-    parser.add_argument('-c', '--config', type=str, required=True, help='YAML configuration file')
+    parser.add_argument('-c', '--config', type=str, required=False, help='YAML configuration file')
     parser.add_argument('-n', '--nworkers', type=int, help='Number of Dask distributed workers')
     parser.add_argument("--loglevel", "-l", type=str, help="Logging level")
 
@@ -50,8 +50,11 @@ def main():
 
     client = initialize_dask(get_arg(args, 'nworkers', None), logger)
 
-    # Load configuration and set diagnostic attributes
-    config_file = get_arg(args, "config", "global_bias_config.yaml")
+    homedir = os.environ.get('HOME')
+    config_filename = os.path.join(homedir, '.aqua', 'diagnostics', 'global_biases', 'cli', 'config_global_biases.yaml')
+
+    # Load the configuration
+    config_file = get_arg(args, "config", config_filename)
     logger.info(f"Reading configuration file {config_file}")
     config = load_yaml(config_file)
 
@@ -69,9 +72,12 @@ def main():
     startdate_obs = config['diagnostic_attributes'].get('startdate_obs')
     enddate_obs = config['diagnostic_attributes'].get('enddate_obs')
 
-    outputdir = get_arg(args, "outputdir", config["outputdir"])
-    out_pdf = os.path.join(outputdir, 'pdf')
-    create_folder(out_pdf, loglevel)
+    outputdir = get_arg(args, "outputdir", config['output'].get("outputdir"))
+    rebuild = config['output'].get("rebuild")
+    filename_keys = config['output'].get("filename_keys")
+    save_pdf = config['output'].get("save_pdf")
+    save_png = config['output'].get("save_png")
+    dpi = config['output'].get("dpi")
 
     variables = config['diagnostic_attributes'].get('variables', [])
     plev = config['diagnostic_attributes'].get('plev')
@@ -79,7 +85,8 @@ def main():
     seasons_stat = config['diagnostic_attributes'].get('seasons_stat', 'mean')
     vertical = config['diagnostic_attributes'].get('vertical', False)
 
-    names = OutputSaver(diagnostic='global_biases', model=model_data, exp=exp_data, loglevel=loglevel)
+    output_saver = OutputSaver(diagnostic='global_biases', catalog=catalog_data, model=model_data, exp=exp_data, loglevel=loglevel,
+                               default_path=outputdir, rebuild=rebuild, filename_keys=filename_keys)
 
     # Retrieve data and handle potential errors
     try:
@@ -125,12 +132,25 @@ def main():
                                          enddate_data=enddate_data, model_obs=model_obs,
                                          startdate_obs=startdate_obs, enddate_obs=enddate_obs)
 
+            # Define common save arguments
+            common_save_args = {'var': var_name, 'dpi': dpi,
+                                'catalog_2': catalog_obs, 'model_2': model_obs, 'exp_2': exp_obs,
+                                'time_start': startdate_data, 'time_end': enddate_data}
+
             # Total bias plot
             result = global_biases.plot_bias(vmin=vmin, vmax=vmax)
             if result:
                 fig, ax = result
-                names.generate_name(diagnostic_product='total_bias_map', var=var_name)
-                names.save_pdf(fig, path=out_pdf, var=var_name)
+                description = (
+                        f"Spatial map of the total bias of the variable {var_name} from {startdate_data} to {enddate_data} "
+                        f"for the {model_data} model, experiment {exp_data} from the {catalog_data} catalog, with {model_obs} "
+                        f"(experiment {exp_obs}, catalog {catalog_obs}) used as reference data. "
+                    )
+                metadata = {"Description": description}
+                if save_pdf:
+                    output_saver.save_pdf(fig, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
+                if save_png:
+                    output_saver.save_png(fig, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
             else:
                 logger.warning(f"Total bias plot not generated for {var_name}.")
 
@@ -139,8 +159,17 @@ def main():
                 result = global_biases.plot_seasonal_bias(vmin=vmin, vmax=vmax)
                 if result:
                     fig, ax = result
-                    names.generate_name(diagnostic_product='seasonal_bias_map', var=var_name)
-                    names.save_pdf(fig, path=out_pdf, var=var_name)
+                    description = (
+                        f"Seasonal bias map of the variable {var_name} for the {model_data} model, experiment {exp_data} "
+                        f"from the {catalog_data} catalog, using {model_obs} (experiment {exp_obs}, catalog {catalog_obs}) as reference data. "
+                        f"The bias is computed for each season over the period from {startdate_data} to {enddate_data}, "
+                        f"providing insights into seasonal discrepancies between the model and the reference. "
+                    )
+                    metadata = {"Description": description}
+                    if save_pdf:
+                        output_saver.save_pdf(fig, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
+                    if save_png:
+                        output_saver.save_png(fig, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
                 else:
                     logger.warning(f"Seasonal bias plot not generated for {var_name}.")
 
@@ -152,8 +181,18 @@ def main():
                 result = global_biases.plot_vertical_bias(var_name=var_name, vmin=vmin, vmax=vmax)
                 if result:
                     fig, ax = result
-                    names.generate_name(diagnostic_product='vertical_bias', var=var_name)
-                    names.save_pdf(fig, path=out_pdf, var=var_name)
+                    description = (
+                        f"Vertical bias plot of the variable {var_name} across pressure levels, from {startdate_data} to {enddate_data} "
+                        f"for the {model_data} model, experiment {exp_data} from the {catalog_data} catalog, with {model_obs} "
+                        f"(experiment {exp_obs}, catalog {catalog_obs}) used as reference data. "
+                        f"The vertical bias shows differences in the model's vertical representation compared to the reference, "
+                        f"highlighting biases across different pressure levels to assess the accuracy of vertical structures."
+                    )
+                    metadata = {"Description": description}
+                    if save_pdf:
+                        output_saver.save_pdf(fig, diagnostic_product='vertical_bias', metadata=metadata, **common_save_args)
+                    if save_png:
+                        output_saver.save_png(fig, diagnostic_product='vertical_bias', metadata=metadata, **common_save_args)
                 else:
                     logger.warning(f"Vertical bias plot not generated for {var_name}.")
 

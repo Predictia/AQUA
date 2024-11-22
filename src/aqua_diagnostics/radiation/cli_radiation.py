@@ -50,8 +50,11 @@ if __name__ == '__main__':
     if nworkers:
         client = initialize_dask(nworkers, logger)
 
-    # Load configuration
-    file = get_arg(args, "config", "radiation_config.yaml")
+    homedir = os.environ.get('HOME')
+    config_filename = os.path.join(homedir, '.aqua', 'diagnostics', 'radiation', 'cli', 'config_radiation-boxplots.yaml')
+
+    # Load the configuration
+    file = get_arg(args, "config", config_filename)
     logger.info(f"Reading configuration file {file}")
     config = load_yaml(file)
 
@@ -69,7 +72,7 @@ if __name__ == '__main__':
     for model in models:
         try:
             reader = Reader(catalog=model['catalog'], model=model['model'], exp=model['exp'], source=model['source'])
-            dataset = reader.retrieve()   
+            dataset = reader.retrieve()
         except Exception as e:
             logger.error(f"No model data found: {e}")
             logger.critical("Radiation diagnostic is terminated.")
@@ -79,17 +82,31 @@ if __name__ == '__main__':
         exp_list.append(model['exp'])
 
     # Create output directory
-    outputdir = get_arg(args, "outputdir", config["outputdir"])
-    out_pdf = os.path.join(outputdir, 'pdf')
-    create_folder(out_pdf, loglevel)
+    outputdir = get_arg(args, "outputdir", config['output'].get("outputdir"))
+    rebuild = config['output'].get("rebuild")
+    filename_keys = config['output'].get("filename_keys")
+    save_pdf = config['output'].get("save_pdf")
+    save_png = config['output'].get("save_png")
+    dpi = config['output'].get("dpi")
 
     # Output naming and saving
-    names = OutputSaver(diagnostic='radiation', exp = exp_list[0], model= models_list[0], loglevel=loglevel)
+    output_saver = OutputSaver(diagnostic='radiation', exp=exp_list[0], model=models_list[0], loglevel=loglevel,
+                               default_path=outputdir, rebuild=rebuild, filename_keys=filename_keys)
     logger.info("Boxplot generation")
     radiation = Radiation()
     result = radiation.boxplot(datasets=datasets, model_names=models_list, variables=variables)
 
+    description = (
+        f"Boxplot of radiation variables ({', '.join(variables)}) for the period defined in the configuration file. "
+        f"The analysis includes the {models_list[0]} model (experiment {exp_list[0]}) from the provided catalog, "
+        f"alongside other models defined in the configuration ({', '.join(models_list[1:])} if applicable). "
+        f"This boxplot provides a comparison of radiation fluxes across the models, allowing an evaluation of "
+        f"the variability and bias among different datasets. "
+    )
+    metadata = {"Description": description}
     if result:
-        fig, ax = result  
-        names.generate_name(diagnostic_product='boxplot')
-        names.save_pdf(fig, path=out_pdf)
+        fig, ax = result
+        if save_pdf:
+            output_saver.save_pdf(fig, diagnostic_product='boxplot', metadata=metadata, dpi=dpi)
+        if save_png:
+            output_saver.save_png(fig, diagnostic_product='boxplot', metadata=metadata, dpi=dpi)
