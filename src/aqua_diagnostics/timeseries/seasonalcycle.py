@@ -172,14 +172,56 @@ class SeasonalCycle(Timeseries):
 
     def save_seasonal_image(self, fig, ref_label):
         """
-        Save the figure to a pdf file
-
+        Save the figure to an image file (PDF/PNG).
         Args:
             fig (matplotlib.figure.Figure): Figure to save
             ref_label (str): Label for the reference data
         """
-        output_saver = OutputSaver(diagnostic=self.diagnostic, catalog=self.catalogs[0], model=self.models[0], exp=self.exps[0],
-                                   loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild, filename_keys=self.filename_keys)
+        output_saver = self._get_output_saver(catalog=self.catalogs[0], model=self.models[0], exp=self.exps[0])
+        common_save_args = self._construct_save_args()
+
+        description = self._construct_description(ref_label)
+        self.logger.debug(f"Description: {description}")
+
+        metadata = {"Description": description}
+
+        if self.save_pdf:
+            output_saver.save_pdf(fig, metadata=metadata, **common_save_args)
+        if self.save_png:
+            output_saver.save_png(fig, metadata=metadata, **common_save_args)
+
+    def save_seasonal_netcdf(self):
+        """
+        Save the seasonal cycle to a NetCDF file.
+        """
+        for i, model in enumerate(self.models):
+            output_saver = self._get_output_saver(catalog=self.catalogs[i], model=model, exp=self.exps[i])
+            common_save_args = self._construct_save_args()
+            output_saver.save_netcdf(self.cycle[i], **common_save_args)
+
+        if self.plot_ref:
+            output_saver_ref = self._get_output_saver(model=self.plot_ref_kw['model'], exp=self.plot_ref_kw['exp'])
+            output_saver_ref.save_netcdf(self.cycle_ref, **common_save_args)
+
+    def _get_output_saver(self, catalog=None, model=None, exp=None):
+        """
+        Create and return an OutputSaver instance.
+        Args:
+            catalog (str): Catalog to use.
+            model (str): Model identifier.
+            exp (str): Experiment identifier.
+        Returns:
+            OutputSaver: An instance of the OutputSaver class.
+        """
+        return OutputSaver(diagnostic=self.diagnostic, catalog=catalog, model=model, exp=exp,
+                           loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild, filename_keys=self.filename_keys)
+
+    def _construct_save_args(self):
+        """
+        Construct common save arguments for image and NetCDF files.
+        Returns:
+            dict: Dictionary containing the common save arguments.
+        """
         common_save_args = {'diagnostic_product': self.diagnostic_product, 'var': self.var, 'dpi': self.dpi}
         if self.plot_ref:
             common_save_args.update({'model_2': self.plot_ref_kw['model'], 'exp_2': self.plot_ref_kw['exp']})
@@ -189,7 +231,16 @@ class SeasonalCycle(Timeseries):
         if self.lat_limits is not None:
             lat_limits = f'_lat{self.lat_limits[0]}_{self.lat_limits[1]}'
             common_save_args.update({'lat_limits': lat_limits})
+        return common_save_args
 
+    def _construct_description(self, ref_label):
+        """
+        Construct a description string for the metadata.
+        Args:
+            ref_label (str): Label for the reference data.
+        Returns:
+            str: Constructed description.
+        """
         description = f"Seasonal cycle of the global mean of {self.var}"
         for i, model in enumerate(self.models):
             description += f" for {model} {self.exps[i]}"
@@ -197,9 +248,9 @@ class SeasonalCycle(Timeseries):
         if self.plot_ref:
             description += f" with {ref_label} as reference,"
             try:
-                description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}"  # noqa: E501
+                description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}"
             except ValueError:
-                description += f" std evaluated from {time_to_string(self.ref_mon.time.values[0])} to {time_to_string(self.ref_mon.time.values[-1])}"  # noqa: E501
+                description += f" std evaluated from {time_to_string(self.ref_mon.time.values[0])} to {time_to_string(self.ref_mon.time.values[-1])}"
         description += "."
         if self.lon_limits is not None or self.lat_limits is not None:
             description += " The data have been averaged over a region defined by"
@@ -208,28 +259,7 @@ class SeasonalCycle(Timeseries):
             if self.lat_limits is not None:
                 description += f" latitude limits {self.lat_limits}"
             description += "."
-        self.logger.debug(f"Description: {description}")
-
-        metadata = {"Description": description}
-        if self.save_pdf:
-            output_saver.save_pdf(fig, metadata=metadata, **common_save_args)
-        if self.save_png:
-            output_saver.save_png(fig, metadata=metadata, **common_save_args)
-        
-    def save_seasonal_netcdf(self):
-        """
-        Save the seasonal cycle to a netcdf file
-        """
-
-        for i, model in enumerate(self.models):
-            output_saver = OutputSaver(diagnostic=self.diagnostic, catalog=self.catalogs[i], model=model, exp=self.exps[i],
-                                       loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild, filename_keys=self.filename_keys)
-            output_saver.save_netcdf(self.cycle[i], diagnostic_product=self.diagnostic_product, var=self.var)
-
-        if self.plot_ref:
-            output_saver_ref = OutputSaver(diagnostic=self.diagnostic, model=self.plot_ref_kw['model'], exp=self.plot_ref_kw['exp'],
-                                           loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild, filename_keys=self.filename_keys)
-            output_saver_ref.save_netcdf(self.cycle_ref, diagnostic_product=self.diagnostic_product, var=self.var)
+        return description
 
     def cleanup(self):
         """Clean up the data."""

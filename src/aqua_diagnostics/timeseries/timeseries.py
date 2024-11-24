@@ -347,7 +347,6 @@ class Timeseries():
     def save_image(self, fig, ref_label):
         """
         Save the figure to image files (PDF/PNG).
-
         Args:
             fig (matplotlib.figure.Figure): Figure to save.
             ref_label (str): Label for the reference data.
@@ -404,12 +403,10 @@ class Timeseries():
     def _get_output_saver(self, catalog=None, model=None, exp=None):
         """
         Create and return an OutputSaver instance.
-
         Args:
             catalog (str): Catalog to use.
             model (str): Model identifier.
             exp (str): Experiment identifier.
-        
         Returns:
             OutputSaver: An instance of the OutputSaver class.
         """
@@ -419,7 +416,6 @@ class Timeseries():
     def _get_common_save_args(self):
         """
         Create and return a dictionary of common arguments for saving files.
-
         Returns:
             dict: Common arguments for saving files.
         """
@@ -435,10 +431,8 @@ class Timeseries():
     def _construct_description(self, ref_label):
         """
         Construct the description for the metadata.
-
         Args:
             ref_label (str): Label for the reference data.
-
         Returns:
             str: A description string.
         """

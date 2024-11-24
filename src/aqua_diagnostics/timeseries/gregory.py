@@ -331,49 +331,86 @@ class GregoryPlot():
 
     def save_image(self, fig):
         """Save the figure to an image file (PDF/PNG)."""
-        output_saver = OutputSaver(diagnostic=self.diagnostic, catalog=self.catalogs[0], model=self.models[0], exp=self.exps[0],
-                                   loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild, filename_keys=self.filename_keys)
+    
+        # Get OutputSaver instance for the first model
+        output_saver = self._get_output_saver(catalog=self.catalogs[0], model=self.models[0], exp=self.exps[0])
         common_save_args = {'diagnostic_product': self.diagnostic_product, 'dpi': self.dpi}
 
-        description = "Gregory plot"
-        for i, model in enumerate(self.models):
-            description += f" {model} {self.exps[i]}"
-        if self.ref:
-            description += f" with reference data ERA5 for 2m temperature from {self.ts_std_start} to {self.ts_std_end}"
-            description += f" and CERES for net radiation at TOA from {self.toa_std_start} to {self.toa_std_end}."
-            common_save_args.update({'model_2': 'ERA5', 'exp_2': 'CERES'})
+        # Use the helper function to generate the description
+        description = self._construct_description(plot_type="Gregory plot", ref_label="ERA5 and CERES")
         self.logger.debug(f"Description: {description}")
 
         metadata = {"Description": description}
 
+        # Save the figure as PDF/PNG as per user preferences
         if self.save_pdf:
             output_saver.save_pdf(fig, metadata=metadata, **common_save_args)
         if self.save_png:
             output_saver.save_png(fig, metadata=metadata, **common_save_args)
 
-
     def save_netcdf(self):
-        """Save the data to a netcdf file."""
+        """Save the data to a netCDF file."""
+
+        # Loop through the models and save their corresponding data
         for i, model in enumerate(self.models):
-            output_saver = OutputSaver(diagnostic=self.diagnostic, catalog=self.catalogs[i], model=model, exp=self.exps[i],
-                                       loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild, filename_keys=self.filename_keys)
+            output_saver = self._get_output_saver(catalog=self.catalogs[i], model=model, exp=self.exps[i])
+            common_save_args = {'diagnostic_product': self.diagnostic_product}
 
             if self.monthly:
-                frequency = 'monthly'
-                output_saver.save_netcdf(self.data_ts_mon[i], diagnostic_product=self.diagnostic_product, mode='w', frequency=frequency)
-                output_saver.save_netcdf(self.data_toa_mon[i], diagnostic_product=self.diagnostic_product, mode='a', frequency=frequency)
-
+                self._save_frequency_data(output_saver, frequency='monthly', data_ts=self.data_ts_mon[i], data_toa=self.data_toa_mon[i], **common_save_args)
             if self.annual:
-                frequency = 'annual'
-                output_saver.save_netcdf(self.data_ts_annual[i], diagnostic_product=self.diagnostic_product, mode='w', frequency=frequency)
-                output_saver.save_netcdf(self.data_toa_annual[i], diagnostic_product=self.diagnostic_product, mode='a', frequency=frequency)
+                self._save_frequency_data(output_saver, frequency='annual', data_ts=self.data_ts_annual[i], data_toa=self.data_toa_annual[i], **common_save_args)
 
+        # Save the reference data if required
         if self.ref:
-            output_saver_ref = OutputSaver(diagnostic=self.diagnostic, model='ERA5', exp='CERES',
-                                           loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild, filename_keys=self.filename_keys)
+            output_saver_ref = self._get_output_saver(model='ERA5', exp='CERES')
             ref_dataset = xr.Dataset({'ts_mean': self.ref_ts_mean, 'ts_std': self.ref_ts_std,
                                       'toa_mean': self.ref_toa_mean, 'toa_std': self.ref_toa_std})
             output_saver_ref.save_netcdf(ref_dataset, diagnostic_product=self.diagnostic_product)
+
+    def _construct_description(self, plot_type: str = "Gregory plot", ref_label: str = None) -> str:
+        """
+        Construct a descriptive string for the output files.
+        Args:
+            plot_type (str): Type of plot (e.g., "Gregory plot").
+            ref_label (str, optional): Label for the reference data.
+        Returns:
+            str: A description of the figure or NetCDF dataset.
+        """
+        description = f"{plot_type}"
+
+        # Add model and experiment details
+        models_info = ' '.join(f"{model} {exp}" for model, exp in zip(self.models, self.exps))
+        description += f" {models_info}"
+
+        # Add reference data information if available
+        if self.ref:
+            description += (
+                f" with reference data ERA5 for 2m temperature from {self.ts_std_start} to {self.ts_std_end}"
+                f" and CERES for net radiation at TOA from {self.toa_std_start} to {self.toa_std_end}."
+            )
+            if ref_label:
+                description += f" with {ref_label} as reference."
+
+        return description
+
+    def _get_output_saver(self, catalog=None, model=None, exp=None):
+        """
+        Create and return an OutputSaver instance.
+        Args:
+            catalog (str): Catalog to use.
+            model (str): Model identifier.
+            exp (str): Experiment identifier.
+        Returns:
+            OutputSaver: An instance of the OutputSaver class.
+        """
+        return OutputSaver(diagnostic=self.diagnostic, catalog=catalog, model=model, exp=exp,
+                           loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild, filename_keys=self.filename_keys)
+
+    def _save_frequency_data(self, output_saver, frequency, data_ts, data_toa, **common_save_args):
+        """Helper function to save data for a specific frequency."""
+        output_saver.save_netcdf(data_ts, frequency=frequency, mode='w', **common_save_args)
+        output_saver.save_netcdf(data_toa, frequency=frequency, mode='a', **common_save_args)
 
     def _catalogs(self, catalogs=None):
         """
