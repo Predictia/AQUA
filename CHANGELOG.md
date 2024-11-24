@@ -15,6 +15,7 @@ AQUA core complete list:
 - Add instructions to install AQUA on MN5 (#1468)
 
 AQUA diagnostic complete list:
+- Integrating Updated OutputSaver into Timeseries (#1492)
 - Tropical Cyclones: Adaptation to IFS-FESOM and tool to compute orography from data (#1393)
 - Seaice: Hotfix for sea ice plots (#1432)
 
