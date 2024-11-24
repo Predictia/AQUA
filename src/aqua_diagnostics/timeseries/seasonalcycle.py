@@ -34,7 +34,8 @@ class SeasonalCycle(Timeseries):
                  outfile=None,
                  longname=None, units=None,
                  lon_limits=None, lat_limits=None,
-                 loglevel='WARNING'):
+                 loglevel='WARNING', rebuild=None, filename_keys=None,
+                 save_pdf=True, save_png=True, dpi=None):
         """
         Initialize the class.
 
@@ -62,6 +63,11 @@ class SeasonalCycle(Timeseries):
             lon_limits (list): Longitude limits of the area to evaluate. Default is None.
             lat_limits (list): Latitude limits of the area to evaluate. Default is None.
             loglevel: the logging level. Default is 'WARNING'.
+            rebuild (bool, optional): If True, overwrite the existing files. If False, do not overwrite. Default is True.
+            filename_keys (list, optional): List of keys to keep in the filename. Default is None, which includes all keys.
+            save_pdf (bool): If True, save the figure as a PDF. Default is True.
+            save_png (bool): If True, save the figure as a PNG. Default is True.
+            dpi (int, optional): Dots per inch (DPI) for saving figures. Default is None.
         """
         super().__init__(var=var, formula=formula,
                          catalogs=catalogs,
@@ -78,7 +84,9 @@ class SeasonalCycle(Timeseries):
                          outfile=outfile,
                          longname=longname, units=units,
                          lon_limits=lon_limits, lat_limits=lat_limits,
-                         loglevel=loglevel)
+                         loglevel=loglevel,
+                         rebuild=rebuild, filename_keys=filename_keys,
+                         save_pdf=save_pdf, save_png=save_png, dpi=dpi)
         # Change the logger name
         self.logger = log_configure(log_level=loglevel, log_name="SeasonalCycle")
         self.logger.info("SeasonalCycle class initialized")
@@ -87,6 +95,10 @@ class SeasonalCycle(Timeseries):
         self.clean_timeseries = super().cleanup
         if plot_ref:
             self.cycle_ref = None
+
+        self.diagnostic_product = 'seasonalcycle'
+        self.diagnostic = 'timeseries'
+
 
     def retrieve_ref(self):
         """
@@ -155,10 +167,10 @@ class SeasonalCycle(Timeseries):
                                     title=title)
 
         if self.save:
-            self.save_seasonal_pdf(fig, ref_label)
+            self.save_seasonal_image(fig, ref_label)
             self.save_seasonal_netcdf()
 
-    def save_seasonal_pdf(self, fig, ref_label):
+    def save_seasonal_image(self, fig, ref_label):
         """
         Save the figure to a pdf file
 
@@ -166,11 +178,9 @@ class SeasonalCycle(Timeseries):
             fig (matplotlib.figure.Figure): Figure to save
             ref_label (str): Label for the reference data
         """
-        diagnostic_product = 'seasonalcycle'
-        diagnostic='timeseries'
-        output_saver = OutputSaver(diagnostic=diagnostic, catalog=self.catalogs[0]], model=self.models[0],
-                                            exp=self.exps[0], loglevel=self.loglevel, default_path=self.outdir) 
-        common_save_args = {'diagnostic_product': diagnostic_product, 'var': self.var, 'dpi': dpi}
+        output_saver = OutputSaver(diagnostic=self.diagnostic, catalog=self.catalogs[0], model=self.models[0], exp=self.exps[0],
+                                   loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild, filename_keys=self.filename_keys)
+        common_save_args = {'diagnostic_product': self.diagnostic_product, 'var': self.var, 'dpi': self.dpi}
         if self.plot_ref:
             common_save_args.update({'model_2': self.plot_ref_kw['model'], 'exp_2': self.plot_ref_kw['exp']})
         if self.lon_limits is not None:
@@ -201,27 +211,25 @@ class SeasonalCycle(Timeseries):
         self.logger.debug(f"Description: {description}")
 
         metadata = {"Description": description}
-        #if save_pdf:
-        self.output_saver.save_pdf(fig, metadata=metadata, **common_save_args)
-        #if save_png:
-        self.output_saver.save_png(fig, metadata=metadata, **common_save_args)
+        if self.save_pdf:
+            output_saver.save_pdf(fig, metadata=metadata, **common_save_args)
+        if self.save_png:
+            output_saver.save_png(fig, metadata=metadata, **common_save_args)
         
     def save_seasonal_netcdf(self):
         """
         Save the seasonal cycle to a netcdf file
         """
-        diagnostic_product = 'seasonalcycle'
-        diagnostic='timeseries'
 
         for i, model in enumerate(self.models):
-            output_saver = OutputSaver(diagnostic=diagnostic, catalog=self.catalogs[i]], model=model,
-                                            exp=self.exps[i], loglevel=self.loglevel, default_path=self.outdir) #, rebuild=rebuild, filename_keys=filename_keys)
-            output_saver.save_netcdf(self.cycle[i], diagnostic_product=diagnostic_product, var=self.var)
+            output_saver = OutputSaver(diagnostic=self.diagnostic, catalog=self.catalogs[i], model=model, exp=self.exps[i],
+                                       loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild, filename_keys=self.filename_keys)
+            output_saver.save_netcdf(self.cycle[i], diagnostic_product=self.diagnostic_product, var=self.var)
 
         if self.plot_ref:
-            output_saver_ref = OutputSaver(diagnostic=diagnostic, model=self.plot_ref_kw['model'], exp=self.plot_ref_kw['exp'],
-                                           loglevel=self.loglevel, default_path=self.outdir) #, rebuild=rebuild, filename_keys=filename_keys)
-            output_saver_ref.save_netcdf(self.cycle_ref, diagnostic_product=diagnostic_product, var=self.var)
+            output_saver_ref = OutputSaver(diagnostic=self.diagnostic, model=self.plot_ref_kw['model'], exp=self.plot_ref_kw['exp'],
+                                           loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild, filename_keys=self.filename_keys)
+            output_saver_ref.save_netcdf(self.cycle_ref, diagnostic_product=self.diagnostic_product, var=self.var)
 
     def cleanup(self):
         """Clean up the data."""

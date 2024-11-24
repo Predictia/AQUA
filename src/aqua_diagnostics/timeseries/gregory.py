@@ -110,8 +110,8 @@ class GregoryPlot():
         self.outdir = outdir
         self.outfile = outfile
 
-        self.diagnostic_product='gregory_plot'
-        self.diagnostic='timeseries'
+        self.diagnostic_product = 'gregory_plot'
+        self.diagnostic = 'timeseries'
         self.rebuild = rebuild
         self.filename_keys = filename_keys
         self.save_pdf = save_pdf
