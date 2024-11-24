@@ -141,7 +141,12 @@ if __name__ == '__main__':
         exp_list.append(model['exp'])
         source_list.append(model['source'])
 
-    outputdir = get_arg(args, "outputdir", config["outputdir"])
+    outputdir = get_arg(args, "outputdir", config['output'].get("outputdir"))
+    rebuild = config['output'].get("rebuild")
+    filename_keys = config['output'].get("filename_keys")
+    save_pdf = config['output'].get("save_pdf")
+    save_png = config['output'].get("save_png")
+    dpi = config['output'].get("dpi")
 
     if "timeseries" in config:
         logger.info("Plotting timeseries")
@@ -174,7 +179,12 @@ if __name__ == '__main__':
                             extend=extend,
                             plot_kw=plot_kw,
                             outdir=outputdir,
-                            loglevel=loglevel)
+                            loglevel=loglevel,
+                            rebuild=rebuild,
+                            filename_keys=filename_keys,
+                            save_pdf=save_pdf,
+                            save_png=save_png,
+                            dpi=dpi)
             try:
                 ts.run()
             except NotEnoughDataError as e:
@@ -217,7 +227,12 @@ if __name__ == '__main__':
                             units=units,
                             extend=extend,
                             outdir=outputdir,
-                            loglevel=loglevel)
+                            loglevel=loglevel,
+                            rebuild=rebuild,
+                            filename_keys=filename_keys,
+                            save_pdf=save_pdf,
+                            save_png=save_png,
+                            dpi=dpi)
             try:
                 ts.run()
             except NotEnoughDataError as e:
@@ -260,7 +275,12 @@ if __name__ == '__main__':
                          toa_std_end=toa_std_end,
                          outdir=outputdir,
                          regrid=regrid,
-                         loglevel=loglevel)
+                         loglevel=loglevel,
+                         rebuild=rebuild,
+                         filename_keys=filename_keys,
+                         save_pdf=save_pdf,
+                         save_png=save_png,
+                         dpi=dpi)
 
         try:
             gp.run()
@@ -299,7 +319,12 @@ if __name__ == '__main__':
                                outdir=outputdir,
                                longname=longname,
                                units=units,
-                               loglevel=loglevel)
+                               loglevel=loglevel,
+                               rebuild=rebuild,
+                               filename_keys=filename_keys,
+                               save_pdf=save_pdf,
+                               save_png=save_png,
+                               dpi=dpi)
             try:
                 sc.run()
             except NotEnoughDataError as e:
@@ -337,7 +362,12 @@ if __name__ == '__main__':
                                outdir=outputdir,
                                longname=longname,
                                units=units,
-                               loglevel=loglevel)
+                               loglevel=loglevel,
+                               rebuild=rebuild,
+                               filename_keys=filename_keys,
+                               save_pdf=save_pdf,
+                               save_png=save_png,
+                               dpi=dpi)
             try:
                 sc.run()
             except NotEnoughDataError as e:

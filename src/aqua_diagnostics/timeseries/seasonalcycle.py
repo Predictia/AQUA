@@ -6,7 +6,7 @@ import gc
 
 import xarray as xr
 from aqua.graphics import plot_seasonalcycle
-from aqua.util import create_folder, add_pdf_metadata, time_to_string, OutputSaver
+from aqua.util import time_to_string, OutputSaver
 from aqua.logger import log_configure
 
 from .timeseries import Timeseries

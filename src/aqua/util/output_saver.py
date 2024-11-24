@@ -135,7 +135,7 @@ class OutputSaver:
             additional_parts = [f"{key}_{value}" for key, value in sorted(kwargs.items()) if key not in parts_dict]
         else:
             additional_parts = [f"{key}_{value}" for key, value in sorted(kwargs.items()) if key in self.filename_keys and key not in parts_dict]
-        
+
         # Ensure catalog_2 always comes before model_2 if both are provided
         ordered_keys = []
         for key in self.filename_keys:
@@ -143,15 +143,17 @@ class OutputSaver:
                 ordered_keys.append('catalog_2')
             if key not in ordered_keys:
                 ordered_keys.append(key)
-        
+
         # Filter parts based on ordered_keys, ensuring to follow the specified order
         parts = [parts_dict[key] for key in ordered_keys if key in parts_dict and parts_dict[key] is not None]
-        
+
         # Append additional parts and suffix
         parts.extend(additional_parts)
         parts.append(suffix)
 
         filename = '.'.join(parts)
+        # Replace problematic characters in filenames
+        filename = filename.replace('*', '_').replace('!', '_').replace('?', '_').replace(':', '_')
         self.logger.debug(f"Generated filename: {filename}")
         return filename
 
