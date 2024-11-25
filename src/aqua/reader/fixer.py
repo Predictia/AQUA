@@ -449,8 +449,7 @@ class FixerMixin():
                             # self.logger.debug("Variable %s found in the dataset", src)
                             if src != var:
                                 fixd.update({f"{src}": f"{var}"})
-
-                            log_history(data[src], f"Variable renamed {var} from {src} by fixer")
+                                log_history(data[src], f"Variable renamed {var} from {src} by fixer")
                             source = src
                     else:
                         self.logger.debug('Variable %s not found in the dataset, skipping', source)
@@ -508,7 +507,8 @@ class FixerMixin():
                                                                                                               '').replace('}',
                                                                                                                           '')]
                     self.logger.info("%s: converting units %s --> %s", var, data[source].units, tgt_units)
-                    log_history(data[source], f"Converting units of {var}: from {data[source].units} to {tgt_units}")
+                    if data[source].units != tgt_units:
+                        log_history(data[source], f"Converting units of {var}: from {data[source].units} to {tgt_units}")
                     conversion_dictionary = self.convert_units(data[source].units, tgt_units, var)
 
                     # if some unit conversion is defined, modify the attributes and history for later usage
