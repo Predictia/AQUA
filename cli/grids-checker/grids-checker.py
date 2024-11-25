@@ -6,7 +6,7 @@ import hashlib
 import argparse
 import sys
 from datetime import datetime
-from aqua.util import ConfigPath, load_yaml
+from aqua.util import ConfigPath, load_yaml, to_list
 
 # default grids to be scanned by the grids-checker tool
 GRIDS_FOLDERS = ['EN4', 'ERA5', 'FESOM', 'HealPix', 'ICON', 'IFS', 'lonlat',
@@ -50,8 +50,12 @@ def generate_checksums(folder, grids, output_file):
                             f.write(f"{md5_checksum} {relative_path}\n")
     print(f"Checksum file created at {output_file}")
 
-def verify_checksums(folder, checksum_file):
+def verify_checksums(folder, grids, checksum_file):
     """Verify files against MD5 checksums in the checksum file."""
+    if isinstance(grids, str):
+        if not os.path.exists(os.path.join(folder, grids)):
+            raise FileNotFoundError(f'No {grids} directory found in {folder}!')
+
     try:
         with open(checksum_file, "r", encoding='utf8') as f:
             print(f"Stating verification against {checksum_file}. It will take a while...")
@@ -60,15 +64,18 @@ def verify_checksums(folder, checksum_file):
                 if line.startswith("#") or not line.strip():
                     continue
                 md5_checksum, relative_path = line.strip().split(" ", 1)
-                file_path = os.path.join(folder, relative_path)
-                if not os.path.exists(file_path):
-                    print(f"Missing file: {relative_path}!!")
-                    all_good = False
-                else:
-                    computed_md5 = compute_md5(file_path)
-                    if computed_md5 != md5_checksum:
-                        print(f"Checksum mismatch for {relative_path}")
+                relative_dir = os.path.dirname(relative_path)
+                if relative_dir in to_list(grids):
+                    file_path = os.path.join(folder, relative_path)
+                    print(file_path)
+                    if not os.path.exists(file_path):
+                        print(f"Missing file: {relative_path}!!")
                         all_good = False
+                    else:
+                        computed_md5 = compute_md5(file_path)
+                        if computed_md5 != md5_checksum:
+                            print(f"Checksum mismatch for {relative_path}")
+                            all_good = False
             if all_good:
                 print("All files are verified successfully.")
             else:
@@ -91,14 +98,15 @@ def main():
     # Subcommand for verifying checksums
     parser_verify = subparsers.add_parser("verify", help="Verify files using a checksum file.")
     parser_verify.add_argument("-c", "--checksum", default=output_path, help="Checksum file to verify against.")
-
+    parser_verify.add_argument("-s", "--subdir", default=GRIDS_FOLDERS, help="Checksum file to verify against.")
+   
     args = parser.parse_args()
 
 
     if args.command == "generate":
         generate_checksums(folder=grids_path, grids=GRIDS_FOLDERS, output_file=args.output)
     elif args.command == "verify":
-        verify_checksums(folder=grids_path, checksum_file=args.checksum)
+        verify_checksums(folder=grids_path, grids=args.subdir, checksum_file=args.checksum)
 
 if __name__ == "__main__":
     main()
