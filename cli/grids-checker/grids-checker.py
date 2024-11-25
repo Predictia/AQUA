@@ -24,7 +24,11 @@ def compute_md5(file_path):
         return None
 
 def generate_checksums(folder, grids, output_file):
-    """Generate MD5 checksums for all files in a folder."""
+    """
+    Generate MD5 checksums for all files in a folder.
+    Will scan the main folder and the subfolder list and will store the data
+    in a output_file
+    """
 
     print(f"Generating datachecker to {output_file}...")
     current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
