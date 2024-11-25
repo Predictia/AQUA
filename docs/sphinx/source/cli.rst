@@ -264,7 +264,7 @@ the associated jobscript in order to guarantee robust results.
 It will be replaced in future by more robust performance machinery.
 
 
-.. _grids-from-data:
+.. _grids-checker:
 
 Checksum verification of grid files
 -----------------------------------
@@ -287,7 +287,9 @@ To generate a new checksum should be please run:
 
     ./grid-checker.py generate -o checksum_file.md5
 
+Please notice that not all the grid folder will be checked, but only those defined in the file with ``GRIDS_FOLDERS`` variable. 
 
+.. _grid-from-data:
 
 Generation of grid from data
 ----------------------------
@@ -325,6 +327,8 @@ Basic usage:
 This will download all the grids used in AQUA.
 It is also possible to download only a subset of the grids,
 by specifying the group of grids to download (usually one per model).
+
+.. _grids-sync:
 
 Grids synchronization
 ---------------------
@@ -407,6 +411,9 @@ Basic usage:
 
     ./generate_weights.py -c weights_config.yaml
 
+
+.. _eccodes:
+
 ecCodes fixer
 -------------
 
@@ -424,6 +431,9 @@ A CLI script (``eccodes/fix_eccodes.sh``) is available to create such 'fixed' de
     Please notice that this also means that earlier versions of the ecCodes binary will not work using these 'fixed' definition files.
     If you are planning to use older versions of AQUA (with older versions of ecCodes) you should not use these 'fixed' definition files
     and you may need to modify the ecCodes path in the catalog entries.
+
+
+.. _orography:
 
 Orography generator
 -------------------
