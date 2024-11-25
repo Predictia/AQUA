@@ -1,5 +1,6 @@
 """The main AQUA Reader class"""
 
+from json import load
 import os
 import re
 import types
@@ -10,6 +11,7 @@ import xarray as xr
 import numpy as np
 import smmregrid as rg
 
+from AQUA.src.aqua.util.util import to_list
 from aqua.util import load_multi_yaml, files_exist
 from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history
@@ -1066,7 +1068,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
                 chunks['time'] = self.aggregation
             if self.streaming and not self.aggregation:
                 self.logger.warning("Aggregation is not set, using default time resolution for streaming. If you are asking for a longer chunks['time'] for GSV access, please set a suitable aggregation value")
-    
+
         if dask:
             if chunks:  # if the chunking or aggregation option is specified override that from the catalog
                 data = esmcat(request=request, startdate=startdate, enddate=enddate, var=var, level=level,
@@ -1101,6 +1103,18 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
         data = esmcat.to_dask()
 
         if loadvar:
+            loadvar = to_list(loadvar)
+            loadvar_match = []
+            for element in loadvar:
+                self.logger.debug('Checking match for %s', element)
+                match = list(set(data.data_vars) & set(element))
+                self.logger.debug('Match: %s', match)
+                if match:
+                    loadvar_match.append(match[0])
+                else:
+                    self.logger.warning('No match found for %s', element)
+            loadvar = loadvar_match
+
             if all(element in data.data_vars for element in loadvar):
                 data = data[loadvar]
             else:
