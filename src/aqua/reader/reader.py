@@ -1053,6 +1053,21 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
         """
 
         request = esmcat._request
+        var = to_list(var)
+        var_match = []
+
+        for element in var:
+            match = list(set(esmcat.metadata['variables']) & set(element))
+            if match:
+                var_match.append(match[0])
+            else:
+                self.logger.warning('No match found for %s', element)
+        self.logger.debug("Found variables: %s", var_match)
+
+        var = var_match
+        if var is None:
+            self.logger.error("No match found for the variables you are asking for!")
+            self.logger.error("Please be sure the metadata 'variables' is defined in the catalog")
 
         if level and not isinstance(level, list):
             level = [level]
@@ -1106,9 +1121,8 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
             loadvar = to_list(loadvar)
             loadvar_match = []
             for element in loadvar:
-                self.logger.debug('Checking match for %s', element)
                 match = list(set(data.data_vars) & set(element))
-                self.logger.debug('Match: %s', match)
+
                 if match:
                     loadvar_match.append(match[0])
                 else:
