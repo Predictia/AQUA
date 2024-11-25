@@ -52,6 +52,7 @@ def generate_checksums(folder, grids, output_file):
 
 def verify_checksums(folder, grids, checksum_file):
     """Verify files against MD5 checksums in the checksum file."""
+    
     if isinstance(grids, str):
         if not os.path.exists(os.path.join(folder, grids)):
             raise FileNotFoundError(f'No {grids} directory found in {folder}!')

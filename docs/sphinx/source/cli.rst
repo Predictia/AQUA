@@ -288,6 +288,7 @@ To generate a new checksum should be please run:
     ./grid-checker.py generate -o checksum_file.md5
 
 Please notice that not all the grid folder will be checked, but only those defined in the file with ``GRIDS_FOLDERS`` variable. 
+Option ``-s`` can be used as well to scan a single grid folder (e.g. HealPix, or ERA5)
 
 .. _grid-from-data:
 
