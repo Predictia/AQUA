@@ -249,6 +249,7 @@ conversion_name:
           - avg_tprate
           - pr # cmor
           - prec
+          - tp
           - TP # AQUA ERA5
           - rr # E-OBS
         grib: 235055
@@ -321,12 +322,6 @@ conversion_name:
           - shf
           - msshf # legacy eccodes
         grib: 231
-      slhfl: # Surface latent heat flux
-        source:
-          - slhfl
-          - avg_slhtf # GRIB 2.39 standard, ignored
-          - 235034
-        grib: 235034
       slhtf: # Surface latent heat net flux
         source:
           - 260002
