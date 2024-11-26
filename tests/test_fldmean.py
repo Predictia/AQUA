@@ -102,4 +102,6 @@ class TestFldmean():
         data = reader.retrieve()
         avg = reader.fldmean(data['so']).values
         assert avg.shape == (75,)
-        assert avg[11] == pytest.approx(34.06011)
+        # grib code 262500 for so converts from K to g/kg, hence the factor 1000
+        assert avg[11] == pytest.approx(34060.11)
+        # assert avg[11] == pytest.approx(34.06011)
