@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import socket
 
 from dask.distributed import Client, LocalCluster
 
@@ -56,9 +57,22 @@ class Ocean3DCLI:
 
         self.logger.debug(f"Configuration file: {self.ocean3d_config_dict}")
 
-        if self.ocean3d_config_dict["loglevel"]:
+        if not getattr(self.args, "loglevel") and self.ocean3d_config_dict["loglevel"]:
+            self.logger.debug("Changing loglevel from the config, This will not overwrite incase provided in the CLI")
             self.loglevel = self.get_arg('loglevel', self.ocean3d_config_dict["loglevel"])
             self.logger = log_configure(log_name='Ocean3D CLI', log_level=self.loglevel)
+            
+        # Dask distributed cluster
+        nworkers = self.get_arg('nworkers', self.ocean3d_config_dict["nworkers"])
+        self.logger.info(f'Selecting {nworkers} workers')
+        hostname = socket.gethostname()
+        if nworkers:
+            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+            client = Client(cluster)
+            self.logger.info(f"Running with {nworkers} dask distributed workers.")
+             # Start a Dask client
+            self.logger.info(client.dashboard_link)  # Open the link in a browser
+
             
         self.config["model"] = self.get_arg('model', self.ocean3d_config_dict['model'])
         self.config["exp"] = self.get_arg('exp', self.ocean3d_config_dict['exp'])
@@ -100,10 +114,7 @@ class Ocean3DCLI:
             
         self.data["catalog_data"] = check_variable_name(self.data["catalog_data"])
 
-        if self.config["ocean_circulation"]["compare_model_with_obs"]:
-            self.data["obs_data"] = load_obs_data(model='EN4', exp='en4', source='monthly')
-            self.data["obs_data"] = check_variable_name(self.data["obs_data"])
-        
+        # self.data["catalog_data"] = self.data["catalog_data"].chunk({'time': 1, 'lev': 1, 'lat': 45, 'lon': 90})
         return
 
     def make_request(self, kwargs):
@@ -138,22 +149,22 @@ class Ocean3DCLI:
 
         self.logger.warning("Running the Ocean Drift diags for %s", region)
         
-        if self.config["ocean_drift"]["plots"]["hovmoller"]== True:
+        if "hovmoller" in self.config["ocean_drift"]["plots"]:
             self.logger.info("Evaluating Hovmoller plot")
             hovmoller_plot_init = hovmoller_plot(o3d_request)
             hovmoller_plot_init.plot()
 
-        if self.config["ocean_drift"]["plots"]["time_series"]== True:
+        if "time_series" in self.config["ocean_drift"]["plots"]:
             self.logger.info("Evaluating time series plot")
             time_series_plot = time_series(o3d_request)
             time_series_plot.plot()
 
-        if self.config["ocean_drift"]["plots"]["multilevel_trend"]== True:
+        if "multilevel_trend" in self.config["ocean_drift"]["plots"]:
             self.logger.info("Evaluating multilevel trend")
             trend = multilevel_trend(o3d_request)
             trend.plot()
 
-        if self.config["ocean_drift"]["plots"]["zonal_trend"]== True:
+        if "zonal_trend" in self.config["ocean_drift"]["plots"]:
             self.logger.info("Evaluating zonal mean trend")
             zonal_trend = zonal_mean_trend(o3d_request)
             zonal_trend.plot()
@@ -163,17 +174,21 @@ class Ocean3DCLI:
     def ocean_circulation_diag_list(self, **kwargs):
         region = kwargs.get("region", None)
         self.logger.warning("Running the Ocean circulation diags for %s", region)
-
+        
+        if self.config["ocean_circulation"]["compare_model_with_obs"]== True:
+            self.data["obs_data"] = load_obs_data(model='EN4', exp='en4', source='monthly')
+            self.data["obs_data"] = check_variable_name(self.data["obs_data"])
+        
         time = kwargs.get("time")
         o3d_request = self.make_request(kwargs)
 
-        if self.config["ocean_circulation"]["plots"]["stratification"]== True:
+        if "stratification" in self.config["ocean_circulation"]["plots"]:
             self.logger.info("Evaluating stratification")
             o3d_request["time"] = time
             strat = stratification(o3d_request)
             strat.plot()
         
-        if self.config["ocean_circulation"]["plots"]["mixed-layer-depth"]== True:
+        if "MLD" in self.config["ocean_circulation"]["plots"]:
             self.logger.info("Evaluating Mixed layer depth")
             o3d_request["time"] = time
             plot_spatial_mld_clim(o3d_request)
@@ -200,12 +215,6 @@ class Ocean3DCLI:
         self.loglevel = self.get_arg('loglevel', 'WARNING')
         self.logger = log_configure(log_name='Ocean3D CLI', log_level=self.loglevel)
 
-        # Dask distributed cluster
-        nworkers = self.get_arg('nworkers', None)
-        if nworkers:
-            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
-            client = Client(cluster)
-            self.logger.info(f"Running with {nworkers} dask distributed workers.")
 
         # Change the current directory to the one of the CLI so that relative paths work
         abspath = os.path.abspath(__file__)
