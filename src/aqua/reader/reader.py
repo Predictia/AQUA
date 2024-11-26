@@ -1120,6 +1120,8 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
             loadvar = to_list(loadvar)
             loadvar_match = []
             for element in loadvar:
+                # Having to do a list comprehension we want to be sure that the element is a list
+                element = to_list(element)
                 match = list(set(data.data_vars) & set(element))
 
                 if match:
