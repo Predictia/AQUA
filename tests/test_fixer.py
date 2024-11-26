@@ -102,6 +102,7 @@ def test_fixer_ifs_disable():
     reader = Reader(model="IFS", exp="test-tco79", source="short_disable_fix", loglevel=loglevel)
     assert reader.fix == False
 
+
 @pytest.mark.aqua
 def test_fixer_ifs_default_fix():
     """Check with fixer_name with roll back on model default"""
@@ -109,6 +110,7 @@ def test_fixer_ifs_default_fix():
     reader = Reader(model="IFS", exp="test-tco79", source="long_default_fix", loglevel=loglevel)
     data = reader.retrieve()
     assert data['mtnlwrf'].attrs['paramId'] == '235040'
+
 
 @pytest.mark.aqua
 def test_fixer_ifs_timeshift():
@@ -132,6 +134,7 @@ def test_fixer_ifs_coords():
     assert 'timepippo' in data.coords
     assert 'cellspippo' in data.dims
 
+
 @pytest.mark.aqua
 def test_fixer_fesom_coords():
     """Check with fixer_name and coords block"""
@@ -140,6 +143,7 @@ def test_fixer_fesom_coords():
     data = reader.retrieve()
     assert 'level' in data.coords
     assert 'a lot of water' in data.level.attrs['units']
+
 
 @pytest.mark.aqua
 def test_fixer_fesom_names():
