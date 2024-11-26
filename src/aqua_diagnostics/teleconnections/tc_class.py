@@ -321,7 +321,7 @@ class Teleconnection():
         cor = cor_evaluation(indx=self.index, data=data, dim=dim, season=season)
 
         if self.save_netcdf:
-            common_save_args = {'diagnostic_product': self.telecname + '_' + 'correlation', var=var}
+            common_save_args = {'diagnostic_product': self.telecname + '_' + 'correlation', 'var': var}
             if season:
                 common_save_args.update({'season': season})
 
