@@ -10,7 +10,7 @@ fixer_name:
             2t:
                 attributes: 
                     donald: 'duck'
-            tnlwrf:    # Just decumulate OLR
+            tnlwrf: # This is a block merged with the conversion-eccodes which gives the GRIB details
                 decumulate: true
                 attributes:
                     description: "Top thermal radiation originally found in the dataset and decumulated"

@@ -25,13 +25,14 @@ def test_fixer_ifs_long():
     # Now let's fix
     reader1 = Reader(model="IFS", exp="test-tco79", source="long", loglevel='debug')
     data1 = reader1.retrieve()  # Retrieve fixed data
-    ttr1 = data1.ttr[ntime, 0, 0]
+    # This is the decumulated ttr
+    tnlwrf = data1.tnlwrf[ntime, 0, 0]
     tas1 = data1['skt'][ntime, 5, 5]
     mtntrf = data1.mtntrf[ntime, 0, 0]
     mtntrf2 = data1.mtntrf2[ntime, 0, 0]
 
     # Did decumulation work ?
-    assert pytest.approx(ttr1.values / 3600) == [-193.92693374, -194.7589371, -159.28750829]
+    assert pytest.approx(tnlwrf.values) == [-193.92693374, -194.7589371, -159.28750829]
 
     # Did we get a correct derived variable specified with paramId ?
     assert pytest.approx(tas1.values) == tas0.values + 1.0
