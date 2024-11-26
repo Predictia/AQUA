@@ -31,7 +31,6 @@ class SeasonalCycle(Timeseries):
                  plot_kw={'ylim': {}},
                  save=True,
                  outdir='./',
-                 outfile=None,
                  longname=None, units=None,
                  lon_limits=None, lat_limits=None,
                  loglevel='WARNING', rebuild=None, filename_keys=None,
@@ -57,7 +56,6 @@ class SeasonalCycle(Timeseries):
             plot_kw: the keyword arguments to pass to the plot
             save: if True, save the figure. Default is True.
             outdir: the output directory
-            outfile: the output file
             longname: the long name of the variable. Override the attribute in the data file.
             units: the units of the variable. Override the attribute in the data file.
             lon_limits (list): Longitude limits of the area to evaluate. Default is None.
@@ -81,7 +79,6 @@ class SeasonalCycle(Timeseries):
                          plot_kw=plot_kw,
                          save=save,
                          outdir=outdir,
-                         outfile=outfile,
                          longname=longname, units=units,
                          lon_limits=lon_limits, lat_limits=lat_limits,
                          loglevel=loglevel,

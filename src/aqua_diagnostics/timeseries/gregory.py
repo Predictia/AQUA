@@ -28,7 +28,7 @@ class GregoryPlot():
                  ts_std_start='1980-01-01', ts_std_end='2010-12-31',
                  toa_std_start='2001-01-01', toa_std_end='2020-12-31',
                  ref=True, save=True,
-                 outdir='./', outfile=None,
+                 outdir='./',
                  loglevel='WARNING',
                  rebuild=None, filename_keys=None,
                  save_pdf=True, save_png=True, dpi=None):
@@ -60,7 +60,6 @@ class GregoryPlot():
                         and CERES for net radiation at TOA.
             save (bool): If True, save the figure. Default is True.
             outdir (str): Output directory. Default is './'.
-            outfile (str): Output file name. Default is None.
             loglevel (str): Logging level. Default is WARNING.
             rebuild (bool, optional): If True, overwrite the existing files. If False, do not overwrite. Default is True.
             filename_keys (list, optional): List of keys to keep in the filename. Default is None, which includes all keys.
@@ -108,7 +107,6 @@ class GregoryPlot():
         if self.save is False:
             self.logger.info("No output file will be saved.")
         self.outdir = outdir
-        self.outfile = outfile
 
         self.diagnostic_product = 'gregory_plot'
         self.diagnostic = 'timeseries'

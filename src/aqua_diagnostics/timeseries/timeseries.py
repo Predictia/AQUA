@@ -41,7 +41,6 @@ class Timeseries():
                  lon_limits=None, lat_limits=None,
                  save=True,
                  outdir='./',
-                 outfile=None,
                  loglevel='WARNING',
                  rebuild=None, filename_keys=None,
                  save_pdf=True, save_png=True, dpi=None):
@@ -72,7 +71,6 @@ class Timeseries():
             lat_limits (list): Latitude limits of the area to evaluate. Default is None.
             save (bool): Save the figure. Default is True.
             outdir (str): Output directory. Default is "./".
-            outfile (str): Output file name. Default is None.
             loglevel (str): Log level. Default is "WARNING".
             rebuild (bool, optional): If True, overwrite the existing files. If False, do not overwrite. Default is True.
             filename_keys (list, optional): List of keys to keep in the filename. Default is None, which includes all keys.
@@ -133,7 +131,6 @@ class Timeseries():
         if self.save is False:
             self.logger.info("Figure will not be saved")
         self.outdir = outdir
-        self.outfile = outfile
         
         self.diagnostic_product = 'timeseries'
         self.diagnostic = 'timeseries'
