@@ -38,12 +38,12 @@ def load_jinja_template(template_file='aqua_lra.j2'):
     templateenv = jinja2.Environment(loader=templateloader, trim_blocks=True, lstrip_blocks=True)
     if os.path.exists(template_file):
         return templateenv.get_template(os.path.basename(template_file))
-    else:
-        raise FileNotFoundError('Cannot file template file %s', template_file)
+    
+    raise FileNotFoundError(f'Cannot file template file {template_file}')
 
 def submit_sbatch(model, exp, source, varname, slurm_dict, yaml_file,
-                  workers=1, definitive=False, overwrite=False, dependency=None,
-                  singularity=None):
+                  workers=1, definitive=False, overwrite=False,
+                  dependency=None, singularity=None):
     
     """
     Submit a sbatch script for the LRA CLI with basic options
@@ -72,14 +72,14 @@ def submit_sbatch(model, exp, source, varname, slurm_dict, yaml_file,
     jinjadict = {
         'job_name': full_job_name,
         'username': slurm_dict.get('username', 'padavini'),
-        'partition': slurm_dict.get('partition', 'small'),
+        'partition': slurm_dict.get('partition', 'debug'),
         'log_output': f'{log_dir}/overnight-lra_{job_name}_%j.out',
-        'log_error': f'{log_dir}/overnight-lra_{job_name}_%j.out',
+        'log_error': f'{log_dir}/overnight-lra_{job_name}_%j.err',
         'account': slurm_dict.get('account', 'project_465000454'),
         'nodes': str(slurm_dict.get('nodes', 1)),
         'ntasks_per_node': str(slurm_dict.get('ntasks_per_node', workers)),
-        'time': slurm_dict.get('time', '08:00:00'),
-        'memory': slurm_dict.get('mem', '256G'),
+        'time': slurm_dict.get('time', '00:29:00'),
+        'memory': slurm_dict.get('mem', '128G'),
         'singularity': singularity,
         'dependency': dependency,
         'model': model,
@@ -93,14 +93,13 @@ def submit_sbatch(model, exp, source, varname, slurm_dict, yaml_file,
         'aqua':  os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     }
 
-  
     if is_job_running(full_job_name, jinjadict['username']):
         print(f'The job is {job_name} is already running, will not resubmit')
         return 0
-    
+
     template = load_jinja_template()
     render = template.render(jinjadict)
-    print(render)
+    #print(render)
 
     with open('tempfile.job', "w", encoding='utf8') as fh:
         fh.write(render)
