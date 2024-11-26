@@ -116,17 +116,17 @@ diagnostic_config = {
     'teleconnections': [
         {
             'config_file': 'teleconnections-ci.yaml',
-            'source_path': 'diagnostics/teleconnections/config',
+            'source_path': 'config/diagnostics/teleconnections/interface',
             'target_path': 'diagnostics/teleconnections/config'
         },
         {
             'config_file': 'teleconnections-destine.yaml',
-            'source_path': 'diagnostics/teleconnections/config',
+            'source_path': 'config/diagnostics/teleconnections/interface',
             'target_path': 'diagnostics/teleconnections/config'
         },
         {
-            'config_file': 'teleconnections-netgems.yaml',
-            'source_path': 'diagnostics/teleconnections/config',
+            'config_file': 'teleconnections-netgems3.yaml',
+            'source_path': 'config/diagnostics/teleconnections/interface',
             'target_path': 'diagnostics/teleconnections/config'
         },
         {

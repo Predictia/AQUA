@@ -45,11 +45,15 @@ class TeleconnectionsConfig():
 
         configdirs = []
 
-        # if AQUA is defined
-        aquadir = os.environ.get('AQUA')
-        if aquadir:
-            configdirs.append(os.path.join(aquadir, 'diagnostics',
-                                           'teleconnections', 'config'))
+        try:
+            homedir = os.environ.get('HOME')
+            if homedir:
+                configdirs.append(os.path.join(homedir, '.aqua', 'diagnostics', 'teleconnections', 'config'))
+        except FileNotFoundError:
+            # If AQUA is defined
+            aquadir = os.environ.get('AQUA')
+            if aquadir:
+                configdirs.append(os.path.join(aquadir, 'config', 'diagnostics', 'teleconnections', 'interface'))
 
         # set of predefined folders to browse
         configdirs.extend(['./config', '../config', '../../config',
