@@ -47,7 +47,7 @@ class GSVSource(base.DataSource):
             request (dict): Request dictionary
             data_start_date (str): Start date of the available data.
             data_end_date (str): End date of the available data.
-            bridge_end_date (str, optional): End date of the bridge data (excluded). Defaults to None.
+            bridge_end_date (str, optional): End date of the bridge data. Defaults to None.
             timestyle (str, optional): Time style. Defaults to "date".
             chunks (str or dict, optional): Time and vertical chunking.
                                         If a string is provided, it is assumed to be time chunking.
@@ -169,8 +169,8 @@ class GSVSource(base.DataSource):
 
         if self.bridge_end_date == "complete" or not self.bridge_end_date or (
                 self.bridge_end_date and
-                todatetime(self.bridge_end_date) > todatetime(self.enddate) or
-                todatetime(self.startdate) >= todatetime(self.bridge_end_date)
+                todatetime(self.bridge_end_date) >= todatetime(self.enddate) or
+                todatetime(self.startdate) > todatetime(self.bridge_end_date)
                 ):
             # data are all in bridge or no bridge needed or after end of bridge data
 
@@ -181,7 +181,7 @@ class GSVSource(base.DataSource):
             self._npartitions = len(timeaxis["start_date"])
 
             if self.bridge_end_date != "complete" and (
-                    not self.bridge_end_date or (todatetime(self.startdate) >= todatetime(self.bridge_end_date))
+                    not self.bridge_end_date or (todatetime(self.startdate) > todatetime(self.bridge_end_date))
             ):
                 self.chk_type = np.zeros(self._npartitions)  # mark as hpc fdb chunks
                 self.logger.debug("All data are in HPC FDB")
