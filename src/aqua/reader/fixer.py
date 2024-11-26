@@ -454,8 +454,6 @@ class FixerMixin():
                     else:
                         self.logger.debug('Variable %s not found in the dataset, skipping', source)
                         continue
-                else:
-                    raise ValueError("Source should be a list of variables (it should be converted internally)")
 
                 # 2. derived case: let's compute the formula it and create the new variable
                 formula = varfix.get("derived", None)
