@@ -1056,12 +1056,24 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
         var_match = []
 
         for element in var:
-            match = list(set(esmcat.metadata['variables']) & set(element))
+            fdb_var = esmcat.metadata.get('variables', None)
+            # This is a fallback for the case in which no 'variables' metadata is defined
+            # It is a backward compatibility feature and it may be removed in the future
+            if fdb_var is None:
+                self.logger.warning("No 'variables' metadata defined in the catalog, this is deprecated!")
+                break
+            match = list(set(fdb_var) & set(element))
             if match:
                 var_match.append(match[0])
             else:
                 self.logger.warning('No match found for %s', element)
-        self.logger.debug("Found variables: %s", var_match)
+
+        if fdb_var is not None:
+            self.logger.debug("Found variables: %s", var_match)
+        # This is a fallback for the case in which no 'variables' metadata is defined
+        # It is a backward compatibility feature and it may be removed in the future
+        else:
+            var_match = var
 
         var = var_match
         if var is None:
