@@ -32,18 +32,13 @@ def to_list(arg):
     Support function to ensure conversion of a variable to list
 
     Args:
-        arg (list, int or str): the variable to convert to list
+        arg: the variable to convert to list
 
     Returns:
-        arg (list): the input arg transformed as list type
-
-    Raise:
-        ValueErorr: if the argument is not of the accepted type
+        arg: the input arg transformed as list type (if possible)
     """
     if isinstance(arg, str) or isinstance(arg, int):
         arg = [arg]
-    elif isinstance(arg, list) is False:
-        raise ValueError('The to_list argument should be int or str or already a list.')
     return arg
 
 
