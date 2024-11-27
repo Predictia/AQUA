@@ -22,8 +22,8 @@ class FixerMixin():
     def find_fixes(self):
         """
         Get the fixes for the required model, experiment and source.
-        A conversion dictionary is loaded and merged with the fixer_name.
-        The default conversion is eccodes-2.39.0.
+        A convention dictionary is loaded and merged with the fixer_name.
+        The default convention is eccodes-2.39.0.
 
         If not found, looks for default fixes for the model.
         Then source_fixes are loaded and merged with base_fixes.
@@ -36,17 +36,16 @@ class FixerMixin():
         Return:
             The fixer dictionary
         """
-        # Look for conversion dictionary
-        # The conversion dictionary is defined by stardard: eccodes and version: 2.39.0
-        # At the actual stage this is hardcoded in the following method
-        # TODO: expose this to the user keeping the default as eccodes-2.39.0
-        conversion_dictionary = self._load_conversion_dictionary()
+        # The convention dictionary is defined by stardard: eccodes and version: 2.39.0
+        # At the actual stage 'eccodes' is the default and if not set to None or 'eccodes'
+        # an error is raised in the Reader initialization
+        convention_dictionary = self._load_convention_dictionary() if self.convention else None
 
-        # Here we load the fixer_name, the specific fix that is merged with the conversion dictionary
+        # Here we load the fixer_name, the specific fix that is merged with the convention dictionary
+        # The merge is done only if the base_fixes dictionary has the 'convention' field matching the
+        # convention dictionary.
         base_fixes = self._load_fixer_name()
-
-        # A merge of the conversion dictionary with the fixer_name is done, with a check on the standard and version
-        base_fixes = self._combine_conversion(base_fixes, conversion_dictionary)
+        base_fixes = self._combine_convention(base_fixes, convention_dictionary)
 
         # Check the presence of model-specific fix
         # If fix_model is found, we look for the specific source one and
@@ -60,7 +59,7 @@ class FixerMixin():
         if source_fixes is not None:
             self.logger.warning("Source-specific fixes are deprecated and they will be removed in the future")
 
-        # if only fixes family/default is available, return them
+        # If only fixes family/default is available, return them
         if source_fixes is None:
             if base_fixes is None:
                 self.logger.warning("No fixes available for model %s, experiment %s, source %s",
@@ -81,97 +80,106 @@ class FixerMixin():
         self.logger.debug('Final fixes are: %s', final_fixes)
         return final_fixes
 
-    def _load_conversion_dictionary(self, conversion='eccodes', version='2.39.0'):
+    def _load_convention_dictionary(self, version='2.39.0'):
         """
-        Load the conversion dictionary from the fixer file.
-        The conversion_name block should be called <conversion>-<version>.
+        Load the convention dictionary from the fixer file.
+        The convention_name block should be called <convention>-<version>.
 
         Args:
-            conversion (str, opt): The conversion name. Default is eccodes
-            version: The conversion name version. Default is 2.39.0
+            version: The convention name version. Default is 2.39.0
 
         Returns:
-            The conversion dictionary
+            The convention dictionary
         """
-        conversion_dictionary = self.fixes_dictionary.get("conversion_name", None)
-        conversion_name = conversion + '-' + version
-        self.logger.info("Conversion dictionary: %s", conversion_name)
-
-        if conversion_dictionary is None:
-            self.logger.error("No conversion dictionary found in the fixes file")
+        convention_dictionary = self.fixes_dictionary.get("convention_name", None)
+        if convention_dictionary is None:
+            self.logger.error("Convention dictionary not found, will be disabled")
             return None
 
-        conversion_dictionary = conversion_dictionary.get(conversion_name, None)
-        if conversion_dictionary is None:
-            self.logger.error("No conversion dictionary found for %s", conversion_name)
+        convention_name = self.convention + '-' + version
+
+        convention_dictionary = convention_dictionary.get(convention_name, None)
+        if convention_dictionary is None:
+            self.logger.error("No convention dictionary found for %s", convention_name)
             return None
+        else:
+            self.logger.info("Convention dictionary: %s", convention_name)
 
-        # Double check the conversion dictionary
-        dict_standard = conversion_dictionary.get('standard', None)
-        dict_version = conversion_dictionary.get('version', None)
+        return convention_dictionary
 
-        if dict_standard != conversion or dict_version != version:
-            self.logger.error("Conversion dictionary is not consistent with the requested version")
-            return None
-
-        self.logger.debug("Conversion dictionary %s", conversion_dictionary)
-
-        return conversion_dictionary
-
-    def _combine_conversion(self, base_fixes, conversion_dictionary):
+    def _combine_convention(self, base_fixes: dict, convention_dictionary: dict):
         """
-        Combine conversion dictionary with the fixes.
-        It scan the 'vars' block and merge the conversion dictionary with the fixer_name.
-        If an item is new in the conversion dictionary, it is added to the fixes.
+        Combine convention dictionary with the fixes.
+        It scan the 'vars' block and merge the convention dictionary with the fixer_name.
+        If an item is new in the convention dictionary, it is added to the fixes.
         If the item is already present, non existing keys are added,
         otherwise the existing keys (in the base file) are kept.
 
         Args:
-            base_fixes: The base fixes (coming from the fixer_name)
-            conversion_dictionary: The conversion dictionary
+            base_fixes (dict): The base fixes (coming from the fixer_name)
+            convention_dictionary (dict): The convention dictionary
 
         Returns:
-            The final fixes, with the conversion dictionary merged
+            The final fixes, with the convention dictionary merged
         """
-        if conversion_dictionary is None:
-            self.logger.warning("No conversion dictionary found, no conversion will be applied")
+        if base_fixes is None:
+            self.logger.info("No fixer_name found, only convention will be applied")
+            base_fixes = {}  # We need to create an empty dictionary to merge the convention
+            base_convention = None
+        elif convention_dictionary is None:
+            self.logger.info("No convention dictionary found, only fixer_name will be applied")
+            return base_fixes
+        else:
+            base_convention = base_fixes.get('convention', None)
+        # We do not crash if the convention is not eccodes, but we log an error and return the base fixes
+        convention = convention_dictionary.get('convention', None)
+        if convention != 'eccodes':
+            self.logger.error("Convention %s not supported, only eccodes is supported", convention)
             return base_fixes
 
-        if base_fixes is None:
-            self.logger.info("No fixer_name found, only conversion will be applied")
-            base_fixes = {}  # We need to create an empty dictionary to merge the conversion
+        # We make sure that the convention is the same in the convention dictionary and in the fixer_name
+        # Additionally, we check that the version is the same, knowing that for the moment we are not going to
+        # document this feature since the version is hardcoded in the code.
+        # TODO: version should be a parameter in the fixer_name and in the convention dictionary
+        if base_convention is not None:
+            if base_convention != convention and convention is not None:
+                raise ValueError("The convention in the convention dictionary: %s is different from the fixer_name: %s",
+                                 base_convention, convention)
+            if 'version' in base_fixes and 'version' in convention_dictionary:
+                if base_fixes['version'] != convention_dictionary['version']:
+                    raise ValueError("The version in the convention dictionary: %s is different from the fixer_name: %s",
+                                     base_fixes['version'], convention_dictionary['version'])
+        else:
+            self.logger.info("No convention found in the fixer_name, the convention dictionary will not be used")
+            return base_fixes
 
-        # Merge one by one the variables
-        for item in conversion_dictionary.keys():
-            # We check that the standard is the same, otherwise we raise an error
-            # It is still possible for backward compatibility to not have a standard specified in the
-            # base_fixes.
-            if item == 'standard':
-                if item in base_fixes:
-                    if base_fixes[item] != conversion_dictionary[item]:
-                        raise ValueError("The standard in the conversion dictionary: %s is different from the fixer_name: %s",
-                                         base_fixes[item], conversion_dictionary[item])
-            elif item == 'vars':
-                if item not in base_fixes:
-                    base_fixes[item] = conversion_dictionary[item]
-                else:
-                    for var_key in conversion_dictionary[item].keys():
-                        if var_key in base_fixes[item]:
-                            self.logger.debug("Variable %s already present in the fixes, merging...", var_key)
-                            base_fixes[item][var_key] = conversion_dictionary[item][var_key] | base_fixes[item][var_key]
-                            # We need to check that only one between 'source' and 'derived' is present
-                            # If both are present, we give priority to 'derived' and log an info
-                            if 'source' in base_fixes[item][var_key] and 'derived' in base_fixes[item][var_key]:
-                                self.logger.info("Variable %s has both 'source' and 'derived' in the fixes, 'derived' will be used",  # noqa: E501
-                                                 var_key)
-                                base_fixes[item][var_key].pop('source')
-                        else:  # This is a new variable to fix
-                            # We need to manipulate the conversion_dictionary to set the grib flag
-                            # (other may be expanded in the future)
-                            new_var = conversion_dictionary[item][var_key]
-                            if conversion_dictionary['standard'] == 'eccodes':
-                                new_var['grib'] = conversion_dictionary[item][var_key].get('grib', True)
-                            base_fixes[item][var_key] = conversion_dictionary[item][var_key]
+        # Merge one by one the variables. This is done so that we can be careful at the level of the individual variables.
+        # If a field for the specific variable is present in the base_fixes, it has priority.
+        if 'vars' in convention_dictionary:
+            if 'vars' not in base_fixes:
+                base_fixes['vars'] = convention_dictionary['vars']
+            else:  # A merge one variable by one is needed
+                for var_key in convention_dictionary['vars'].keys():
+                    if var_key in base_fixes['vars']:
+                        # self.logger.debug("Variable %s already present in the fixes, merging...", var_key)
+                        # This requires python >= 3.9
+                        base_fixes['vars'][var_key] = convention_dictionary['vars'][var_key] | base_fixes['vars'][var_key]
+                        # We need to check that only one between 'source' and 'derived' is present.
+                        # If both are present, we give priority to 'derived' and log an info.
+                        if 'source' in base_fixes['vars'][var_key] and 'derived' in base_fixes['vars'][var_key]:
+                            self.logger.info("Variable %s has both 'source' and 'derived' in the fixes, 'derived' will be used",  # noqa: E501
+                                             var_key)
+                            base_fixes['vars'][var_key].pop('source')
+                    else:
+                        # This is a new variable to fix
+                        # We need to manipulate the convention_dictionary to set the grib flag
+                        # TODO: expand to other formats (cmor tables, etc.)
+                        new_var = convention_dictionary['vars'][var_key]
+                        if convention == 'eccodes':
+                            new_var['grib'] = convention_dictionary['vars'][var_key].get('grib', True)
+                        base_fixes['vars'][var_key] = new_var
+        else:
+            self.logger.warning("No 'vars' block found in the convention dictionary")
 
         return base_fixes
 

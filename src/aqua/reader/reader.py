@@ -53,7 +53,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4,
                  aggregation=None, chunks=None,
-                 preproc=None,
+                 preproc=None, convention='eccodes',
                  **kwargs):
         """
         Initializes the Reader class, which uses the catalog
@@ -89,6 +89,8 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
                                             Time chunking can be one of S (step), 10M, 15M, 30M, h, 1h, 3h, 6h, D, 5D, W, M, Y.
                                             Vertical chunking is expressed as the number of vertical levels to be used.
             preproc (function, optional): a function to be applied to the dataset when retrieved. Defaults to None.
+            convention (str, optional): convention to be used for reading data. Defaults to 'eccodes'.
+                                        (Only one supported so far)
             **kwargs: Arbitrary keyword arguments to be passed as parameters to the catalog entry.
                       'zoom', meant for HEALPix grid, is a predefined one which will allow for multiple gridname definitions.
 
@@ -108,8 +110,8 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
         self.regrid_method = regrid_method
         self.nproc = nproc
         self.vert_coord = None
-        self.deltat = 1 #time in seconds to be used for cumulated variables unit convrersion
-        self.time_correction = False #extra flag for correction data with cumulation time on monthly timescale
+        self.deltat = 1  # time in seconds to be used for cumulated variables unit convrersion
+        self.time_correction = False  # extra flag for correction data with cumulation time on monthly timescale
         self.aggregation = aggregation
         self.chunks = chunks
 
@@ -158,18 +160,20 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
         # load the catalog
         self.esmcat = self.cat(**intake_vars)[self.model][self.exp][self.source](**kwargs)
 
-        # manual safety check for netcdf sources (see #943)
+        # Manual safety check for netcdf sources (see #943), we output a more meaningful error message
         if isinstance(self.esmcat, intake_xarray.netcdf.NetCDFSource):
             if not files_exist(self.esmcat.urlpath):
-                raise NoDataError(f"No NetCDF files available for {self.model} {self.exp} {self.source}, please check the urlpath: {self.esmcat.urlpath}")
-
+                raise NoDataError(f"No NetCDF files available for {self.model} {self.exp} {self.source}, please check the urlpath: {self.esmcat.urlpath}") # noqa E501
 
         # store the kwargs for further usage
         self.kwargs = self._check_kwargs_parameters(kwargs, intake_vars)
 
-        # get fixes dictionary and find them
+        # Get fixes dictionary and find them
         self.fix = fix  # fix activation flag
         self.fixer_name = self.esmcat.metadata.get('fixer_name', None)
+        self.convention = convention
+        if self.convention is not None and self.convention != 'eccodes':
+            raise ValueError(f"Convention {self.convention} not supported, only 'eccodes' is supported so far.")
 
         # case to disable automatic fix
         if self.fixer_name is False:
@@ -203,7 +207,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
                 self.dst_grid_name = regrid
                 # configure all the required elements
                 self._configure_coords(cfg_regrid)
-            else: 
+            else:
                 self.logger.warning('Grid metadata is not defined. Disabling regridding and areas capabilities.')
                 areas = False
                 regrid = None
@@ -519,19 +523,19 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
         else:
             # If we are retrieving from fdb we have to specify the var
             if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
-                
+
                 metadata = self.esmcat.metadata
                 if metadata:
                     loadvar = metadata.get('variables')
-                    
+
                     if loadvar is None:
                         loadvar = [self.esmcat._request['param']]  # retrieve var from catalog
-        
+
                     if not isinstance(loadvar, list):
                         loadvar = [loadvar]
 
                     if sample:
-                        #self.logger.debug("FDB source sample reading, selecting only one variable")
+                        # self.logger.debug("FDB source sample reading, selecting only one variable")
                         loadvar = [loadvar[0]]
 
                     self.logger.debug("FDB source: loading variables as %s", loadvar)
@@ -612,7 +616,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
             if dim in data.coords:
                 idx = list(range(0, len(data.coords[dim])))
                 data = data.assign_coords(**{f"idx_{dim}": (dim, idx)})
-        
+
         if level:
             if not isinstance(level, list):
                 level = [level]
@@ -717,7 +721,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
             if isinstance(dd, xr.Dataset):
                 self.logger.debug(f"Using vertical coordinate {vc}: {list(dd.data_vars)}")
             else:
-                self.logger.debug(f"Using vertical coordinate {vc}: {dd.name}")            
+                self.logger.debug(f"Using vertical coordinate {vc}: {dd.name}")
 
             # remove extra coordinates starting with idx_ (if any)
             # to make the regridder work correctly with multiple helper indices
@@ -777,8 +781,8 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
         """
         Remove spurious coordinates from an xarray DataArray or Dataset.
 
-        This function identifies and removes unnecessary coordinates that may 
-        be incorrectly associated with spatial coordinates, such as a time 
+        This function identifies and removes unnecessary coordinates that may
+        be incorrectly associated with spatial coordinates, such as a time
         coordinate being linked to latitude or longitude.
 
         Parameters:
@@ -787,7 +791,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
             The input data object from which spurious coordinates will be removed.
 
         name : str, optional
-            An optional name or identifier for the data. This will be used in 
+            An optional name or identifier for the data. This will be used in
             warning messages to indicate which dataset the issue pertains to.
 
         Returns:
@@ -986,7 +990,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
             skinpna (bool, optional): skip or not the NaN
 
         Return
-            A detrended DataArray or a Dataset 
+            A detrended DataArray or a Dataset
         """
 
         if isinstance(data, xr.DataArray):
@@ -994,7 +998,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
 
         elif isinstance(data, xr.Dataset):
             selected_vars = [da for da in data.data_vars if dim in data[da].coords]
-            final = data[selected_vars].map(self._detrend, keep_attrs=True, 
+            final = data[selected_vars].map(self._detrend, keep_attrs=True,
                                             dim=dim, degree=degree, skipna=skipna)
         else:
             raise ValueError('This is not an xarray object!')
