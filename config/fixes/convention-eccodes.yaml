@@ -1,8 +1,8 @@
-conversion_name:
+convention_name:
   eccodes-2.39.0:
-    standard: eccodes
+    convention: eccodes
     version: 2.39.0
-    description: 'Target variables according to GRIB2 encoding and eccodes. Shortname changes due to statistical processing are dropped.'
+    description: 'Target variables according to GRIB2 encoding and eccodes. Shortname changes due to statistical processing (avg) are dropped.'
 
     vars:
       #### INSTANTANEOUS VARIABLES ####
