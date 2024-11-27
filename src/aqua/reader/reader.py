@@ -1059,9 +1059,12 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
             fdb_var = esmcat.metadata.get('variables', None)
             # This is a fallback for the case in which no 'variables' metadata is defined
             # It is a backward compatibility feature and it may be removed in the future
+            # We need to access with describe because the 'param' element is not a class
+            # attribute. I would not add it since it is a deprecated feature
             if fdb_var is None:
                 self.logger.warning("No 'variables' metadata defined in the catalog, this is deprecated!")
-                break
+                fdb_var = esmcat.describe()["args"]["request"]["param"]
+                fdb_var = to_list(fdb_var)
             element = to_list(element)
             match = list(set(fdb_var) & set(element))
             if match:
