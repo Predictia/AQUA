@@ -284,7 +284,7 @@ class AquaFDBGenerator:
                 content = self.get_profile_content(profile, resolution)
                 combined = {**self.config, **content}
                 self.logger.info('Creating catalog entry for %s', combined['source'])
-                for replacepath in ['fdb_home', 'eccodes_path']:
+                for replacepath in ['fdb_home', 'fdb_home_bridge', 'eccodes_path']:
                     combined[replacepath] = '"' + replace_intake_vars(combined[replacepath], catalog=combined['catalog_dir']) + '"'
                 all_content.append(self.template.render(combined))
 

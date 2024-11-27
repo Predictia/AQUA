@@ -1,6 +1,8 @@
 {{source}}:
-    args:
+    args: 
+      {% if bridge_end_date %}
       bridge_end_date: {{ bridge_end_date }}
+      {% endif %}
       request:
         class: d1
         dataset: climate-dt
@@ -9,7 +11,6 @@
         generation: 1  # To be overwritten by workflow/config file
         model: {{ model }}
         realization: {% if num_of_realizations > 1 %}{% raw %}{{ realization }}{% endraw %}{% else %}1{% endif %}
-
         resolution: {{ resolution }}
         expver: {{ expver }}  # To be overwritten by workflow/config file
         type: fc
@@ -22,7 +23,7 @@
         levelist: {{ levelist }}
         {% endif %}
       data_start_date: {{ data_start_date }}T0000
-      data_end_date: auto
+      data_end_date: {{ data_end_date }}
       chunks: {{ chunks }}
       savefreq: {{ savefreq }}
       timestep: h
@@ -35,6 +36,9 @@
     driver: gsv
     metadata:
         fdb_home: {{ fdb_home }}
+        {% if fdb_home_bridge %}
+        fdb_home_bridge: {{ fdb_home_bridge }}
+        {% endif %}
         eccodes_path: {{ eccodes_path }}
         {% if levels != None %}
         levels: {{ levels }}

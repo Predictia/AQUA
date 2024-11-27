@@ -1,6 +1,8 @@
 {{source}}:
     args:
+      {% if bridge_end_date %} 
       bridge_end_date: {{ bridge_end_date }}
+      {% end if %}
       request:
         class: d1
         dataset: climate-dt
@@ -22,7 +24,7 @@
         levelist: {{ levelist }}
         {% endif %}
       data_start_date: {{ data_start_date }}T0000
-      data_end_date: auto
+      data_end_date: {{ data_end_date }}
       chunks: {{ chunks }}
       savefreq: {{ savefreq }}
       timestep: h
@@ -35,6 +37,9 @@
     driver: gsv
     metadata:
         fdb_home: {{ fdb_home }}
+        {% if fdb_home_bridge %}
+        fdb_home_bridge: {{ fdb_home_bridge }}
+        {% endif %}
         eccodes_path: {{ eccodes_path }}
         {% if levels != None %}
         levels: {{ levels }}
