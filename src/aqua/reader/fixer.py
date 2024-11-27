@@ -439,7 +439,10 @@ class FixerMixin():
                 # Get grib attributes if requested and fix name
                 # This can be expanded to other formats in the future
                 grib = varfix.get("grib", None)
-                if grib is not None:
+                # We make sure also of the case were an user saw a grib: True
+                # and decided to build a grib: False instead of just not using
+                # the block
+                if grib is not None and grib is not False:
                     # grib: True means that we're just going to use the default grib attributes
                     # associated with the variable name var
                     if isinstance(grib, bool):
