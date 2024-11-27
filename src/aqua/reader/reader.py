@@ -1062,6 +1062,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
             if fdb_var is None:
                 self.logger.warning("No 'variables' metadata defined in the catalog, this is deprecated!")
                 break
+            element = to_list(element)
             match = list(set(fdb_var) & set(element))
             if match:
                 var_match.append(match[0])
