@@ -184,6 +184,7 @@ class OutputSaver:
         Returns:
             str: The absolute path where the netCDF file has been saved.
         """
+        full_path = None  # Ensure full_path is initialized
         try:
             filename = self.generate_name(diagnostic_product=diagnostic_product, var=var,
                                           model_2=model_2, exp_2=exp_2, time_start=time_start, time_end=time_end,
@@ -237,9 +238,15 @@ class OutputSaver:
 
             self.logger.info("NetCDF file successfully saved.")
             self.logger.debug(f"Saved netCDF file to path: {full_path}")
+        except ValueError as e:
+            self.logger.error(f"ValueError: {e}")
+            raise
         except Exception as e:
             self.logger.error(f"Error: {e}")
-            self.logger.error(f"Could not save NetCDF file to {full_path}")
+            if full_path is not None:
+                self.logger.error(f"Could not save NetCDF file to {full_path}")
+            else:
+                self.logger.error("Filename could not be generated; check input parameters.")
 
         return full_path
 
@@ -272,20 +279,22 @@ class OutputSaver:
         Raises:
             ValueError: If the provided fig parameter is not a valid matplotlib Figure.
         """
-        if path is None:
-            path = os.path.join(self.default_path, 'pdf')
-        create_folder(folder=str(path), loglevel=self.loglevel)
-
-        filename = self.generate_name(diagnostic_product=diagnostic_product, var=var, model_2=model_2, exp_2=exp_2,
-                                      time_start=time_start, time_end=time_end, time_precision=time_precision, area=area,
-                                      suffix='pdf', catalog_2=catalog_2, **kwargs)
-        full_path = os.path.join(path, filename)
-
-        if not self.rebuild and os.path.exists(full_path):
-            self.logger.info(f"File already exists and rebuild is set to False: {full_path}")
-            return full_path
-
+        full_path = None  # Ensure full_path is initialized
         try:
+            filename = self.generate_name(diagnostic_product=diagnostic_product, var=var, model_2=model_2, exp_2=exp_2,
+                                          time_start=time_start, time_end=time_end, time_precision=time_precision, area=area,
+                                          suffix='pdf', catalog_2=catalog_2, **kwargs)
+
+            if path is None:
+                path = os.path.join(self.default_path, 'pdf')
+            create_folder(folder=str(path), loglevel=self.loglevel)
+
+            full_path = os.path.join(path, filename)
+
+            if not self.rebuild and os.path.exists(full_path):
+                self.logger.info(f"File already exists and rebuild is set to False: {full_path}")
+                return full_path
+
             # Ensure fig is a Figure object
             if isinstance(fig, plt.Axes):
                 fig = fig.figure
@@ -295,7 +304,7 @@ class OutputSaver:
             else:
                 raise ValueError("The provided fig parameter is not a valid matplotlib Figure or pyplot figure.")
 
-            # Add metadata if provided, including the current time and additional fields
+            # Add metadata if provided
             additional_metadata = {
                 'diagnostic': self.diagnostic,
                 'model': self.model,
@@ -310,23 +319,28 @@ class OutputSaver:
                 'area': area,
                 'catalog': self.catalog,
                 'catalog_2': catalog_2,
-                'rebuild': str(self.rebuild)  # Convert rebuild to a string to make it compatible with NetCDF
+                'rebuild': str(self.rebuild)
             }
             # Include kwargs in additional_metadata
             additional_metadata.update(kwargs)
 
-            # Filter out None values from additional_metadata
+            # Filter out None values
             filtered_metadata = {key: value for key, value in additional_metadata.items() if value is not None}
-
             metadata = update_metadata(metadata, filtered_metadata)
 
             add_pdf_metadata(full_path, metadata, loglevel=self.loglevel)
 
             self.logger.info("PDF file successfully saved.")
             self.logger.debug(f"Saved PDF file at: {full_path}")
+        except ValueError as e:
+            self.logger.error(f"ValueError: {e}")
+            raise
         except Exception as e:
             self.logger.error(f"Error: {e}")
-            self.logger.error(f"Could not save PDF file to {full_path}")
+            if full_path is not None:
+                self.logger.error(f"Could not save PDF file to {full_path}")
+            else:
+                self.logger.error("Filename could not be generated; check input parameters.")
 
         return full_path
 
@@ -359,21 +373,22 @@ class OutputSaver:
         Raises:
             ValueError: If the provided fig parameter is not a valid matplotlib Figure.
         """
-        filename = self.generate_name(diagnostic_product=diagnostic_product, var=var, model_2=model_2, exp_2=exp_2,
-                                      time_start=time_start, time_end=time_end, time_precision=time_precision,
-                                      area=area, suffix='png', catalog_2=catalog_2, **kwargs)
-
-        if path is None:
-            path = os.path.join(self.default_path, 'png')
-        create_folder(folder=str(path), loglevel=self.loglevel)
-
-        full_path = os.path.join(path, filename)
-
-        if not self.rebuild and os.path.exists(full_path):
-            self.logger.info(f"File already exists and rebuild is set to False: {full_path}")
-            return full_path
-
+        full_path = None  # Ensure full_path is initialized
         try:
+            filename = self.generate_name(diagnostic_product=diagnostic_product, var=var, model_2=model_2, exp_2=exp_2,
+                                          time_start=time_start, time_end=time_end, time_precision=time_precision,
+                                          area=area, suffix='png', catalog_2=catalog_2, **kwargs)
+
+            if path is None:
+                path = os.path.join(self.default_path, 'png')
+            create_folder(folder=str(path), loglevel=self.loglevel)
+
+            full_path = os.path.join(path, filename)
+
+            if not self.rebuild and os.path.exists(full_path):
+                self.logger.info(f"File already exists and rebuild is set to False: {full_path}")
+                return full_path
+
             # Ensure fig is a Figure object
             if isinstance(fig, plt.Axes):
                 fig = fig.figure
@@ -412,8 +427,14 @@ class OutputSaver:
 
             self.logger.info("PNG file successfully saved.")
             self.logger.debug(f"Saved PNG file to path: {full_path}")
+        except ValueError as e:
+            self.logger.error(f"ValueError: {e}")
+            raise
         except Exception as e:
             self.logger.error(f"Error: {e}")
-            self.logger.error(f"Could not save PNG file to {full_path}")
+            if full_path is not None:
+                self.logger.error(f"Could not save PNG file to {full_path}")
+            else:
+                self.logger.error("Filename could not be generated; check input parameters.")
 
         return full_path
