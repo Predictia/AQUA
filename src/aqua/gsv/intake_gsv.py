@@ -8,6 +8,7 @@ import numpy as np
 import dask
 from ruamel.yaml import YAML
 from aqua.util.eccodes import init_get_eccodes_shortname, get_eccodes_attr
+from aqua.util import to_list
 from intake.source import base
 from .timeutil import check_dates, shift_time_dataset, todatetime, read_bridge_end_date
 from .timeutil import split_date, make_timeaxis, date2str, date2yyyymm, add_offset
@@ -108,8 +109,7 @@ class GSVSource(base.DataSource):
         else:
             self._var = var
 
-        if not isinstance(self._var, list):  # Make sure self._var is a list
-                self._var = [self._var]
+        self._var = to_list(self._var)  # Make sure self._var is a list
 
         # convert var names to paramId
         for i, v in enumerate(self._var):
