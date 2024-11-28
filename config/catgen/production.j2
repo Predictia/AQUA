@@ -17,7 +17,7 @@
         time: {{ time }}
         param: {{ param }}
         levtype: {{ levtype }}
-        {% if levelist != None %}
+        {% if levelist %}
         levelist: {{ levelist }}
         {% endif %}
       data_start_date: {{ data_start_date }}T0000
@@ -35,7 +35,7 @@
     metadata:
         fdb_home: {{ fdb_home }}
         eccodes_path: {{ eccodes_path }}
-        {% if levels != None %}
+        {% if levels %}
         levels: {{ levels }}
         {% endif %}
         variables: {{ variables }}
