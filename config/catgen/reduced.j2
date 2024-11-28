@@ -8,10 +8,9 @@
         dataset: climate-dt
         activity: {{ activity }}  # To be overwritten by workflow/config file
         experiment: {{ experiment }}  # To be overwritten by workflow/config file
-        generation: 1  # To be overwritten by workflow/config file
+        generation: {{ generation }}  # To be overwritten by workflow/config file
         model: {{ model }}
-        realization: {% if num_of_realizations > 1 %}{% raw %}{{ realization }}{% endraw %}{% else %}1{% endif %}
-
+        realization: {% if num_of_realizations > 1 %}{% raw %}{{ realization }}{% endraw %}{% else %}1{% endif %} 
         resolution: {{ resolution }}
         expver: {{ expver }}  # To be overwritten by workflow/config file
         type: fc
