@@ -1044,49 +1044,114 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
     def reader_fdb(self, esmcat, var, startdate, enddate, dask=False, level=None):
         """
         Read fdb data. Returns an iterator or dask array.
+
         Args:
             esmcat (intake catalog): the intake catalog to read
-            var (str): the shortname of the variable to retrieve
+            var (str, int or list): the variable(s) to read
             startdate (str): a starting date and time in the format YYYYMMDD:HHTT
             enddate (str): an ending date and time in the format YYYYMMDD:HHTT
             dask (bool): return directly a dask array instead of an iterator
             level (list, float, int): level to be read, overriding default in catalog
+
         Returns:
             An xarray.Dataset or an iterator over datasets
         """
-
+        # Var can be a list or a single one of these cases:
+        # - an int, in which case it is a paramid
+        # - a str, in which case it is a short_name that needs to be matched with the paramid
+        # - a list (in this case I may have a list of lists) if fix=True and the original variable
+        #   found a match in the source field of the fixer dictionary
         request = esmcat._request
         var = to_list(var)
         var_match = []
 
-        for element in var:
-            fdb_var = esmcat.metadata.get('variables', None)
-            # This is a fallback for the case in which no 'variables' metadata is defined
-            # It is a backward compatibility feature and it may be removed in the future
-            # We need to access with describe because the 'param' element is not a class
-            # attribute. I would not add it since it is a deprecated feature
-            if fdb_var is None:
-                self.logger.warning("No 'variables' metadata defined in the catalog, this is deprecated!")
-                fdb_var = esmcat.describe()["args"]["request"]["param"]
-                fdb_var = to_list(fdb_var)
-            element = to_list(element)
-            match = list(set(fdb_var) & set(element))
-            if match:
-                var_match.append(match[0])
-            else:
-                self.logger.warning('No match found for %s', element)
-
-        if fdb_var is not None:
-            self.logger.debug("Found variables: %s", var_match)
+        fdb_var = esmcat.metadata.get('variables', None)
         # This is a fallback for the case in which no 'variables' metadata is defined
         # It is a backward compatibility feature and it may be removed in the future
-        else:
+        # We need to access with describe because the 'param' element is not a class
+        # attribute. I would not add it since it is a deprecated feature
+        if fdb_var is None:
+            self.logger.warning("No 'variables' metadata defined in the catalog, this is deprecated!")
+            fdb_var = esmcat.describe()["args"]["request"]["param"]
+            fdb_var = to_list(fdb_var)
+
+        # We avoid the following loop if the user didn't specify any variable
+        # We make sure this is the case by checking that var is the same as fdb_var
+        # If we need to loop, two cases may arise:
+        # 1. fix=True: if elem is a paramid we try to match it with the list on fdb_var
+        #              if is a str we scan in the fixer dictionary if there is a match
+        #              and we use the paramid listed in the source block to match with fdb_var
+        #              As a final fallback, if the scan fails, we use the initial str as a match
+        #              letting eccodes itself to find the paramid (this may lead to errors)
+        # 2. fix=False: we just scan the list of variables requested by the user.
+        #               For paramids we do as case 1, while for str we just do as in the fallback
+        #               option defined in case 1
+        # We're trying to set the if/else by int vs str and then eventually by the fix option
+        # We store the fixer_dict once for all for semplicity of the if case.
+        if self.fix is True:
+            fixer_dict = self.fixes.get('vars', {})
+            if fixer_dict == {}:
+                self.logger.debug("No 'vars' block in the fixer, guessing variable names base on ecCodes")
+        if var != fdb_var:
+            for element in var:
+                # We catch also the case where we ask for var='137' but we know that is a paramid
+                if isinstance(element, int) or (isinstance(element, str) and element.isdigit()):
+                    element = int(element) if isinstance(element, str) else element
+                    element = to_list(element)
+                    match = list(set(fdb_var) & set(element))
+                    if match and len(match) == 1:
+                        var_match.append(match[0])
+                    elif match and len(match) > 1:
+                        self.logger.warning('Multiple matches found for %s, using the first one', element)
+                        var_match.append(match[0])
+                    else:
+                        self.logger.warning('No match found for %s, skipping it', element)
+                elif isinstance(element, str):
+                    if self.fix is True:
+                        if element in fixer_dict:
+                            src_element = fixer_dict[element].get('source', None)
+                            derived_element = fixer_dict[element].get('derived', None)
+                            if derived_element is not None or src_element is None:  # We let eccodes to find the paramid
+                                var_match.append(derived_element)
+                            else:  # src_element is not None and it is not a derived variable
+                                match = list(set(fdb_var) & set(src_element))
+                                if match and len(match) == 1:
+                                    var_match.append(match[0])
+                                elif match and len(match) > 1:
+                                    self.logger.warning('Multiple paramids found for %s: %s, using: %s',
+                                                        element, match, match[0])
+                                    var_match.append(match[0])
+                                else:
+                                    self.logger.warning('No match found for %s, using eccodes to find the paramid',
+                                                        element)
+                                    var_match.append(element)
+                    else:
+                        var_match.append(element)
+                elif isinstance(element, list):
+                    if self.fix is False:
+                        raise ValueError("Var %s is a list and fix is False, this is not allowed", element)
+                    match = list(set(fdb_var) & set(element))
+                    if match and len(match) == 1:
+                        var_match.append(match[0])
+                    elif match and len(match) > 1:
+                        self.logger.warning('Multiple matches found for %s, using the first one', element)
+                        var_match.append(match[0])
+                    else:
+                        self.logger.error('No match found for %s, skipping it', element)
+                else:  # Something weird is happening, we may want to have a raise instead
+                    self.logger.error("Element %s is not a valid type, skipping it", element)
+        else:  # There is no need to scan the list of variables, total match
             var_match = var
 
-        var = var_match
-        if var is None:
+        if var_match == []:
             self.logger.error("No match found for the variables you are asking for!")
             self.logger.error("Please be sure the metadata 'variables' is defined in the catalog")
+            var_match = var
+        else:
+            self.logger.debug("Found variables: %s", var_match)
+
+        var = var_match
+        self.logger.debug("Requesting variables: %s", var)
 
         if level and not isinstance(level, list):
             level = [level]
