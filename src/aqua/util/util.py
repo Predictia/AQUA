@@ -28,12 +28,19 @@ def generate_random_string(length):
 
 
 def to_list(arg):
+    """
+    Support function to ensure conversion of a variable to list
 
-    """Support function to ensure conversion of a variable to list"""
+    Args:
+        arg: the variable to convert to list
 
-    if isinstance(arg, str):
+    Returns:
+        arg: the input arg transformed as list type (if possible)
+    """
+    if isinstance(arg, str) or isinstance(arg, int):
         arg = [arg]
     return arg
+
 
 def files_exist(path):
     """
@@ -46,6 +53,7 @@ def files_exist(path):
             return True
 
     return False
+
 
 def get_arg(args, arg, default):
     """
