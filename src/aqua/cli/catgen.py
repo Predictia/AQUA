@@ -232,7 +232,7 @@ class AquaFDBGenerator:
             "grid": grid_str,
             "source": source,
             "levelist": levelist,
-            "realization": self.num_of_realizations,
+            "num_of_realizations": self.num_of_realizations,
             "levels": levels_values,
             "levtype": profile["levtype"],
             "variables": profile["variables"],
