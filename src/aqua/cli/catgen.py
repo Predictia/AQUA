@@ -97,7 +97,7 @@ class AquaFDBGenerator:
         """
         re_pattern = f"horizontal-{model.upper()}-(.+)"
         resolutions = [match.group(1) for key in local_grids if (match := re.match(re_pattern, key))]
-        self.logger.debug('Resolutionds found are %s', resolutions)
+        self.logger.debug('Resolutions found are %s', resolutions)
         return resolutions
 
     @staticmethod
@@ -186,8 +186,6 @@ class AquaFDBGenerator:
         
         aqua_grid = self.matching_grids[grid]
         levelist, levels_values = self.get_levelist(profile, self.local_grids, self.levels)
-        print(profile)
-
 
         levtype_str = (
             'atm2d' if profile["levtype"] == 'sfc' else
