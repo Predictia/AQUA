@@ -14,6 +14,9 @@ Welcome to AQUA's documentation!
    getting_started
    example_use_case
    core_components
+   regrid
+   fixer
+   other_components
    aqua_console
    container
    diagnostics/index
