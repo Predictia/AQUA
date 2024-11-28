@@ -3,6 +3,7 @@
 import subprocess
 import os
 import pytest
+import logging
 from aqua.util import load_yaml, dump_yaml
 
 loglevel = "DEBUG"
@@ -22,7 +23,26 @@ def load_and_prepare(tmp_path, model, kind, reso):
     command = ["aqua", "catgen", '-p', kind, '-c', model_config, '-l', loglevel]
 
     # Run the command
-    subprocess.run(command, capture_output=True, text=True, check=True)
+    try:
+        # Run the command and capture stdout and stderr
+        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        # Log the output on success
+        logging.info(f"Command succeeded with output: {result.stdout}")
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        # Handle the error and log the details
+        logging.error(f"Command failed with error: {e}")
+        logging.error(f"Return code: {e.returncode}")
+        logging.error(f"stderr: {e.stderr}")
+        raise  # Re-raise the exception to allow for higher-level handling if necessary
+    except subprocess.SubprocessError as e:
+        # Catch any other subprocess-related errors
+        logging.error(f"Subprocess error: {e}")
+        raise
+    except Exception as e:
+        # Catch other unforeseen exceptions
+        logging.error(f"Unexpected error: {e}")
+        raise
 
     model = config['model']
     exp = config['exp']
