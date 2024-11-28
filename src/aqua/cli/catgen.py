@@ -179,12 +179,17 @@ class AquaFDBGenerator:
         
         aqua_grid = self.matching_grids[grid]
         levelist, levels_values = self.get_levelist(profile, self.local_grids, self.levels)
+        print(profile)
+
 
         levtype_str = (
             'atm2d' if profile["levtype"] == 'sfc' else
             'atm3d' if profile["levtype"] == 'pl' else
             'oce2d' if profile["levtype"] == 'o2d' else
-            'oce3d' if profile["levtype"] == 'o3d' else
+            'oce3d' if profile["levtype"] == 'o3d' and 'full' in profile['vertical'] else
+            'oce3d-half' if profile["levtype"] == 'o3d' and 'half' in profile['vertical'] else
+            'sol4' if profile["levtype"] == 'sol' and profile['vertical'] == 'sol4' else
+            'sol5' if profile["levtype"] == 'sol' and profile['vertical'] == 'sol5' else
             profile["levtype"]
         )
 
