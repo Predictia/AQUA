@@ -123,7 +123,8 @@ markers = [
     # beginning of diagnostic tests
     "dummy: mark test for dummy diagnostic",
     "teleconnections: mark test for teleconnections diagnostic",
-    "tropical_rainfall: mark test for tropical_rainfall diagnostic"
+    "tropical_rainfall: mark test for tropical_rainfall diagnostic",
+    "catgen: mark test for catalog generator"
 ]
 
 # This appears to be the correct configuration, but for some reason
