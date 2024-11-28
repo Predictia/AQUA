@@ -12,6 +12,7 @@ Welcome to AQUA's documentation!
    introduction
    installation
    getting_started
+   example_use_case
    core_components
    aqua_console
    container
