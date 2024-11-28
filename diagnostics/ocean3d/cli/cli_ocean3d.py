@@ -78,7 +78,8 @@ class Ocean3DCLI:
         self.config["exp"] = self.get_arg('exp', self.ocean3d_config_dict['exp'])
         self.config["source"] = self.get_arg('source', self.ocean3d_config_dict['source'])
         self.config["outputdir"] = self.get_arg('outputdir', self.ocean3d_config_dict['outputdir'])
-
+        self.config["outputdir"] = os.path.realpath(self.config['outputdir'])
+        self.logger.info(f"output will be saved here: {self.config['outputdir']}")
         self.config["custom_region"] = self.get_value_with_default(self.ocean3d_config_dict,
                                                                    "custom_region", None)
         self.config["ocean_drift"] = self.get_value_with_default(self.ocean3d_config_dict,
@@ -86,10 +87,9 @@ class Ocean3DCLI:
         self.config["ocean_circulation"] = self.get_value_with_default(self.ocean3d_config_dict,
                                                                        "ocean_circulation", [])
         self.config["select_time"] = self.get_value_with_default(self.ocean3d_config_dict, "select_time", None)
-        if self.config["select_time"] is True:
-            time_range = self.get_value_with_default(self.ocean3d_config_dict, "time_range", [])
-            self.config["start_year"] = self.get_value_with_default(time_range, "start_year", [])
-            self.config["end_year"] = self.get_value_with_default(time_range, "end_year", [])
+        if self.config["select_time"]:
+            self.config["start_year"] = self.get_value_with_default(self.config["select_time"], "start_year", [])
+            self.config["end_year"] = self.get_value_with_default(self.config["select_time"], "end_year", [])
         self.config["compare_model"] = self.get_value_with_default(self.ocean3d_config_dict, "compare_model_with_obs", None)
 
         # if self.ocean3d_config_dict['custom_region'] :
@@ -111,8 +111,8 @@ class Ocean3DCLI:
                                                         enddate= str(self.config["end_year"]))
         else:
             self.data["catalog_data"] = reader.retrieve()
-            
         self.data["catalog_data"] = check_variable_name(self.data["catalog_data"])
+        self.logger.debug(self.data["catalog_data"])   
 
         # self.data["catalog_data"] = self.data["catalog_data"].chunk({'time': 1, 'lev': 1, 'lat': 45, 'lon': 90})
         return

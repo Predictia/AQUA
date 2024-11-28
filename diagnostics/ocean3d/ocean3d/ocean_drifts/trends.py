@@ -8,7 +8,7 @@ import pandas as pd
 
 class TrendCalculator:
     @staticmethod
-    def create_time_array(y_array, loglevel="WARNING"):
+    def create_time_array(data, loglevel="WARNING"):
         """
         Create an array representing time indices.
 
@@ -21,54 +21,60 @@ class TrendCalculator:
         """
         logger = log_configure(loglevel, 'lintrend_3D')
         logger.debug("Creating Array representing time indices")
-        time_indices = da.arange(1, len(y_array["time"]) + 1, chunks=(y_array.chunks[0],))
+        time_indices = xr.DataArray(
+            np.arange(1, len(data["time"]) + 1),
+            dims=["time"],
+            coords={"time": data["time"]},
+            name="time_indices"
+        )
+
         # Broadcast the time indices to match the shape of the input array
-        time_array = da.broadcast_to(time_indices[:, None, None, None], y_array.shape)
+        time_array = xr.broadcast(time_indices, data)[0]
         
         # Mask NaN values from the input array
-        time_array = da.where(da.isnan(y_array), np.nan, time_array)
+        time_array = time_array.where(~np.isnan(data), np.nan)
         logger.debug("Finished creating Array representing time indices")
         return time_array
 
-    @staticmethod
-    def compute_trend(y_array, x_array, n, loglevel="WARNING"):
-        """
-        Compute the trend values.
+    # @staticmethod
+    # def compute_trend(y_array, x_array, n, loglevel="WARNING"):
+    #     """
+    #     Compute the trend values.
 
-        Parameters:
-            y_array (xarray.DataArray or dask.array): Input array containing the variable of interest.
-            x_array (dask.array): Array representing time indices.
-            n (dask.array): Count of non-NaN values along the time dimension.
-            loglevel (str, optional): Log level for logging messages. Defaults to "WARNING".
+    #     Parameters:
+    #         y_array (xarray.DataArray or dask.array): Input array containing the variable of interest.
+    #         x_array (dask.array): Array representing time indices.
+    #         n (dask.array): Count of non-NaN values along the time dimension.
+    #         loglevel (str, optional): Log level for logging messages. Defaults to "WARNING".
 
-        Returns:
-            dask.array: Trend values.
-        """
-        from dask.array import nanmean, nansum
+    #     Returns:
+    #         dask.array: Trend values.
+    #     """
+    #     from dask.array import nanmean, nansum
 
-        # Configure logger
-        logger = log_configure(loglevel, 'compute_trend')
-        logger.debug("Starting trend computation")
+    #     # Configure logger
+    #     logger = log_configure(loglevel, 'compute_trend')
+    #     logger.debug("Starting trend computation")
 
-        # Precompute means to avoid redundant calculations
-        x_mean = nanmean(x_array, axis=0)
-        y_mean = nanmean(y_array, axis=0)
-        logger.debug("Means computed")
+    #     # Precompute means to avoid redundant calculations
+    #     x_mean = nanmean(x_array, axis=0)
+    #     y_mean = nanmean(y_array, axis=0)
+    #     logger.debug("Means computed")
 
-        # Precompute x deviations and variance
-        x_dev = x_array - x_mean
-        y_dev = y_array - y_mean
-        x_var = nansum(x_dev**2, axis=0) / n
-        logger.debug("Variance computed")
+    #     # Precompute x deviations and variance
+    #     x_dev = x_array - x_mean
+    #     y_dev = y_array - y_mean
+    #     x_var = nansum(x_dev**2, axis=0) / n
+    #     logger.debug("Variance computed")
 
-        # Compute covariance and trend
-        logger.debug("Covariance computing")
-        cov = nansum(x_dev * y_dev, axis=0) / n
-        logger.debug("Covariance computing finished")
-        trend = cov / x_var
-        logger.debug("Trend values computed")
+    #     # Compute covariance and trend
+    #     logger.debug("Covariance computing")
+    #     cov = nansum(x_dev * y_dev, axis=0) / n
+    #     logger.debug("Covariance computing finished")
+    #     trend = cov / x_var
+    #     logger.debug("Trend values computed")
 
-        return trend
+    #     return trend
 
 
     @staticmethod
@@ -89,7 +95,7 @@ class TrendCalculator:
         logger.debug("Starting trend filtering")
 
         # Filter `n` and `trend` in a single step
-        trend_filtered = da.where(n >= 3, trend, np.nan)
+        trend_filtered = xr.where(n >= 3, trend, np.nan)
         
         # Convert to xarray.DataArray with coordinates
         logger.debug("Converting filtered trends to xarray.DataArray")
@@ -140,9 +146,38 @@ class TrendCalculator:
             trend = trend
         else:
             raise ValueError(f"The frequency: {time_frequency} of the data must be in Daily/Monthly/Yearly")
+        
+        trend.attrs['units'] = f"{trend.attrs['units']}/year"
+            
+        
+        # trend.attrs['units'] = f"{y_array.units}/year"
+        
         return trend
 
+    @staticmethod
+    def compute_covariances(x_array, data, dim="time", loglevel= "warning"):
+        """
+        Compute covariances for all matching variables in two xarray.Datasets.
 
+        Parameters:
+            x_array (xarray.Dataset): First dataset containing variables.
+            data (xarray.Dataset): Second dataset containing variables.
+            dim (str): Dimension along which to compute covariance.
+
+        Returns:
+            xarray.Dataset: A dataset containing covariance for each variable.
+        """
+        covariance_dict = {}
+
+        # Iterate over variables in x_array
+        for var in x_array.data_vars:
+            covariance_dict[var] = xr.cov(x_array[var], data[var], dim=dim)
+            covariance_dict[var].attrs = data[var].attrs
+            covariance_dict[var] = TrendCalculator.adjust_trend_for_time_frequency(covariance_dict[var], data[var], loglevel= loglevel)
+        # Merge covariances into a   single dataset
+        covariance_ds = xr.Dataset(covariance_dict)
+        return covariance_ds
+    
     def lintrend_3D(y_array, loglevel="WARNING"):
         """
         Compute the trend values for a 3D variable.
@@ -156,12 +191,11 @@ class TrendCalculator:
         """
         logger = log_configure(loglevel, 'lintrend_3D')
         x_array = TrendCalculator.create_time_array(y_array, loglevel=loglevel)
-        n = da.sum(~da.isnan(x_array), axis=0)
-        trend = TrendCalculator.compute_trend(y_array, x_array, n, loglevel= loglevel)
-        trend = TrendCalculator.filter_trend(trend, n, y_array, loglevel= loglevel)
-        trend = TrendCalculator.adjust_trend_for_time_frequency(trend, y_array, loglevel= loglevel)
-        trend.attrs['units'] = f"{y_array.units}/year"
+        n = x_array.count(dim="time")
+        trend = TrendCalculator.compute_covariances(x_array, y_array, dim="time", loglevel=loglevel)
+        trend = xr.where(n >= 3, trend, np.nan)
         return trend
+
 
 
     def TS_3dtrend(data, loglevel= "WARNING"):
@@ -176,17 +210,9 @@ class TrendCalculator:
             xarray.Dataset: Dataset with trend values for temperature and salinity variables.
         """
         logger = log_configure(loglevel, 'TS_3dtrend')
-        TS_3dtrend_data = xr.Dataset()
 
-        logger.debug("Calculating linear trend for avg_so")
-        avg_so = TrendCalculator.lintrend_3D(data.avg_so, loglevel= loglevel)
-        logger.debug("Done")
-        logger.debug("Calculating linear trend for avg_thetao")
-        avg_thetao = TrendCalculator.lintrend_3D(data.avg_thetao, loglevel= loglevel)
-        logger.debug("Done")
-
-        logger.debug("Merging linear trend for avg_thetao and avg_so")
-        TS_3dtrend_data = TS_3dtrend_data.merge({"avg_thetao": avg_thetao, "avg_so": avg_so})
+        logger.debug("Calculating linear trend")
+        TS_3dtrend_data = TrendCalculator.lintrend_3D(data, loglevel= loglevel)
 
         logger.debug("Trend value calculated")
         return TS_3dtrend_data

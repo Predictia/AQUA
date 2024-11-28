@@ -2,13 +2,13 @@ model: IFS-FESOM
 exp: control-1990
 source: lra-r100-monthly
 
-loglevel: debug
+loglevel: warning
 outputdir: ./output
-nworkers: 1
-select_time : False # keep it True, if you want to activate time_range
-time_range:
-  start_year : 1991
-  end_year : 1991
+nworkers: 5
+
+# select_time:
+#   start_year : 1991
+#   end_year : 1991
 
 ocean_drift:
   regions:
@@ -21,7 +21,7 @@ ocean_drift:
   plots: [
           # hovmoller,
           # time_series,
-          # multilevel_trend,
+          multilevel_trend,
           zonal_trend
           ]
 

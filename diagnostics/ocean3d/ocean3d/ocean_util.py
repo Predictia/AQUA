@@ -212,6 +212,7 @@ def weighted_zonal_mean(data, region=None, lat_s: float = None, lat_n: float = N
                           lat_n, lon_w, lon_e)
 
     wgted_mean = data.mean(("lon"))
+    logger.debug("Weighted the data")
 
     return wgted_mean
 
