@@ -45,9 +45,15 @@ class AquaFDBGenerator:
         self.dp_dir_path = self.config["repos"]["data-portfolio_path"]
         self.catalog_dir_path = self.config["repos"]["Climate-DT-catalog_path"]
         self.model = self.config["model"].lower()
-        self.portfolio = self.config["portfolio"]
+        #self.portfolio = self.config["portfolio"]
+        self.resolution = self.config["resolution"]
         self.ocean_grid = self.config["ocean_grid"]
         self.num_of_realizations = int(self.config.get("num_of_realizations", 1))
+
+        #sefaty check
+        if (data_portfolio == 'production' and self.resolution not in ['production', 'lowres', 'development'] or
+            data_portfolio == 'reduced' and self.resolution not in ['intermediate']):
+            raise KeyError(f'Wrong match betwee data portfolio {data_portfolio} and data resolution {self.resolution}')
 
         # portfolio
         self.logger.info("Running FDB catalog generator for %s portfolio for model %s", data_portfolio, self.model)
@@ -55,26 +61,27 @@ class AquaFDBGenerator:
         self.grids = load_yaml(os.path.join(self.dp_dir_path, data_portfolio, 'grids.yaml'))
         self.levels = load_yaml(os.path.join(self.dp_dir_path, 'definitions', 'levels.yaml'))
 
-        self.local_grids = self.get_local_grids(self.portfolio, self.grids)
+        self.local_grids = self.get_local_grids(self.resolution, self.grids)
 
 
-    def get_local_grids(self, portfolio, grids):
+    def get_local_grids(self, resolution, grids):
         """
         Get local grids based on the portfolio.
 
         Args:
-            portfolio (str): The portfolio type (production/reduced).
+            resolution (str): The portfolio resolution type.
             grids (dict): The grids definition.
 
         Returns:
             dict: Local grids for the given portfolio.
         """
         local_grids = grids["common"]
-        if portfolio in grids:
-            self.logger.debug('Update grids for specific %s portfolio', portfolio)
-            local_grids.update(grids[portfolio])
+        if resolution in grids:
+            self.logger.debug('Update grids for specific %s portfolio', resolution)
+            local_grids.update(grids[resolution])
         else:
-            self.logger.error('Cannot find grids for %s portfolio', portfolio)
+            self.logger.error('Cannot find grids for %s portfolio', resolution)
+        print(local_grids)
         return local_grids
 
     def get_available_resolutions(self, local_grids, model):
@@ -90,7 +97,7 @@ class AquaFDBGenerator:
         """
         re_pattern = f"horizontal-{model.upper()}-(.+)"
         resolutions = [match.group(1) for key in local_grids if (match := re.match(re_pattern, key))]
-        self.logger.debug('Resolution found are %s', resolutions)
+        self.logger.debug('Resolutionds found are %s', resolutions)
         return resolutions
 
     @staticmethod
