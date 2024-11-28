@@ -65,20 +65,14 @@ jobs:
         with:
           repository: DestinE-Climate-DT/Climate-DT-catalog
           token: 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
-          path: Climate-DT-catalog # Specify the folder to checkout into
+          path: ../Climate-DT-catalog # Specify the folder to checkout into
       - name: Clone GitLab data-portfolio repository
         run: |
-          git clone https://oauth2:pXj19aBDApiBPs1YgwuZ@earth.bsc.es/gitlab/digital-twins/de_340-2/data-portfolio data-portfolio
+          git clone https://oauth2:pXj19aBDApiBPs1YgwuZ@earth.bsc.es/gitlab/digital-twins/de_340-2/data-portfolio ../data-portfolio
       - name: List Workspace Contents
         run: |
           echo "Current Directory: $PWD"
           ls -l
-          echo "Main Repo:"
-          ls -l AQUA
-          echo "GitLab Repo:"
-          ls -l data_portfolio
-          echo "Second Repo:"
-          ls -l Climate-DT-catalog
       - name: Set up Micromamba
         uses: mamba-org/setup-micromamba@v2
         with:
