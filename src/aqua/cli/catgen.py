@@ -93,12 +93,12 @@ class AquaFDBGenerator:
             model (str): The model name.
 
         Returns:
-            list: List of available resolutions.
+            list: List of available grid resolutions.
         """
         re_pattern = f"horizontal-{model.upper()}-(.+)"
-        resolutions = [match.group(1) for key in local_grids if (match := re.match(re_pattern, key))]
-        self.logger.debug('Resolutions found are %s', resolutions)
-        return resolutions
+        grid_resolutions = [match.group(1) for key in local_grids if (match := re.match(re_pattern, key))]
+        self.logger.debug('Resolutions found are %s', grid_resolutions)
+        return grid_resolutions
 
     @staticmethod
     def get_levelist(profile, local_grids, levels):
@@ -170,19 +170,19 @@ class AquaFDBGenerator:
         else:
             raise FileNotFoundError(f'Cannot file template file {template_file}')
 
-    def get_profile_content(self, profile, resolution):
+    def get_profile_content(self, profile, grid_resolution):
         """
         Generate profile content based on the given parameters.
 
         Args:
             profile (dict): Profile definition.
-            resolution (str): Resolution value.
+            grid_resolution (str): Resolution value.
 
         Returns:
             dict: Generated profile content.
         """
 
-        grid = self.local_grids[f"horizontal-{self.model.upper()}-{resolution}"]
+        grid = self.local_grids[f"horizontal-{self.model.upper()}-{grid_resolution}"]
         
         aqua_grid = self.matching_grids[grid]
         levelist, levels_values = self.get_levelist(profile, self.local_grids, self.levels)
@@ -226,7 +226,7 @@ class AquaFDBGenerator:
 
         kwargs = {
             "dp_version": self.dp_version,
-            "resolution": resolution,
+            "resolution": grid_resolution,
             "grid": grid_str,
             "source": source,
             "levelist": levelist,
@@ -287,12 +287,12 @@ class AquaFDBGenerator:
 
         all_content = []
 
-        resolutions = self.get_available_resolutions(self.local_grids, self.model)
+        grid_resolutions = self.get_available_resolutions(self.local_grids, self.model)
         for profile in self.dp[self.model]:
-            if not resolutions:
+            if not grid_resolutions:
                 self.logger.error('No resolutions found, generating an empty file!')
-            for resolution in resolutions:
-                content = self.get_profile_content(profile, resolution)
+            for grid_resolution in grid_resolutions:
+                content = self.get_profile_content(profile, grid_resolution)
                 combined = {**self.config, **content}
                 self.logger.info('Creating catalog entry for %s', combined['source'])
                 for replacepath in ['fdb_home', 'eccodes_path']:
