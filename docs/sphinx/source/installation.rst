@@ -150,7 +150,7 @@ Also in this case, you can set the environment variable in your ``.bash_profile`
 
 .. _installation-mn5:
 
-Installation on MareNostrum 5 (MN5) HPC at Barcelona Supercomputing Center (BSC)
+Installation on MareNostrum 5 (MN5) HPC at BSC
 --------------------------------------------------------------------------------
 
 To enable internet-dependent operations like git, pip install, or conda on MN5, you can configure an SSH tunnel and set up proxy environment variables.
@@ -160,7 +160,7 @@ Note: we recommend using a machine with a stable connection, such as Levante or 
 Add a ``RemoteForward`` directive for a high five-digit port number under the MN5 section of your ``~/.ssh/config`` file.
 Use the following configuration, replacing ``<port_number>`` with a unique port number to avoid conflicts (on most systems the valid range for ports is from 1024 to 49151 for user-level applications).
 
-.. code-block:: plaintext
+.. code-block:: RST
 
     Host mn5
         RemoteForward <port_number>
@@ -183,7 +183,7 @@ Check if the forwarding is running by using the following command with your chos
 
 Next, create your GitHub SSH key as usual, and then update your ``~/.ssh/config`` file with the following configuration:
 
-.. code-block:: plaintext
+.. code-block:: RST
 
     Host github.com
         Hostname ssh.github.com
