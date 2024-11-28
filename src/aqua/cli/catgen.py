@@ -130,7 +130,7 @@ class AquaFDBGenerator:
                 'time': '"0000/to/2300/by/0100"',
                 'chunks': 'D',
                 'savefreq': 'h'
-            }, 
+            },
             "daily": {
                 'time': "0000",
                 'chunks': "D",
@@ -161,7 +161,7 @@ class AquaFDBGenerator:
             self.logger.debug('Loading template for %s', template_file)
             return templateenv.get_template(os.path.basename(template_file))
         else:
-            raise FileNotFoundError('Cannot file template file %s', template_file)
+            raise FileNotFoundError(f'Cannot file template file {template_file}')
 
     def get_profile_content(self, profile, resolution):
         """
@@ -202,9 +202,9 @@ class AquaFDBGenerator:
         self.logger.debug('levtype: %s, levels: %s, grid: %s', levtype, levelist, grid_str)
 
         time_dict = self.get_time(profile["frequency"])
-        print(self.num_of_realizations)
+        self.logger.debug('Number of realizations %s', self.num_of_realizations)
         
-        # Add realization parameters if ensembles 
+        # Add realization parameters if ensembles
         parameters = {
             'realization': {
                 'allowed': list(range(1, self.num_of_realizations + 1)),
@@ -239,8 +239,9 @@ class AquaFDBGenerator:
         Args:
             all_content (list): List of all generated content strings.
         """
-        output_dir = os.path.join(self.catalog_dir_path, 'catalogs', 
+        output_dir = os.path.join(self.catalog_dir_path, 'catalogs',
                                   self.config['catalog_dir'], 'catalog', self.model.upper())
+        os.makedirs(output_dir, exist_ok=True)
         output_filename = f"{self.config['exp']}.yaml"
         output_path = os.path.join(output_dir, output_filename)
 
