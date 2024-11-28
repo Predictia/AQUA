@@ -28,7 +28,6 @@ def load_and_prepare(tmp_path, model, kind, reso):
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         # Log the output on success
         logging.info(f"Command succeeded with output: {result.stdout}")
-        return result.stdout
     except subprocess.CalledProcessError as e:
         # Handle the error and log the details
         logging.error(f"Command failed with error: {e}")
