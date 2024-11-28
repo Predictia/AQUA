@@ -79,7 +79,7 @@ jobs:
         uses: mamba-org/setup-micromamba@v2
         with:
           micromamba-version: 'latest'
-          environment-file: environment.yml 
+          environment-file: AQUA/environment.yml 
           environment-name: aqua
           cache-downloads: true
           cache-environment: false
