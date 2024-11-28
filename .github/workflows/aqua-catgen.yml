@@ -50,6 +50,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          path: AQUA
       # The FDB docker image does not have git and other dependencies
       - name: Install GH Actions dependencies
         run: |
@@ -65,10 +67,10 @@ jobs:
         with:
           repository: DestinE-Climate-DT/Climate-DT-catalog
           token: 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
-          path: ../Climate-DT-catalog # Specify the folder to checkout into
+          path: Climate-DT-catalog 
       - name: Clone GitLab data-portfolio repository
         run: |
-          git clone https://oauth2:pXj19aBDApiBPs1YgwuZ@earth.bsc.es/gitlab/digital-twins/de_340-2/data-portfolio ../data-portfolio
+          git clone https://oauth2:pXj19aBDApiBPs1YgwuZ@earth.bsc.es/gitlab/digital-twins/de_340-2/data-portfolio data-portfolio
       - name: List Workspace Contents
         run: |
           echo "Current Directory: $PWD"
@@ -109,4 +111,5 @@ jobs:
       - name: Run tests
         run: |
           # Produce the HTML report. Defaults to writing in htmlcov/index.html.
+          cd AQUA
           pytest -m "catgen"
