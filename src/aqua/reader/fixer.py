@@ -124,8 +124,8 @@ class FixerMixin():
         """
         if base_fixes is None:
             self.logger.info("No fixer_name found, only convention will be applied")
-            base_fixes = {}  # We need to create an empty dictionary to merge the convention
-            base_convention = None
+            base_fixes = {}
+            base_convention = 'eccodes'
         elif convention_dictionary is None:
             self.logger.info("No convention dictionary found, only fixer_name will be applied")
             return base_fixes

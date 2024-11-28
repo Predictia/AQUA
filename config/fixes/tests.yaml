@@ -2,7 +2,7 @@
 fixer_name:
     # These are for tests
     ifs-ci-test:
-        standard: eccodes
+        convention: eccodes
         data_model: ifs
         deltat: 3600
         jump: month
