@@ -1,0 +1,81 @@
+"""Testing for the catalog generator"""
+
+import subprocess
+import os
+import pytest
+from aqua.util import load_yaml, dump_yaml
+
+loglevel = "DEBUG"
+
+def load_and_prepare(tmp_path, model, kind):
+
+    config_file = 'tests/catgen/config-test-catgen.j2'
+
+    # to parametriza on models, load the file, do jinja replacement and save it
+    definitions = {'model': model, 'kind': kind}
+    config = load_yaml(config_file, definitions)
+    model_config = f'{tmp_path}/test.yaml'
+    
+    dump_yaml(model_config, config)
+
+    # Command to run
+    command = ["aqua", "catgen", '-p', kind, '-c', model_config, '-l', loglevel]
+
+    # Run the command
+    subprocess.run(command, capture_output=True, text=True, check=True)
+
+    model = config['model']
+    exp = config['exp']
+    catalog_dir = config['catalog_dir']
+    expected_path = os.path.join(config['repos']['Climate-DT-catalog_path'],
+                                 'catalogs', catalog_dir, 'catalog', model)
+
+    entry = os.path.join(expected_path, f'{exp}.yaml')
+    assert os.path.exists(os.path.join(expected_path, 'main.yaml'))
+    assert os.path.exists(entry)
+
+    sources =  load_yaml(entry)
+    #os.remove(os.path.join(expected_path, 'main.yaml'))
+    #os.remove(entry)
+
+    return sources
+
+@pytest.mark.parametrize(('model,nsources,nocelevels'),
+                        [('IFS-NEMO', 30, 75),
+                         ('IFS-FESOM', 34, 69),
+                         ('ICON', 17, 72)])
+@pytest.mark.catgen
+def test_catgen_reduced(tmp_path, model, nsources, nocelevels):
+    """test for production portfolio"""
+
+    sources = load_and_prepare(tmp_path=tmp_path, model=model, kind='reduced')
+
+    # check how many sources
+    assert len(sources['sources']) == nsources
+
+    # check number of vertical levels in the atmosphere
+    assert len(sources['sources']['hourly-hpz10-atm3d']['metadata']['levels']) == 19
+
+    # check number of vertical levels in the atmosphere
+    assert len(sources['sources']['daily-hpz10-oce3d']['metadata']['levels']) == nocelevels
+
+@pytest.mark.parametrize(('model,nsources,nocelevels'),
+                        [('IFS-NEMO', 30, 75),
+                         ('IFS-FESOM', 34, 69),
+                         ('ICON', 17, 72)])
+@pytest.mark.catgen
+def test_catgen_production(tmp_path, model, nsources, nocelevels):
+    """test for production portfolio"""
+
+    sources = load_and_prepare(tmp_path, model, 'production')
+
+    # check how many sources
+    assert len(sources['sources']) == nsources
+
+    # check number of vertical levels in the atmosphere
+    assert len(sources['sources']['hourly-hpz10-atm3d']['metadata']['levels']) == 19
+
+    # check number of vertical levels in the atmosphere
+    assert len(sources['sources']['daily-hpz10-oce3d']['metadata']['levels']) == nocelevels
+
+
