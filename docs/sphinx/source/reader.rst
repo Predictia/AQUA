@@ -1,20 +1,21 @@
-The AQUA Reader
-===============
+The Reader class
+================
 
-Here we describe the core components of the AQUA library.
-Specifically with core components we refer to the code contained in the folder ``aqua``.
-These are tools that are used to read, process and visualize data, not specific of a single diagnostic.
+Here we describe the main component of the AQUA library, the ``Reader`` class.
+It is part of the core components of AQUA, which is the code contained in the folder ``src/aqua``.
+The core component consists of all the tools that are used to read, process and visualize data, not specific of a single diagnostic.
+The other main core components are described in the :ref:`regrid`, :ref:`fixer` and :ref:`other-components` sections.
 Some extra functionalities can be found in the :ref:`advanced-topics` section.
 
-The Reader class
-----------------
+The Reader
+^^^^^^^^^^
 
 The ``Reader`` class provides AQUA access to data, developed to offer a centralized common data access point.
 AQUA ``Reader`` can, in fact, access different file formats and data from the FDB or intake catalogs, 
 and delivers xarray objects.
 On top of data access, the ``Reader`` is also able to perform multiple operations on the data:
-interpolation and regridding, spatial and temporal averaging and metadata correction. 
-These are described in the following sections.
+interpolation and regridding (see :ref:`regrid`), spatial and temporal averaging and metadata correction (see :ref:`fixer`).
+These are described in the other sections of the documentation.
 The ``Reader`` class is also able to perform parallel processing and to stream data,
 since high-resolution data can be too large to be loaded in memory all at once
 and it may be necessary to process data in chunks or even step by step.
@@ -28,6 +29,7 @@ AQUA supports a variety of climate data file input formats:
 - **GRIB** files
 - **Zarr**
 - **FDB** GRIB
+- **Parquet**
 
 After the data are retrieved, the ``Reader`` class returns an xarray object,
 specifically an ``xarray.Dataset``, where only the metadata are loaded in memory.
@@ -64,6 +66,10 @@ will return experiments available in the catalog for model CERES.
 If you want to have a complete overview of the sources available in the catalog, you can use the ``catalog()`` function.
 This will return a list of all the sources available in the catalog, listed by model and experiment.
 
+.. note::
+    Both the ``inspect_catalog()`` and the ``catalog()`` functions will scan automatically the last catalog installed.
+    If you want to target a specific catalog, you can pass the ``catalog_name`` keyword.
+
 Reader basic usage
 ^^^^^^^^^^^^^^^^^^
 
@@ -75,10 +81,6 @@ The basic call to the ``Reader`` is:
     from aqua import Reader
     reader = Reader(model='IFS-NEMO', exp='historical-1990', source='lra-r100-monthly')
     data = reader.retrieve()
-
-.. note::
-    If multiple catalog are installed, a browsing will be done to search for the required triplet.
-    In case you want to speed up the process, you can point to a specific catalog with the `catalog` keyword. 
 
 This will return a ``Reader`` object that can be used to access the data.
 The ``retrieve()`` method will return an ``xarray.Dataset`` to be used for further processing.
