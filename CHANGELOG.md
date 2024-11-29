@@ -10,6 +10,7 @@ Unreleased in the current development version:
 AQUA core complete list:
 - Introduction a specific pipeline and tests for `catgen`utiliy (#1505)
 - FDB reader internally always asks for paramids (#1491)
+- Remove pin on xarray (#1507)
 - FDB reader internally always asks for paramids (#1491, #1508)
 - Introduction of a convention table for the fixer, in order to create a more general fixer (#1488)
 - Refactor of `cli_lra_parallel_slurm.py` to work with container via jinja (#1497) 

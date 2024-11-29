@@ -56,7 +56,7 @@ dependencies = [
     "ruamel.yaml",
     "smmregrid==0.0.6",
     "sparse",
-    "xarray<2024.10.0",
+    "xarray",
     "kerchunk",
     "h5py@git+https://github.com/h5py/h5py.git@3.12.1", #specific github pin to avoid installation of binaries
     "fastparquet",
