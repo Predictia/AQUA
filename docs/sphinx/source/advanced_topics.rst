@@ -431,6 +431,37 @@ To modify existing configurations or add new machines, edit the ``.aqua/aqua/slu
     Currently, the pip installation does not copy the YAML configuration file to a user-accessible directory.
     This functionality will be updated in the future to ensure easier modification of configurations by users.
 
+.. _new-machine-regrid:
+
+Enable regrid capabilities in a new machine
+-------------------------------------------
+
+If AQUA has been installed in a machine where the grids are not available yet, some extra step may be needed to enable the regrid capabilities.
+
+Set the machine in the catalog machine file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Every catalog has a machine file that specifies the paths where the grids, weights and areas produced by AQUA will be stored for each machine.
+If you want to use such a catalog in a new machine, you need to add the machine to the catalog machine file.
+This is contained in the ``config/catalogs/<catalog-name>/machine.yaml`` file.
+The block to add should look like this:
+
+.. code-block:: yaml
+
+    myhpc: 
+        paths:
+            grids: /path/to/aqua/data/grids
+            weights: /path/to/aqua/data/weights
+            areas: /path/to/aqua/data/areas
+
+Where ``myhpc`` is the name of the machine used during the ``aqua install <myhpc>`` command.
+
+Download the grids
+^^^^^^^^^^^^^^^^^^
+
+The grids used in AQUA are stored and available on Swift storage, powered by DKRZ.
+See the :ref:`grids-downloader` section for more details.
+
 .. _dev-notes:
 
 Developer notes
