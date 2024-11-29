@@ -123,6 +123,7 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=__init__.py
       - name: Download and set up tests
         run: |
+          cd AQUA
           ./download_data_for_tests.sh
           ./tests/teleconnections/download_data_for_tests.sh
       - name: Set up FDB
