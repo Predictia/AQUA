@@ -51,9 +51,9 @@ class AquaFDBGenerator:
         self.num_of_realizations = int(self.config.get("num_of_realizations", 1))
 
         #sefaty check
-        if (data_portfolio == 'production' and self.resolution not in ['production', 'lowres', 'development'] or
+        if (data_portfolio == 'production' and self.resolution not in ['production', 'lowres', 'develop'] or
             data_portfolio == 'reduced' and self.resolution not in ['intermediate']):
-            raise KeyError(f'Wrong match betwee data portfolio {data_portfolio} and data resolution {self.resolution}')
+            raise KeyError(f'Wrong match between data portfolio {data_portfolio} and data resolution {self.resolution}')
 
         # portfolio
         self.logger.info("Running FDB catalog generator for %s portfolio for model %s", data_portfolio, self.model)
@@ -121,7 +121,7 @@ class AquaFDBGenerator:
         return level_data["levelist"], level_data["levels"]
 
     @staticmethod
-    def get_time(frequency):
+    def get_time(frequency, levtype):
         """
         Get time string based on the frequency.
 
@@ -134,8 +134,9 @@ class AquaFDBGenerator:
 
         freq2time = {
             "hourly": {
-                'time': '"0000/to/2300/by/0100"',
-                'chunks': 'D',
+                #'time': '"0000/to/2300/by/0100"',
+                'time': '0000',
+                'chunks': '6h' if levtype == 'pl' else 'D',
                 'savefreq': 'h'
             },
             "daily": {
@@ -145,7 +146,7 @@ class AquaFDBGenerator:
             },
             "monthly": {
                 'time': None,
-                'chunks': "MS",
+                'chunks': 'D' if levtype == 'o3d' else 'MS',
                 'savefreq': "MS"
             }
         }
@@ -167,8 +168,8 @@ class AquaFDBGenerator:
         if os.path.exists(template_file):
             self.logger.debug('Loading template for %s', template_file)
             return templateenv.get_template(os.path.basename(template_file))
-        else:
-            raise FileNotFoundError(f'Cannot file template file {template_file}')
+        
+        raise FileNotFoundError(f'Cannot file template file {template_file}')
 
     def get_profile_content(self, profile, grid_resolution):
         """
@@ -206,14 +207,16 @@ class AquaFDBGenerator:
                 self.model, grid_mappings[levtype].get('default')).format(ocean_grid=self.ocean_grid, aqua_grid=aqua_grid)
         else:
             grid_str = grid_mappings['default'].format(aqua_grid=aqua_grid)
-        
+ 
         source = f"{profile['frequency']}-{aqua_grid}-{levtype_str}"
+        self.logger.info('Source: %s', source)
 
         self.logger.debug('levtype: %s, levels: %s, grid: %s', levtype, levelist, grid_str)
 
-        time_dict = self.get_time(profile["frequency"])
+        time_dict = self.get_time(frequency=profile["frequency"], levtype=profile['levtype'])
+        self.logger.debug('Time dict: %s', time_dict)
         self.logger.debug('Number of realizations %s', self.num_of_realizations)
-        
+  
         # Add realization parameters if ensembles
         parameters = {
             'realization': {
@@ -267,8 +270,8 @@ class AquaFDBGenerator:
 
         main_yaml_path = os.path.join(output_dir, 'main.yaml')
         if not os.path.exists(main_yaml_path):
-            main_yaml = {'sources': {}} 
-        else: 
+            main_yaml = {'sources': {}}
+        else:
             main_yaml = load_yaml(main_yaml_path)
         main_yaml['sources'][self.config['exp']] = {
             'description': self.config['description'],
@@ -294,7 +297,7 @@ class AquaFDBGenerator:
             for grid_resolution in grid_resolutions:
                 content = self.get_profile_content(profile, grid_resolution)
                 combined = {**self.config, **content}
-                self.logger.info('Creating catalog entry for %s', combined['source'])
+                self.logger.debug('Creating catalog entry for %s', combined['source'])
                 for replacepath in ['fdb_home', 'eccodes_path']:
                     combined[replacepath] = '"' + replace_intake_vars(combined[replacepath], catalog=combined['catalog_dir']) + '"'
                 all_content.append(self.template.render(combined))
@@ -316,4 +319,4 @@ if __name__ == '__main__':
 
     args = catgen_parser().parse_args(sys.argv[1:])
     catgen_execute(args)
-    
+

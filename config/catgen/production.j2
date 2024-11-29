@@ -34,7 +34,9 @@
     driver: gsv
     metadata:
         fdb_home: {{ fdb_home }}
+        {% if eccodes_path %}
         eccodes_path: {{ eccodes_path }}
+        {% endif %}
         {% if levels %}
         levels: {{ levels }}
         {% endif %}
