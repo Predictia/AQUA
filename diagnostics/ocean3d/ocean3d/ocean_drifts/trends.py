@@ -36,47 +36,6 @@ class TrendCalculator:
         logger.debug("Finished creating Array representing time indices")
         return time_array
 
-    # @staticmethod
-    # def compute_trend(y_array, x_array, n, loglevel="WARNING"):
-    #     """
-    #     Compute the trend values.
-
-    #     Parameters:
-    #         y_array (xarray.DataArray or dask.array): Input array containing the variable of interest.
-    #         x_array (dask.array): Array representing time indices.
-    #         n (dask.array): Count of non-NaN values along the time dimension.
-    #         loglevel (str, optional): Log level for logging messages. Defaults to "WARNING".
-
-    #     Returns:
-    #         dask.array: Trend values.
-    #     """
-    #     from dask.array import nanmean, nansum
-
-    #     # Configure logger
-    #     logger = log_configure(loglevel, 'compute_trend')
-    #     logger.debug("Starting trend computation")
-
-    #     # Precompute means to avoid redundant calculations
-    #     x_mean = nanmean(x_array, axis=0)
-    #     y_mean = nanmean(y_array, axis=0)
-    #     logger.debug("Means computed")
-
-    #     # Precompute x deviations and variance
-    #     x_dev = x_array - x_mean
-    #     y_dev = y_array - y_mean
-    #     x_var = nansum(x_dev**2, axis=0) / n
-    #     logger.debug("Variance computed")
-
-    #     # Compute covariance and trend
-    #     logger.debug("Covariance computing")
-    #     cov = nansum(x_dev * y_dev, axis=0) / n
-    #     logger.debug("Covariance computing finished")
-    #     trend = cov / x_var
-    #     logger.debug("Trend values computed")
-
-    #     return trend
-
-
     @staticmethod
     def filter_trend(trend, n, y_array, loglevel="WARNING"):
         """
@@ -195,8 +154,25 @@ class TrendCalculator:
         trend = TrendCalculator.compute_covariances(x_array, y_array, dim="time", loglevel=loglevel)
         trend = xr.where(n >= 3, trend, np.nan)
         return trend
+    
+    def chunking_trend(data, loglevel="WARNING"):
+        lon_chunks = [
+            slice(0, 60), slice(60, 120), slice(120, 180), slice(180, 240), slice(240, 300), slice(300, 360)
+            ]
 
+        # Define finer latitude chunks (every 45 degrees)
+        lat_chunks = [
+            slice(0, 45), slice(45, 90), slice(90, 135), slice(135, 180)
+            ]
 
+        for lon in lon_chunks:
+            for lat in lat_chunks:
+                subset = data.isel(lon=lon, lat=lat)
+                print(f"exporing file: subset_{lon.start}_{lat.start}.nc")
+                subset.to_netcdf(f"subset_{lon.start}_{lat.start}.nc")
+
+        data = xr.open_mfdataset("subset_*.nc", combine="by_coords")
+        return data
 
     def TS_3dtrend(data, loglevel= "WARNING"):
         """
@@ -213,8 +189,10 @@ class TrendCalculator:
 
         logger.debug("Calculating linear trend")
         TS_3dtrend_data = TrendCalculator.lintrend_3D(data, loglevel= loglevel)
-
+        TS_3dtrend_data.attrs = data.attrs
+        # TS_3dtrend_data = TrendCalculator.chunking_trend(TS_3dtrend_data, loglevel= loglevel)
         logger.debug("Trend value calculated")
+        
         return TS_3dtrend_data
 
 
@@ -223,31 +201,16 @@ class multilevel_trend:
         split_ocean3d_req(self, o3d_request)
 
     def plot(self):
-        data = self._select_data()
-        TS_trend_data = self._calculate_trend_data(data)
+        self.data = area_selection(self.data, self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
+        TS_trend_data = TrendCalculator.TS_3dtrend(self.data, loglevel=self.loglevel)
         self._plot_multilevel_trend(TS_trend_data)
         return
-
-    def _select_data(self):
-        """
-        Selects the relevant data for trend calculation.
-        """
-        data = area_selection(self.data, self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
-        return data
-
-    def _calculate_trend_data(self, data):
-        """
-        Calculates the trend data for temperature and salinity.
-        """
-        TS_trend_data = TrendCalculator.TS_3dtrend(data, loglevel=self.loglevel)
-        TS_trend_data.attrs = data.attrs
-        return TS_trend_data
 
     def _plot_multilevel_trend(self, data):
         """
         Plots the multilevel trend for temperature and salinity.
         """
-        levels = self._define_levels()
+        self._define_levels()
         fig, axs = self._create_subplot_fig(len(self.levels))
         self._plot_contourf(data, axs)
         self._format_plot_axes(axs)
@@ -281,9 +244,14 @@ class multilevel_trend:
         """
         Plots contourf for temperature and salinity at different levels.
         """
+        data = data.interp(lev=self.levels).compute()
+        # print("export_trend")
+        # data.to_zarr("test.zarr", consolidated=True)
+        # print("exported_trend")
         for levs in range(len(self.levels)):
-            data["avg_thetao"].interp(lev=self.levels[levs]).plot.contourf(cmap="coolwarm", ax=axs[levs, 0], levels=18)
-            data["avg_so"].interp(lev=self.levels[levs]).plot.contourf(cmap="coolwarm", ax=axs[levs, 1], levels=18)
+            subset_data = data.sel(lev=self.levels[levs])
+            subset_data["avg_thetao"].plot.contourf(cmap="coolwarm", ax=axs[levs, 0], levels=18)
+            subset_data["avg_so"].plot.contourf(cmap="coolwarm", ax=axs[levs, 1], levels=18)
             axs[levs, 0].set_facecolor('grey')
             axs[levs, 1].set_facecolor('grey')
         return
@@ -338,6 +306,7 @@ class zonal_mean_trend:
         Returns:
             None
         """
+        self.data = area_selection(self.data, self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
         # Compute the trend data
         TS_trend_data = TrendCalculator.TS_3dtrend(self.data, loglevel=self.loglevel)
         TS_trend_data.attrs = self.data.attrs
@@ -345,7 +314,7 @@ class zonal_mean_trend:
 
         # Compute the weighted zonal mean
         data = weighted_zonal_mean(data, self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
-
+        data = data.compute()
         # Create the plot
         fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
 

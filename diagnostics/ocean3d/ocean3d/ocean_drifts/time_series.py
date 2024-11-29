@@ -65,7 +65,7 @@ class time_series(hovmoller_plot):
             else:
                 # Select the data at the surface level (0)
                 data_level = data.isel(lev=0)
-           
+            data_level = data_level.persist()
             # Plot the temperature time series
             data_level.avg_thetao.plot.line(
                 ax=axs[i,0], label=f"{round(int(data_level.lev.data), -2)}")

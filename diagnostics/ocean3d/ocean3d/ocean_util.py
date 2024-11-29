@@ -11,7 +11,6 @@ from aqua.util import find_vert_coord, load_yaml, add_pdf_metadata
 import matplotlib.pyplot as plt
 from aqua.logger import log_configure
 
-
 def kelvin_to_celsius(data, variable_name, loglevel= "WARNING"):
     """
     Convert temperature in Kelvin to degrees Celsius for a specific variable in an xarray dataset.
@@ -142,7 +141,6 @@ def convert_longitudes(data, loglevel= "WARNING"):
 
     return data
 
-
 def area_selection(data, region=None, lat_s: float = None, lat_n: float = None,
                    lon_w: float = None, lon_e: float = None, loglevel= "WARNING"):
     """
@@ -182,9 +180,9 @@ def area_selection(data, region=None, lat_s: float = None, lat_n: float = None,
         "Selected for this region (latitude %s to %s, longitude %s to %s)", lat_s, lat_n, lon_w, lon_e)
     # Perform data slicing based on the specified or predefined latitude and longitude boundaries
     data = data.sel(lat=slice(lat_s, lat_n), lon=slice(lon_w, lon_e))
+    logger.debug(data)   
 
     return data
-
 
 def weighted_zonal_mean(data, region=None, lat_s: float = None, lat_n: float = None,
                         lon_w: float = None, lon_e: float = None, loglevel= "WARNING"):
@@ -213,9 +211,9 @@ def weighted_zonal_mean(data, region=None, lat_s: float = None, lat_n: float = N
 
     wgted_mean = data.mean(("lon"))
     logger.debug("Weighted the data")
+    logger.debug(data)   
 
     return wgted_mean
-
 
 def weighted_area_mean(data, region=None, lat_s: float = None, lat_n: float = None,
                        lon_w: float = None, lon_e: float = None, loglevel= "WARNING"):
@@ -243,6 +241,7 @@ def weighted_area_mean(data, region=None, lat_s: float = None, lat_n: float = No
                           lat_n, lon_w, lon_e)
     weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
     wgted_mean = weighted_data.mean("lat").mean("lon")
+    logger.debug(wgted_mean)   
     return wgted_mean
 
 

@@ -137,6 +137,7 @@ class hovmoller_plot:
 
         logger.debug("Plotting started for %s", type)
         
+        data = data.persist()
         if type != "Full values":
             abs_max_avg_thetao = max(abs(np.nanmax(data.avg_thetao)), abs(np.nanmin(data.avg_thetao)))
             abs_max_so = max(abs(np.nanmax(data.avg_so)), abs(np.nanmin(data.avg_so)))
