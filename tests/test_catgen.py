@@ -120,5 +120,3 @@ def test_catgen_production(tmp_path, model, nsources, nocelevels):
 
     # check number of vertical levels in the atmosphere
     assert len(sources['sources']['daily-hpz10-oce3d']['metadata']['levels']) == nocelevels
-
-
