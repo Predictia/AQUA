@@ -66,11 +66,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: DestinE-Climate-DT/Climate-DT-catalog
-          token: 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
+          token: github_pat_${{ secrets.CLIMATEDT_TOKEN }}
           path: Climate-DT-catalog 
       - name: Clone GitLab data-portfolio repository
         run: |
-          git clone https://oauth2:pXj19aBDApiBPs1YgwuZ@earth.bsc.es/gitlab/digital-twins/de_340-2/data-portfolio data-portfolio
+          git clone https://oauth2:${{ secrets.BSC_GITLAB }}@earth.bsc.es/gitlab/digital-twins/de_340-2/data-portfolio data-portfolio
       - name: List Workspace Contents
         run: |
           echo "Current Directory: $PWD"
