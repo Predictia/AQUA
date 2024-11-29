@@ -164,6 +164,7 @@ jobs:
       - name: Processing coverage
         run: |
           if [[ ${COVERAGE_ENABLED} ]]; then
+            cd AQUA
             # Extract the top header of the pytest HTML report.
             # Passes the HTML through htmlq, extracting the first H1 displayed.
             # Uses tr to delete breaklines and squeeze-repeats blank spaces,
