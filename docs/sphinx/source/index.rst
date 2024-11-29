@@ -14,10 +14,10 @@ Welcome to AQUA's documentation!
    getting_started
    example_use_case
    reader
+   aqua_console
    regrid
    fixer
    other_components
-   aqua_console
    container
    diagnostics/index
    adding_data
