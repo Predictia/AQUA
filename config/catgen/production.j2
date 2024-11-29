@@ -19,7 +19,7 @@
         time: {{ time }}
         param: {{ param }}
         levtype: {{ levtype }}
-        {% if levelist != None %}
+        {% if levelist %}
         levelist: {{ levelist }}
         {% endif %}
       data_start_date: {{ data_start_date }}T0000
@@ -39,7 +39,9 @@
         {% if fdb_home_bridge %}
         fdb_home_bridge: {{ fdb_home_bridge }}
         {% endif %}
+        {% if eccodes_path %}
         eccodes_path: {{ eccodes_path }}
+        {% endif %}
         {% if levels %}
         levels: {{ levels }}
         {% endif %}

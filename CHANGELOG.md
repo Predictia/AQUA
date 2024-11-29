@@ -8,11 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Introduction a specific pipeline and tests for `catgen`utiliy (#1505)
+- FDB reader internally always asks for paramids (#1491)
+- Remove pin on xarray (#1507)
+- FDB reader internally always asks for paramids (#1491, #1508)
+- Introduction of a convention table for the fixer, in order to create a more general fixer (#1488)
+- Refactor of `cli_lra_parallel_slurm.py` to work with container via jinja (#1497) 
 - Convert `aqua-analysis.sh` to Python with Subprocess and Multiprocessing Support (#1354)
 - Eccodes version 2.38.3 and new base container for aqua-container (#1441)
 - Autodetection of latest AQUA in `load-aqua-container.sh` script (#1437)
 - Update Metadata Handling for NetCDF, PDF, and PNG Outputs (#1430)
 - Add instructions to install AQUA on MN5 (#1468)
+- Introduce `grids-checker.py` tool to verify presence and checksum of the grid files (#1486)
 
 AQUA diagnostic complete list:
 - Tropical Cyclones: Adaptation to IFS-FESOM and tool to compute orography from data (#1393)

@@ -7,7 +7,8 @@ import xarray as xr
 import numpy as np
 import dask
 from ruamel.yaml import YAML
-from aqua.util.eccodes import init_get_eccodes_shortname
+from aqua.util.eccodes import get_eccodes_attr
+from aqua.util import to_list
 from intake.source import base
 from .timeutil import check_dates, shift_time_dataset, todatetime, read_bridge_end_date
 from .timeutil import split_date, make_timeaxis, date2str, date2yyyymm, add_offset
@@ -38,7 +39,7 @@ class GSVSource(base.DataSource):
     def __init__(self, request, data_start_date, data_end_date, bridge_end_date=None, timestyle="date",
                  chunks="S", savefreq="h", timestep="h", timeshift=None,
                  startdate=None, enddate=None, var=None, metadata=None, level=None,
-                 loglevel='WARNING', **kwargs):
+                 switch_eccodes=False, loglevel='WARNING', **kwargs):
         """
         Initializes the GSVSource class. These are typically specified in the catalog entry,
         but can also be specified upon accessing the catalog.
@@ -63,6 +64,7 @@ class GSVSource(base.DataSource):
             var (str, optional): Variable ID. Defaults to those in the catalog.
             metadata (dict, optional): Metadata read from catalog. Contains path to FDB.
             level (int, float, list): optional level(s) to be read. Must use the same units as the original source.
+            switch_eccodes (bool, optional): Flag to activate switching of eccodes path. Defaults to False.
             loglevel (string) : The loglevel for the GSVSource
             kwargs: other keyword arguments.
         """
@@ -81,7 +83,12 @@ class GSVSource(base.DataSource):
             self.fdbpath = metadata.get('fdb_path', None)
             self.fdbhome_bridge = metadata.get('fdb_home_bridge', None)
             self.fdbpath_bridge = metadata.get('fdb_path_bridge', None)
-            self.eccodes_path = metadata.get('eccodes_path', None)
+            if switch_eccodes:
+                self.eccodes_path = metadata.get('eccodes_path', None)
+                self.logger.info("ECCODES switching to %s", self.eccodes_path)
+            else:
+                self.logger.debug("ECCODES switching is off")
+                self.eccodes_path = None
             self.levels = metadata.get('levels', None)
         else:
             self.fdbpath = None
@@ -102,6 +109,15 @@ class GSVSource(base.DataSource):
         else:
             self._var = var
 
+        self._var = to_list(self._var)  # Make sure self._var is a list
+
+        # convert var names to paramId
+        for i, v in enumerate(self._var):
+            if isinstance(v, str):
+                self._var[i] = int(get_eccodes_attr(v)['paramId'])
+
+        self.logger.debug("List of paramid to retrieve %s", self._var)
+                
         self._kwargs = kwargs
 
         if data_start_date == 'auto' or data_end_date == 'auto':
@@ -242,8 +258,6 @@ class GSVSource(base.DataSource):
             self.chunking_vertical = None  # no vertical chunking
 
         self._switch_eccodes()
-
-        self.get_eccodes_shortname = init_get_eccodes_shortname()  # Can't pickle this, so we need to reinitialize it
 
         super(GSVSource, self).__init__(metadata=metadata)
 
@@ -517,8 +531,9 @@ class GSVSource(base.DataSource):
         coords['time'] = self.timeaxis
 
         ds = xr.Dataset()
-
-        for var in self._var:
+        
+        # Now work only with the variables which have been read (the fixer may change names later)
+        for var in self._ds.data_vars:
             # Create a dask array from a list of delayed get_partition calls
             if not self.chunking_vertical:
                 dalist = [self.get_part_delayed(i, var, shape, dtype) for i in range(self.npartitions)]
@@ -530,17 +545,15 @@ class GSVSource(base.DataSource):
                     dalist.append(dask.array.concatenate(dalistlev, axis=self.itime))
                 darr = dask.array.concatenate(dalist, axis=self.ilevel)  # This is a lazy dask array
 
-            shortname = self.get_eccodes_shortname(var)
-
             da = xr.DataArray(darr,
-                              name=shortname,
-                              attrs=self._ds[shortname].attrs,
+                              name=var,
+                              attrs=self._ds[var].attrs,
                               dims=self._da.dims,
                               coords=coords)
 
             log_history(da, "Dataset retrieved by GSV interface")
 
-            ds[shortname] = da
+            ds[var] = da
 
         ds.attrs.update(self._ds.attrs)
         if self.idx_3d:
