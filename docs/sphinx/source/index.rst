@@ -13,7 +13,7 @@ Welcome to AQUA's documentation!
    installation
    getting_started
    example_use_case
-   core_components
+   reader
    regrid
    fixer
    other_components
