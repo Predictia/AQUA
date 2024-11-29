@@ -1,3 +1,5 @@
+.. _other-components:
+
 Other core functionalities
 ==========================
 

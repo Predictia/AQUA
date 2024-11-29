@@ -9,7 +9,7 @@ AQUA provides a fixer tool to standardize the data and make them comparable.
 
 The general idea is to convert data from different models to a uniform file format
 with the same variable names and units.
-The default convention for metadata (for example variable ShortNames) is **GRIB**.
+The default convention for metadata (for example variable names) is **GRIB**.
 
 The fixing is done by default when we initialize the ``Reader`` class, 
 using the instructions in the ``config/fixes`` folder.
@@ -17,31 +17,6 @@ using the instructions in the ``config/fixes`` folder.
 The ``config/fixes`` folder contains fixes in YAML files.
 A new fix can be added to the folder and the filename can be freely chosen.
 By default, fixes files with the name of the model or the name of the DestinE project are provided.
-
-If you need to develop your own, fixes can be specified in two different ways:
-
-- Using the ``fixer_name`` definitions, to be then provided as a metadata in the catalog source entry.
-  This represents fixes that have a common nickname which can be used in multiple sources when defining the catalog.
-  There is the possibility of specifing a **parent** fix so that a fix can be re-used with minor corrections,
-  merging small changes to a larger ``fixer_name``.
-- Using the source-based definition.
-  Each source can have its own specific fixes.
-  These are used only if a ``fixer_name`` is not specified for the source.
-
-.. warning::  
-    Please note that the source-based definition is the older AQUA implementation and will be deprecated
-    in favour of the new approach described above.
-    We strongly suggest to use the new approach for new fixes.
-
-.. note::
-    If no ``fixer_name`` is provided and ``fix`` is set to ``True``, the code will look for a
-    ``fixer_name`` called ``<MODEL_NAME>-default``.
-
-Please note that the ``default.yaml`` is reserved to define a few of useful tools:
-
-- the default ``data_model`` (See :ref:`coord-fix`).
-- the list of units that should be added to the default MetPy unit list. 
-- A series of nicknames (``shortname``) for units to be replaced in the fixes yaml file.
 
 Concept
 ^^^^^^^
@@ -51,19 +26,87 @@ The fixer performs a range of operations on data:
 - adopts a **common data model** for coordinates (default is the CDS common data model):
   names of coordinates and dimensions (lon, lat, etc.),
   coordinate units and direction, name (and meaning) of the time dimension. (See :ref:`coord-fix` for more details)
-- changes variable names deriving the correct metadata from GRIB tables if required.
-  The fixer can identify these derived variables by their ShortNames and ParamID (ECMWF and WMO eccodes tables are used).
-- derives new variables executing trivial operations as multiplication, addition, etc. (See :ref:`metadata-fix` for more details)
+- **changes variable names and metadata**.
+  The fixer can match the available and target variables with a convention table (see :ref:`convention-structure`)
+  and assign a GRIB ParamID to the target variable, in order to automatically retrieve the metadata.
+  The fixer can also use the metadata with their ShortNames and ParamID making use of the ECMWF and WMO eccodes tables.
+- **derives new variables** executing trivial operations as multiplication, addition, etc. (See :ref:`metadata-fix` for more details)
   In particular, it derives from accumulated variables like ``tp`` (in mm), the equivalent mean-rate variables
-  (like ``mtpr`` in kg m-2 s-1). (See :ref:`metadata-fix` for more details)
-- using the ``metpy.units`` module, it is capable of guessing some basic conversions.
+  (like ``tprate`` in kg m-2 s-1). (See :ref:`metadata-fix` for more details)
+- using the ``metpy.units`` module, it is capable of **guessing some basic units conversions**.
   In particular, if a density is missing, it will assume that it is the density of water and will take it into account.
   If there is an extra time unit, it will assume that division by the timestep is needed. 
 
+Since v0.13 the fixer is split in two dictionary that can be merged together, the ``convention`` and the ``fixer_name``.
+We describe in the following sections the structure of the two dictionaries and in which files they should be placed.
+
+.. warning::
+
+    Other fixes at individual source level are still supported but will be deprecated in the future.
+    Also the usage of a ``model-default`` as fallback fixer_name is deprecated in favour of the new approach.
+
+.. _convention-structure:
+
+Convention file structure
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Since v0.13, the fixes can be complementd by a convention file, that is built to be shared for any source that uses the same convention.
+The convention file is a YAML file that is placed in the ``config/fixes`` folder and is named as ``convention-<convention_name>.yaml``.
+At the moment the only convention available is the ``eccodes`` convention, so that the file is named ``convention-eccodes.yaml``.
+
+A skeleton of the convention file is the following:
+
+
+.. code-block:: yaml
+
+    convention_name:
+        eccodes-2.39.0:
+            convention: eccodes
+            version: 2.39.0
+            description: 'Target variables according to GRIB2 encoding and eccodes. Shortname changes due to statistical processing (avg) are dropped.'
+
+            vars:
+            #### INSTANTANEOUS VARIABLES ####
+                2d: # 2 meter dewpoint temperature
+                    source:
+                    - 168 # original GRIB2 code
+                    - 235168
+                    - 2d
+                    - avg_2d
+                    grib: 168
+
+- **convention_name** is the main block, where this and other conventions can be defined.
+  ``eccodes-2.39.0`` is the name of the convention, where at the moment we are hardcoding the ecCodes version (2.39.0).
+- **convention**: the name of the convention.
+- **version**: the version of the convention. This is not used yet in the code.
+- **description**: a brief description of the convention. This is not used yet in the code.
+- **vars**: the main block where the variables are defined.
+
+Each variable is defined by a block with the following keys:
+
+- **2d**: the name of the variable. This is the target name, so that this will be the final name that the user can ask for and use in their diagnostics.
+- **source**: a list of possible sources for the variable. This can be the GRIB2 code, the shortname, the name of the variable in the source, etc.
+  The fixer will look for the variable in the source and will rename it to the target name.
+- **grib**: the GRIB2 code of the target variable. This is used to retrieve the metadata from the eccodes tables.
+  This is also used to set the target units and trigger possible units conversion.
+
+.. warning::
+
+    Even if no ``fixer_name`` is defined in your source, this convention file will be used to fix the variables.
+    If you want to deactivate, you can set ``fixer_name: false`` in the source metadata.
+
 .. _fix-structure:
 
-Fix structure
-^^^^^^^^^^^^^
+Fixer_name structure
+^^^^^^^^^^^^^^^^^^^^
+
+The fixer file is a YAML file that contains a list of fixes.
+This is a second dictionary that can be merged with the convention file or used alone.
+
+.. warning::
+
+    In this implementation the merge with the convention file is done only if a block ``convention: eccodes`` is present in the fixer file.
+    This allows backward compatibility with the old implementation.
 
 Here we show an example of a fixer file, including all the possible options:
 
@@ -80,6 +123,7 @@ Here we show an example of a fixer file, including all the possible options:
                     grib: true
         documentation-fix:
             parent: documentation-to-merge
+            convention: eccodes
             data_model: ifs
             dims:
                 cells:
@@ -121,6 +165,8 @@ different sections of the fixer file.
     to specify which fixer to use. (See :ref:`add-data` for more details)
 - **parent**: a source ``fixer_name`` with which the current fixes have to be merged. 
     In the above example, the ``documentation-fix`` will extend the ``documentation-mother`` fix integrating it. 
+- **convention**: the name of the convention to be used. This is used to merge the convention file with the fixer file.
+    If this key is not present, the fixer will be used alone.
 - **data_model**: the name of the data model for coordinates. (See :ref:`coord-fix`).
 - **coords**: extra coordinates handling if data model is not flexible enough.
     (See :ref:`coord-fix`).
@@ -144,6 +190,34 @@ different sections of the fixer file.
     time axis will be affected, the Dataset will maintain all its properties. 
 - **vars**: this is the main fixer block, described in detail on the following section :ref:`metadata-fix`.
 - **delete**: a list of variable or coordinates that the users want to remove from the output Dataset
+
+Develop your own fix
+^^^^^^^^^^^^^^^^^^^^
+
+If you need to develop your own, fixes can be specified in two different ways:
+
+- Using the ``fixer_name`` definitions, to be then provided as a metadata in the catalog source entry.
+  This represents fixes that have a common nickname which can be used in multiple sources when defining the catalog.
+  There is the possibility of specifing a **parent** fix so that a fix can be re-used with minor corrections,
+  merging small changes to a larger ``fixer_name``.
+- Using the source-based definition.
+  Each source can have its own specific fixes.
+  These are used only if a ``fixer_name`` is not specified for the source.
+
+.. warning::  
+    Please note that the source-based definition is the older AQUA implementation and will be deprecated
+    in favour of the new approach described above.
+    We strongly suggest to use the new approach for new fixes.
+
+.. note::
+    If no ``fixer_name`` is provided and ``fix`` is set to ``True``, the code will look for a
+    ``fixer_name`` called ``<MODEL_NAME>-default``.
+
+Please note that the ``default.yaml`` is reserved to define a few of useful tools:
+
+- the default ``data_model`` (See :ref:`coord-fix`).
+- the list of units that should be added to the default MetPy unit list. 
+- A series of nicknames (``shortname``) for units to be replaced in the fixes yaml file.
 
 .. _metadata-fix:
 
