@@ -462,6 +462,8 @@ Download the grids
 The grids used in AQUA are stored and available on Swift storage, powered by DKRZ.
 See the :ref:`grids-downloader` section for more details.
 
+You can then check the completeness of the grids with the tool described in the :ref:`grids-checker` section.
+
 .. _dev-notes:
 
 Developer notes
