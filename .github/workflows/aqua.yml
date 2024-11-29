@@ -198,7 +198,7 @@ jobs:
         # Only run if **NOT** running in a pull request (see step below).
         if: ${{ github.event_name != 'pull_request' && env.COVERAGE_ENABLED }}
         run: |
-          cat coverage.md
+          cat AQUA/coverage.md
       - name: Publish coverage reports (bot)
         # Publish the coverage reports in only one matrix job run.
         # Only run if running in a pull request.
@@ -222,7 +222,7 @@ jobs:
             // Find any comment already made by the bot.
             const botComment = comments.find(comment => comment.user.id === 41898282)
             const fs = require("fs").promises
-            let commentBody = await fs.readFile("coverage.md", "utf8")
+            let commentBody = await fs.readFile("AQUA/coverage.md", "utf8")
             // Replace _ by \_ since it is Markdown. Pandoc already adds it,
             // but pycobertura does not adds it. Thus the negative lookahead
             // ignoring already escaped underscores.
