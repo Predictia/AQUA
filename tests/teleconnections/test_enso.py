@@ -10,7 +10,7 @@ def test_class_ENSO():
     """
     Test that the ENSO class works
     """
-    from teleconnections.tc_class import Teleconnection
+    from aqua.diagnostics import Teleconnection
 
     telecname = 'ENSO'
     model = 'IFS'

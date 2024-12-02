@@ -10,7 +10,7 @@ def test_class_NAO():
     """
     Test that the NAO class works
     """
-    from teleconnections.tc_class import Teleconnection
+    from aqua.diagnostics import Teleconnection
 
     telecname = 'NAO'
     model = 'IFS'
