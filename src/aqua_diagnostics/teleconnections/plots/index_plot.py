@@ -9,20 +9,13 @@ import matplotlib.pyplot as plt
 from aqua.logger import log_configure
 
 
-def index_plot(indx, save=False, outputdir='./', filename='index.pdf',
-               step=False, loglevel='WARNING', **kwargs):
+def index_plot(indx, step=False, loglevel='WARNING', **kwargs):
     """
     Index plot together with a black line at indx=0.
     Values above 0 are filled in red, values below 0 are filled in blue.
 
     Args:
         indx (DataArray): Index DataArray
-        save (bool,opt):        enable or disable saving the plot,
-                                default is False
-        outputdir (str,opt):    directory to save the plot,
-                                default is './'
-        filename (str,opt):     filename for the plot
-                                default is 'index.png'
         step (bool,opt):        enable or disable step plot,
                                 default is False
         loglevel (str,opt):     log level for the logger,
@@ -96,12 +89,6 @@ def index_plot(indx, save=False, outputdir='./', filename='index.pdf',
         logger.debug("ylabel set to %s", ylabel)
     else:
         ax.set_ylabel('Index')
-
-    # Save the figure
-    if save:
-        filepath = os.path.join(outputdir, filename)
-        fig.savefig(filepath)
-        logger.debug("Fig saved in %s", filepath)
 
     return fig, ax
 

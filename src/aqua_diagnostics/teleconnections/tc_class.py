@@ -19,11 +19,11 @@ import pandas as pd
 from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure
 from aqua.reader import Reader, inspect_catalog
-from aqua.util import ConfigPath, create_folder
+from aqua.util import ConfigPath, OutputSaver
 from .index import station_based_index, regional_mean_anomalies
 from .plots import index_plot
 from .statistics import reg_evaluation, cor_evaluation
-from .tools import TeleconnectionsConfig, set_filename
+from .tools import TeleconnectionsConfig
 
 xr.set_options(keep_attrs=True)
 
@@ -37,11 +37,13 @@ class Teleconnection():
                  configdir=None, aquaconfigdir=None,
                  interface='teleconnections-destine',
                  regrid=None, freq=None,
-                 savefig=False, outputfig=None,
-                 savefile=False, outputdir=None,
+                 save_pdf=False, save_png=False,
+                 save_netcdf=False, outputdir='./',
                  filename=None,
                  startdate=None, enddate=None,
-                 months_window: int = 3, loglevel: str = 'WARNING'):
+                 months_window: int = 3, loglevel: str = 'WARNING',
+                 filename_keys: list = None,
+                 rebuild: bool = True, dpi=None):
         """
         Args:
             model (str):                    Model name.
@@ -55,10 +57,9 @@ class Teleconnection():
             interface (str, optional):      Interface filename. Defaults to 'teleconnections-destine'.
             regrid (str, optional):         Regridding resolution. Defaults to None.
             freq (str, optional):           Frequency of the data. Defaults to None.
-            savefig (bool, optional):       Save figures if True. Defaults to False.
-            outputfig (str, optional):      Output directory for figures.
-                                            If None, the current directory is used.
-            savefile (bool, optional):      Save files if True. Defaults to False.
+            save_pdf (bool, optional):      Save PDF if True. Defaults to False.
+            save_png (bool, optional):      Save PNG if True. Defaults to False.
+            save_netcdf (bool, optional):   Save netCDF if True. Defaults to False.
             outputdir (str, optional):      Output directory for files.
                                             If None, the current directory is used.
             filename (str, optional):       Output filename.
@@ -69,6 +70,9 @@ class Teleconnection():
             months_window (int, optional):  Months window for teleconnection
                                             index. Defaults to 3.
             loglevel (str, optional):       Log level. Defaults to 'WARNING'.
+            rebuild (bool, optional):       If True, overwrite the existing files. If False, do not overwrite. Default is True.
+            filename_keys (list, optional): List of keys to keep in the filename. Default is None, which includes all keys.
+            dpi (int, optional):            Dots per inch (DPI) for saving figures. Default is None.
 
         Raises:
             NoDataError: If the data is not available.
@@ -104,6 +108,11 @@ class Teleconnection():
                              'already at the desired frequency')
         self.logger.debug("Frequency: %s", self.freq)
 
+        self.outputdir = outputdir
+
+        self.output_saver = OutputSaver(diagnostic='teleconnections', catalog=self.catalog, model=self.model, exp=self.exp,
+                                        loglevel=self.loglevel, default_path=self.outputdir, rebuild=rebuild, filename_keys=filename_keys)
+
         # Teleconnection variables
         avail_telec = ['NAO', 'ENSO', 'MJO']
         if telecname in avail_telec:
@@ -125,18 +134,10 @@ class Teleconnection():
         # At the moment it is used by all teleconnections
         self.months_window = months_window
 
-        # Output variables
-        self.outputfig = None
-        self.outputdir = None
-
-        self._load_figs_options(savefig, outputfig)
-        self._load_data_options(savefile, outputdir)
-        if self.savefile or self.savefig:
-            self._filename(filename)
-            if self.savefile:
-                self.logger.info("Saving file to %s/%s", outputdir, self.filename)
-            if self.savefig:
-                self.logger.info("Saving figures to %s/%s", outputfig, self.filename)
+        self.save_netcdf = save_netcdf
+        self.save_pdf = save_pdf
+        self.save_png = save_png
+        self.dpi = dpi
 
         # Data empty at the beginning
         self.data = None
@@ -215,7 +216,7 @@ class Teleconnection():
         if self.index is not None and not rebuild:
             self.logger.warning('Index already calculated, skipping')
             return
-        elif self.index is None and not rebuild and self.savefile:
+        elif self.index is None and not rebuild and self.save_netcdf:
             self._check_index_file()
 
         if rebuild and self.index is not None:
@@ -246,11 +247,9 @@ class Teleconnection():
         if self.index is None:
             raise ValueError('It was not possible to calculate the index')
 
-        if self.savefile:
-            filename = set_filename(self.filename, 'index')
-            file = self.outputdir + '/' + filename + '.nc'
-            self.index.to_netcdf(file)
-            self.logger.info('Index saved to %s', file)
+        if self.save_netcdf:
+            common_save_args = {'diagnostic_product': self.telecname + '_' + 'index', 'var': self.var}
+            self.output_saver.save_netcdf(dataset=self.index, **common_save_args)
 
     def evaluate_regression(self, data=None, var=None,
                             dim: str = 'time',
@@ -282,24 +281,12 @@ class Teleconnection():
 
         reg = reg_evaluation(indx=self.index, data=data, dim=dim, season=season)
 
-        if self.savefile:
-            if var:
-                add = 'regression'
-                if season:
-                    add += '_' + season
-                add += '_' + var
-                filename = set_filename(self.filename, add)
-                file = self.outputdir + '/' + filename
-                file += '.nc'
-            else:
-                add = 'regression'
-                if season:
-                    add += '_' + season
-                filename = set_filename(self.filename, add)
-                file = self.outputdir + '/' + filename
-                file += '.nc'
-            reg.to_netcdf(file)
-            self.logger.info("Regression saved to %s", file)
+        if self.save_netcdf:
+            common_save_args = {'diagnostic_product': self.telecname + '_' + 'regression'}
+            if season:
+                common_save_args.update({'season': season})
+
+            self.output_saver.save_netcdf(dataset=self.index, var=var, **common_save_args)
 
         return reg
 
@@ -333,24 +320,12 @@ class Teleconnection():
 
         cor = cor_evaluation(indx=self.index, data=data, dim=dim, season=season)
 
-        if self.savefile:
-            add = 'correlation'
-            if var:
-                add += '_' + var
-                if season:
-                    add += '_' + season
-                filename = set_filename(self.filename, add)
-                file = self.outputdir + '/' + filename
-                file += '.nc'
-            else:
-                add = 'correlation'
-                if season:
-                    add += '_' + season
-                filename = set_filename(self.filename, add)
-                file = self.outputdir + '/' + filename
-                file += '.nc'
-            cor.to_netcdf(file)
-            self.logger.info("Correlation saved to %s", file)
+        if self.save_netcdf:
+            common_save_args = {'diagnostic_product': self.telecname + '_' + 'correlation', 'var': var}
+            if season:
+                common_save_args.update({'season': season})
+
+            self.output_saver.save_netcdf(dataset=cor, **common_save_args)
 
         return cor
 
@@ -373,19 +348,13 @@ class Teleconnection():
 
         ylabel = self.telecname + ' index'
 
-        if self.savefig:
-            filename = set_filename(self.filename, 'index')
-            filename += '.pdf'
+        fig, _ = index_plot(indx=self.index, loglevel=self.loglevel, step=step, ylabel=ylabel, **kwargs)
 
-            index_plot(indx=self.index, save=self.savefig,
-                       outputdir=self.outputfig, filename=filename,
-                       loglevel=self.loglevel, step=step,
-                       ylabel=ylabel, **kwargs)
-            self.logger.info("Index plot saved to %s/%s", self.outputfig, filename)
-        else:
-            index_plot(indx=self.index, save=self.savefig,
-                       loglevel=self.loglevel, step=step,
-                       ylabel=ylabel, **kwargs)
+        common_save_args = {'diagnostic_product': self.telecname + '_' + 'index', 'dpi': self.dpi}
+        if self.save_pdf:
+            self.output_saver.save_pdf(fig, **common_save_args)
+        if self.save_png:
+            self.output_saver.save_png(fig, **common_save_args)
 
     def _load_namelist(self, configdir=None, interface=None):
         """Load namelist.
@@ -415,80 +384,6 @@ class Teleconnection():
                            source=self.source,
                            verbose=False) is False:
             raise NoDataError('Data not available')
-
-    def _load_figs_options(self, savefig=False, outputfig=None):
-        """Load the figure options.
-        Args:
-            savefig (bool): whether to save the figures.
-                            Default is False.
-            outputfig (str): path to the figure output directory.
-                             Default is None.
-                             See init for the class default value.
-        """
-        self.savefig = savefig
-
-        if self.savefig:
-            self.logger.debug('Figures will be saved')
-            self._load_folder_info(outputfig, 'figure')
-
-    def _load_data_options(self, savefile=False, outputdir=None):
-        """Load the data options.
-        Args:
-            savefile (bool): whether to save the data.
-                             Default is False.
-            outputdir (str): path to the data output directory.
-                             Default is None.
-                             See init for the class default value.
-        """
-        self.savefile = savefile
-
-        if self.savefile:
-            self.logger.debug('Data will be saved')
-            self._load_folder_info(outputdir, 'data')
-
-    def _filename(self, filename=None):
-        """Generate the output file name.
-        Args:
-            filename (str): name of the output file.
-                            Default is None.
-        """
-        if filename is None:
-            self.logger.info('No filename specified, using the default name')
-            filename = 'teleconnections_' + self.telecname + '_' + self.model + '_' + self.exp + '_'\
-                       + self.source
-        self.filename = filename
-        self.logger.debug("Output filename: %s", self.filename)
-
-    def _load_folder_info(self, folder=None, folder_type=None):
-        """Load the folder information.
-        Args:
-            folder (str): path to the folder.
-                          Default is None.
-            folder_type (str): type of the folder.
-                               Default is None.
-
-        Raises:
-            KeyError: if the folder_type is not recognised.
-            TypeError: if the folder_type is not a string.
-        """
-        if folder_type not in ['figure', 'data']:
-            raise KeyError('The folder_type must be either figure or data')
-
-        if not folder:
-            self.logger.warning("No %s folder specified, using the current directory", folder_type)
-            folder = os.getcwd()
-        else:
-            if not isinstance(folder, str):
-                raise TypeError('The folder must be a string')
-            create_folder(folder, self.loglevel)
-
-        # Store the folder in the class
-        if folder_type == 'figure':
-            self.outputfig = folder
-            self.logger.debug("Figure output folder: %s", self.outputfig)
-        elif folder_type == 'data':
-            self.outputdir = folder
-            self.logger.debug("Data output folder: %s", self.outputdir)
 
     def _reader(self, **kwargs):
         """Initialize AQUA reader.
@@ -559,8 +454,10 @@ class Teleconnection():
     def _check_index_file(self):
         """Check if the index file is already present."""
         self.logger.debug("Checking if index has been calculated in a previous session")
-        filename = set_filename(self.filename, 'index')
-        file = self.outputdir + '/' + filename + '.nc'
+
+        common_save_args = {'diagnostic_product': self.telecname + '_' + 'index', 'var': self.var}
+        filename = self.output_saver.generate_name(suffix='nc', **common_save_args)
+        file = self.outputdir + '/netcdf/' + filename
         if os.path.isfile(file):
             self.logger.info('Index found in %s', file)
             self.index = xr.open_mfdataset(file)
