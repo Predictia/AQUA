@@ -31,34 +31,37 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          path: AQUA
 
       - name: Setup Micromamba with teleconnections environment
         uses: mamba-org/setup-micromamba@v2
         with:
           micromamba-version: 'latest'
-          environment-file: environment.yml 
+          environment-file: AQUA/environment.yml 
           environment-name: teleconnections
           cache-downloads: true
           cache-environment: false
           condarc: |
             channels:
-              - numba
               - conda-forge
           create-args: >-
               python=${{ matrix.python-version }}
       
+      - name: List Pip packages
+        run: |
+          pip freeze
+      
       - name: Download and setup framework data
         run: |
+          cd AQUA
           ./download_data_for_tests.sh
-
-      - name: Download and setup teleconnections tests
-        run: |
           ./tests/teleconnections/download_data_for_tests.sh
 
       - name: Set up AQUA
         run: |
           # Initialize the AQUA catalog in the $HOME/.aqua folder
-          aqua -vv install
+          aqua -vv install github
           # Add the ci/cd catalog
           aqua -vv add ci
           # Double check the catalogs
@@ -66,4 +69,5 @@ jobs:
 
       - name: Run teleconnections test
         run: |
+          cd AQUA
           pytest -m teleconnections
