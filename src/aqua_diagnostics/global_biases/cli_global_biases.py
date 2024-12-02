@@ -75,6 +75,7 @@ def main():
     outputdir = get_arg(args, "outputdir", config['output'].get("outputdir"))
     rebuild = config['output'].get("rebuild")
     filename_keys = config['output'].get("filename_keys")
+    save_netcdf = config['output'].get("save_netcdf")
     save_pdf = config['output'].get("save_pdf")
     save_png = config['output'].get("save_png")
     dpi = config['output'].get("dpi")
@@ -140,17 +141,19 @@ def main():
             # Total bias plot
             result = global_biases.plot_bias(vmin=vmin, vmax=vmax)
             if result:
-                fig, ax = result
+                fig, ax, netcdf = result
                 description = (
                         f"Spatial map of the total bias of the variable {var_name} from {startdate_data} to {enddate_data} "
                         f"for the {model_data} model, experiment {exp_data} from the {catalog_data} catalog, with {model_obs} "
                         f"(experiment {exp_obs}, catalog {catalog_obs}) used as reference data. "
                     )
                 metadata = {"Description": description}
+                if save_netcdf:
+                    output_saver.save_netcdf(dataset=netcdf, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
                 if save_pdf:
-                    output_saver.save_pdf(fig, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
+                    output_saver.save_pdf(fig=fig, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
                 if save_png:
-                    output_saver.save_png(fig, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
+                    output_saver.save_png(fig=fig, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
             else:
                 logger.warning(f"Total bias plot not generated for {var_name}.")
 
@@ -158,7 +161,7 @@ def main():
             if seasons_bool:
                 result = global_biases.plot_seasonal_bias(vmin=vmin, vmax=vmax)
                 if result:
-                    fig, ax = result
+                    fig, ax, netcdf = result
                     description = (
                         f"Seasonal bias map of the variable {var_name} for the {model_data} model, experiment {exp_data} "
                         f"from the {catalog_data} catalog, using {model_obs} (experiment {exp_obs}, catalog {catalog_obs}) as reference data. "
@@ -166,10 +169,12 @@ def main():
                         f"providing insights into seasonal discrepancies between the model and the reference. "
                     )
                     metadata = {"Description": description}
+                    if save_netcdf:
+                        output_saver.save_netcdf(dataset=netcdf, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
                     if save_pdf:
-                        output_saver.save_pdf(fig, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
+                        output_saver.save_pdf(fig=fig, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
                     if save_png:
-                        output_saver.save_png(fig, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
+                        output_saver.save_png(fig=fig, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
                 else:
                     logger.warning(f"Seasonal bias plot not generated for {var_name}.")
 
@@ -180,7 +185,7 @@ def main():
 
                 result = global_biases.plot_vertical_bias(var_name=var_name, vmin=vmin, vmax=vmax)
                 if result:
-                    fig, ax = result
+                    fig, ax, netcdf = result
                     description = (
                         f"Vertical bias plot of the variable {var_name} across pressure levels, from {startdate_data} to {enddate_data} "
                         f"for the {model_data} model, experiment {exp_data} from the {catalog_data} catalog, with {model_obs} "
@@ -189,10 +194,12 @@ def main():
                         f"highlighting biases across different pressure levels to assess the accuracy of vertical structures."
                     )
                     metadata = {"Description": description}
+                    if save_netcdf:
+                        output_saver.save_netcdf(dataset=netcdf, diagnostic_product='vertical_bias', metadata=metadata, **common_save_args)
                     if save_pdf:
-                        output_saver.save_pdf(fig, diagnostic_product='vertical_bias', metadata=metadata, **common_save_args)
+                        output_saver.save_pdf(fig=fig, diagnostic_product='vertical_bias', metadata=metadata, **common_save_args)
                     if save_png:
-                        output_saver.save_png(fig, diagnostic_product='vertical_bias', metadata=metadata, **common_save_args)
+                        output_saver.save_png(fig=fig, diagnostic_product='vertical_bias', metadata=metadata, **common_save_args)
                 else:
                     logger.warning(f"Vertical bias plot not generated for {var_name}.")
 
