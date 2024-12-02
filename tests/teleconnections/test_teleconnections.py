@@ -25,8 +25,8 @@ def test_namelist():
     Test that the namelist can be loaded
     """
 
-    configdir = "./diagnostics/teleconnections/config"
-    config = TeleconnectionsConfig(configdir=configdir)
+    # configdir = "./diagnostics/teleconnections/config"
+    config = TeleconnectionsConfig()
     namelist = config.load_namelist()
     assert len(namelist) > 0
 
@@ -39,14 +39,14 @@ def test_station_based(months_window, loglevel=loglevel):
     """
 
     filepath = "./AQUA_tests/models/IFS/teleconnections/nao_test.nc"
-    configdir = "./diagnostics/teleconnections/config"
+    # configdir = "./diagnostics/teleconnections/config"
     telecname = 'NAO'
     interface = 'teleconnections-ci'
     rtol = approx_rel
     atol = approx_rel
 
     # 1. -- Opening yaml file
-    config = TeleconnectionsConfig(configdir=configdir, interface=interface)
+    config = TeleconnectionsConfig(interface=interface)
     namelist = config.load_namelist()
 
     # 2. -- Comparison cdo vs lib method
@@ -64,14 +64,14 @@ def test_regional_mean(months_window):
     """
 
     filepath = "./AQUA_tests/models/IFS/teleconnections/enso_test.nc"
-    configdir = "./diagnostics/teleconnections/config"
+    # configdir = "./diagnostics/teleconnections/config"
     telecname = 'ENSO'
     interface = 'teleconnections-ci'
     rtol = approx_rel
     atol = approx_rel
 
     # 1. -- Opening yaml file
-    config = TeleconnectionsConfig(configdir=configdir, interface=interface)
+    config = TeleconnectionsConfig(interface=interface)
     namelist = config.load_namelist()
 
     # 2. -- Comparison cdo vs lib method

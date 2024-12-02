@@ -20,8 +20,7 @@ def test_class_ENSO():
 
     telec = Teleconnection(model=model, exp=exp, source=source,
                            loglevel=loglevel, telecname=telecname,
-                           interface=interface,
-                           configdir="diagnostics/teleconnections/config")
+                           interface=interface)
 
     telec.evaluate_index()
     assert telec.index[4].values == pytest.approx(-1.08063012, rel=approx_rel)
