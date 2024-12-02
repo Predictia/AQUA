@@ -32,6 +32,10 @@ The exact list of diagnostics to run and technical details of the analysis
 (such as the nuber of cpu cores to be used for each diagnostic) 
 are specified in the configuration file ``config.aqua-analysis.yaml``. 
 
+.. warning::
+
+    A bash script called ``aqua-analysis.sh`` is also available in the same folder but it is deprecated and will be removed in future releases.
+
 Additional options
 ^^^^^^^^^^^^^^^^^^
 
@@ -418,27 +422,6 @@ Basic usage:
 .. code-block:: bash
 
     ./generate_weights.py -c weights_config.yaml
-
-
-.. _eccodes:
-
-ecCodes fixer
--------------
-
-In order to be able to read data written with recent versions of ecCodes,
-AQUA needs to use a very recent version of the binary and of the definition files.
-Data written with earlier versions of ecCodes should instead be read using previous definition files.
-AQUA solves this problem by switching on the fly the definition path for ecCodes, as specified in the source catalog entry. 
-Starting from version 2.34.0 of ecCodes older definitions are not compatible anymore.
-As a fix we create copies of the original older definion files with the addition/change of 5 files (``stepUnits.def`` and 4 files including it).
-A CLI script (``eccodes/fix_eccodes.sh``) is available to create such 'fixed' definition files.
-
-.. warning::
-
-    This change is necessary since AQUA v0.11.1.
-    Please notice that this also means that earlier versions of the ecCodes binary will not work using these 'fixed' definition files.
-    If you are planning to use older versions of AQUA (with older versions of ecCodes) you should not use these 'fixed' definition files
-    and you may need to modify the ecCodes path in the catalog entries.
 
 
 .. _orography:

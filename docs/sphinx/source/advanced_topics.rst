@@ -510,3 +510,27 @@ Add new catalogs as developer
 If you're adding a new catalog or modifying an existing one it is recommended to use the old method to set up the AQUA package
 or to add the catalog with the editable option.
 Please refer to the :ref:`aqua-add` section for more information.
+
+.. _eccodes:
+
+ecCodes fixer
+-------------
+
+.. warning::
+
+    Deprecated starting from AQUA v0.13
+
+In order to be able to read data written with recent versions of ecCodes,
+AQUA needs to use a very recent version of the binary and of the definition files.
+Data written with earlier versions of ecCodes should instead be read using previous definition files.
+AQUA solves this problem by switching on the fly the definition path for ecCodes, as specified in the source catalog entry. 
+Starting from version 2.34.0 of ecCodes older definitions are not compatible anymore.
+As a fix we create copies of the original older definion files with the addition/change of 5 files (``stepUnits.def`` and 4 files including it).
+A CLI script (``eccodes/fix_eccodes.sh``) is available to create such 'fixed' definition files.
+
+.. warning::
+
+    This change is necessary since AQUA v0.11.1 and it is going to be not necessary anymore starting from AQUA v0.13.
+    Please notice that this also means that earlier versions of the ecCodes binary will not work using these 'fixed' definition files.
+    If you are planning to use older versions of AQUA (with older versions of ecCodes) you should not use these 'fixed' definition files
+    and you may need to modify the ecCodes path in the catalog entries.
