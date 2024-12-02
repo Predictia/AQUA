@@ -8,7 +8,7 @@ Time Statistics
 
 Input data may not be available at the desired time frequency. It is possible to perform time statistics, including
 time averaging, minimum, maximum and standard deviation at a given time frequency by using the ``timstat()`` method and its sibilings
-`timmean()`, `timmin()`, `timmax()` and `timstd()`. 
+``timmean()``, ``timmin()``, ``timmax()`` and ``timstd()``. 
 
 .. code-block:: python
 
@@ -20,7 +20,7 @@ time averaging, minimum, maximum and standard deviation at a given time frequenc
 Data have now been averaged at the desired daily timescale. Similarly operations can be performed with others methods.
 
 .. warning::
-    If you do not specify the `freq` argument, the statistical operation will be operated on the entire dataset!
+    If you do not specify the ``freq`` argument, the statistical operation will be operated on the entire dataset!
 
 Some extra options are available:
 
@@ -48,8 +48,8 @@ Of course, it can be used in collaboration with temporal and spatial averaging. 
 
 Some options includes:
 
-- ``degree``: this will define with an integer the order of the polynominial fit. Default is 1, i.e. linear Detrending
-- ``skipna==True``: removing the NaN from the fit. Default is True. 
+- ``degree``: this will define with an integer the order of the polynominial fit. Default is 1, i.e. linear detrending.
+- ``skipna=True``: removing the NaN from the fit. Default is ``True``. 
 
 .. warning::
     Detrending might lead to incorrect results if there is not an equal amount of time elements (e.g. same amount of months or days) in the dataset.
