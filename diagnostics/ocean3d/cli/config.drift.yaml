@@ -1,10 +1,26 @@
-model: IFS-NEMO 
-exp: historical-1990
+model: IFS-FESOM 
+exp: control-1990
 source: lra-r100-monthly
 
+loglevel: warning
 outputdir: ./output
+nworkers: 3
 
-select_time : False # keep it True, if you want to activate time_range
-time_range:
-  start_year : 1991
-  end_year : 1991
+# select_time:
+#   start_year : 1991
+#   end_year : 1991
+
+ocean_drift:
+  regions:
+    - Indian Ocean
+    - Pacific Ocean
+    - Atlantic Ocean
+    - Arctic Ocean
+    - Southern Ocean
+    - Global Ocean  # possible trend plot fails 
+  plots: [
+          hovmoller,
+          time_series,
+          multilevel_trend,
+          zonal_trend
+          ]
