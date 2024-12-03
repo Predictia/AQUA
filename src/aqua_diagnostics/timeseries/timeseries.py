@@ -371,6 +371,7 @@ class Timeseries():
         for i, model in enumerate(self.models):
             output_saver = self._get_output_saver(catalog=self.catalogs[i], model=model, exp=self.exps[i])
             common_save_args = self._get_common_save_args()
+            common_save_args.pop('dpi', None)
 
             if self.monthly:
                 output_saver.save_netcdf(self.data_mon[i], frequency='monthly', **common_save_args)
@@ -380,6 +381,7 @@ class Timeseries():
         if self.plot_ref:
             output_saver_ref = self._get_output_saver(model=self.plot_ref_kw['model'], exp=self.plot_ref_kw['exp'])
             common_save_args = self._get_common_save_args()
+            common_save_args.pop('dpi', None)
 
             # Save reference data
             if self.monthly:

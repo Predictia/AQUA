@@ -194,6 +194,9 @@ class SeasonalCycle(Timeseries):
         for i, model in enumerate(self.models):
             output_saver = self._get_output_saver(catalog=self.catalogs[i], model=model, exp=self.exps[i])
             common_save_args = self._construct_save_args()
+            # Pop the 'dpi' key from the dictionary
+            common_save_args.pop('dpi', None)
+
             output_saver.save_netcdf(self.cycle[i], **common_save_args)
 
         if self.plot_ref:
