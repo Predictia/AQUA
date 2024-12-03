@@ -143,7 +143,6 @@ if __name__ == '__main__':
 
     outputdir = get_arg(args, "outputdir", config['output'].get("outputdir"))
     rebuild = config['output'].get("rebuild")
-    filename_keys = config['output'].get("filename_keys")
     save_pdf = config['output'].get("save_pdf")
     save_png = config['output'].get("save_png")
     dpi = config['output'].get("dpi")
@@ -181,7 +180,6 @@ if __name__ == '__main__':
                             outdir=outputdir,
                             loglevel=loglevel,
                             rebuild=rebuild,
-                            filename_keys=filename_keys,
                             save_pdf=save_pdf,
                             save_png=save_png,
                             dpi=dpi)
@@ -229,7 +227,6 @@ if __name__ == '__main__':
                             outdir=outputdir,
                             loglevel=loglevel,
                             rebuild=rebuild,
-                            filename_keys=filename_keys,
                             save_pdf=save_pdf,
                             save_png=save_png,
                             dpi=dpi)
@@ -277,7 +274,6 @@ if __name__ == '__main__':
                          regrid=regrid,
                          loglevel=loglevel,
                          rebuild=rebuild,
-                         filename_keys=filename_keys,
                          save_pdf=save_pdf,
                          save_png=save_png,
                          dpi=dpi)
@@ -321,7 +317,6 @@ if __name__ == '__main__':
                                units=units,
                                loglevel=loglevel,
                                rebuild=rebuild,
-                               filename_keys=filename_keys,
                                save_pdf=save_pdf,
                                save_png=save_png,
                                dpi=dpi)
@@ -364,7 +359,6 @@ if __name__ == '__main__':
                                units=units,
                                loglevel=loglevel,
                                rebuild=rebuild,
-                               filename_keys=filename_keys,
                                save_pdf=save_pdf,
                                save_png=save_png,
                                dpi=dpi)
