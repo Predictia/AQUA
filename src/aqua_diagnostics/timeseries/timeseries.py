@@ -1,5 +1,4 @@
-import os
-import gc
+import gc  # Garbage collector
 
 import xarray as xr
 from aqua import Reader
@@ -131,7 +130,7 @@ class Timeseries():
         if self.save is False:
             self.logger.info("Figure will not be saved")
         self.outdir = outdir
-        
+
         self.diagnostic_product = 'timeseries'
         self.diagnostic = 'timeseries'
         self.rebuild = rebuild
@@ -139,7 +138,6 @@ class Timeseries():
         self.save_pdf = save_pdf
         self.save_png = save_png
         self.dpi = dpi
-
 
     def run(self):
         """Retrieve ref, retrieve data and plot"""
@@ -352,7 +350,7 @@ class Timeseries():
 
         # Get common save arguments
         common_save_args = self._get_common_save_args()
-        
+
         description = self._construct_description(ref_label)
         self.logger.debug(f"Description: {description}")
 
@@ -408,7 +406,8 @@ class Timeseries():
             OutputSaver: An instance of the OutputSaver class.
         """
         return OutputSaver(diagnostic=self.diagnostic, catalog=catalog, model=model, exp=exp,
-                           loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild, filename_keys=self.filename_keys)
+                           loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild,
+                           filename_keys=self.filename_keys)
 
     def _get_common_save_args(self):
         """
@@ -446,7 +445,7 @@ class Timeseries():
         if self.plot_ref:
             description += f" with {ref_label} as reference,"
             if self.std_startdate is not None and self.std_enddate is not None:
-                description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}"
+                description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}" # noqa
             else:
                 description += " std evaluated from the full time range."
         if self.extending_ref_range:
@@ -459,7 +458,6 @@ class Timeseries():
                 description += f" latitude limits {self.lat_limits}"
             description += "."
         return description
-
 
     def check_ref_range(self):
         """
