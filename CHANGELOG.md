@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- `catgen` to support data bridge options (#1499)
 - Introduction a specific pipeline and tests for `catgen`utiliy (#1505)
 - FDB reader internally always asks for paramids (#1491)
 - Remove pin on xarray (#1507)
