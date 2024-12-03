@@ -124,7 +124,7 @@ class GlobalBiases:
             vmax (float, optional): Maximum colorbar value.
 
         Returns:
-            tuple: Matplotlib figure and axis objects.
+            tuple: Matplotlib figure, axis objects, and xarray Dataset of the calculated bias if available.
         """
         self.logger.info('Plotting global biases.')
 
@@ -143,15 +143,15 @@ class GlobalBiases:
                                       return_fig=True, 
                                       title=title,
                                       vmin=vmin, vmax=vmax)
-            
+            bias = self.data[self.var_name].mean(dim='time')
         else:
             # Plot the bias map if two datasets are provided
             self.logger.info('Plotting bias map between two datasets.')
-            
+
             # Set 'sym' to True if either 'vmin' or 'vmax' is None, indicating a symmetric colorbar.
             sym = vmin is None or vmax is None
 
-            title = (f"{self.var_name} global bias of {self.model} {self.exp} {self.startdate_data}/{self.enddate_data}\n" 
+            title = (f"{self.var_name} global bias of {self.model} {self.exp} {self.startdate_data}/{self.enddate_data}\n"
                      f"relative to {self.model_obs} climatology {self.startdate_obs}/{self.enddate_obs}\n" )
 
             fig, ax = plot_single_map_diff(data=self.data[self.var_name].mean(dim='time'), 
@@ -160,9 +160,12 @@ class GlobalBiases:
                                            contour=True, 
                                            title=title,
                                            sym=sym,
-                                           vmin_fill=vmin, vmax_fill=vmax)                                      
-        return fig, ax
-        
+                                           vmin_fill=vmin, vmax_fill=vmax)
+
+            # Calculate the bias between the two datasets
+            bias = self.data[self.var_name].mean(dim='time') - self.data_ref[self.var_name].mean(dim='time')
+
+        return fig, ax, bias
 
     def plot_seasonal_bias(self, seasons_stat='mean', vmin=None, vmax=None):
         """
@@ -174,7 +177,7 @@ class GlobalBiases:
             vmax (float, optional): Maximum colorbar value.
 
         Returns:
-            tuple: Matplotlib figure and axis objects.
+            tuple: Matplotlib figure, axis objects, and a list of xarray Datasets of the calculated seasonal biases.
         """
         self.logger.info('Plotting seasonal biases.')
 
@@ -196,14 +199,18 @@ class GlobalBiases:
 
         seasonal_data = []
         seasonal_data_ref = []
-            
+        seasonal_biases = []
+
         for season in season_list:
             data_season = select_season(self.data[self.var_name], season)
             data_ref_season = select_season(self.data_ref[self.var_name], season)
             data_stat =  getattr(data_season, stat_funcs[seasons_stat])(dim='time') 
             data_ref_stat = getattr(data_ref_season, stat_funcs[seasons_stat])(dim='time')
 
-            seasonal_data.append(data_stat-data_ref_stat)          
+            bias = data_stat - data_ref_stat
+            seasonal_data.append(bias)
+            seasonal_biases.append(bias)
+
         plot_kwargs = {
             'maps': seasonal_data,
             'maps_ref': seasonal_data_ref,
@@ -211,15 +218,15 @@ class GlobalBiases:
             'titles': season_list,
             'contour': True,
             'sym': sym }
-        
+
         if vmin is not None:
             plot_kwargs['vmin'] = vmin
         if vmax is not None:
             plot_kwargs['vmax'] = vmax
 
         fig, ax = plot_maps(**plot_kwargs)
-        
-        return fig, ax
+
+        return fig, ax, seasonal_biases
 
     def plot_vertical_bias(self, data=None, data_ref=None, var_name=None, plev_min=None, plev_max=None, vmin=None, vmax=None):
         """
@@ -235,7 +242,7 @@ class GlobalBiases:
             vmax (float, optional): Maximum colorbar value.
 
         Returns:
-            tuple: Matplotlib figure and axis objects.
+            tuple: Matplotlib figure, axis objects, and xarray Dataset of the calculated bias.
         """
 
         self.logger.info('Plotting vertical biases.')
@@ -286,6 +293,5 @@ class GlobalBiases:
         fig.colorbar(cax, ax=ax, label=f'{var_name} [{self.data[var_name].attrs.get("units", "")}]')
         ax.grid(True)
 
-        return fig, ax
-
+        return fig, ax, zonal_bias
 

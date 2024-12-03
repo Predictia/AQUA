@@ -85,6 +85,7 @@ if __name__ == '__main__':
     outputdir = get_arg(args, "outputdir", config['output'].get("outputdir"))
     rebuild = config['output'].get("rebuild")
     filename_keys = config['output'].get("filename_keys")
+    save_netcdf = config['output'].get("save_netcdf")
     save_pdf = config['output'].get("save_pdf")
     save_png = config['output'].get("save_png")
     dpi = config['output'].get("dpi")
@@ -105,8 +106,10 @@ if __name__ == '__main__':
     )
     metadata = {"Description": description}
     if result:
-        fig, ax = result
+        fig, ax, netcdf = result
+        if save_netcdf:
+            output_saver.save_netcdf(dataset=netcdf, diagnostic_product='boxplot', metadata=metadata)
         if save_pdf:
-            output_saver.save_pdf(fig, diagnostic_product='boxplot', metadata=metadata, dpi=dpi)
+            output_saver.save_pdf(fig=fig, diagnostic_product='boxplot', metadata=metadata, dpi=dpi)
         if save_png:
-            output_saver.save_png(fig, diagnostic_product='boxplot', metadata=metadata, dpi=dpi)
+            output_saver.save_png(fig=fig, diagnostic_product='boxplot', metadata=metadata, dpi=dpi)
