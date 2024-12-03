@@ -30,7 +30,7 @@ class GregoryPlot():
                  ref=True, save=True,
                  outdir='./',
                  loglevel='WARNING',
-                 rebuild=None, filename_keys=None,
+                 rebuild=True, filename_keys=None,
                  save_pdf=True, save_png=True, dpi=None):
         """
         Args:
