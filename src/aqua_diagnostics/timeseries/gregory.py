@@ -31,7 +31,7 @@ class GregoryPlot():
                  outdir='./',
                  loglevel='WARNING',
                  rebuild=True, filename_keys=None,
-                 save_pdf=True, save_png=True, dpi=None):
+                 save_pdf=True, save_png=True, dpi=300):
         """
         Args:
             catalogs (list, opt): List of catalogs to search for the data.
@@ -65,7 +65,7 @@ class GregoryPlot():
             filename_keys (list, optional): List of keys to keep in the filename. Default is None, which includes all keys.
             save_pdf (bool): If True, save the figure as a PDF. Default is True.
             save_png (bool): If True, save the figure as a PNG. Default is True.
-            dpi (int, optional): Dots per inch (DPI) for saving figures. Default is None.
+            dpi (int, optional): Dots per inch (DPI) for saving figures. Default is 300.
 
         """
         self.loglevel = loglevel

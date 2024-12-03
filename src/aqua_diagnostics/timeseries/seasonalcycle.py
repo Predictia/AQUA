@@ -34,7 +34,7 @@ class SeasonalCycle(Timeseries):
                  longname=None, units=None,
                  lon_limits=None, lat_limits=None,
                  loglevel='WARNING', rebuild=None, filename_keys=None,
-                 save_pdf=True, save_png=True, dpi=None):
+                 save_pdf=True, save_png=True, dpi=300):
         """
         Initialize the class.
 
@@ -65,7 +65,7 @@ class SeasonalCycle(Timeseries):
             filename_keys (list, optional): List of keys to keep in the filename. Default is None, which includes all keys.
             save_pdf (bool): If True, save the figure as a PDF. Default is True.
             save_png (bool): If True, save the figure as a PNG. Default is True.
-            dpi (int, optional): Dots per inch (DPI) for saving figures. Default is None.
+            dpi (int, optional): Dots per inch (DPI) for saving figures. Default is 300.
         """
         super().__init__(var=var, formula=formula,
                          catalogs=catalogs,

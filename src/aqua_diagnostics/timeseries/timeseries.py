@@ -43,7 +43,7 @@ class Timeseries():
                  outdir='./',
                  loglevel='WARNING',
                  rebuild=None, filename_keys=None,
-                 save_pdf=True, save_png=True, dpi=None):
+                 save_pdf=True, save_png=True, dpi=300):
         """
         Args:
             var (str): Variable name.
@@ -76,7 +76,7 @@ class Timeseries():
             filename_keys (list, optional): List of keys to keep in the filename. Default is None, which includes all keys.
             save_pdf (bool): If True, save the figure as a PDF. Default is True.
             save_png (bool): If True, save the figure as a PNG. Default is True.
-            dpi (int, optional): Dots per inch (DPI) for saving figures. Default is None.
+            dpi (int, optional): Dots per inch (DPI) for saving figures. Default is 300.
         """
         self.loglevel = loglevel
         self.logger = log_configure(log_level=self.loglevel, log_name='Timeseries')
