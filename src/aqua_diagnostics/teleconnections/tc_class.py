@@ -111,7 +111,8 @@ class Teleconnection():
         self.outputdir = outputdir
 
         self.output_saver = OutputSaver(diagnostic='teleconnections', catalog=self.catalog, model=self.model, exp=self.exp,
-                                        loglevel=self.loglevel, default_path=self.outputdir, rebuild=rebuild, filename_keys=filename_keys)
+                                        loglevel=self.loglevel, default_path=self.outputdir, rebuild=rebuild,
+                                        filename_keys=filename_keys)
 
         # Teleconnection variables
         avail_telec = ['NAO', 'ENSO', 'MJO']
@@ -176,6 +177,9 @@ class Teleconnection():
         else:
             try:
                 data = self.reader.retrieve(var=var, **kwargs)
+                # Check if var is in the data
+                if var not in data:
+                    raise KeyError
             except (ValueError, KeyError) as e:
                 self.logger.debug(f"Error: {e}")
                 raise NoDataError('Variable {} not found'.format(var)) from e

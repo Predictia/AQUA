@@ -1,4 +1,5 @@
 import pytest
+from aqua.diagnostics import Teleconnection
 
 # pytest approximation, to bear with different machines
 approx_rel = 1e-4
@@ -10,8 +11,6 @@ def test_class_NAO():
     """
     Test that the NAO class works
     """
-    from aqua.diagnostics import Teleconnection
-
     telecname = 'NAO'
     model = 'IFS'
     exp = 'test-tco79'
