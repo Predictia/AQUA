@@ -67,7 +67,7 @@ diagnostics:
   seasonal_cycles:
     script_path: "../src/aqua_diagnostics/timeseries/cli_timeseries.py"
     nworkers: 16
-    extra: "--config ${AQUA}/config/diagnostics/timeseries/config_seasonalcycle_atm.yaml"
+    extra: "--config ${AQUA}/config/diagnostics/timeseries/config_seasonalcycles_atm.yaml"
     outname: timeseries
   radiation:
     nworkers: 8
