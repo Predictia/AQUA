@@ -28,6 +28,9 @@ Input variables
 ---------------
 
 The diagnostic requires the variables that the user wants to analyse.
+A list of the variables that are compared automatically when running the full diagnostic is provided in the configuration files
+available in the ``config/diagnostics/timeseries`` directory.
+
 For the Gregory-like plot, the following variables are required:
 
 * ``2t`` (2 metre temperature, GRIB paramid 167)
@@ -94,7 +97,26 @@ Config file structure
 The configuration file is a YAML file that contains the following information:
 
 * ``models``: a list of models to analyse (defined by the catalog, model, exp, source arguments)
-* ``outputdir``: the directory where the output files will be saved
+
+.. code-block:: yaml
+
+    models:
+      - catalog: climatedt-phase1
+        model: IFS-NEMO
+        exp: historical-1990
+        source: lra-r100-monthly
+      - catalog: climatedt-phase1
+        model: ICON
+        exp: historical-1990
+        source: lra-r100-monthly
+
+* ``output``: a block describing the details of the output. Is contains:
+
+    * ``outputdir``: the output directory for the plots.
+    * ``rebuild``: a boolean that enables the rebuilding of the plots.
+    * ``save_pdf``: a boolean that enables the saving of the plots in pdf format.
+    * ``save_png``: a boolean that enables the saving of the plots in png format.
+    * ``dpi``: the resolution of the plots.
 * ``timeseries``: a list of variables to compute the global mean time series
 * ``timeseries_formulae``: a list of formulae to compute the global mean time series
 * ``gregory``: a block that contains the variables required for the Gregory plot
@@ -137,7 +159,7 @@ Area selection
 ^^^^^^^^^^^^^^
 
 The diagnostic can be run for a specific area by defining the longitude and latitude bounds while initialising the class.
-The area selection can be done for the Timeseries and SeasonalCycle classes.
+The area selection can be done for the **Timeseries** and **SeasonalCycle** classes.
 
 .. code-block:: python
 
@@ -162,7 +184,7 @@ The diagnostic produces three types of plots (see :ref:`global_timeseries_exampl
 * A comparison of the seasonal cycle of the model and the reference dataset.
 * A Gregory-like plot of the model and the reference dataset as bands.
 
-The timeseries, reference timeseries and standard deviation timeseries are saved in the output directory as netCDF files.
+The timeseries, reference timeseries and standard deviation timeseries are also saved in the output directory as netCDF files.
 
 Observations
 ------------
