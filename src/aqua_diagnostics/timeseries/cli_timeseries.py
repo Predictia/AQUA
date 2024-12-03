@@ -122,6 +122,7 @@ if __name__ == '__main__':
     logger.info(f"Reading configuration file {file}")
     config = load_yaml(file)
 
+    # Override the first model in the config file if provided in the command line
     models = config['models']
     models[0]['catalog'] = get_arg(args, 'catalog', models[0]['catalog'])
     models[0]['model'] = get_arg(args, 'model', models[0]['model'])

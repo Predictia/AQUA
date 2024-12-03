@@ -72,7 +72,8 @@ class Timeseries():
             outdir (str): Output directory. Default is "./".
             loglevel (str): Log level. Default is "WARNING".
             rebuild (bool, optional): If True, overwrite the existing files. If False, do not overwrite. Default is True.
-            filename_keys (list, optional): List of keys to keep in the filename. Default is None, which includes all keys.
+            filename_keys (list, optional): List of keys to keep in the filename.
+                                            Default is None, which includes all keys (see OutputNamer class).
             save_pdf (bool): If True, save the figure as a PDF. Default is True.
             save_png (bool): If True, save the figure as a PNG. Default is True.
             dpi (int, optional): Dots per inch (DPI) for saving figures. Default is 300.

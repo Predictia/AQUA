@@ -62,7 +62,8 @@ class GregoryPlot():
             outdir (str): Output directory. Default is './'.
             loglevel (str): Logging level. Default is WARNING.
             rebuild (bool, optional): If True, overwrite the existing files. If False, do not overwrite. Default is True.
-            filename_keys (list, optional): List of keys to keep in the filename. Default is None, which includes all keys.
+            filename_keys (list, optional): List of keys to keep in the filename.
+                                            Default is None, which includes all keys (see OutputNamer class).
             save_pdf (bool): If True, save the figure as a PDF. Default is True.
             save_png (bool): If True, save the figure as a PNG. Default is True.
             dpi (int, optional): Dots per inch (DPI) for saving figures. Default is 300.
@@ -142,6 +143,7 @@ class GregoryPlot():
                                 exp=self.exps[i], source=self.sources[i],
                                 regrid=self.regrid, loglevel=self.loglevel)
                 data = reader.retrieve(var=self.retrieve_list)
+                # We're assuming the ts is in K and we want it in C
                 ts = reader.fldmean(data[self.ts_name]) - 273.15
                 toa = reader.fldmean(data[self.toa_name[0]] + data[self.toa_name[1]])
             except Exception as e:
@@ -216,6 +218,7 @@ class GregoryPlot():
                 self.logger.debug(f"Error: {e}")
                 self.logger.error("No reference data available. No reference plot will be drawn.")
                 self.ref = False
+            # We're assuming the ts is in K and we want it in C
             self.ref_ts_mean = ref_ts_mean - 273.15
             self.ref_ts_std = ref_ts_std
             self.ref_toa_mean = ref_toa_mean
@@ -328,7 +331,11 @@ class GregoryPlot():
             self.save_image(fig)
 
     def save_image(self, fig):
-        """Save the figure to an image file (PDF/PNG)."""
+        """Save the figure to an image file (PDF/PNG).
+        
+        Args:
+            fig (matplotlib.figure.Figure): Figure to save.
+        """
     
         # Get OutputSaver instance for the first model
         output_saver = self._get_output_saver(catalog=self.catalogs[0], model=self.models[0], exp=self.exps[0])
@@ -369,9 +376,11 @@ class GregoryPlot():
     def _construct_description(self, plot_type: str = "Gregory plot", ref_label: str = None) -> str:
         """
         Construct a descriptive string for the output files.
+
         Args:
             plot_type (str): Type of plot (e.g., "Gregory plot").
             ref_label (str, optional): Label for the reference data.
+
         Returns:
             str: A description of the figure or NetCDF dataset.
         """
@@ -382,6 +391,7 @@ class GregoryPlot():
         description += f" {models_info}"
 
         # Add reference data information if available
+        # TODO: Make the reference data source more generic
         if self.ref:
             description += (
                 f" with reference data ERA5 for 2m temperature from {self.ts_std_start} to {self.ts_std_end}"
@@ -395,18 +405,29 @@ class GregoryPlot():
     def _get_output_saver(self, catalog=None, model=None, exp=None):
         """
         Create and return an OutputSaver instance.
+
         Args:
             catalog (str): Catalog to use.
             model (str): Model identifier.
             exp (str): Experiment identifier.
+
         Returns:
             OutputSaver: An instance of the OutputSaver class.
         """
         return OutputSaver(diagnostic=self.diagnostic, catalog=catalog, model=model, exp=exp,
-                           loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild, filename_keys=self.filename_keys)
+                           loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild,
+                           filename_keys=self.filename_keys)
 
     def _save_frequency_data(self, output_saver, frequency, data_ts, data_toa, **common_save_args):
-        """Helper function to save data for a specific frequency."""
+        """Helper function to save data for a specific frequency.
+        
+        Args:
+            output_saver (OutputSaver): OutputSaver instance.
+            frequency (str): Frequency of the data (e.g., 'monthly', 'annual').
+            data_ts (xarray.DataArray): 2m temperature data.
+            data_toa (xarray.DataArray): Net radiation at TOA data.
+            common_save_args (dict): Common arguments for saving the data.
+        """
         output_saver.save_netcdf(data_ts, frequency=frequency, mode='w', **common_save_args)
         output_saver.save_netcdf(data_toa, frequency=frequency, mode='a', **common_save_args)
 
@@ -414,6 +435,9 @@ class GregoryPlot():
         """
         Fill in the missing catalogs. If catalogs is None, creates a list of None
         with the same length as models, exps and sources.
+
+        Args:
+            catalogs (list): List of catalogs to search for the data.
         """
         if catalogs is None:
             self.catalogs = [None] * len(self.models)

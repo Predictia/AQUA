@@ -62,7 +62,8 @@ class SeasonalCycle(Timeseries):
             lat_limits (list): Latitude limits of the area to evaluate. Default is None.
             loglevel: the logging level. Default is 'WARNING'.
             rebuild (bool, optional): If True, overwrite the existing files. If False, do not overwrite. Default is True.
-            filename_keys (list, optional): List of keys to keep in the filename. Default is None, which includes all keys.
+            filename_keys (list, optional): List of keys to keep in the filename.
+                                            Default is None, which includes all keys (see OutputNamer class).
             save_pdf (bool): If True, save the figure as a PDF. Default is True.
             save_png (bool): If True, save the figure as a PNG. Default is True.
             dpi (int, optional): Dots per inch (DPI) for saving figures. Default is 300.
@@ -170,6 +171,7 @@ class SeasonalCycle(Timeseries):
     def save_seasonal_image(self, fig, ref_label):
         """
         Save the figure to an image file (PDF/PNG).
+
         Args:
             fig (matplotlib.figure.Figure): Figure to save
             ref_label (str): Label for the reference data
@@ -188,9 +190,7 @@ class SeasonalCycle(Timeseries):
             output_saver.save_png(fig, metadata=metadata, **common_save_args)
 
     def save_seasonal_netcdf(self):
-        """
-        Save the seasonal cycle to a NetCDF file.
-        """
+        """Save the seasonal cycle to a NetCDF file."""
         for i, model in enumerate(self.models):
             output_saver = self._get_output_saver(catalog=self.catalogs[i], model=model, exp=self.exps[i])
             common_save_args = self._construct_save_args()
@@ -206,23 +206,29 @@ class SeasonalCycle(Timeseries):
     def _get_output_saver(self, catalog=None, model=None, exp=None):
         """
         Create and return an OutputSaver instance.
+
         Args:
             catalog (str): Catalog to use.
             model (str): Model identifier.
             exp (str): Experiment identifier.
+
         Returns:
             OutputSaver: An instance of the OutputSaver class.
         """
+        # TODO: CHeck if this can be done by using the similar method from the parent class
         return OutputSaver(diagnostic=self.diagnostic, catalog=catalog, model=model, exp=exp,
-                           loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild, filename_keys=self.filename_keys)
+                           loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild,
+                           filename_keys=self.filename_keys)
 
     def _construct_save_args(self):
         """
         Construct common save arguments for image and NetCDF files.
+
         Returns:
             dict: Dictionary containing the common save arguments.
         """
         common_save_args = {'diagnostic_product': self.diagnostic_product, 'var': self.var, 'dpi': self.dpi}
+
         if self.plot_ref:
             common_save_args.update({'model_2': self.plot_ref_kw['model'], 'exp_2': self.plot_ref_kw['exp']})
         if self.lon_limits is not None:
@@ -231,17 +237,21 @@ class SeasonalCycle(Timeseries):
         if self.lat_limits is not None:
             lat_limits = f'_lat{self.lat_limits[0]}_{self.lat_limits[1]}'
             common_save_args.update({'lat_limits': lat_limits})
+
         return common_save_args
 
     def _construct_description(self, ref_label):
         """
         Construct a description string for the metadata.
+
         Args:
             ref_label (str): Label for the reference data.
+
         Returns:
             str: Constructed description.
         """
         description = f"Seasonal cycle of the global mean of {self.var}"
+
         for i, model in enumerate(self.models):
             description += f" for {model} {self.exps[i]}"
             description += self.description_timerange[i]
@@ -259,6 +269,7 @@ class SeasonalCycle(Timeseries):
             if self.lat_limits is not None:
                 description += f" latitude limits {self.lat_limits}"
             description += "."
+
         return description
 
     def cleanup(self):
