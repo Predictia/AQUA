@@ -2,125 +2,63 @@ fixer_name:
     ifs-destine-v1:
         data_model: ifs
         deltat: 3600
+        convention: eccodes
         # delete: [tprate]
 
         vars:
-            # Derive precipitation from TP and drop tprate
             tprate:
                 nanfirst: true
-                source: tp
-            # Evaporation and snowfall
-            mer: # https://codes.ecmwf.int/grib/param-db/?id=235043
-                source: e
-                grib: true
-                src_units: m
-                nanfirst: True # option to fix ifs bug in destine-v1, see below
-                #units: kg m**-2 s**-1
-            msr: # https://codes.ecmwf.int/grib/param-db/?id=235031
-                source: sf
-                grib: true
+            ie:
                 src_units: m
                 nanfirst: True
-                #units: kg m**-2 s**-1
-            # Latent and sensible heat
-            mslhf: # https://codes.ecmwf.int/grib/param-db/?id=235034
-                source: slhf
-                grib: true
+            tsrwe:
+                src_units: m
                 nanfirst: True
-            msshf:
-                source: sshf
-                grib: true
+            slhtf:
                 nanfirst: True
-            # Surface fluxes
-            msnswrf:
-                source: ssr
-                grib: true
+            ishf:
                 nanfirst: True
-            msnlwrf:
-                source: str
-                grib: true
+            snswrf:
                 nanfirst: True
-            msdwlwrf:
-                source: strd
-                grib: true
+            snlwrf:
                 nanfirst: True
-            msdwswrf:
-                source: ssrd
-                grib: true
+            sdlwrf:
                 nanfirst: True
-            # TOA fluxes
-            mtnswrf:
-                source: tsr
-                grib: true
+            sdswrf:
                 nanfirst: True
-            mtnlwrf:
-                source: ttr
-                grib: true
+            tnswrf:
                 nanfirst: True
-            mtdwswrf:
-                source: tisr
-                grib: true
+            tnlwrf:
+                nanfirst: True
+            tdswrf:
                 nanfirst: True      
-            # Wind stresses
-            metss: # https://codes.ecmwf.int/grib/param-db/?id=235041
-                source: ewss
-                grib: true
+            iews:
                 nanfirst: True
-            mntss: # https://codes.ecmwf.int/grib/param-db/?id=235042 
-                source: nsss
-                grib: true
+            inss:
                 nanfirst: True
-            # Runoffs
-            msror:  # https://codes.ecmwf.int/grib/param-db/?id=235020
-                source: sro
-                grib: true
+            surfror:
                 nanfirst: True
-            mssror: # https://codes.ecmwf.int/grib/param-db/?id=235021
-                source: ssro
-                grib: true
+            ssurfror:
                 nanfirst: True
 
     ifs-nemo-destine-v1-monthly:
-        # multio saves 2t as mean2t if it averages. This is pretty weird and we have to fix it back.
-        parent: ifs-destine-v1
+        convention: eccodes
         vars:
-            2t: 
-                source: mean2t
-                grib: true
+            ie:
+                src_units: m
+            tsrwe:
+                src_units: m
 
     ifs-nemo-destine-v2-monthly:
         # multio saves 2t as mean2t if it averages. This is pretty weird and we have to fix it back.
-        parent: ifs-destine-v1
+        parent: ifs-destine-v1-monthly
+        convention: eccodes
         deltat: monthly
-        vars:
-            2t: 
-                source: mean2t
-                grib: true
-            avg_tos:
-                source: sst
-                grib: true
-            mtpr: # https://codes.ecmwf.int/grib/param-db/235055
-                source: mtpr
-                grib: True
-            mtnswrfcs:
-                source: tsrc
-                grib: true
-            mtnlwrfcs:
-                source: ttrc
-                grib: true
-            msnswrfcs:
-                source: ssrc
-                grib: true
-            msnlwrfcs:
-                source: strc
-                grib: true
-            msdwswrfcs:
-                source: ssrdc
-                grib: true
 
     ifs-nemo-destine-v1-nan:  # special version for historical-1990 IFS-NEMO data, fixing to nan first step of month
         parent: ifs-destine-v1
-         # The nanfirst keys fix to NaN the first step of each month
+        convention: eccodes
+        # The nanfirst keys fix to NaN the first step of each month
         # for cumulated variables of this experiment
         # The fix is activated by specifying nanfirst_enddate
         # The dates are exclusive (the first step is actually ok and will be kept)
@@ -129,11 +67,13 @@ fixer_name:
 
     ifs-nemo-destine-v1-nan-lowres:  # special version for historical-1990-dev-lowres IFS-NEMO data, fixing to nan first step of month
         parent: ifs-destine-v1
+        convention: eccodes
         nanfirst_startdate: 1990-01-01
         nanfirst_enddate: 2050-01-01
 
     ifs-fesom-destine-v1-nan:  # special version for historical-1990 IFS-FESOM data, fixing to nan first step of month
         parent: ifs-destine-v1
+        convention: eccodes
         nanfirst_startdate: 1990-01-01
         nanfirst_enddate: 2020-01-01
 
