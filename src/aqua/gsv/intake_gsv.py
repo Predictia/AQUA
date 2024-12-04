@@ -212,7 +212,7 @@ class GSVSource(base.DataSource):
             self._npartitions = nbridge + nhpc
             self.chk_type = np.ones(nbridge)  # the first part is bridge data
             self.chk_type = np.append(self.chk_type, np.zeros(nhpc))  # the second part is hpc fdb data
-            self.logger.debug("Data up to %s are on bridge FDB", timeaxis["end_date"][nbridge-1])
+            self.logger.debug("Data up to %s are on bridge FDB", timeaxis["end_date"][nbridge])
 
         self.timeaxis = timeaxis["timeaxis"]
         self.chk_start_idx = timeaxis["start_idx"]
