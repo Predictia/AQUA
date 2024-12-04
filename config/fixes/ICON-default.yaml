@@ -15,24 +15,16 @@ fixer_name:
                 src_units: frac
             tprate:
                 src_units: kg m**-2 s**-1
-                units: kg m**-2 s**-1
-            mlsprt:
-                source: prlr
-                grib: true
+            lsprate:
                 src_units: kg m**-2 s**-1
-                units: kg m**-2 s**-1
             snlwrf:
-                derived: rlds-rlus
-                grib: true
+                derived: rlds-rlus+
             tnlwrf:
                 derived: -rlut
-                grib: true
             snswrf:
                 derived: rsds-rsus
-                grib: true
             tnswrf:
                 derived: rsdt-rsut
-                grib: true
             q:
                 src_units: kg/kg
 
