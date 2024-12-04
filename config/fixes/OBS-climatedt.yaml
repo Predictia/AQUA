@@ -113,8 +113,34 @@ fixer_name:
     
     ceres-syn-destine-v1:
         convention: eccodes 
-        parent: ceres-syn-nextgems
+        data_model: False
         vars:
+            toa_lw_all_daily_eb:
+                derived: toa_lw_all_daily*1.0060667743 
+                attributes:
+                    long_name: Observed Top of the Atmosphere Longwave Flux, All-sky conditions, Daily Means, Energy balanced
+                    standard_name: toa_outgoing_longwave_flux
+                    units: W m-2
+                    valid_min: 0
+                    valid_max: 500
+                    positive: up
+            toa_sw_all_daily_eb:
+                derived: toa_sw_all_daily*1.0198334952
+                attributes:
+                    long_name: Observed Top of the Atmosphere Shortwave Flux, All-sky conditions, Daily Means, Energy balanced
+                    standard_name: toa_outgoing_shortwave_flux
+                    units: W m-2
+                    valid_min: 0
+                    valid_max: 1400
+                    positive: up
+            toa_solar_all_daily_eb:
+                derived: toa_sw_all_daily+toa_lw_all_daily+toa_net_all_daily-0.01632
+                attributes:
+                    long_name: Observed Top of the Atmosphere incoming Solar Flux, Daily Means, Energy balanced
+                    units: W m-2
+                    valid_min: 0
+                    valid_max: 1400
+                    positive: down
             tnlwrf:
                 # The fixer does not allow multiplying by negative numbers yet
                 derived: 0.-toa_lw_all_daily_eb
