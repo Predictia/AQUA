@@ -186,13 +186,14 @@ class TrendCalculator:
             xarray.Dataset: Dataset with trend values for temperature and salinity variables.
         """
         logger = log_configure(loglevel, 'TS_3dtrend')
+        logger.warning("decreasing the resolution of data to bypass the memory error issue for big data")
+        data = data.coarsen(lat=2, lon=2).mean()
 
         logger.debug("Calculating linear trend")
         TS_3dtrend_data = TrendCalculator.lintrend_3D(data, loglevel= loglevel)
         TS_3dtrend_data.attrs = data.attrs
         # TS_3dtrend_data = TrendCalculator.chunking_trend(TS_3dtrend_data, loglevel= loglevel)
         logger.debug("Trend value calculated")
-        
         return TS_3dtrend_data
 
 
@@ -201,6 +202,7 @@ class multilevel_trend:
         split_ocean3d_req(self, o3d_request)
 
     def plot(self):
+        
         self.data = area_selection(self.data, self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
         TS_trend_data = TrendCalculator.TS_3dtrend(self.data, loglevel=self.loglevel)
         self._plot_multilevel_trend(TS_trend_data)
@@ -244,7 +246,7 @@ class multilevel_trend:
         """
         Plots contourf for temperature and salinity at different levels.
         """
-        data = data.interp(lev=self.levels).compute()
+        data = data.interp(lev=self.levels).persist()
         # print("export_trend")
         # data.to_zarr("test.zarr", consolidated=True)
         # print("exported_trend")

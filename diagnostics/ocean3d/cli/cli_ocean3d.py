@@ -114,9 +114,10 @@ class Ocean3DCLI:
         self.logger.debug(self.data["catalog_data"])   
         self.data["catalog_data"] = check_variable_name(self.data["catalog_data"])
         self.logger.debug(self.data["catalog_data"])   
-        if self.config["ocean_circulation"]["compare_model_with_obs"]== True:
-            self.data["obs_data"] = load_obs_data(model='EN4', exp='en4', source='monthly')
-            self.data["obs_data"] = check_variable_name(self.data["obs_data"])
+        if self.config["ocean_circulation"]:
+            if self.config["ocean_circulation"]["compare_model_with_obs"]== True:
+                self.data["obs_data"] = load_obs_data(model='EN4', exp='en4', source='monthly')
+                self.data["obs_data"] = check_variable_name(self.data["obs_data"])
         # self.data["catalog_data"] = self.data["catalog_data"].chunk({'time': 1, 'lev': 1, 'lat': 45, 'lon': 90})
         return
 
@@ -141,8 +142,9 @@ class Ocean3DCLI:
                     "output_dir": self.config["outputdir"],
                     "loglevel": self.loglevel
                     }
-        if  self.config["ocean_circulation"]["compare_model_with_obs"]== True:
-            o3d_request["obs_data"] = self.data["obs_data"]
+        if self.config["ocean_circulation"]:
+            if self.config["ocean_circulation"]["compare_model_with_obs"]== True:
+                o3d_request["obs_data"] = self.data["obs_data"]
 
         return o3d_request
 
