@@ -182,10 +182,10 @@ fixer_name:
         convention: eccodes 
         data_model: false
         coords:
-        lat:
-            source: latitude
-        lon:
-            source: longitude
+            lat:
+                source: latitude
+            lon:
+                source: longitude
 
     # EN4
     EN4-default:
