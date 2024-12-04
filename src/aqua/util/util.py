@@ -37,7 +37,7 @@ def to_list(arg):
     Returns:
         arg: the input arg transformed as list type (if possible)
     """
-    if isinstance(arg, str) or isinstance(arg, int):
+    if not isinstance(arg, list):
         arg = [arg]
     return arg
 
