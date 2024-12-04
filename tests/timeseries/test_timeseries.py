@@ -1,5 +1,6 @@
 import os
 import pytest
+import xarray as xr
 from aqua.diagnostics.timeseries import Timeseries
 
 # pytest approximation, to bear with different machines
@@ -13,6 +14,7 @@ var = 'msl'
 lon_limits = [-100, 100]
 lat_limits = [-30, 30]
 plot_ref_kw = {'catalog': 'ci', 'model': 'IFS', 'exp': 'test-tco79', 'source': 'teleconnections'}
+
 
 @pytest.mark.timeseries
 def test_class_timeseries():
@@ -50,6 +52,13 @@ def test_class_timeseries():
     # We want to assert the netcdf file is created
     assert os.path.exists('./netcdf/timeseries.timeseries.ci.IFS.test-tco79.msl.frequency_annual.lat_limits__lat-30_30.lon_limits__lon-100_100.nc') is True
     assert os.path.exists('./netcdf/timeseries.timeseries.ci.IFS.test-tco79.msl.frequency_monthly.lat_limits__lat-30_30.lon_limits__lon-100_100.nc') is True
+
+    # Data and reference are the same so the difference should be zero.
+    # I check opening the netcdf file
+    data_annual = xr.open_dataset('./netcdf/timeseries.timeseries.ci.IFS.test-tco79.msl.frequency_annual.lat_limits__lat-30_30.lon_limits__lon-100_100.nc')
+    data_ref_annual = xr.open_dataset('./netcdf/timeseries.timeseries.ci.IFS.test-tco79.msl.frequency_annual.lat_limits__lat-30_30.lon_limits__lon-100_100.nc')
+    diff = data_annual - data_ref_annual
+    assert pytest.approx(diff[ts.var].isel(time=0).values, rel=approx_rel) == 0
 
     ts.cleanup()
 

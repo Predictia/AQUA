@@ -97,7 +97,6 @@ class SeasonalCycle(Timeseries):
         self.diagnostic_product = 'seasonalcycle'
         self.diagnostic = 'timeseries'
 
-
     def retrieve_ref(self):
         """
         Retrieve the reference data.
