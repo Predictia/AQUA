@@ -10,6 +10,7 @@ Unreleased in the current development version:
 AQUA core complete list:
 - Support for new smmregrid==0.1.0 including simpler weights and area generation (#1395)
 - Removing cdo pin for more recent versions (#1395)
+- Change `bridge_end_date` convention (#1498)
 - `catgen` to support data bridge options (#1499)
 - Enhance OutputSaver with Improved File Handling, Logging, and NetCDF Write Modes (#1495)
 - Introduction a specific pipeline and tests for `catgen`utiliy (#1505)
