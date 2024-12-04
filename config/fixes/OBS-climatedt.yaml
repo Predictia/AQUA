@@ -1,91 +1,41 @@
 fixer_name:
-    # ERA5
     ERA5-destine-v1:
+        convention: eccodes
         data_model: cf
         vars:
-            2t: 
-                grib: true
-                source: T2M
-            msl:
-                grib: true
-                source: MSL
-            mer:
-                grib: true
+            ie:
                 source: E
                 src_units: m/day
-                units: kg m**-2 s**-1
-            mtpr: 
-                grib: true
+            tprate: 
                 source: TP
                 src_units: m/day
-            tcc: 
-                grib: true 
-                source: TCC
-                units: frac
-            lcc: 
-                grib: true 
-                source: LCC
-                units: frac
-            mcc: 
-                grib: true 
-                source: MCC
-                units: frac
-            hcc: 
-                grib: true 
-                source: HCC
-                units: frac
-            avg_tos:
-                grib: true
-                source: SSTK
-            avg_siconc:
-                grib: true
-                source: CI
-            mslhf:
+            slhtf:
                 src_units: J m**-2 day**-1
                 source: SLHF
-                grib: true
-            msshf:
+            ishf:
                 src_units: J m**-2 day**-1
                 source: SSHF
-                grib: true
-            msnswrf:
+            snswrf:
                 src_units: J m**-2 day**-1
                 source: SSR
-                grib: true
-            msdwswrf:
+            sdswrf:
                 src_units: J m**-2 day**-1
                 source: SSRD
-                grib: true
-            msnlwrf:
+            snlwrf:
                 src_units: J m**-2 day**-1
                 source: STR
-                grib: true
-            msdwlwrf:
+            sdlwrf:
                 src_units: J m**-2 day**-1
                 source: STRD
-                grib: true
-            mtnswrf:
+            tnswrf:
                 src_units: J m**-2 day**-1
                 source: TSR
-                grib: true
-            mtnlwrf:
+            tnlwrf:
                 src_units: J m**-2 day**-1
                 source: TTR
-                grib: true 
-            u:
-                source: U
-                grib: true
-            v:
-                source: V
-                grib: true
-            q:
-                source: Q
-                grib: true
-            t:
-                source: T
-                grib: true
               
     ERA5-daily-destine-v1:
+        convention: eccodes
         delete:
             - SLHF
             - SSHF
@@ -96,99 +46,76 @@ fixer_name:
             - TSR
             - TTR
         vars:
-            mslhfl:
+            slhtf:
                 src_units: J m**-2 day**-1
                 derived: SLHF*24
-                grib: true
-            msshfl:
+            ishf:
                 src_units: J m**-2 day**-1
                 derived: SSHF*24
-                grib: true
-            msnsrf:
+            snswrf:
                 src_units: J m**-2 day**-1
                 derived: SSR*24
-                grib: true
-            msdsrf:
+            sdswrf:
                 src_units: J m**-2 day**-1
                 derived: SSRD*24
-                grib: true
-            msntrf:
+            snlwrf:
                 src_units: J m**-2 day**-1
                 derived: STR*24
-                grib: true
-            msdtrf:
+            sdlwrf:
                 src_units: J m**-2 day**-1
                 derived: STRD*24
-                grib: true
-            mtnsrf:
+            tnswrf:
                 src_units: J m**-2 day**-1
                 derived: TSR*24
-                grib: true
-            mtntrf:
+            tnlwrf:
                 src_units: J m**-2 day**-1
                 derived: TTR*24
-                grib: true
-            erate:
-                grib: true
+            ie:
                 derived: E*24
                 src_units: m/day
-                units: kg m**-2 s**-1
-            mtpr:
-                grib: true
+            tprate:
                 derived: TP*24
                 src_units: m/day
+
     ERA5-hourly-destine-v1:
+        convention: eccodes
         delete:
             - TSR
             - TTR
             - TP
         vars:
-            mtpr:
-                grib: true
+            tprate:
                 derived: TP*24
                 src_units: m/day
                 
-    ESA-CCI-destine-v1:
-        vars:
-            avg_tos: 
-                source: analysed_sst
-                grib: true
-            avg_siconc:
-                source: sea_ice_fraction
-                grib: true
-
     # CERES
-    CERES-default:
-        data_model: False
-
-    ceres-ebaf-destine-v1: 
+    ceres-ebaf-destine-v1:
+        convention: eccodes 
         data_model: False
         vars:
-            mtnlwrf:
+            tnlwrf:
                 derived: 0.-toa_lw_all_mon
-                grib: true
                 attributes:
                     valid_min: -500
                     valid_max: 0
                     positive: down  
-            mtnswrf: 
+            tnswrf: 
                 derived: solar_mon-toa_sw_all_mon
-                grib: true
                 attributes:
                     valid_min: 0
                     valid_max: 1400
                     positive: down
-            msnlwrf: 
+            snlwrf: 
                 derived: 0.-sfc_net_lw_all_mon
-                grib: true
-            msnswrf: 
+            snswrf: 
                 derived: sfc_net_sw_all_mon
-                grib: true
+
     
     ceres-syn-destine-v1:
+        convention: eccodes 
         parent: ceres-syn-nextgems
         vars:
-            mtnlwrf:
+            tnlwrf:
                 # The fixer does not allow multiplying by negative numbers yet
                 derived: 0.-toa_lw_all_daily_eb
                 # Let's use eccodes tables to find the attributes
@@ -197,7 +124,7 @@ fixer_name:
                     valid_min: -500
                     valid_max: 0
                     positive: down    
-            mtnswrf:
+            tnswrf:
                 # The fixer does not allow multiplying by negative numbers yet
                 derived: toa_solar_all_daily_eb-toa_sw_all_daily_eb
                 # Let's use eccodes tables to find the attributes
@@ -208,6 +135,7 @@ fixer_name:
                     positive: down
 
     eobs-destine-v1:
+        convention: eccodes 
         data_model: false
         deltat: 86400 # precipitation on daily basis
         coords:
@@ -218,13 +146,82 @@ fixer_name:
         vars:
             2t:
                 source: tg
-                grib: true
-            mtpr:
+            tprate:
                 source: rr
-                grib: true
             mn2t24: # there might be 24h mismatch in grib definition
                 source: tn
-                grib: true
             mx2t24: # there might be 24h mismatch in grib definition
                 source: tx
-                grib: true
+
+    era5-arco:
+        convention: eccodes 
+        data_model: false
+        coords:
+        lat:
+            source: latitude
+        lon:
+            source: longitude
+
+    # EN4
+    EN4-default:
+        convention: eccodes 
+        data_model: false
+        vars:
+            so:
+                src_units: psu
+  
+    # GPM
+    GPM-default:
+        convention: eccodes 
+        data_model: cf
+        vars:
+            # Automatic conversion to destination grib units
+            tprate:
+                source: precipitationCal
+
+    # MSWEP
+    MSWEP-default:
+        convention: eccodes 
+        data_model: cf
+
+    # OSI-SAF
+    OSI-SAF-default:
+        convention: eccodes 
+        data_model: false  # Do not attempt to fix coordinates
+
+    # PHC3
+    PHC3-default:
+        convention: eccodes 
+        data_model: false
+        vars:
+            thetao:
+                src_units: C
+            so:
+                src_units: psu
+
+
+    #PSC
+    PSC-default:
+        convention: eccodes 
+        data_model: False
+
+    # GIOMAS and PIOMAS
+    GIOMAS:
+        convention: eccodes 
+        data_model: false  # Do not attempt to fix coordinates
+        delete: [latitude, longitude]
+        vars:
+            sftof:
+                source: sftof
+                src_units: frac
+                units: frac
+    
+    PIOMAS:
+        convention: eccodes 
+        data_model: false  # Do not attempt to fix coordinates
+        delete: [latitude, longitude]
+        vars:
+            sftof:
+                source: sftof
+                src_units: frac
+                units: frac
