@@ -459,6 +459,7 @@ convention_name:
           - avg_tsrwe
           - prsn # cmor
           - sf
+          - msr
         grib: 260049
 
 
@@ -517,11 +518,14 @@ convention_name:
         grid: 262500
       thetao: # Sea water potential temperature
         source:
+          - 150129 # ocpt
           - 262501 # original GRIB2 code
           - 263501 # avg_thetao
           - thetao # cmor
           - avg_thetao
           - temp # PHC3, FESOM legacy
+          - ocpt
+          - to
         grid: 262501
       uoe: # Sea water zonal current (eastward)
         source:
