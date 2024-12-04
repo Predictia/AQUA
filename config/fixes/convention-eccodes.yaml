@@ -251,6 +251,12 @@ convention_name:
         grib: 129
       
       #### FLUX VARIABLES ####
+      cprea: # convective precipitation rate
+        source:
+          - 143 
+          - 160143
+          - cp
+        grib: 160143
       ie: # Evaporation or moisture flux
         source:
           - 232 # original GRIB2 code (ie)
@@ -297,6 +303,12 @@ convention_name:
           - msshf # legacy eccodes
           - hfss # cmor
         grib: 231
+      lsprate: # large scale precipitation rate
+        source: 
+          - 142
+          - 260050
+          - lsp
+        grib: 260050
       sdlwrf: # Surface downward long-wave radiation flux
         source:
           - 260097
