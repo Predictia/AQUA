@@ -308,6 +308,7 @@ convention_name:
           - 142
           - 260050
           - lsp
+          - prlr
         grib: 260050
       sdlwrf: # Surface downward long-wave radiation flux
         source:

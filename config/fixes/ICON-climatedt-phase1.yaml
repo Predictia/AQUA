@@ -8,15 +8,15 @@ fixer_name:
             # Evaporation and snowfall
             ie:
                 src_units: m
-            tsrwe: # https://codes.ecmwf.int/grib/param-db/?id=235031
+            tsrwe:
                 src_units: m
                 #units: kg m**-2 s**-1
             # Wind stresses
             # ICON use different variables that should not be decumulated
-            iews: # https://codes.ecmwf.int/grib/param-db/?id=235041
+            iews:
                 source: 140101
                 grib: true
-            inss: # https://codes.ecmwf.int/grib/param-db/?id=235042 
+            inss:
                 source: 140102
                 grib: true
     
