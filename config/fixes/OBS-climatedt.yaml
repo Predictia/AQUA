@@ -110,7 +110,6 @@ fixer_name:
             snswrf: 
                 derived: sfc_net_sw_all_mon
 
-    
     ceres-syn-destine-v1:
         convention: eccodes 
         data_model: False
@@ -251,3 +250,4 @@ fixer_name:
                 source: sftof
                 src_units: frac
                 units: frac
+    
