@@ -2,14 +2,13 @@ fixer_name:
     ifs-destine-v1:
         data_model: ifs
         deltat: 3600
-        delete: [tprate]
+        # delete: [tprate]
 
         vars:
             # Derive precipitation from TP and drop tprate
-            mtpr: # https://codes.ecmwf.int/grib/param-db/235055
+            tprate:
                 nanfirst: true
                 source: tp
-                grib: true
             # Evaporation and snowfall
             mer: # https://codes.ecmwf.int/grib/param-db/?id=235043
                 source: e
