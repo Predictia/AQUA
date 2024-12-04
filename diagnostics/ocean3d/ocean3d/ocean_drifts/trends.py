@@ -21,17 +21,21 @@ class TrendCalculator:
         """
         logger = log_configure(loglevel, 'lintrend_3D')
         logger.debug("Creating Array representing time indices")
+        
+        # Create time indices as a Dask array
+        time_indices = da.from_array(np.arange(1, len(data["time"]) + 1), chunks=len(data["time"]))
+        
         time_indices = xr.DataArray(
-            np.arange(1, len(data["time"]) + 1),
+            time_indices,
             dims=["time"],
             coords={"time": data["time"]},
             name="time_indices"
         )
 
-        # Broadcast the time indices to match the shape of the input array
+        # Broadcast the time indices to match the shape of the input array lazily
         time_array = xr.broadcast(time_indices, data)[0]
         
-        # Mask NaN values from the input array
+        # Mask NaN values lazily
         time_array = time_array.where(~np.isnan(data), np.nan)
         logger.debug("Finished creating Array representing time indices")
         return time_array
