@@ -2,69 +2,31 @@ fixer_name:
     ifs-multio-cycle3:
         # for this exp we have a lot of output from MultI/O, already decumulated and
         # averaged monthly, so default is without decumulation
+        convention: eccodes
         vars:
-            mtpr:
+            tprate:
                 src_units: m s**-1
-                source: tp
-                grib: true
-            cprate:
+            cprea:
                 src_units: m s**-1
-                source: cp
-                grib: true
-                units: kg m**-2 s**-1
-            mlsprt:
+            lsprate:
                 src_units: m s**-1
-                source: lsp
-                grib: true
-                units: kg m**-2 s**-1 
-            mer:
+            ie:
                 src_units: m s**-1
-                source: e
-                grib: true
-            esrate:
+            tsrwe:
                 src_units: m s**-1
-                source: es
-                grib: true
-                units: kg m**-2 s**-1 
-            mrort:
-                src_units: m s**-1
-                source: ro
-                grib: true
-                units: kg m**-2 s**-1
-            msr:
-                src_units: m s**-1
-                source: sf
-                grib: true
-                units: kg m**-2 s**-1
-            mslhf:
+            slhtf:
                 src_units: W/m2
-                source: slhf
-                grib: true
-            msshf:
+            ishf:
                 src_units: W/m2
-                source: sshf
-                grib: true
-            msnswrf:
+            snswrf:
                 src_units: W/m2
-                source: ssr
-                grib: true
-            msdwswrf:
+            sdswrf:
                 src_units: W/m2
-                source: ssrd
-                grib: true
-            msnlwrf:
+            snlwrf:
                 src_units: W/m2
-                source: str
-                grib: true
-            msdwlwrf:
+            sdlwrf:
                 src_units: W/m2
-                source: strd
-                grib: true
-            mtnswrf:
+            tnswrf:
                 src_units: W/m2
-                source: tsr
-                grib: true
-            mtnlwrf:
+            tnlwrf:
                 src_units: W/m2
-                source: ttr
-                grib: true  
