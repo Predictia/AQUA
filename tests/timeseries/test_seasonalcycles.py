@@ -45,7 +45,7 @@ def test_class_seasonalcycle():
     sc.plot()
 
     # We want to assert the plot is created
-    pdf_file = './pdf/timeseries.seasonalcycle.ci.IFS.test-tco79.msl.IFS.test-tco79.lat_limits__lat-30_30.lon_limits__lon-100_100.pdf'
+    pdf_file = './pdf/timeseries.seasonalcycle.ci.IFS.test-tco79.msl.IFS.test-tco79.lat_limits__lat-30_30.lon_limits__lon-100_100.pdf' # noqa
     png_file = './png/timeseries.seasonalcycle.ci.IFS.test-tco79.msl.IFS.test-tco79.lat_limits__lat-30_30.lon_limits__lon-100_100.png'
 
     assert os.path.exists(pdf_file) is True
