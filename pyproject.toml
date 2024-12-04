@@ -38,7 +38,7 @@ dependencies = [
     "cfgrib",
     "dask",
     "dask_jobqueue",
-    "eccodes==2.38.3",
+    "eccodes==2.39.0",
     "docker",
     "gcsfs", # Google Cloud Storage File System
     "gribscan",
@@ -54,7 +54,7 @@ dependencies = [
     "pypdf",
     "pyYAML",
     "ruamel.yaml",
-    "smmregrid@git+https://github.com/jhardenberg/smmregrid.git@grid-detector",
+    "smmregrid==0.1.0",
     "sparse",
     "xarray",
     "kerchunk",
