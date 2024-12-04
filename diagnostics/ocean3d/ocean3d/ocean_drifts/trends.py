@@ -174,6 +174,45 @@ class TrendCalculator:
         data = xr.open_mfdataset("subset_*.nc", combine="by_coords")
         return data
 
+    def trend_from_polyfit(data, loglevel="WARNING"):
+        """
+        Calculate the linear trend (slope) from a dataset along the time dimension.
+
+        Parameters:
+            data (xarray.Dataset): Input dataset with variables to calculate trends.
+            loglevel (str): Logging level for debugging. Default is "WARNING".
+
+        Returns:
+            xarray.Dataset: Dataset containing the linear trends (slopes) for each variable.
+        """
+        # Initialize the logger (assuming log_configure is defined elsewhere)
+        logger = log_configure(loglevel, 'trend_from_polyfit')
+
+        logger.debug("Starting trend calculation")
+
+        trend_dict = {}
+
+        # Iterate over variables in the input dataset
+        for var in data.data_vars:
+            logger.debug(f"Calculating trend for {var}")
+            # Perform the polyfit to calculate the trend (slope)
+            poly_coeffs = data.polyfit(dim="time", deg=1)
+            
+            # Extract the trend (degree=0) for the variable
+            trend_dict[var] = poly_coeffs[f"{var}_polyfit_coefficients"].sel(degree=0)
+            trend_dict[var].attrs = data[var].attrs
+            # Apply necessary adjustments for time frequency if needed (optional)
+            trend_dict[var] = TrendCalculator.adjust_trend_for_time_frequency(trend_dict[var], data[var], loglevel=loglevel)
+            
+            logger.debug(f"Trend for {var} calculated successfully")
+
+        # Merge trends into a single dataset
+        trend_ds = xr.Dataset(trend_dict)
+
+        logger.info("Trend dataset created successfully")
+
+        return trend_ds
+
     def TS_3dtrend(data, loglevel= "WARNING"):
         """
         Compute the trend values for temperature and salinity variables in a 3D dataset.
@@ -186,14 +225,15 @@ class TrendCalculator:
             xarray.Dataset: Dataset with trend values for temperature and salinity variables.
         """
         logger = log_configure(loglevel, 'TS_3dtrend')
-        logger.warning("decreasing the resolution of data to bypass the memory error issue for big data")
-        data = data.coarsen(lat=2, lon=2).mean()
+        # logger.warning("decreasing the resolution of data to bypass the memory error issue for big data")
 
         logger.debug("Calculating linear trend")
         TS_3dtrend_data = TrendCalculator.lintrend_3D(data, loglevel= loglevel)
+        # TS_3dtrend_data = TrendCalculator.trend_from_polyfit(data, loglevel= loglevel)
         TS_3dtrend_data.attrs = data.attrs
         # TS_3dtrend_data = TrendCalculator.chunking_trend(TS_3dtrend_data, loglevel= loglevel)
         logger.debug("Trend value calculated")
+        # TS_3dtrend_data = TS_3dtrend_data.coarsen(lat=2, lon=2, boundary="trim").mean()
         return TS_3dtrend_data
 
 
