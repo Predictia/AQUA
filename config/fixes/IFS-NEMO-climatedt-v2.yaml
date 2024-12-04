@@ -5,12 +5,10 @@ fixer_name:
     data_model: false
     convention: eccodes
     vars:
-      avg_tos:
+      tos:
         src_units: degC
-        units: 'K'
-      avg_thetao:
+      thetao:
         src_units: degC
-        units: 'K'
   
   ifs-nemo-reduced-output-monthly-v2:
     parent: ifs-destine-v1
@@ -18,6 +16,5 @@ fixer_name:
     deltat: monthly
     convention: eccodes
     vars:
-      mtpr:
+      tprate:
         src_units: m
-        units: kg m**-2 s**-1
