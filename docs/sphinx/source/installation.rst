@@ -35,7 +35,7 @@ First, clone the AQUA repository from GitHub:
 
 .. code-block:: bash
 
-    git clone https://github.com/DestinE-Climate-DT/AQUA.git
+    git clone git@github.com:DestinE-Climate-DT/AQUA.git
 
 Then, navigate to the AQUA directory:
 
