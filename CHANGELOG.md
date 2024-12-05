@@ -21,7 +21,7 @@ AQUA core complete list:
 - FDB reader internally always asks for paramids (#1491, #1508)
 - Introduction of a convention table for the fixer, in order to create a more general fixer (#1488, #1506)
 - Refactor of `cli_lra_parallel_slurm.py` to work with container via jinja (#1497) 
-- Convert `aqua-analysis.sh` to Python with Subprocess and Multiprocessing Support (#1354)
+- Convert `aqua-analysis.sh` to Python with Subprocess and Multiprocessing Support (#1354, #1521)
 - New base container for aqua-container (#1441)
 - Autodetection of latest AQUA in `load-aqua-container.sh` script (#1437)
 - Update Metadata Handling for NetCDF, PDF, and PNG Outputs (#1430)
