@@ -546,7 +546,7 @@ convention_name:
           - 263506 # avg_uoe
           - avg_uoe
           - uoe
-          - u # FESOM legacy
+          # - u # FESOM legacy
           - uo # cmor
         grib: 262506
       von: # Sea water meridional current (northward)
@@ -555,7 +555,7 @@ convention_name:
           - 263505 # avg_von
           - avg_von
           - von
-          - v # FESOM legacy
+          # - v # FESOM legacy
           - vo # cmor
         grib: 262505
       wo: # Sea water vertical current
@@ -564,7 +564,7 @@ convention_name:
           - 263507 # avg_wo
           - avg_wo
           - wo
-          - w # FESOM legacy
+          #- w # FESOM legacy
         grib: 262507
 
       #### ICE VARIABLES ####
