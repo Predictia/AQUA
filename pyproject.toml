@@ -38,7 +38,7 @@ dependencies = [
     "cfgrib",
     "dask",
     "dask_jobqueue",
-    "eccodes==2.38.0",
+    "eccodes==2.38.3",
     "docker",
     "gcsfs", # Google Cloud Storage File System
     "gribscan",
@@ -54,9 +54,9 @@ dependencies = [
     "pypdf",
     "pyYAML",
     "ruamel.yaml",
-    "smmregrid==0.0.6",
+    "smmregrid==0.1.0",
     "sparse",
-    "xarray<2024.10.0",
+    "xarray",
     "kerchunk",
     "h5py@git+https://github.com/h5py/h5py.git@3.12.1", #specific github pin to avoid installation of binaries
     "fastparquet",
@@ -123,7 +123,8 @@ markers = [
     # beginning of diagnostic tests
     "dummy: mark test for dummy diagnostic",
     "teleconnections: mark test for teleconnections diagnostic",
-    "tropical_rainfall: mark test for tropical_rainfall diagnostic"
+    "tropical_rainfall: mark test for tropical_rainfall diagnostic",
+    "catgen: mark test for catalog generator"
 ]
 
 # This appears to be the correct configuration, but for some reason

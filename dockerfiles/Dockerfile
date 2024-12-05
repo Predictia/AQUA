@@ -3,7 +3,27 @@
 FROM mambaorg/micromamba:1.5.6 as micromamba
 
 # -----------------------------------------------------------------------------
-FROM ghcr.io/destine-climate-dt/ubuntu22.04-fdb-aqua:latest as fdb
+# The first container is created by the AQUA team, with the Dockerfile.ubuntu
+# file that can be found in this same folder.
+# The second container is provided by the DestinE ClimateDT team and it is
+# supposed to be used in the operational framework.
+# Switch to the first one for testing purposes.
+# FROM ghcr.io/destine-climate-dt/ubuntu22.04-fdb-aqua:latest as fdb
+FROM ghcr.io/destine-climate-dt/base:ubuntu-22.04 as fdb
+
+
+# Install dependencies
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get --yes update && \
+    apt-get --yes upgrade && \
+    apt-get --yes --no-install-recommends install \
+        ssh \
+        vim \
+        && \
+    apt-get --yes clean && \
+    apt-get --yes autoremove && \
+    rm -rf /var/lib/apt/lists/*
+
 
 # We switch to mamba user later, root for now just to create the user.
 USER root
