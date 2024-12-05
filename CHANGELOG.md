@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Removing default fixes (#1519)
 - Support for eccodes=2.39.0 with full fixes refactoring (#1519)
 - Support for new smmregrid==0.1.0 including simpler weights and area generation (#1395)
 - Removing cdo pin for more recent versions (#1395)
