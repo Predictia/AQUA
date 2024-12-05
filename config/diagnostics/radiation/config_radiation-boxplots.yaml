@@ -27,5 +27,5 @@ output:
   dpi: 300
 
 diagnostic_attributes:
-  variables: ['-mtnlwrf', 'mtnswrf']
+  variables: ['-tnlwrf', 'tnswrf']
   variable_names: ['Mean top net long-wave radiation flux', 'Mean top net short-wave radiation flux']

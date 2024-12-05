@@ -23,7 +23,7 @@ output:
   dpi: 300
 
 diagnostic_attributes:
-  variables: ['mtnlwrf', 'mtnswrf', 'tnr']
+  variables: ['tnlwrf', 'tnswrf', 'tnr']
   plev: null # You can specify a pressure level here
   seasons: False
   seasons_stat: 'mean'

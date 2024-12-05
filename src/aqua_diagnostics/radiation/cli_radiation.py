@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
     logger.debug("Analyzing models:")
     models_list, exp_list, datasets = [], [], []
-    variables = config['diagnostic_attributes'].get('variables', ['-mtnlwrf', 'mtnswrf'])
+    variables = config['diagnostic_attributes'].get('variables', ['-tnlwrf', 'tnswrf'])
 
     for model in models:
         try:

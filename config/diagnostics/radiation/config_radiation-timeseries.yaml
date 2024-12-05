@@ -17,11 +17,11 @@ output:
   dpi: 300
 
 # This is the list of variables that will be plotted as timeseries
-timeseries: ['mtnlwrf', 'mtnswrf']
-timeseries_formulae: ['mtnlwrf+mtnswrf']
+timeseries: ['tnlwrf', 'tnswrf']
+timeseries_formulae: ['tnlwrf+tnswrf']
 
 gregory:
-  toa: ['mtnlwrf', 'mtnswrf']
+  toa: ['tnlwrf', 'tnswrf']
   monthly: True
   annual: True
 
