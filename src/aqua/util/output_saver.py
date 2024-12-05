@@ -135,7 +135,7 @@ class OutputSaver:
             additional_parts = [f"{key}_{value}" for key, value in sorted(kwargs.items()) if key not in parts_dict]
         else:
             additional_parts = [f"{key}_{value}" for key, value in sorted(kwargs.items()) if key in self.filename_keys and key not in parts_dict]
-        
+
         # Ensure catalog_2 always comes before model_2 if both are provided
         ordered_keys = []
         for key in self.filename_keys:
@@ -143,21 +143,24 @@ class OutputSaver:
                 ordered_keys.append('catalog_2')
             if key not in ordered_keys:
                 ordered_keys.append(key)
-        
+
         # Filter parts based on ordered_keys, ensuring to follow the specified order
         parts = [parts_dict[key] for key in ordered_keys if key in parts_dict and parts_dict[key] is not None]
-        
+
         # Append additional parts and suffix
         parts.extend(additional_parts)
         parts.append(suffix)
 
         filename = '.'.join(parts)
+        # Replace problematic characters in filenames
+        filename = filename.replace('*', '_').replace('!', '_').replace('?', '_').replace(':', '_')
         self.logger.debug(f"Generated filename: {filename}")
         return filename
 
     def save_netcdf(self, dataset: xr.Dataset, path: str = None, diagnostic_product: str = None, var: str = None,
                     model_2: str = None, exp_2: str = None, time_start: str = None, time_end: str = None,
-                    time_precision: str = 'ymd', area: str = None, metadata: dict = None, catalog_2: str = None, **kwargs) -> str:
+                    time_precision: str = 'ymd', area: str = None, metadata: dict = None, catalog_2: str = None,
+                    mode: str = 'w', **kwargs) -> str:
         """
         Save a netCDF file with a dataset to a specified path, with support for additional filename keywords and
         precise time intervals.
@@ -175,6 +178,7 @@ class OutputSaver:
             area (str, optional): The geographical area covered by the data.
             metadata (dict, optional): Additional metadata to include in the netCDF file.
             catalog_2 (str, optional): The second catalog, for comparative studies. Default to None will allow for autosearch in the installed catalogs.
+            mode (str, optional): Mode to write the netCDF file ('w' for write, 'a' for append). Default is 'w'.
             **kwargs: Additional keyword arguments for more flexible filename customization.
 
         Returns:
@@ -228,9 +232,11 @@ class OutputSaver:
         self.logger.debug(f"Metadata added: {metadata}")
 
         # Save the dataset to the specified path
-        dataset.to_netcdf(full_path, mode='w')
+        dataset.to_netcdf(full_path, mode=mode)
 
-        self.logger.info(f"Saved netCDF file to path: {full_path}")
+        self.logger.info("NetCDF file successfully saved.")
+        self.logger.debug(f"Saved netCDF file to path: {full_path}")
+
         return full_path
 
     def save_pdf(self, fig: Figure, path: str = None, diagnostic_product: str = None, var: str = None,
@@ -262,13 +268,14 @@ class OutputSaver:
         Raises:
             ValueError: If the provided fig parameter is not a valid matplotlib Figure.
         """
+        filename = self.generate_name(diagnostic_product=diagnostic_product, var=var, model_2=model_2, exp_2=exp_2,
+                                        time_start=time_start, time_end=time_end, time_precision=time_precision, area=area,
+                                        suffix='pdf', catalog_2=catalog_2, **kwargs)
+
         if path is None:
             path = os.path.join(self.default_path, 'pdf')
         create_folder(folder=str(path), loglevel=self.loglevel)
 
-        filename = self.generate_name(diagnostic_product=diagnostic_product, var=var, model_2=model_2, exp_2=exp_2,
-                                      time_start=time_start, time_end=time_end, time_precision=time_precision, area=area,
-                                      suffix='pdf', catalog_2=catalog_2, **kwargs)
         full_path = os.path.join(path, filename)
 
         if not self.rebuild and os.path.exists(full_path):
@@ -284,7 +291,7 @@ class OutputSaver:
         else:
             raise ValueError("The provided fig parameter is not a valid matplotlib Figure or pyplot figure.")
 
-        # Add metadata if provided, including the current time and additional fields
+        # Add metadata if provided
         additional_metadata = {
             'diagnostic': self.diagnostic,
             'model': self.model,
@@ -299,19 +306,20 @@ class OutputSaver:
             'area': area,
             'catalog': self.catalog,
             'catalog_2': catalog_2,
-            'rebuild': str(self.rebuild)  # Convert rebuild to a string to make it compatible with NetCDF
+            'rebuild': str(self.rebuild)
         }
         # Include kwargs in additional_metadata
         additional_metadata.update(kwargs)
 
-        # Filter out None values from additional_metadata
+        # Filter out None values
         filtered_metadata = {key: value for key, value in additional_metadata.items() if value is not None}
-
         metadata = update_metadata(metadata, filtered_metadata)
 
         add_pdf_metadata(full_path, metadata, loglevel=self.loglevel)
 
-        self.logger.info(f"Saved PDF file at: {full_path}")
+        self.logger.info("PDF file successfully saved.")
+        self.logger.debug(f"Saved PDF file at: {full_path}")
+
         return full_path
 
     def save_png(self, fig: Figure, path: str = None, diagnostic_product: str = None, var: str = None,
@@ -393,5 +401,7 @@ class OutputSaver:
 
         add_png_metadata(full_path, metadata, loglevel=self.loglevel)
 
-        self.logger.info(f"Saved PNG file to path: {full_path}")
+        self.logger.info("PNG file successfully saved.")
+        self.logger.debug(f"Saved PNG file to path: {full_path}")
+
         return full_path
