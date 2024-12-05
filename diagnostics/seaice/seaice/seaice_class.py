@@ -140,7 +140,7 @@ class SeaIceExtent:
             # automatically the first source available
             source = setup.get("source", None)
             regrid = setup.get("regrid", None)
-            var = setup.get("var", 'avg_siconc')
+            var = setup.get("var", 'siconc')
             timespan = setup.get("timespan", None)
 
             self.logger.info(f"Retrieving data for {model} {exp} {source}")
@@ -461,7 +461,7 @@ class SeaIceVolume:
             # automatically the first source available
             source = setup.get("source", None)
             regrid = setup.get("regrid", None)
-            var = setup.get("var", 'avg_sivol')
+            var = setup.get("var", 'sivol')
             timespan = setup.get("timespan", None)
 
             self.logger.info(f"Retrieving data for {model} {exp} {source}")
@@ -480,10 +480,10 @@ class SeaIceVolume:
                 
             except KeyError:
                 try:
-                    data = reader.retrieve(var = "avg_sithick")
-                    self.logger.warning("WARNING! Variable avg_sivol was NOT FOUND, avg_sithick was loaded instead")
+                    data = reader.retrieve(var = "sithick")
+                    self.logger.warning("WARNING! Variable sivol was NOT FOUND, sithick was loaded instead")
                     
-                    data = data.rename({"avg_sithick": "avg_sivol"})
+                    data = data.rename({"sithick": "sivol"})
                 except KeyError:
                     self.logger.error("Variable %s not found in dataset " + model + "-" + exp + "-" + source, var)
                     raise NoDataError("Variable not found in dataset")
@@ -549,10 +549,10 @@ class SeaIceVolume:
                     )
                 
 
-                avg_sivol_mask = data.avg_sivol.where((data.avg_sivol > 0) &
-                                        (data.avg_sivol < 99.0))
+                sivol_mask = data.sivol.where((data.sivol > 0) &
+                                        (data.sivol < 99.0))
 
-                myVolume = (avg_sivol_mask * areacello.where(regionMask)).sel(time=slice(timespan[0], timespan[1])).sum(dim=reader.space_coord, 
+                myVolume = (sivol_mask * areacello.where(regionMask)).sel(time=slice(timespan[0], timespan[1])).sum(dim=reader.space_coord, 
                                                                               skipna = True, min_count = 1) / 1e12
                                
                 myVolume.attrs["units"] = "thousands km^3"
@@ -757,7 +757,7 @@ class SeaIceConcentration:
                 # automatically the first source available
                 source = setup.get("source", None)
                 regrid = setup.get("regrid", None)
-                var = setup.get("var", "avg_siconc")
+                var = setup.get("var", "siconc")
                 timespan = setup.get("timespan", None)
 
                 self.logger.info(f"Retrieving data for {model} {exp} {source}")
@@ -951,7 +951,7 @@ class SeaIceThickness:
                 exp = setup["exp"]
                 source = setup.get("source", None)
                 regrid = setup.get("regrid", None)
-                var = setup.get("var", "avg_sivol")
+                var = setup.get("var", "sivol")
                 timespan = setup.get("timespan", None)
 
                 self.logger.info(f"Retrieving data for {model} {exp} {source}")
@@ -962,9 +962,9 @@ class SeaIceThickness:
                     data = reader.retrieve(var=var)
                 except KeyError:
                     try:
-                        data = reader.retrieve(var="avg_sithick")
-                        self.logger.warning("WARNING! Variable avg_sivol was NOT FOUND, avg_sithick was loaded instead")
-                        data = data.rename({"avg_sithick": "avg_sivol"})
+                        data = reader.retrieve(var="sithick")
+                        self.logger.warning("WARNING! Variable sivol was NOT FOUND, sithick was loaded instead")
+                        data = data.rename({"sithick": "sivol"})
                     except KeyError:
                         self.logger.error("Variable %s not found in dataset %s-%s-%s", var, model, exp, source)
                         raise NoDataError("Variable not found in dataset")

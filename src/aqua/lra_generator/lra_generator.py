@@ -365,8 +365,7 @@ class LRAgenerator():
                 },
                 'metadata': {
                     'source_grid_name': 'lon-lat',
-                },
-                'fixer_name': False
+                }
             }
             cat_file['sources'][entry_name] = block_cat
 

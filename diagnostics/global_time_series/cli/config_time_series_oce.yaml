@@ -9,8 +9,8 @@ models:
 outputdir: "./"
 
 # This is the list of variables that will be plotted as timeseries
-timeseries: ['avg_tos', 'avg_siconc']
-seasonal_cycle: ['avg_tos', 'avg_siconc']
+timeseries: ['tos', 'siconc']
+seasonal_cycle: ['tos', 'siconc']
 
 timeseries_plot_params:
 # These are options that specify how the data is plotted
