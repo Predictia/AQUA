@@ -1118,7 +1118,7 @@ class FixerMixin():
         # dependency in the unit factor conversion
         if "second" in str(factor.units):
             conversion['time_conversion_flag'] = 1
-            conversion['deltat'] = str(self.deltat) + 's'
+            conversion['deltat'] = str(self.deltat)
 
         if factor.units == units('dimensionless'):
             offset = (0 * units(src)).to(units(dst)) - (0 * units(dst))

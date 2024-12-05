@@ -213,6 +213,9 @@ fixer_name:
     MSWEP-default:
         convention: eccodes 
         data_model: cf
+        vars:
+            tprate:
+                source: precipitation
 
     # OSI-SAF
     OSI-SAF-default:
