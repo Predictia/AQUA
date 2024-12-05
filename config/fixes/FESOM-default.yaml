@@ -15,3 +15,9 @@ fixer_name:
                 source: MLD2
                 src_units: m
                 grib: true
+            wo:
+                source: w
+            uoe:
+                source: u
+            von: 
+                source: v
