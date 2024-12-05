@@ -51,7 +51,7 @@ fixer_name:
 
     ifs-nemo-destine-v2-monthly:
         # multio saves 2t as mean2t if it averages. This is pretty weird and we have to fix it back.
-        parent: ifs-destine-v1-monthly
+        parent: ifs-nemo-destine-v1-monthly
         convention: eccodes
         deltat: monthly
 
