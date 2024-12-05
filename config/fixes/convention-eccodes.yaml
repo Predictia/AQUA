@@ -582,6 +582,13 @@ convention_name:
           - a_ice # FESOM legacy
           - ice_conc # OSI-SAF
         grib: 262001
+      sisnthick: # Snow thickness over sea ice
+        source:
+          - 262002
+          - 263002
+          - sisnthick 
+          - avg_sisnthick
+        grib: 262002
       sithick: # Sea ice thickness
         source:
           - 262000 # original GRIB2 code
