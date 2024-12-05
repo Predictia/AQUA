@@ -39,6 +39,8 @@ def parse_arguments(cli_args):
     parser.add_argument('--ref', action='store_true',
                         required=False,
                         help='if True, analysis is performed against a reference')
+    parser.add_argument("--cluster", type=str,
+                        required=False, help="dask cluster address")
 
     # This arguments will override the configuration file if provided
     parser.add_argument('--catalog', type=str, help='catalog name',
@@ -76,10 +78,14 @@ if __name__ == '__main__':
 
     # Dask distributed cluster
     nworkers = get_arg(args, 'nworkers', None)
-    if nworkers:
-        cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+    cluster = get_arg(args, 'cluster', None)
+    if nworkers or cluster:
+        if not cluster:
+            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
         client = Client(cluster)
-        logger.info(f"Running with {nworkers} dask distributed workers.")
+        if nworkers:
+            logger.info(f"Running with {nworkers} dask distributed workers.")
+        logger.info(f"Running on dask cluster {cluster}.")
 
     # Read configuration file
     file = get_arg(args, 'config', 'cli_config_atm.yaml')

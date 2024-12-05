@@ -36,7 +36,9 @@ def parse_arguments(args):
                         required=False)
     parser.add_argument('--end_date2', type=str, help='end date for dataset2',
                         required=False)
-
+    parser.add_argument("--cluster", type=str,
+                        required=False, help="dask cluster address")
+    
     return parser.parse_args(args)
 
 
@@ -74,10 +76,14 @@ if __name__ == '__main__':
 
     # Dask distributed cluster
     nworkers = get_arg(args, 'nworkers', None)
-    if nworkers:
-        cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+    cluster = get_arg(args, 'cluster', None)
+    if nworkers or cluster:
+        if not cluster:
+            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
         client = Client(cluster)
-        logger.info(f"Running with {nworkers} dask distributed workers.")
+        if nworkers:
+            logger.info(f"Running with {nworkers} dask distributed workers.")
+        logger.info(f"Running on dask cluster {cluster}.")
 
     # Acquiring model, experiment and source
     model = get_arg(args, 'model', config['data']['model'])

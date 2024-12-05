@@ -72,10 +72,14 @@ class Tropical_Rainfall_CLI:
 
         # Dask distributed cluster
         nworkers = get_arg(args, 'nworkers', None)
-        if nworkers:
-            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+        cluster = get_arg(args, 'cluster', None)
+        if nworkers or cluster:
+            if not cluster:
+                cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
             client = Client(cluster)
-            self.logger.info(f"Running with {nworkers} dask distributed workers.")
+            if nworkers:
+                self.logger.info(f"Running with {nworkers} dask distributed workers.")
+            self.logger.info(f"Running on dask cluster {cluster}.")
 
         self.rebuild_output = config['rebuild_output']
         if path_to_output is not None:

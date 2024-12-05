@@ -190,11 +190,15 @@ class Ocean3DCLI:
         self.logger = log_configure(log_name='Ocean3D CLI', log_level=self.loglevel)
 
         # Dask distributed cluster
-        nworkers = self.get_arg('nworkers', None)
-        if nworkers:
-            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+        nworkers = get_arg(args, 'nworkers', None)
+        cluster = get_arg(args, 'cluster', None)
+        if nworkers or cluster:
+            if not cluster:
+                cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
             client = Client(cluster)
-            self.logger.info(f"Running with {nworkers} dask distributed workers.")
+            if nworkers:
+                self.logger.info(f"Running with {nworkers} dask distributed workers.")
+            self.logger.info(f"Running on dask cluster {cluster}.")
 
         # Change the current directory to the one of the CLI so that relative paths work
         abspath = os.path.abspath(__file__)
@@ -238,6 +242,8 @@ def parse_arguments(args):
     parser.add_argument('--source', type=str, help='Source name')
     parser.add_argument('--outputdir', type=str,
                         help='Output directory')
+    parser.add_argument("--cluster", type=str,
+                        required=False, help="dask cluster address")
 
     return parser.parse_args(args)
 
