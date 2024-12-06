@@ -168,7 +168,6 @@ if __name__ == '__main__':
             source_list.append(model['source'])
 
     zonal_dataset = retrieve_data(var=var, models=model_list, exps=exp_list, sources=source_list)
-    logger.debug("Analyzing models:")
 
     outdir = get_arg(args, "outputdir", config["outputdir"])
     outfile = 'aqua-analysis-ensemble-zonalmean-map'

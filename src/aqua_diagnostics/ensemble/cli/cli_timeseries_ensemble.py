@@ -190,7 +190,6 @@ if __name__ == '__main__':
         config, var)
 
     outputdir = get_arg(args, "outputdir", config["outputdir"])
-    logger.debug("Analyzing models:")
 
     # Monthly model data
     mon_model = config['models_monthly']
