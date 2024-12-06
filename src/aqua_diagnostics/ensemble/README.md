@@ -33,11 +33,11 @@ The ensemble members with `1D`,`2D` in `lon-lat` or `lev-lat` dimensions needs m
 The `notebooks` folder contains notebooks with examples of how to use the ensemble module and its main functions.
 Please note that notebooks may load data from the DKRZ cluster, so they may not work outside of levante.
 
-- [Example of how to use the 1D ensemble of timeseries](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ensemble/notebooks/ensemble_timeseries.ipynb)
+- [Example of how to use the 1D ensemble of timeseries](https://github.com/DestinE-Climate-DT/AQUA/blob/dev-ensemble/notebooks/diagnostics/ensemble/ensemble_timeseries.ipynb)
 
-- [Example of how to use the 2D lon-lat ensemble of atmglobalmean](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ensemble/notebooks/ensemble_atmglobalmean.ipynb)
+- [Example of how to use the 2D lon-lat ensemble of atmglobalmean](https://github.com/DestinE-Climate-DT/AQUA/blob/dev-ensemble/notebooks/diagnostics/ensemble/ensemble_atmglobalmean.ipynb)
 
-- [Example of how to use the 2D Zonal (lev-lat) ensemble of temperature](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ensemble/notebooks/ensemble_zonal.ipynb)
+- [Example of how to use the 2D Zonal (lev-lat) ensemble of temperature](https://github.com/DestinE-Climate-DT/AQUA/blob/dev-ensemble/notebooks/diagnostics/ensemble/ensemble_zonalaverage.ipynb)
 
 ## Contributing
 
