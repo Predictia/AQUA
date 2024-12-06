@@ -269,7 +269,6 @@ class EnsembleLatLon():
         """
         self.logger.info('Plotting the ensemble computation')
         projection = ccrs.PlateCarree()
-        cmap = 'PuBuGn'
         var = self.var
         if self.dataset_mean.sizes != 0:
             if isinstance(self.dataset_mean,xr.Dataset):
@@ -291,7 +290,7 @@ class EnsembleLatLon():
             ax0.yaxis.set_major_formatter(LatitudeFormatter())
             ax0.gridlines(draw_labels=True)
             im = ax0.contourf(dataset_mean.lon, dataset_mean.lat,
-                              dataset_mean, cmap=cmap, levels=levels, extend='both')
+                              dataset_mean, cmap='RdBu_r', levels=levels, extend='both')
             ax0.set_title(self.mean_plot_title)
             ax0.set_xlabel('Longitude')
             ax0.set_ylabel('Latitude')
@@ -322,7 +321,7 @@ class EnsembleLatLon():
             ax1.yaxis.set_major_formatter(LatitudeFormatter())
             ax1.gridlines(draw_labels=True)
             im = ax1.contourf(dataset_std.lon, dataset_std.lat,
-                              dataset_std, cmap=cmap, levels=levels, extend='both')
+                              dataset_std, cmap='Reds', levels=levels, extend='both')
             ax1.set_title(self.std_plot_title)
             ax1.set_xlabel('Longitude')
             ax1.set_ylabel('Latitude')
@@ -408,7 +407,6 @@ class EnsembleZonal():
         """
         self.logger.info('Plotting the ensemble computation')
         # projection = ccrs.PlateCarree()
-        cmap = 'PuBuGn'
         var = self.var
         if self.dataset_mean.sizes != 0:
             if isinstance(self.dataset_mean,xr.Dataset):
@@ -420,7 +418,7 @@ class EnsembleZonal():
             if self.outfile is None:
                 self.outfile = f'multimodel_zonal_average_{var}'
             ax0 = fig0.add_subplot(111)
-            im = ax0.contourf(dataset_mean.lat,dataset_mean.lev,dataset_mean,cmap=cmap, levels=20, extend='both')
+            im = ax0.contourf(dataset_mean.lat,dataset_mean.lev,dataset_mean,cmap='RdBu_r', levels=20, extend='both')
             ax0.set_ylim((5500, 0))
             ax0.set_ylabel("Depth (in m)", fontsize=9)
             ax0.set_xlabel("Latitude (in deg North)", fontsize=9)
@@ -447,7 +445,7 @@ class EnsembleZonal():
                 self.outfile = f'multimodel_zonal_average_{var}'
             ax1 = fig1.add_subplot(111)
             #im = self.dataset_std[var].contourf(ax=ax1, cmap=cmap, levels=20, extend='both')
-            im = ax1.contourf(dataset_std.lat,dataset_std.lev,dataset_std,cmap=cmap,levels=20,extend='both')
+            im = ax1.contourf(dataset_std.lat,dataset_std.lev,dataset_std,cmap='Reds',levels=20,extend='both')
             ax1.set_ylim((5500, 0))
             ax1.set_ylabel("Depth (in m)", fontsize=9)
             ax1.set_xlabel("Latitude (in deg North)", fontsize=9)
