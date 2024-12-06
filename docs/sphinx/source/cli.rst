@@ -115,6 +115,7 @@ This script is used to push the figures produced by the AQUA analysis to the aqu
 ``INDIR`` is the directory containing the output, e.g. ``~/work/aqua-analysis/output``.
 ``EXPS`` is the subfolder to push, e.g ``climatedt-phase1/IFS-NEMO/historical-1990``
 or a text file containing a list of experiments in the format "catalog model experiment".
+It creates ``content.yaml`` files for each experiment and pushes the images to the aqua-web repository.
 
 Additional options
 ^^^^^^^^^^^^^^^^^^
@@ -123,7 +124,19 @@ Additional options
 
     The branch to push to (optional, default is ``main``).
 
-.. option:: -u <user>, --user <user>
+.. option:: -c, --content
+
+    Flag to refresh all content.yaml files (default is only specific experiment).
+
+.. option:: -d, --dry-run
+
+    Do not push to the repository.
+
+.. option:: -l <level>, --loglevel <level>
+
+    Set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2.
+
+.. option:: -u <user:PAT>, --user <user:PAT>
 
     Credentials (in the format username:PAT) to create an automatic PR for the branch (optional).
     If this is option is specified and a branch is used, then an automatic PR is generated.
