@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Added the `cdo_options: "--force"` to the definitions of the HealPix grids (#1527)
 - Removing default fixes (#1519)
 - Support for eccodes=2.39.0 with full fixes refactoring (#1519)
 - Dashboard: Moved making of contents yaml to local hpc (#1470)
