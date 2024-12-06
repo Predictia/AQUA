@@ -25,7 +25,7 @@ def kelvin_to_celsius(data, variable_name, loglevel= "WARNING"):
     """
     logger = log_configure(loglevel, 'Unit')
     # Check if the variable exists in the dataset
-    if data[variable_name].attrs['units']== 'K' or 'kelvin':
+    if data[variable_name].attrs['units'].lower()== 'k' or 'kelvin':
         logger.warning("The unit of Pot. Temperature is Kelvin. Converting to degC")
         # Convert Kelvin to Celsius: Celsius = Kelvin - 273.15
         data[variable_name] -= 273.15
@@ -46,7 +46,7 @@ def check_variable_name(data, loglevel= "WARNING"):
     logger = log_configure(loglevel, 'Check Variables')
     vars = list(data.variables)
     required_vars= []
-    var_list= ["SO","avg_so","thetao","THETAO","avg_SO","avg_so","avg_thetao","avg_THETAO",
+    var_list= ["so", "thetao", "SO","avg_so","thetao","THETAO","avg_SO","avg_so","avg_thetao","avg_THETAO",
                "toce_mean","soce_mean"]
     for var in vars:
         if var in var_list:
@@ -56,10 +56,10 @@ def check_variable_name(data, loglevel= "WARNING"):
         data = data[required_vars]
         logger.debug("Selected this variables")
         for var in required_vars:
-            if 'avg_so' in var.lower() or 'soce' in var.lower():
+            if var.lower() in ['avg_so', 'soce', "so"]:
                 data = data.rename({var: "avg_so"})
                 logger.debug("renaming %s as avg_so", var)
-            if 'thetao' in var.lower() or 'toce' in var.lower():
+            if var.lower() in ['avg_thetao', 'toce', "thetao"]:
                 data = data.rename({var: "avg_thetao"})
                 logger.debug("renaming %s as avg_thetao", var)
     else:
