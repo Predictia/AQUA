@@ -18,12 +18,12 @@ outputdir: "./"
 
 # This is the list of variables that will be plotted as seasonal cycles
 timeseries: ['2t']
-timeseries_formulae: ['86400*mtpr', 'mtnlwrf+mtnswrf']
-seasonal_cycle_formulae: ['86400*mtpr']
+timeseries_formulae: ['86400*tprate', 'tnlwrf+tnswrf']
+seasonal_cycle_formulae: ['86400*tprate']
 
 gregory:
   ts: '2t'
-  toa: ['mtnlwrf', 'mtnswrf']
+  toa: ['tnlwrf', 'tnswrf']
   monthly: False
   annual: True
 
@@ -40,12 +40,12 @@ timeseries_plot_params:
     std_startdate: '1990-01-01'
     std_enddate: '2020-12-31'
     extend: False
-  mtnlwrf+mtnswrf:
+  tnlwrf+tnswrf:
     longname: "Mean top net radiation" # This is to override title and ylabel
     std_startdate: '1990-01-01'
     std_enddate: '2020-12-31'
     extend: False
-  86400*mtpr:
+  86400*tprate:
     longname: "Precipitation" # This is to override title and ylabel
     units: "mm/day" # This is to override units
     std_startdate: '1990-01-01'

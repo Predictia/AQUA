@@ -24,7 +24,7 @@ class GregoryPlot():
                  models=None, exps=None, sources=None,
                  monthly=True, annual=True,
                  regrid=None,
-                 ts_name='2t', toa_name=['mtnlwrf', 'mtnswrf'],
+                 ts_name='2t', toa_name=['tnlwrf', 'tnswrf'],
                  ts_std_start='1980-01-01', ts_std_end='2010-12-31',
                  toa_std_start='2001-01-01', toa_std_end='2020-12-31',
                  ref=True, save=True,
@@ -44,7 +44,7 @@ class GregoryPlot():
                           Default is None.
             ts (str): variable name for 2m temperature, default is '2t'.
             toa (list): list of variable names for net radiation at TOA,
-                        default is ['mtnlwrf', 'mtnswrf'].
+                        default is ['tnlwrf', 'tnswrf'].
             ts_std_start (str): Start date for standard deviation calculation for 2m temperature.
                                 Default is '1980-01-01'.
             ts_std_end (str): End date for standard deviation calculation for 2m temperature.
