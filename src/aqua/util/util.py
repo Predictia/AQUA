@@ -30,7 +30,7 @@ def generate_random_string(length):
 def to_list(arg):
     """
     Converts the input to a list.
-    - Returns None if input is None.
+    - Returns [] if input is None.
     - Returns the list itself if input is already a list.
     - Converts tuples, sets, and dictionaries to a list.
     - Wraps other types in a single-element list.
@@ -39,10 +39,10 @@ def to_list(arg):
     arg: The input object to convert.
 
     Returns:
-    list or None: A list representation of the input or None.
+    list: A list representation of the input.
     """
     if arg is None:  # Preserve None
-        return None
+        return []
     if isinstance(arg, list):  # Already a list
         return arg
     if isinstance(arg, (tuple, set)):  # Convert tuples and sets to a list

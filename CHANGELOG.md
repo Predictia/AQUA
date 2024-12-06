@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Safety checks and error messages on FDB folders (#1512)
+- Refreshed internal `to_list` function (#1512)
 - Enhance OutputSaver with Improved File Handling, Logging, and NetCDF Write Modes (#1495)
 - Introduction a specific pipeline and tests for `catgen`utiliy (#1505)
 - Remove pin on xarray (#1507)
