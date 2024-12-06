@@ -5,7 +5,6 @@ Command-line interface for ensemble global time series diagnostic.
 This CLI allows to plot ensemle of global timeseries of a variable
 defined in a yaml configuration file for multiple models.
 """
-#from ensemble import EnsembleTimeseries
 import argparse
 import os
 import sys
@@ -19,7 +18,6 @@ from aqua.logger import log_configure
 from aqua import Reader
 
 from aqua.diagnostics import EnsembleTimeseries
-
 
 def parse_arguments(args):
     """Parse command line arguments."""

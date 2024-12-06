@@ -18,7 +18,6 @@ from aqua.logger import log_configure
 
 from aqua.diagnostics import EnsembleLatLon
 
-
 def parse_arguments(args):
     """Parse command line arguments."""
 
