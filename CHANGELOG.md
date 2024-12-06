@@ -18,7 +18,7 @@ AQUA core complete list:
 - Enhance OutputSaver with Improved File Handling, Logging, and NetCDF Write Modes (#1495)
 - Introduction a specific pipeline and tests for `catgen`utiliy (#1505)
 - Remove pin on xarray (#1507)
-- FDB reader internally always asks for paramids (#1491, #1508)
+- FDB reader internally always asks for paramids (#1491, #1508, 1529)
 - Introduction of a convention table for the fixer, in order to create a more general fixer (#1488, #1506)
 - Refactor of `cli_lra_parallel_slurm.py` to work with container via jinja (#1497) 
 - Convert `aqua-analysis.sh` to Python with Subprocess and Multiprocessing Support (#1354, #1521)
