@@ -124,7 +124,7 @@ class EnsembleTimeseries():
                       "#fb4c27", "#8f57bf", "#00bb62", "#f9c410", "#fb4865", "#645ccc"]
         
         # Plotting monthly ensemble data
-        if self.mon_dataset_mean.sizes != 0:
+        if self.mon_dataset_mean is not None:
             if isinstance(self.mon_dataset_mean,xr.Dataset):
                 mon_dataset_mean = self.mon_dataset_mean[var]
             else:
@@ -142,7 +142,7 @@ class EnsembleTimeseries():
                     self.mon_model_dataset[var][i, :].plot(ax=ax, color='grey', lw=0.7, zorder=1)
         
         # Plotting monthy reference
-        if self.mon_ref_data.sizes != 0:
+        if self.mon_ref_data is not None:
             if isinstance(self.mon_ref_data,xr.Dataset):
                 mon_ref_data = self.mon_ref_data[var]
             else:
@@ -150,7 +150,7 @@ class EnsembleTimeseries():
             mon_ref_data.plot(ax=ax, label=self.ref_label+'-mon', color='black', lw=0.95, zorder=2)
         
         # Plotting annual ensemble data
-        if self.ann_dataset_mean.sizes != 0:
+        if self.ann_dataset_mean is not None:
             if isinstance(self.ann_dataset_mean,xr.Dataset):
                 ann_dataset_mean = self.ann_dataset_mean[var]
             else:
@@ -170,7 +170,7 @@ class EnsembleTimeseries():
                     self.ann_model_dataset[var][i, :].plot(ax=ax, color='grey', lw=0.7, linestyle='--', zorder=1)
         
         # Plotting annual reference
-        if self.ann_ref_data.sizes != 0:
+        if self.ann_ref_data is not None:
             if isinstance(self.ann_ref_data,xr.Dataset):
                 ann_ref_data = self.ann_ref_data[var]
             else:
@@ -224,8 +224,10 @@ class EnsembleLatLon():
 
         self.var = var
         self.dataset = dataset
-        if self.dataset != None:
+        if self.dataset is not None:
             self.units = self.dataset[self.var].units
+        else:
+            self.units = "units"
         self.dim = ensemble_dimension_name
         self.plot_std = True
         self.figure_size = [5,5]
@@ -248,7 +250,7 @@ class EnsembleLatLon():
         It is import to make sure that the dim along which the mean is compute is correct.
         The default dim="Ensembles". This can be reassianged with the method "edit_attributes".
         """
-        if self.dataset != None:
+        if self.dataset is not None:
             self.dataset_mean = self.dataset.mean(dim=self.dim)
             self.dataset_std = self.dataset.std(dim=self.dim)
 
@@ -270,7 +272,7 @@ class EnsembleLatLon():
         self.logger.info('Plotting the ensemble computation')
         projection = ccrs.PlateCarree()
         var = self.var
-        if self.dataset_mean.sizes != 0:
+        if self.dataset_mean is not None:
             if isinstance(self.dataset_mean,xr.Dataset):
                 dataset_mean = self.dataset_mean[var]
             else:
@@ -304,7 +306,7 @@ class EnsembleLatLon():
             self.logger.debug(f"Outfile: {outfile}")
             fig0.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1)
 
-        if self.dataset_std.sizes != 0:
+        if self.dataset_std is not None:
             if isinstance(self.dataset_std,xr.Dataset):
                 dataset_std = self.dataset_std[var]
             else:
@@ -321,7 +323,7 @@ class EnsembleLatLon():
             ax1.yaxis.set_major_formatter(LatitudeFormatter())
             ax1.gridlines(draw_labels=True)
             im = ax1.contourf(dataset_std.lon, dataset_std.lat,
-                              dataset_std, cmap='Reds', levels=levels, extend='both')
+                              dataset_std, cmap='OrRd', levels=20, extend='both')
             ax1.set_title(self.std_plot_title)
             ax1.set_xlabel('Longitude')
             ax1.set_ylabel('Latitude')
@@ -408,7 +410,7 @@ class EnsembleZonal():
         self.logger.info('Plotting the ensemble computation')
         # projection = ccrs.PlateCarree()
         var = self.var
-        if self.dataset_mean.sizes != 0:
+        if self.dataset_mean is not None:
             if isinstance(self.dataset_mean,xr.Dataset):
                 dataset_mean = self.dataset_mean[var]
             else:
@@ -434,7 +436,7 @@ class EnsembleZonal():
             self.logger.debug(f"Outfile: {outfile}")
             fig0.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1)
 
-        if self.dataset_std.sizes != 0:
+        if self.dataset_std is not None:
             if isinstance(self.dataset_std,xr.Dataset):
                 dataset_std = self.dataset_std[var]
             else:
@@ -444,14 +446,14 @@ class EnsembleZonal():
             if self.outfile is None:
                 self.outfile = f'multimodel_zonal_average_{var}'
             ax1 = fig1.add_subplot(111)
-            #im = self.dataset_std[var].contourf(ax=ax1, cmap=cmap, levels=20, extend='both')
-            im = ax1.contourf(dataset_std.lat,dataset_std.lev,dataset_std,cmap='Reds',levels=20,extend='both')
+            #im = self.dataset_std[var].contourf(ax=ax1, cmap=cmap, levels=20, extend='both');
+            im = ax1.contourf(dataset_std.lat,dataset_std.lev,dataset_std,cmap='OrRd',extend='both')
             ax1.set_ylim((5500, 0))
             ax1.set_ylabel("Depth (in m)", fontsize=9)
             ax1.set_xlabel("Latitude (in deg North)", fontsize=9)
             ax1.set_facecolor('grey')
             ax1.set_title(self.std_plot_title)
-            cbar = fig1.colorbar(im, ax=ax1, shrink=0.9, extend='both')
+            cbar = fig1.colorbar(im, ax=ax1,shrink=0.9, extend='both')
             cbar.set_label(self.cbar_label)
             self.logger.info("Saving ensemble std map to pdf")
             outfig = os.path.join(self.outdir, 'std_pdf')

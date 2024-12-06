@@ -51,6 +51,7 @@ Please note that notebooks may load data from the DKRZ cluster, so they may not 
 - checks for dropping `nan`s.
 - functions should be added in case of unequal data.
 - A combined CLI for all three ensemble sub-classes.
+- Implement a class to handle an ensemble of 3D data.
 - Integrated in the github workflow.
 
 ## Contributing
