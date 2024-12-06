@@ -16,10 +16,7 @@ from aqua.util import load_yaml, get_arg
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.logger import log_configure
 
-#script_dir = os.path.dirname(os.path.abspath(__file__))
-#ensemble_module_path = os.path.join(script_dir, "../../")
-#sys.path.insert(0, ensemble_module_path)
-from ensemble import EnsembleZonal
+from aqua.diagnostics import EnsembleZonal
 
 def parse_arguments(args):
     """Parse command line arguments."""
@@ -49,6 +46,31 @@ def parse_arguments(args):
 
 
 def get_plot_options(config: dict = None, var: str = None):
+    """
+    Extracts zonal mean plot options from a config file.
+
+    This function retrieves a set of parameters related to timeseries plotting from the 
+    `zonalmean_plot_params` key of the provided config file.
+
+    Args:
+        config (config file): Settings are defined in the config file 
+            which is load by the load_yaml function. 
+            It is expected to include the key `zonalmean_plot_params` with 
+            sub-keys for various plotting parameters. Defaults to None.
+        var (str): A variable name (not used in the current implementation, 
+            but reserved for future use). Defaults to None.
+
+    Returns:
+        tuple: A tuple containing the following elements extracted from the 
+        `zonalmean_plot_params` key in the configuration:
+            - figure_size (any): The size of the figure (default: None if not found).
+            - plot_std (any): Flag or settings for plotting standard deviations (default: None).
+            - plot_label (any): Label for the plot (default: None).
+            - pdf_save (any): Whether to save the plot as a PDF (default: None).
+            - mean_plot_title (any): Title for the mean plot (default: None).
+            - std_plot_title (any): Title for the standard deviation plot (default: None).
+            - cbar_label (any): Label for the color bar (default: None).
+    """
     figure_size = config["zonalmean_plot_params"].get("figure_size", None)
     plot_std = config["zonalmean_plot_params"].get("plot_std", None)
     plot_label = config["zonalmean_plot_params"].get("plot_label", None)
@@ -60,7 +82,31 @@ def get_plot_options(config: dict = None, var: str = None):
 
 
 def retrieve_data(var=None, models=None, exps=None, sources=None, ens_dim="Ensembles"):
-    logger.debug('Retrieving data')
+   """
+    Retrieves and merges datasets based on specified models, experiments, and sources.
+
+    This function reads data for a given variable (`var`) from multiple models, experiments, 
+    and sources, combines them along the specified ensemble dimension, and returns the 
+    merged dataset.
+
+    Args:
+        var (str): The variable to retrieve data for. Defaults to None.
+        models (list): A list of model names. Each model corresponds to an 
+            experiment and source in the `exps` and `sources` lists, respectively. 
+            Defaults to None.
+        exps (list): A list of experiment names. Each experiment corresponds 
+            to a model and source in the `models` and `sources` lists, respectively. 
+            Defaults to None.
+        sources (list): A list of data source names. Each source corresponds 
+            to a model and experiment in the `models` and `exps` lists, respectively. 
+            Defaults to None.
+        ens_dim (str, optional): The name of the dimension along which the datasets are 
+            concatenated. Defaults to "Ensembles".
+
+    Returns:
+        xarray.Dataset: A merged dataset containing data from all specified models, 
+        experiments, and sources, concatenated along the `ens_dim` dimension.
+    """
     dataset_list = []
     if models is None or exps is None or sources is None:
         raise NoDataError("No models, exps or sources provided")

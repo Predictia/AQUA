@@ -11,8 +11,7 @@ from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 from aqua.logger import log_configure
 from aqua.exceptions import NoObservationError, NoDataError
 from aqua.util import create_folder
-from aqua.util import add_pdf_metadata, time_to_string
-from aqua.graphics import plot_timeseries
+from aqua.util import add_pdf_metadata
 
 xr.set_options(keep_attrs=True)
 
@@ -75,9 +74,15 @@ class EnsembleTimeseries():
             self.logger.info("Figure will not be saved")
 
     def ensemble_mean(self, dataset):
+        """
+        compute mean of the dataset
+        """
         return dataset[self.var].mean(dim=self.dim)
 
     def ensemble_std(self, dataset):
+        """
+        compute std of the dataset
+        """
         return dataset[self.var].std(dim=self.dim)
 
     def compute(self):
@@ -264,7 +269,7 @@ class EnsembleLatLon():
         """
         self.logger.info('Plotting the ensemble computation')
         projection = ccrs.PlateCarree()
-        cmap = 'RdBu_r'
+        cmap = 'PuBuGn'
         var = self.var
         if self.dataset_mean.sizes != 0:
             if isinstance(self.dataset_mean,xr.Dataset):
@@ -403,7 +408,7 @@ class EnsembleZonal():
         """
         self.logger.info('Plotting the ensemble computation')
         # projection = ccrs.PlateCarree()
-        cmap = 'RdBu_r'
+        cmap = 'PuBuGn'
         var = self.var
         if self.dataset_mean.sizes != 0:
             if isinstance(self.dataset_mean,xr.Dataset):

@@ -18,10 +18,7 @@ from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.logger import log_configure
 from aqua import Reader
 
-#script_dir = os.path.dirname(os.path.abspath(__file__))
-#ensemble_module_path = os.path.join(script_dir, "../../")
-#sys.path.insert(0, ensemble_module_path)
-from ensemble import EnsembleTimeseries
+from aqua.diagnostics import EnsembleTimeseries
 
 
 def parse_arguments(args):
@@ -52,6 +49,35 @@ def parse_arguments(args):
 
 
 def get_plot_options(config: dict = None, var: str = None):
+    """
+    Extracts timeseries plot options from a configuration dictionary.
+
+    This function retrieves a set of parameters related to timeseries plotting from the 
+    `timeseries_plot_params` key of the provided config file.
+
+    Args:
+        config (config file): Settings are defined in the config file 
+            which is load by the load_yaml function. 
+            It is expected to include the key `timeseries_plot_params` with 
+            sub-keys for various plotting parameters. Defaults to None.
+        var (str): A variable name (not used in the current implementation, 
+            but reserved for future use). Defaults to None.
+            
+    Returns:
+        tuple: A tuple containing the following elements extracted from the 
+        `timeseries_plot_params` key in the configuration:
+            - startdate (any): The start date for the timeseries plot (default: None if not found).
+            - enddate (any): The end date for the timeseries plot (default: None).
+            - plot_std (any): Flag or settings for plotting standard deviations (default: None).
+            - plot_ensemble_members (any): Flag or settings for plotting ensemble members (default: None).
+            - ensemble_label (any): Label for ensemble data (default: None).
+            - figure_size (any): Size of the figure (default: None).
+            - ref_label (any): Label for the reference data (default: None).
+            - label_ncol (any): Number of columns for the plot legend labels (default: None).
+            - label_size (any): Font size of the labels (default: None).
+            - pdf_save (any): Whether to save the plot as a PDF (default: None).
+            - units (any): Units for the data being plotted (default: None).
+    """
     startdate = config["timeseries_plot_params"].get("startdate", None)
     enddate = config["timeseries_plot_params"].get("enddate", None)
     plot_std = config["timeseries_plot_params"].get("plot_std", None)
@@ -67,7 +93,40 @@ def get_plot_options(config: dict = None, var: str = None):
 
 
 def retrieve_data(var=None, models=None, exps=None, sources=None, startdate=None, enddate=None, ens_dim="Ensembles"):
-    logger.debug('Retrieving data')
+    """
+    Retrieves, merges, and slices datasets based on specified models, experiments, 
+    sources, and time boundaries.
+
+    This function reads data for a given variable (`var`) from multiple models, experiments, 
+    and sources, combines the datasets along the specified ensemble dimension, and slices 
+    the merged dataset to the given start and end dates.
+
+    Args:
+        var (str): The variable to retrieve data for. Defaults to None.
+        models (list): A list of model names. Each model corresponds to an 
+            experiment and source in the `exps` and `sources` lists, respectively. 
+            Defaults to None.
+        exps (list): A list of experiment names. Each experiment corresponds 
+            to a model and source in the `models` and `sources` lists, respectively. 
+            Defaults to None.
+        sources (list): A list of data source names. Each source corresponds 
+            to a model and experiment in the `models` and `exps` lists, respectively. 
+            Defaults to None.
+        startdate (str or datetime): The start date for slicing the merged dataset. 
+            If None, the maximum start date across all datasets is used. Defaults to None.
+        enddate (str or datetime): The end date for slicing the merged dataset. 
+            If None, the minimum end date across all datasets is used. Defaults to None.
+        ens_dim (str, optional): The name of the dimension along which the datasets are 
+            concatenated. Defaults to "Ensembles".
+
+    Returns:
+        tuple:
+            - startdate (datetime): The resolved start date for the sliced dataset.
+            - enddate (datetime): The resolved end date for the sliced dataset.
+            - xarray.Dataset: The merged dataset containing data from all specified models, 
+              experiments, and sources, concatenated along `ens_dim` and sliced 
+              to the time range `[startdate, enddate]`.
+    """
     dataset_list = []
     startdate_list = []
     enddate_list = []
