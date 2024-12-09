@@ -225,7 +225,7 @@ def main():
     
     cluster = LocalCluster(threads_per_worker=1)
     os.environ["AQUA_DASK_CLUSTER"] = f"--cluster {cluster.scheduler_address}"
-    logger.info(f"Running with dask cluster {cluster.scheduler_address}")
+    logger.info(f"Initialized global dask cluster {cluster.scheduler_address} providing {len(cluster.workers)} workers.")
 
     with ThreadPoolExecutor(max_workers=max_threads if max_threads > 0 else None) as executor:
         futures = []

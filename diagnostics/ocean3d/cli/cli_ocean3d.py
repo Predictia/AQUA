@@ -195,13 +195,10 @@ class Ocean3DCLI:
         if nworkers or cluster:
             if not cluster:
                 cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
-                self.logger.info(f"Initializing private cluster with {nworkers} workers.")
+                self.logger.info(f"Initializing private cluster {cluster.scheduler_address} with {nworkers} workers.")
             else:
                 self.logger.info(f"Connecting to cluster {cluster}.")
             client = Client(cluster)
-            if nworkers:
-                self.logger.info(f"Running with {nworkers} dask distributed workers.")
-            self.logger.info(f"Running on dask cluster {cluster}.")
 
         # Change the current directory to the one of the CLI so that relative paths work
         abspath = os.path.abspath(__file__)

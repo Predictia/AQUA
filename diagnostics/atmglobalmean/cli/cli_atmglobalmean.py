@@ -80,13 +80,10 @@ if __name__ == '__main__':
     if nworkers or cluster:
         if not cluster:
             cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
-            logger.info(f"Initializing private cluster with {nworkers} workers.")
+            logger.info(f"Initializing private cluster {cluster.scheduler_address} with {nworkers} workers.")
         else:
             logger.info(f"Connecting to cluster {cluster}.")
         client = Client(cluster)
-        if nworkers:
-            logger.info(f"Running with {nworkers} dask distributed workers.")
-        logger.info(f"Running on dask cluster {cluster}.")
 
     # Acquiring model, experiment and source
     model = get_arg(args, 'model', config['data']['model'])

@@ -76,13 +76,10 @@ class Tropical_Rainfall_CLI:
         if nworkers or cluster:
             if not cluster:
                 cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
-                self.logger.info(f"Initializing private cluster with {nworkers} workers.")
+                self.logger.info(f"Initializing private cluster {cluster.scheduler_address} with {nworkers} workers.")
             else:
                 self.logger.info(f"Connecting to cluster {cluster}.")
             client = Client(cluster)
-            if nworkers:
-                self.logger.info(f"Running with {nworkers} dask distributed workers.")
-            self.logger.info(f"Running on dask cluster {cluster}.")
 
         self.rebuild_output = config['rebuild_output']
         if path_to_output is not None:
