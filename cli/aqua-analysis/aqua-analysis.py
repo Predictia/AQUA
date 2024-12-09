@@ -123,7 +123,8 @@ def get_args():
     parser.add_argument("-f", "--config", type=str, default="$AQUA/cli/aqua-analysis/config.aqua-analysis.yaml",
                         help="Configuration file")
     parser.add_argument("-c", "--catalog", type=str, help="Catalog")
-    parser.add_argument("-p", "--parallel", action="store_true", help="Run diagnostics in parallel")
+    parser.add_argument("--local_clusters", action="store_true", help="Use separate local clusters instead of single global one")
+    parser.add_argument("-p", "--parallel", action="store_true", help="Run diagnostics in parallel with a cluster")
     parser.add_argument("-t", "--threads", type=int, default=-1, help="Maximum number of threads")
     parser.add_argument("-l", "--loglevel", type=lambda s: s.upper(),
                         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
@@ -222,11 +223,16 @@ def main():
         else:
             logger.info("Setup checker completed successfully.")
 
+    if args.parallel
+        if args.local_clusters:
+            logger.info("Running diagnostics in parallel with separate local clusters.")
+        else:
+            cluster = LocalCluster(threads_per_worker=1)
+            os.environ["AQUA_DASK_CLUSTER"] = f"--cluster {cluster.scheduler_address}"
+            logger.info(f"Initialized global dask cluster {cluster.scheduler_address} providing {len(cluster.workers)} workers.")
+    else:
+        logger.info("Running diagnostics without a dask cluster.")
     
-    cluster = LocalCluster(threads_per_worker=1)
-    os.environ["AQUA_DASK_CLUSTER"] = f"--cluster {cluster.scheduler_address}"
-    logger.info(f"Initialized global dask cluster {cluster.scheduler_address} providing {len(cluster.workers)} workers.")
-
     with ThreadPoolExecutor(max_workers=max_threads if max_threads > 0 else None) as executor:
         futures = []
         for diagnostic in diagnostics:
