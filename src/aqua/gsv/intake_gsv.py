@@ -541,7 +541,7 @@ class GSVSource(base.DataSource):
 
         ds = xr.Dataset()
         
-        # Now work only with the variables which have been read (the fixer may change names later)
+        # Now works only with the variables which have been read (the fixer may change names later)
         # Notice that the mismatch between shortnames in different versions of eccodes is handled here
         # We consider stable between versions the paramId, not the shortName. This means that we read
         # the GRIB_paramid attribute and based on this we get the shortName from the eccodes definitions.
@@ -556,8 +556,7 @@ class GSVSource(base.DataSource):
             # has changed. This is a warning to the user. However the final variable name will be influenced
             # by this only if fix=False.
             if updated_var != var:
-                self.logger.warning("Variable %s has been written with another eccodes. Current eccodes %s will read paramid %s as %s", var, eccodes.__version__, original_paramid, updated_var)
-                #self.logger.warning("If you want to read the variable with the original name, set switch_eccodes=True in the catalog")
+                self.logger.warning("Variable shortname %s has been interpreted with another eccodes. Current eccodes %s will read paramid %s as %s", var, eccodes.__version__, original_paramid, updated_var)
             # Create a dask array from a list of delayed get_partition calls
             if not self.chunking_vertical:
                 dalist = [self.get_part_delayed(i, original_paramid, shape, dtype) for i in range(self.npartitions)]
