@@ -104,7 +104,6 @@ class GSVSource(base.DataSource):
         self.timeshift = timeshift
         self.itime = 0  # position of time dim
 
-        # not init
         self.ilevel = None
 
         if not var:  # if no var provided keep the default in the catalog
