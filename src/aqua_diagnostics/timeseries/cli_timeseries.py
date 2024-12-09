@@ -248,7 +248,7 @@ if __name__ == '__main__':
         config_gregory = config["gregory"]
 
         ts_name = config_gregory.get("ts", "2t")
-        toa_name = config_gregory.get("toa", ["mtnlwrf", "mtnswrf"])
+        toa_name = config_gregory.get("toa", ["tnlwrf", "tnswrf"])
         monthly = config_gregory.get("monthly", True)
         annual = config_gregory.get("annual", True)
         ref = config_gregory.get("ref", True)
