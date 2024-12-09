@@ -3,6 +3,7 @@ import os
 import sys
 import subprocess
 import argparse
+from dask.distributed import LocalCluster
 from aqua.logger import log_configure
 from aqua.util import load_yaml, create_folder
 
@@ -60,7 +61,10 @@ def run_diagnostic(diagnostic: str, script_path: str, extra_args: str, loglevel:
     except Exception as e:
         logger.error(f"Failed to run diagnostic {diagnostic}: {e}")
 
-def run_diagnostic_func(diagnostic: str, parallel: bool = False, config=None, model='default_model', exp='default_exp', source='default_source', output_dir='./output', loglevel='INFO', logger=None, aqua_path=''):
+def run_diagnostic_func(diagnostic: str, parallel: bool = False, 
+                        config=None, model='default_model', exp='default_exp', 
+                        source='default_source', output_dir='./output', loglevel='INFO', 
+                        logger=None, aqua_path=''):
     """
     Run the diagnostic and log the output, handling parallel processing if required.
 
@@ -217,6 +221,11 @@ def main():
             logger.warning("Oceanic model not found, it will be skipped.")
         else:
             logger.info("Setup checker completed successfully.")
+
+    
+    cluster = LocalCluster(threads_per_worker=1)
+    os.environ["AQUA_DASK_CLUSTER"] = f"--cluster {cluster.scheduler_address}"
+    logger.info(f"Running with dask cluster {cluster.scheduler_address}")
 
     with ThreadPoolExecutor(max_workers=max_threads if max_threads > 0 else None) as executor:
         futures = []

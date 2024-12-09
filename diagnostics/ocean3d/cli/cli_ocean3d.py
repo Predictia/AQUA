@@ -195,6 +195,9 @@ class Ocean3DCLI:
         if nworkers or cluster:
             if not cluster:
                 cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+                self.logger.info(f"Initializing private cluster with {nworkers} workers.")
+            else:
+                self.logger.info(f"Connecting to cluster {cluster}.")
             client = Client(cluster)
             if nworkers:
                 self.logger.info(f"Running with {nworkers} dask distributed workers.")

@@ -56,18 +56,18 @@ diagnostics:
     nworkers: 16
   global_time_series_atm:
     script_path: "global_time_series/cli/cli_global_time_series.py"
-    extra: "--config ${AQUA}/diagnostics/global_time_series/cli/config_time_series_atm.yaml"
+    extra: "${AQUA_DASK_CLUSTER} --config ${AQUA}/diagnostics/global_time_series/cli/config_time_series_atm.yaml"
     nworkers: 16
     outname: global_time_series
   global_time_series_oce:
     script_path: "global_time_series/cli/cli_global_time_series.py"
-    extra: "--config ${AQUA}/diagnostics/global_time_series/cli/config_time_series_oce.yaml"
+    extra: "${AQUA_DASK_CLUSTER} --config ${AQUA}/diagnostics/global_time_series/cli/config_time_series_oce.yaml"
     nworkers: 8
     outname: global_time_series
   seasonal_cycles:
     script_path: "global_time_series/cli/cli_global_time_series.py"
     nworkers: 16
-    extra: "--config ${AQUA}/diagnostics/global_time_series/cli/config_seasonal_cycles_atm.yaml"
+    extra: "${AQUA_DASK_CLUSTER} --config ${AQUA}/diagnostics/global_time_series/cli/config_seasonal_cycles_atm.yaml"
   radiation:
     nworkers: 8
   teleconnections_atm:
@@ -78,16 +78,16 @@ diagnostics:
     # --ref (if set it will analyze also the reference data, it is set
     #        by default)
     # --interface (custom interface file)
-    extra: "--config ${AQUA}/diagnostics/teleconnections/cli/cli_config_atm.yaml --ref"
+    extra: "${AQUA_DASK_CLUSTER} --config ${AQUA}/diagnostics/teleconnections/cli/cli_config_atm.yaml --ref"
     outname: teleconnections
   teleconnections_oce:
     script_path: "teleconnections/cli/cli_teleconnections.py"
     nworkers: 4
-    extra: "--config ${AQUA}/diagnostics/teleconnections/cli/cli_config_oce.yaml --ref"
+    extra: "${AQUA_DASK_CLUSTER} --config ${AQUA}/diagnostics/teleconnections/cli/cli_config_oce.yaml --ref"
     outname: teleconnections
   tropical_rainfall:
     nworkers: 16
-    extra: "--regrid=r100 --freq=M --xmax=75 --bufferdir=${OUTPUT}/tropical_rainfall/"
+    extra: "${AQUA_DASK_CLUSTER} --regrid=r100 --freq=M --xmax=75 --bufferdir=${OUTPUT}/tropical_rainfall/"
   ecmean:
     nworkers: 4
     # Command line extra arguments for ecmean:
@@ -97,11 +97,11 @@ diagnostics:
   ocean3d_drift:
     script_path: "ocean3d/cli/cli_ocean3d.py"
     nworkers: 8
-    extra: "--config ${AQUA}/diagnostics/ocean3d/cli/config.drift.yaml"
+    extra: "${AQUA_DASK_CLUSTER} --config ${AQUA}/diagnostics/ocean3d/cli/config.drift.yaml"
   ocean3d_circulation:
     script_path: "ocean3d/cli/cli_ocean3d.py"
     nworkers: 4
-    extra: "--config ${AQUA}/diagnostics/ocean3d/cli/config.circulation.yaml"
+    extra: "${AQUA_DASK_CLUSTER} --config ${AQUA}/diagnostics/ocean3d/cli/config.circulation.yaml"
   seaice_volume:
     script_path: "seaice/cli/cli_seaice.py"
     nworkers: 4
@@ -110,16 +110,16 @@ diagnostics:
     #               (default is False)
     # --config (seaice config file)
     # --regrid (regrid data to a different grid)
-    extra: "--config ${AQUA}/diagnostics/seaice/cli/config_Volume.yaml"
+    extra: "${AQUA_DASK_CLUSTER} --config ${AQUA}/diagnostics/seaice/cli/config_Volume.yaml"
   seaice_thick:
     script_path: "seaice/cli/cli_seaice.py"
     nworkers: 4
-    extra: "--config ${AQUA}/diagnostics/seaice/cli/config_Thickness.yaml"
+    extra: "${AQUA_DASK_CLUSTER} --config ${AQUA}/diagnostics/seaice/cli/config_Thickness.yaml"
   seaice_conc:
     script_path: "seaice/cli/cli_seaice.py"
     nworkers: 4
-    extra: "--config ${AQUA}/diagnostics/seaice/cli/config_Concentration.yaml"
+    extra: "${AQUA_DASK_CLUSTER} --config ${AQUA}/diagnostics/seaice/cli/config_Concentration.yaml"
   seaice_extent:
     script_path: "seaice/cli/cli_seaice.py"
     nworkers: 4
-    extra: "--config ${AQUA}/diagnostics/seaice/cli/config_Extent.yaml"
+    extra: "${AQUA_DASK_CLUSTER} --config ${AQUA}/diagnostics/seaice/cli/config_Extent.yaml"
