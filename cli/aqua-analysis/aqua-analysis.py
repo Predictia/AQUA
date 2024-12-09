@@ -223,7 +223,7 @@ def main():
         else:
             logger.info("Setup checker completed successfully.")
 
-    if args.parallel
+    if args.parallel:
         if args.local_clusters:
             logger.info("Running diagnostics in parallel with separate local clusters.")
         else:
