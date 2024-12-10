@@ -227,7 +227,7 @@ def main():
         if args.local_clusters:
             logger.info("Running diagnostics in parallel with separate local clusters.")
         else:
-            cluster = LocalCluster(threads_per_worker=1)
+            cluster = LocalCluster(threads_per_worker=1, n_workers=128, memory_limit="1.5GiB")
             os.environ["AQUA_DASK_CLUSTER"] = f"--cluster {cluster.scheduler_address}"
             logger.info(f"Initialized global dask cluster {cluster.scheduler_address} providing {len(cluster.workers)} workers.")
     else:
