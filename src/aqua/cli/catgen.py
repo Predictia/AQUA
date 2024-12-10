@@ -299,7 +299,7 @@ class AquaFDBGenerator:
                 combined = {**self.config, **content}
                 self.logger.debug('Creating catalog entry for %s', combined['source'])
                 #self.logger.debug(combined)
-                for replacepath in ['fdb_home', 'fdb_home_bridge', 'eccodes_path']:
+                for replacepath in ['fdb_home', 'fdb_home_bridge']:
                     if 'replacepath' in combined:
                         combined[replacepath] = '"' + replace_intake_vars(combined[replacepath], catalog=combined['catalog_dir']) + '"'
                 all_content.append(self.template.render(combined))
