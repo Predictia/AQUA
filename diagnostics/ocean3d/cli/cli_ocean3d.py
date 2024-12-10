@@ -145,6 +145,8 @@ class Ocean3DCLI:
         if self.config["ocean_circulation"]:
             if self.config["ocean_circulation"]["compare_model_with_obs"]== True:
                 o3d_request["obs_data"] = self.data["obs_data"]
+            else:
+                o3d_request["obs_data"] = None
 
         return o3d_request
 

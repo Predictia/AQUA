@@ -58,13 +58,15 @@ def plot_spatial_mld_clim(o3d_request,
 
 
     if overlap:
-        obs_data = crop_obs_overlap_time(mod_data, obs_data)
-        mod_data = crop_obs_overlap_time(obs_data, mod_data)
+        if obs_data:
+            obs_data = crop_obs_overlap_time(mod_data, obs_data)
+            mod_data = crop_obs_overlap_time(obs_data, mod_data)
 
     mod_clim, time = data_for_plot_spatial_mld_clim(mod_data, region, time,
                                                     lat_s, lat_n, lon_w, lon_e)  # To select the month and compute its climatology
-    obs_clim, time = data_for_plot_spatial_mld_clim(obs_data, region, time,
-                                                    lat_s, lat_n, lon_w, lon_e)  # To select the month and compute its climatology
+    if obs_data:
+        obs_clim, time = data_for_plot_spatial_mld_clim(obs_data, region, time,
+                                                        lat_s, lat_n, lon_w, lon_e)  # To select the month and compute its climatology
     # obs_data=crop_obs_overlap_time(mod_data, obs_data)
 
     # We identify the first year used in the climatology
@@ -72,13 +74,15 @@ def plot_spatial_mld_clim(o3d_request,
     # We identify the last year used in the climatology
     myr2 = mod_data.time.dt.year[-1].values
 
-    # We identify the first year used in the climatology
-    oyr1 = obs_data.time.dt.year[0].values
-    # We identify the last year used in the climatology
-    oyr2 = obs_data.time.dt.year[-1].values
+    if obs_data:
+        # We identify the first year used in the climatology
+        oyr1 = obs_data.time.dt.year[0].values
+        # We identify the last year used in the climatology
+        oyr2 = obs_data.time.dt.year[-1].values
 
     mod_clim = mod_clim["rho"]
-    obs_clim = obs_clim["rho"]
+    if obs_data:
+        obs_clim = obs_clim["rho"]
 
 
     logger.info("Spatial MLD plot is in process")
@@ -92,7 +96,10 @@ def plot_spatial_mld_clim(o3d_request,
     clev1 = 0.0
     # We round up to next hundreth
     # clev2 = max(np.max(mod_clim), np.max(obs_clim))
-    clev2 = np.max(obs_clim)
+    if obs_data:
+        clev2 = np.max(obs_clim)
+    else: 
+        clev2 = np.max(mod_clim)
 
     # print(clev2)
     if clev2 < 200:
@@ -111,30 +118,35 @@ def plot_spatial_mld_clim(o3d_request,
     cs1 = axs[0].contourf(mod_clim.lon, mod_clim.lat, mod_clim,
                           levels=np.linspace(clev1, clev2, nclev), cmap='jet')
     fig.colorbar(cs1, location="bottom", label='Mixed layer depth (in m)')
+    if obs_data:
+        cs1 = axs[1].contourf(obs_clim.lon, obs_clim.lat, obs_clim,
+                            levels=np.linspace(clev1, clev2, nclev), cmap='jet')
 
-    cs1 = axs[1].contourf(obs_clim.lon, obs_clim.lat, obs_clim,
-                          levels=np.linspace(clev1, clev2, nclev), cmap='jet')
-
-    fig.colorbar(cs1, location="bottom", label='Mixed layer depth (in m)')
+        fig.colorbar(cs1, location="bottom", label='Mixed layer depth (in m)')
 
 
     axs[0].set_title(f"Model climatology {myr1}-{myr2}", fontsize=18)
     axs[0].set_ylabel("Latitude", fontsize=14)
     axs[0].set_xlabel("Longitude", fontsize=14)
     axs[0].set_facecolor('grey')
+    if obs_data:
 
-    axs[1].set_title(f"EN4 OBS climatology {oyr1}-{oyr2}", fontsize=18)
-    # axs[1].set_ylabel("Latitude", fontsize=12)
-    axs[1].set_xlabel("Longitude", fontsize=14)
-    axs[1].set_yticklabels([])
-    axs[1].set_facecolor('grey')
+        axs[1].set_title(f"EN4 OBS climatology {oyr1}-{oyr2}", fontsize=18)
+        # axs[1].set_ylabel("Latitude", fontsize=12)
+        axs[1].set_xlabel("Longitude", fontsize=14)
+        axs[1].set_yticklabels([])
+        axs[1].set_facecolor('grey')
+    else:
+        axs[1].set_title(f"Observation data not available", fontsize=18)
+        
 
     plt.subplots_adjust(top=0.85, wspace=0.1)
 
     if output:
         filename = file_naming(region, lat_s, lat_n, lon_w, lon_e, plot_name=f"{model}-{exp}-{source}_spatial_MLD_{time}")
         write_data(output_dir,f"{filename}_mod_clim", mod_clim)
-        write_data(output_dir,f"{filename}_obs_clim", obs_clim)
+        if obs_data:
+            write_data(output_dir,f"{filename}_obs_clim", obs_clim)
         export_fig(output_dir, filename , "pdf", metadata_value = title, loglevel= loglevel)
 
     plt.show()

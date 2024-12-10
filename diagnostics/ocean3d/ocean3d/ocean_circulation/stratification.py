@@ -7,14 +7,17 @@ class stratification:
         self.logger = log_configure(self.loglevel, 'stratification')
 
     def prepare_data_list(self):
-        self.obs_data = crop_obs_overlap_time(self.data, self.obs_data)
+        if self.obs_data:
+            self.obs_data = crop_obs_overlap_time(self.data, self.obs_data)
 
-        obs_data, time = prepare_data_for_stratification_plot(
-            self.obs_data, self.region, self.time, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
+            obs_data, time = prepare_data_for_stratification_plot(
+                self.obs_data, self.region, self.time, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
         data, self.time = prepare_data_for_stratification_plot(
             self.data, self.region, self.time, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
-        data_list, self.obs_data = compare_arrays(data, obs_data)
-
+        if self.obs_data:
+            data_list, self.obs_data = compare_arrays(data, obs_data)
+        else:
+            data_list = [data]
         data_list = list(
             filter(lambda value: value is not None, data_list))
         return data_list
