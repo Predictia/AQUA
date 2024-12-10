@@ -7,16 +7,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+## [v0.13-alpha]
+
+Main changes are:
+1. A refactor of the fixes, with a new common main convention table is available, based on eccodes.
+2. Diagnostics are updated to work with the new fixes and the new eccodes version. This is not yet complete and will be finalized in the next release.
+3. The FDB reader always rely on paramids, so that support for eccodes 2.39.0 and backward compatibility is ensured.
+
 AQUA core complete list:
+- Added the `cdo_options: "--force"` to the definitions of the HealPix grids (#1527)
+- Removing default fixes (#1519)
+- Support for eccodes=2.39.0 with full fixes refactoring (#1519)
+- Dashboard: Moved making of contents yaml to local hpc (#1470)
+- Support for new smmregrid==0.1.0 including simpler weights and area generation (#1395)
+- Removing cdo pin for more recent versions (#1395)
+- Change `bridge_end_date` convention (#1498)
 - `catgen` to support data bridge options (#1499)
 - Enhance OutputSaver with Improved File Handling, Logging, and NetCDF Write Modes (#1495)
-- Introduction a specific pipeline and tests for `catgen`utiliy (#1505)
+- Introduction a specific pipeline and tests for `catgen` utiliy (#1505)
 - Remove pin on xarray (#1507)
-- FDB reader internally always asks for paramids (#1491, #1508)
+- FDB reader internally always asks for paramids (#1491, #1508, #1529)
 - Introduction of a convention table for the fixer, in order to create a more general fixer (#1488, #1506)
 - Refactor of `cli_lra_parallel_slurm.py` to work with container via jinja (#1497) 
-- Convert `aqua-analysis.sh` to Python with Subprocess and Multiprocessing Support (#1354)
-- Eccodes version 2.38.3 and new base container for aqua-container (#1441)
+- Convert `aqua-analysis.sh` to Python with Subprocess and Multiprocessing Support (#1354, #1521)
+- New base container for aqua-container (#1441)
 - Autodetection of latest AQUA in `load-aqua-container.sh` script (#1437)
 - Update Metadata Handling for NetCDF, PDF, and PNG Outputs (#1430)
 - Add instructions to install AQUA on MN5 (#1468)
@@ -702,7 +716,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.12.2...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-alpha...HEAD
+[v0.13-alpha]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.12.2...v0.13-alpha
 [v0.12.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.12.1...v0.12.2
 [v0.12.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.12...v0.12.1
 [v0.12]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11.3...v0.12

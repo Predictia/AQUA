@@ -251,16 +251,21 @@ class FixerMixin():
                     else:
                         self.logger.error("Parent fix %s defined but not available in the fixes file.", fixes['parent'])
 
+            return fixes
+
+        # if not fixes found, return fixes None
+        return None
+
         # check the default in alternative
-        else:
-            default_fixer_name = self.model + '-default'
-            self.logger.warning('No specific fix found, will call the default fix %s, this is deprecated and will be removed', default_fixer_name)
-            fixes = self.fixes_dictionary["fixer_name"].get(default_fixer_name)
-            if fixes is None:
-                self.logger.warning("The requested default fixer name %s does not exist in fixes files", default_fixer_name)
-                return None
-            else:
-                self.logger.warning("Fix names %s found in fixes files. This is a default fixer_name and will be deprecated", default_fixer_name)
+        #else:
+        #    default_fixer_name = self.model + '-default'
+        #    self.logger.warning('No specific fix found, will call the default fix %s, this is deprecated and will be removed', default_fixer_name)
+        #    fixes = self.fixes_dictionary["fixer_name"].get(default_fixer_name)
+        #    if fixes is None:
+        #        self.logger.warning("The requested default fixer name %s does not exist in fixes files", default_fixer_name)
+        #        return None
+        #    else:
+        #        self.logger.warning("Fix names %s found in fixes files. This is a default fixer_name and will be deprecated", default_fixer_name)
 
         # # if found, proceed as expected
         # if fixes is not None:
@@ -275,8 +280,6 @@ class FixerMixin():
         #             self.logger.error("Parent fix %s defined but not available in the fixes file.", fixes['parent'])
         # else:
         #     return None
-
-        return fixes
 
     def _merge_fixes(self, base, specific):
         """
@@ -569,7 +572,7 @@ class FixerMixin():
                         data[source].attrs.update({"tgt_units": tgt_units})
                         for key, value in conversion_dictionary.items():
                             data[source].attrs.update({key: value})
-                            self.logger.debug("Fixing %s to %s. Unit fix: %s=%f", source, var, key, value)
+                            self.logger.debug("Fixing %s to %s. Unit fix: %s=%f", source, var, key, float(value))
                             log_history(data[source], f"Fixing {source} to {var}. Unit fix: {key}={value}")
 
                 # Set to NaN before a certain date
@@ -1115,6 +1118,7 @@ class FixerMixin():
         # dependency in the unit factor conversion
         if "second" in str(factor.units):
             conversion['time_conversion_flag'] = 1
+            conversion['deltat'] = str(self.deltat)
 
         if factor.units == units('dimensionless'):
             offset = (0 * units(src)).to(units(dst)) - (0 * units(dst))
