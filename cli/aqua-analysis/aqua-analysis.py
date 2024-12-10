@@ -229,7 +229,11 @@ def main():
             logger.info("Running diagnostics in parallel with separate local clusters.")
             cluster = None
         else:
-            cluster = LocalCluster(threads_per_worker=2, n_workers=64, memory_limit="3.1GiB", silence_logs=logging.ERROR)  # avoids excessive logging (see https://github.com/dask/dask/issues/9888)
+            nthreads = config.get('cluster', {}).get('threads', 2)
+            nworkers = config.get('cluster', {}).get('workers', 64)
+            mem_limit = config.get('cluster', {}).get('memory_limit', "3.1GiB")
+
+            cluster = LocalCluster(threads_per_worker=nthreads, n_workers=nworkers, memory_limit=mem_limit, silence_logs=logging.ERROR)  # avoids excessive logging (see https://github.com/dask/dask/issues/9888)
             os.environ["AQUA_DASK_CLUSTER"] = f"--cluster {cluster.scheduler_address}"
             logger.info(f"Initialized global dask cluster {cluster.scheduler_address} providing {len(cluster.workers)} workers.")
     else:

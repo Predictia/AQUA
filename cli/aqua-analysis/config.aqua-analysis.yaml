@@ -5,7 +5,7 @@
 
 job:
     # The max_threads variable serves as a mechanism to control the maximum number of threads
-    # or parallel processes that can run simultaneously.
+    # i.e. diagnostic scripts that can run concurrently.
     # - If max_threads is set to 0 or a negative value: There is no limit on the number of threads,
     #                                                   and all processes run in parallel without waiting. 
     #                                                   This is suitable for situations where you want to utilize
@@ -32,6 +32,11 @@ job:
     source: "lra-r100-monthly"
 
     script_path_base: "${AQUA}/diagnostics"  # Base directory for the diagnostic scripts
+
+cluster:  # options for dask cluster
+    workers: 64
+    threads: 1  # per worker
+    memory_limit: 3.5GiB  # per worker
 
 diagnostics:
 
