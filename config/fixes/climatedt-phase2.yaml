@@ -1,0 +1,9 @@
+fixer_name:
+    climatedt-phase2-production:
+        deltat: 3600  # true only for atm. 
+        data_model: false
+        convention: eccodes
+    climatedt-phase2-reduced:
+        deltat: monthly
+        data_model: false
+        convention: eccodes
