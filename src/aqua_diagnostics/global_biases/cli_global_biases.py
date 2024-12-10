@@ -97,7 +97,7 @@ def main():
 
         # Calculate 'tnr' if applicable
         if 'tnr' in variables:
-            data['tnr'] = data['mtnlwrf'] + data['mtnswrf']
+            data['tnr'] = data['tnlwrf'] + data['tnswrf']
 
     except Exception as e:
         logger.error(f"No model data found: {e}")
@@ -110,7 +110,7 @@ def main():
 
         # Calculate 'tnr' for observations if applicable
         if 'tnr' in variables:
-            data_obs['tnr'] = data_obs['mtnlwrf'] + data_obs['mtnswrf']
+            data_obs['tnr'] = data_obs['tnlwrf'] + data_obs['tnswrf']
 
     except Exception as e:
         logger.error(f"No observation data found: {e}")
