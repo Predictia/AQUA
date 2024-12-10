@@ -3,6 +3,7 @@ import os
 import sys
 import subprocess
 import argparse
+import logging
 from dask.distributed import LocalCluster
 from aqua.logger import log_configure
 from aqua.util import load_yaml, create_folder
@@ -226,12 +227,14 @@ def main():
     if args.parallel:
         if args.local_clusters:
             logger.info("Running diagnostics in parallel with separate local clusters.")
+            cluster = None
         else:
-            cluster = LocalCluster(threads_per_worker=1, n_workers=128, memory_limit="1.5GiB")
+            cluster = LocalCluster(threads_per_worker=2, n_workers=64, memory_limit="3.1GiB", silence_logs=logging.ERROR)  # avoids excessive logging (see https://github.com/dask/dask/issues/9888)
             os.environ["AQUA_DASK_CLUSTER"] = f"--cluster {cluster.scheduler_address}"
             logger.info(f"Initialized global dask cluster {cluster.scheduler_address} providing {len(cluster.workers)} workers.")
     else:
         logger.info("Running diagnostics without a dask cluster.")
+        cluster = None
     
     with ThreadPoolExecutor(max_workers=max_threads if max_threads > 0 else None) as executor:
         futures = []
@@ -256,7 +259,11 @@ def main():
             except Exception as e:
                 logger.error(f"Diagnostic raised an exception: {e}")
 
-    logger.info("All diagnostics finished successfully.")
+    if cluster:
+        cluster.close()
+        logger.info("Dask cluster closed.")
+    
+    logger.info("All diagnostics finished.")
 
 
 if __name__ == "__main__":

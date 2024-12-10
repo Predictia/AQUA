@@ -9,6 +9,7 @@ experiments and gregory plot.
 import argparse
 import os
 import sys
+
 from dask.distributed import Client, LocalCluster
 
 from aqua.util import load_yaml, get_arg
@@ -126,7 +127,9 @@ if __name__ == '__main__':
         else:
             logger.info(f"Connecting to cluster {cluster}.")
         client = Client(cluster)
-
+    else:
+        client = None
+    
     # Load configuration file
     file = get_arg(args, "config", "config_time_series_atm.yaml")
     logger.info(f"Reading configuration file {file}")
@@ -359,4 +362,8 @@ if __name__ == '__main__':
             except Exception as e:
                 logger.error(f"Error plotting {var} seasonal cycle: {e}")
 
-    logger.info("Global Time Series is terminated.")
+    if client:
+        client.close()
+        logger.debug("Dask client closed.")
+
+    logger.info("Global Time Series has finished.")

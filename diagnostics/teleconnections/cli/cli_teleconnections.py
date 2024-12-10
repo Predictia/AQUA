@@ -86,7 +86,9 @@ if __name__ == '__main__':
         else:
             logger.info(f"Connecting to cluster {cluster}.")
         client = Client(cluster)
-
+    else:
+        client = None
+    
     # Read configuration file
     file = get_arg(args, 'config', 'cli_config_atm.yaml')
     logger.info('Reading configuration yaml file: {}'.format(file))
@@ -581,4 +583,8 @@ if __name__ == '__main__':
                         except FileNotFoundError as e:
                             logger.error('Error adding metadata to %s: %s', map_names[i], e)
 
+    if client:
+        client.close()
+        logger.debug("Dask client closed.")
+    
     logger.info('Teleconnections diagnostic finished.')

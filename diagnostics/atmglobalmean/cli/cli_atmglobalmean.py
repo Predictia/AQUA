@@ -3,11 +3,11 @@ import sys
 import os
 import argparse
 
+from dask.distributed import Client, LocalCluster
+
 from aqua.util import load_yaml, get_arg
 from aqua import Reader
 from aqua.logger import log_configure
-
-from dask.distributed import Client, LocalCluster
 
 def parse_arguments(args):
     """Parse command line arguments"""
@@ -84,6 +84,8 @@ if __name__ == '__main__':
         else:
             logger.info(f"Connecting to cluster {cluster}.")
         client = Client(cluster)
+    else:
+        client = None
 
     # Acquiring model, experiment and source
     model = get_arg(args, 'model', config['data']['model'])
@@ -203,4 +205,8 @@ if __name__ == '__main__':
             except Exception as e:
                 logger.error(f"An unexpected error occurred: {e}")
 
-    logger.info("Atmospheric global mean biases diagnostic is terminated.")
+    if client:
+        client.close()
+        logger.debug("Dask client closed.")
+    
+    logger.info("Atmospheric global mean biases diagnostic has finished.")

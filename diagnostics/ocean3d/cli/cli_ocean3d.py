@@ -5,7 +5,7 @@ import sys
 from dask.distributed import Client, LocalCluster
 
 from aqua import Reader
-from aqua.util import load_yaml
+from aqua.util import load_yaml, get_arg
 
 from ocean3d import check_variable_name
 from ocean3d import stratification
@@ -199,7 +199,9 @@ class Ocean3DCLI:
             else:
                 self.logger.info(f"Connecting to cluster {cluster}.")
             client = Client(cluster)
-
+        else:
+            client = None
+        
         # Change the current directory to the one of the CLI so that relative paths work
         abspath = os.path.abspath(__file__)
         dname = os.path.dirname(abspath)
@@ -221,7 +223,11 @@ class Ocean3DCLI:
         if self.config["ocean_circulation"]:
             self.ocean_circulation_diags()
 
-        self.logger.warning("Ocean3D diagnostic terminated!")
+        if client:
+            client.close()
+            self.logger.debug("Dask client closed.")
+
+        self.logger.warning("Ocean3D diagnostic has finished.")
 
 
 def parse_arguments(args):

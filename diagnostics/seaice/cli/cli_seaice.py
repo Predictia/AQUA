@@ -101,7 +101,9 @@ if __name__ == '__main__':
         else:
             logger.info(f"Connecting to cluster {cluster}.")
         client = Client(cluster)
-
+    else:
+        client = None
+    
     # Outputdir
     outputdir = get_arg(args, 'outputdir', None)
     logger.debug(f"Output directory: {outputdir}")
@@ -158,18 +160,22 @@ if __name__ == '__main__':
         analyzer = SeaIceVolume(config=config, outputdir=outputdir,
                                 loglevel=loglevel)
         run_analyzer(analyzer)
-        logger.info("sea ice diagnostic Volume terminated!")
+        logger.info("sea ice diagnostic Volume has finished.")
 
     if run_concentration:
         logger.info("Running sea ice concentration diagnostic...")
         analyzer = SeaIceConcentration(config=config, outputdir=outputdir,
                                 loglevel=loglevel)
         run_analyzer(analyzer)
-        logger.info("sea ice diagnostic Concentration terminated!")
+        logger.info("sea ice diagnostic Concentration has finished.")
 
     if run_thickness:
         logger.info("Running sea ice thickness diagnostic...")
         analyzer = SeaIceThickness(config=config, outputdir=outputdir,
                                 loglevel=loglevel)
         run_analyzer(analyzer)
-        logger.info("sea ice diagnostic Thickness terminated!")   
+        logger.info("sea ice diagnostic Thickness has finished.")
+
+    if client:
+        client.close()
+        logger.debug("Dask client closed.")

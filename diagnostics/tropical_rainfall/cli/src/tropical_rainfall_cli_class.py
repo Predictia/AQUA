@@ -79,8 +79,10 @@ class Tropical_Rainfall_CLI:
                 self.logger.info(f"Initializing private cluster {cluster.scheduler_address} with {nworkers} workers.")
             else:
                 self.logger.info(f"Connecting to cluster {cluster}.")
-            client = Client(cluster)
-
+            self.client = Client(cluster)
+        else:
+            self.client = None
+            
         self.rebuild_output = config['rebuild_output']
         if path_to_output is not None:
             create_folder(path_to_output)
