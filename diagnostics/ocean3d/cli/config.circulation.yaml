@@ -11,7 +11,7 @@ nworkers: 3
 #   end_year : 1991
    
 ocean_circulation: #specify region and climatology time
-  compare_model_with_obs: False
+  compare_model_with_obs: True
   regions:
     Labrador Sea : DJF
     Irminger Sea : DJF
