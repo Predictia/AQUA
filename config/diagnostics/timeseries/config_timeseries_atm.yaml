@@ -3,10 +3,16 @@
 # --model, --exp, --source, --outputdir, --catalog
 models:
   - catalog: null
-    model: 'IFS-NEMO'
-    exp: 'ssp370'
+    model: null
+    exp: null
     source: 'lra-r100-monthly'
-outputdir: "./"
+
+output:
+  outputdir: "./"
+  rebuild: true
+  save_pdf: true
+  save_png: true
+  dpi: 300
 
 # This is the list of variables that will be plotted as timeseries
 timeseries: ['2t', 'ie', 'msl',

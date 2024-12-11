@@ -28,21 +28,21 @@ diagnostic_config = {
             'target_path': 'diagnostics/ecmean/cli'
         }
     ],
-    'global_time_series': [
+    'timeseries': [
         {
-            'config_file': 'config_seasonal_cycles_atm.yaml',
-            'source_path': 'diagnostics/global_time_series/cli',
-            'target_path': 'diagnostics/global_time_series/cli'
+            'config_file': 'config_seasonalcycles_atm.yaml',
+            'source_path': 'config/diagnostics/timeseries',
+            'target_path': 'diagnostics/timeseries'
         },
         {
-            'config_file': 'config_time_series_atm.yaml',
-            'source_path': 'diagnostics/global_time_series/cli',
-            'target_path': 'diagnostics/global_time_series/cli'
+            'config_file': 'config_timeseries_atm.yaml',
+            'source_path': 'config/diagnostics/timeseries',
+            'target_path': 'diagnostics/timeseries'
         },
         {
-            'config_file': 'config_time_series_oce.yaml',
-            'source_path': 'diagnostics/global_time_series/cli',
-            'target_path': 'diagnostics/global_time_series/cli'
+            'config_file': 'config_timeseries_oce.yaml',
+            'source_path': 'config/diagnostics/timeseries',
+            'target_path': 'diagnostics/timeseries'
         }
     ],
     'ocean3d': [
