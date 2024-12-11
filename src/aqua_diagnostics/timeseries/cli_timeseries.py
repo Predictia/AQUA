@@ -142,6 +142,10 @@ if __name__ == '__main__':
         exp_list.append(model['exp'])
         source_list.append(model['source'])
 
+    # Check if models_list or exp_list are empty or a list of None
+    if not any(models_list) or not any(exp_list):
+        raise ValueError("No models or experiments provided, please use the config file or the command line arguments.")
+
     outputdir = get_arg(args, "outputdir", config['output'].get("outputdir"))
     rebuild = config['output'].get("rebuild")
     save_pdf = config['output'].get("save_pdf")
