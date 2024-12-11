@@ -97,11 +97,11 @@ def plot_spatial_mld_clim(o3d_request,
     # We round up to next hundreth
     # clev2 = max(np.max(mod_clim), np.max(obs_clim))
     if obs_data:
-        clev2 = np.max(obs_clim)
+        clev2 = obs_clim.max()
+        
     else: 
-        clev2 = np.max(mod_clim)
+        clev2 = mod_clim.max()
 
-    # print(clev2)
     if clev2 < 200:
         inc = 10
         clev2 = round(int(clev2), -1)

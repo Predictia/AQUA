@@ -8,10 +8,12 @@ class stratification:
 
     def prepare_data_list(self):
         if self.obs_data:
+            self.logger.debug("Preparing data for Observation")
             self.obs_data = crop_obs_overlap_time(self.data, self.obs_data)
 
             obs_data, time = prepare_data_for_stratification_plot(
                 self.obs_data, self.region, self.time, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
+            self.logger.debug("Data for Observation is done.")
         data, self.time = prepare_data_for_stratification_plot(
             self.data, self.region, self.time, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
         if self.obs_data:
@@ -20,6 +22,7 @@ class stratification:
             data_list = [data]
         data_list = list(
             filter(lambda value: value is not None, data_list))
+        self.logger.debug("Data prepared for the stratification")
         return data_list
 
     def plot(self):
@@ -36,7 +39,7 @@ class stratification:
         if self.time in ["Yearly"]:
             start_year = data_list[0].time[0].data
             end_year = data_list[0].time[-1].data
-            logger.debug(end_year)
+            # logger.debug(end_year)
         else:
             start_year = data_list[0].time[0].dt.year.data
             end_year = data_list[0].time[-1].dt.year.data
@@ -56,7 +59,6 @@ class stratification:
                 if self.time in ["Yearly"]:
                     start_year_data_2 = data_list[1].time[0].data
                     end_year_data_2 = data_list[1].time[-1].data
-                    logger.debug(end_year)
                 else:
                     start_year_data_2 = data_list[1].time[0].dt.year.data
                     end_year_data_2 = data_list[1].time[-1].dt.year.data

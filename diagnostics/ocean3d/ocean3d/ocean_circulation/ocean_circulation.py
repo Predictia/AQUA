@@ -65,7 +65,7 @@ def convert_avg_thetao(absso, avg_thetao, loglevel= "WARNING"):
 
     """
     logger = log_configure(loglevel, 'convert_avg_thetao')
-    x = np.sqrt(0.0248826675584615*absso)
+    x = xr.ufuncs.sqrt(0.0248826675584615 * absso)
     y = avg_thetao*0.025e0
     enthalpy = 61.01362420681071e0 + y*(168776.46138048015e0 +
                                         y*(-2735.2785605119625e0 + y*(2574.2164453821433e0 +
@@ -116,7 +116,7 @@ def compute_rho(absso, bigavg_thetao, ref_pressure, loglevel= "WARNING"):
     CTu = 40.
     Zu = 1e4
     deltaS = 32.
-    ss = np.sqrt((absso+deltaS)/SAu)
+    ss = xr.ufuncs.sqrt((absso+deltaS)/SAu)
     tt = bigavg_thetao / CTu
     pp = ref_pressure / Zu
 
@@ -317,7 +317,7 @@ def compute_mld_cont(rho, loglevel= "WARNING"):
         ["lev"])  # rho diff in second lev
     mld = cutoff_lev1+((ddif)*(rdif1))/(rdif1-rdif2)
     # The MLD is set as the maximum depth if the threshold is not exceeded before
-    mld = np.fmin(mld, depth)
+    mld = xr.ufuncs.fmin(mld, depth)
     # mld=mld.rename("mld")
 
     return mld

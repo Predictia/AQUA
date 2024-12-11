@@ -239,7 +239,9 @@ def weighted_area_mean(data, region=None, lat_s: float = None, lat_n: float = No
     logger = log_configure(loglevel, 'weighted_area_mean')
     data = area_selection(data, region, lat_s,
                           lat_n, lon_w, lon_e)
-    weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
+    # weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
+    weights = xr.ufuncs.cos(xr.ufuncs.deg2rad(data.lat))
+    weighted_data = data.weighted(weights)
     wgted_mean = weighted_data.mean("lat").mean("lon")
     logger.debug(wgted_mean)   
     return wgted_mean
@@ -311,7 +313,7 @@ def load_obs_data(model='EN4', exp='en4', source='monthly', loglevel= "WARNING")
     return den4
 
 
-def crop_obs_overlap_time(data1, data2, loglevel= "WARNING"):
+def crop_obs_overlap_time(data1, data2, loglevel="WARNING"):
     """
     Crop the observational data to the overlapping time period with the model data.
 
@@ -325,12 +327,11 @@ def crop_obs_overlap_time(data1, data2, loglevel= "WARNING"):
     logger = log_configure(loglevel, 'crop_obs_overlap_time')
     data1_time = data1.time
     data2_time = data2.time
-    common_time = xr.DataArray(np.intersect1d(
-        data1_time, data2_time), dims='time')
+    common_time = data1_time.where(data1_time.isin(data2_time), drop=True)
     if len(common_time) > 0:
         data2 = data2.sel(time=common_time)
         logger.debug(
-            "selected the overlaped time of the obs data compare to the model")
+            "Selected the overlapping time of the obs data compared to the model")
     return data2
 
 
@@ -525,6 +526,7 @@ def export_fig(output_dir, filename, type, metadata_value: str = None,
 
     if type == "pdf":
         add_pdf_metadata(filename, metadata_value, loglevel = loglevel)
+    logger.debug("Figure saved: %s", filename)
     logger.info("Figure saved to: %s", output_dir)
 
 def split_ocean3d_req(self, o3d_request, loglevel= "WARNING"):

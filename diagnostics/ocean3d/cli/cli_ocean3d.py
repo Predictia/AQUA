@@ -104,13 +104,13 @@ class Ocean3DCLI:
         reader = Reader(model=model, exp=exp, source=source,
                         fix=True, loglevel=self.loglevel)
         
-        self.logger.info(f"data retrieved for model={model}, exp={exp}, source={source}")
         
         if self.config["select_time"]:
             self.data["catalog_data"] = reader.retrieve(startdate= str(self.config["start_year"]),
                                                         enddate= str(self.config["end_year"]))
         else:
             self.data["catalog_data"] = reader.retrieve()
+        self.logger.info(f"data retrieved for model={model}, exp={exp}, source={source}")
         self.logger.debug(self.data["catalog_data"])   
         self.data["catalog_data"] = check_variable_name(self.data["catalog_data"])
         self.logger.debug(self.data["catalog_data"])   
