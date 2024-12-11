@@ -36,11 +36,10 @@ job:
 diagnostics:
 
   # List of diagnostics to run
-  
-  run: ["tropical_rainfall", "global_time_series_atm", "seasonal_cycles",
+  run: ["tropical_rainfall", "timeseries_atm", "seasonal_cycles",
         "radiation-boxplots", "radiation-timeseries", "radiation-biases",
         "teleconnections_atm", "global_biases",
-        "global_time_series_oce", "teleconnections_oce", "ocean3d_drift",
+        "timeseries_oce", "teleconnections_oce", "ocean3d_drift",
         "ocean3d_circulation", "seaice_extent", "seaice_conc",
         "seaice_volume", "seaice_thick", "ecmean"]
 
@@ -58,20 +57,21 @@ diagnostics:
     nworkers: 16
     script_path: "../src/aqua_diagnostics/global_biases/cli_global_biases.py"
     extra: "--config ${AQUA}/config/diagnostics/global_biases/config_global_biases.yaml"
-  global_time_series_atm:
-    script_path: "global_time_series/cli/cli_global_time_series.py"
-    extra: "--config ${AQUA}/diagnostics/global_time_series/cli/config_time_series_atm.yaml"
+  timeseries_atm:
+    script_path: "../src/aqua_diagnostics/timeseries/cli_timeseries.py"
+    extra: "--config ${AQUA}/config/diagnostics/timeseries/config_timeseries_atm.yaml"
     nworkers: 16
-    outname: global_time_series
-  global_time_series_oce:
-    script_path: "global_time_series/cli/cli_global_time_series.py"
-    extra: "--config ${AQUA}/diagnostics/global_time_series/cli/config_time_series_oce.yaml"
+    outname: timeseries
+  timeseries_oce:
+    script_path: "../src/aqua_diagnostics/timeseries/cli_timeseries.py"
+    extra: "--config ${AQUA}/config/diagnostics/timeseries/config_timeseries_oce.yaml"
     nworkers: 8
-    outname: global_time_series
+    outname: timeseries
   seasonal_cycles:
-    script_path: "global_time_series/cli/cli_global_time_series.py"
+    script_path: "../src/aqua_diagnostics/timeseries/cli_timeseries.py"
     nworkers: 16
-    extra: "--config ${AQUA}/diagnostics/global_time_series/cli/config_seasonal_cycles_atm.yaml"
+    extra: "--config ${AQUA}/config/diagnostics/timeseries/config_seasonalcycles_atm.yaml"
+    outname: timeseries
   radiation-biases:
     script_path: "../src/aqua_diagnostics/global_biases/cli_global_biases.py"
     nworkers: 8

@@ -51,6 +51,10 @@ Such an approach has two main advantages:
     On the other hand, if you use a personal machine, you may want to follow the :ref:`new-machine-regrid` guide.
 
 .. note::
+    CDO requires the ``--force`` flag in order to be able to regrid to HealPix grids since version 2.4.0.
+    This has been added to the HealPix grids definitions in the ``config/grids`` files.
+
+.. note::
     In the long term, it will be possible to support also pre-computed weights from other interpolation software,
     such as `ESMF <https://earthsystemmodeling.org/>`_ or `MIR <https://github.com/ecmwf/mir>`_.
 
