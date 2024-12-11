@@ -3,8 +3,8 @@
 # --model, --exp, --source, --outputdir, --catalog
 models:
   - catalog: null
-    model: 'IFS-NEMO'
-    exp: 'ssp370'
+    model: null
+    exp: null
     source: 'lra-r100-monthly'
 
 output:
