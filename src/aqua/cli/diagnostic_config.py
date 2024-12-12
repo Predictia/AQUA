@@ -131,17 +131,17 @@ diagnostic_config = {
         },
         {
             'config_file': 'cli_config_atm.yaml',
-            'source_path': 'diagnostics/teleconnections',
+            'source_path': 'config/diagnostics/teleconnections',
             'target_path': 'diagnostics/teleconnections'
         },
         {
             'config_file': 'cli_config_oce.yaml',
-            'source_path': 'diagnostics/teleconnections',
+            'source_path': 'config/diagnostics/teleconnections',
             'target_path': 'diagnostics/teleconnections'
         },
         {
             'config_file': 'config_bootstrap.yaml',
-            'source_path': 'diagnostics/teleconnections',
+            'source_path': 'config/diagnostics/teleconnections',
             'target_path': 'diagnostics/teleconnections'
         },
     ],
