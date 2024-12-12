@@ -61,11 +61,14 @@ class TestGsv():
         'time': '1200',
         'step': '0'
         },
-        'data_start_date': '20080101T1200', 'data_end_date': '20080101T1200',
-        'timestep': 'h', 'timestyle': 'date', 'var': 130}], indirect=True)
+        'data_start_date': '20080101T1200', 
+        'data_end_date': '20080101T1200',
+        'timestep': 'h', 
+        'timestyle': 'date', 
+        'var': 130,
+        'fdbhome': '/app'}], indirect=True)
     def test_gsv_read_chunked(self, gsv: GSVSource) -> None:
         """Test that the ``GSVSource`` is able to read data from FDB."""
-        gsv.fdbhome = '/app'
         data = gsv.read_chunked()
         dd = next(data)
         assert len(dd) > 0, 'GSVSource could not load data'
