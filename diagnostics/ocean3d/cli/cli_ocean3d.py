@@ -115,24 +115,26 @@ class Ocean3DCLI:
         self.logger.debug("model data: %s", self.data["catalog_data"])   
         if self.config["ocean_circulation"]:
             if self.config["ocean_circulation"]["compare_model_with_obs"]== True:
+                self.logger.info("Loading Observation data")
                 obs_data = Reader("EN4", "en4", "monthly")
                 # self.data["obs_data"] = obs_data.retrieve(startdate= self.data["catalog_data"].time[0],
                 #                                         enddate= self.data["catalog_data"].time[-1])
                 self.data["obs_data"] = obs_data.retrieve()
                 # self.data["obs_data"] = load_obs_data(model='EN4', exp='en4', source='monthly')
                 self.data["obs_data"] = check_variable_name(self.data["obs_data"])
+                self.logger.info("Loaded Observation data")
 
                 # import xarray as xr
                 # unified_data = xr.unify_chunks(self.data["catalog_data"])
                 # unified_dataset = unified_data[0]
                 # chunk_sizes = unified_dataset.chunksizes
-                # adjusted_chunk_sizes = {
-                #     'time': 4,
-                #     'lev': 14,  # Adjust lev dimension
-                #     'lat': 60,  # Adjust lat dimension
-                #     'lon': 120   # Adjust lon dimension
-                # }
-                # self.data["obs_data"] = self.data["obs_data"].chunk(adjusted_chunk_sizes)
+                adjusted_chunk_sizes = {
+                    'time': 4,
+                    'lev': 14,  # Adjust lev dimension
+                    'lat': 60,  # Adjust lat dimension
+                    'lon': 120   # Adjust lon dimension
+                }
+                self.data["obs_data"] = self.data["obs_data"].chunk(adjusted_chunk_sizes)
                 self.data["obs_data"] = self.data["obs_data"].astype('float64')
                 self.data["obs_data"].coords["lev"] = self.data["obs_data"].coords["lev"].astype('float64')
                 self.logger.debug("obs_data: %s", self.data["obs_data"])
@@ -178,21 +180,25 @@ class Ocean3DCLI:
             self.logger.info("Evaluating Hovmoller plot")
             hovmoller_plot_init = hovmoller_plot(o3d_request)
             hovmoller_plot_init.plot()
+            self.logger.info("Hovmoller plot completed")
 
         if "time_series" in self.config["ocean_drift"]["plots"]:
             self.logger.info("Evaluating time series plot")
             time_series_plot = time_series(o3d_request)
             time_series_plot.plot()
+            self.logger.info("Time series plot completed")
 
         if "multilevel_trend" in self.config["ocean_drift"]["plots"]:
             self.logger.info("Evaluating multilevel trend")
             trend = multilevel_trend(o3d_request)
             trend.plot()
+            self.logger.info("Multi-level trend plot completed")
 
         if "zonal_trend" in self.config["ocean_drift"]["plots"]:
             self.logger.info("Evaluating zonal mean trend")
             zonal_trend = zonal_mean_trend(o3d_request)
             zonal_trend.plot()
+            self.logger.info("Zonal trend plot completed")
 
         self.logger.warning(f"Finished ocean drift diags for {region}")
 
@@ -208,11 +214,13 @@ class Ocean3DCLI:
             o3d_request["time"] = time
             strat = stratification(o3d_request)
             strat.plot()
+            self.logger.info("Stratification plot completed")
         
         if "MLD" in self.config["ocean_circulation"]["plots"]:
             self.logger.info("Evaluating Mixed layer depth")
             o3d_request["time"] = time
             plot_spatial_mld_clim(o3d_request)
+            self.logger.info("Mixed-layer-depth plot completed")
         
         self.logger.warning(f"Finished the diags for {region}")
 
