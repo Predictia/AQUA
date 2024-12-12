@@ -11,10 +11,10 @@ import os
 import sys
 from dask.distributed import Client, LocalCluster
 
-from aqua.util import load_yaml, get_arg
+from aqua.util import load_yaml, get_arg, ConfigPath
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.logger import log_configure
-from global_time_series import Timeseries, GregoryPlot, SeasonalCycle
+from aqua.diagnostics.timeseries import Timeseries, GregoryPlot, SeasonalCycle
 
 
 def parse_arguments(args):
@@ -104,15 +104,8 @@ if __name__ == '__main__':
     args = parse_arguments(sys.argv[1:])
 
     loglevel = get_arg(args, "loglevel", "WARNING")
-    logger = log_configure(loglevel, 'CLI Global Time Series')
-    logger.info("Running Global Time Series diagnostic")
-
-    # Moving to the current directory so that relative paths work
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    if os.getcwd() != dname:
-        os.chdir(dname)
-        logger.info(f"Changing directory to {dname}")
+    logger = log_configure(loglevel, 'CLI Timeseries')
+    logger.info("Running Timeseries diagnostic")
 
     # Dask distributed cluster
     nworkers = get_arg(args, 'nworkers', None)
@@ -122,10 +115,14 @@ if __name__ == '__main__':
         logger.info(f"Running with {nworkers} dask distributed workers.")
 
     # Load configuration file
-    file = get_arg(args, "config", "config_time_series_atm.yaml")
+    configdir = ConfigPath(loglevel=loglevel).configdir
+    default_config = os.path.join(configdir, "diagnostics", "timeseries",
+                                  "config_timeseries_atm.yaml")
+    file = get_arg(args, "config", default_config)
     logger.info(f"Reading configuration file {file}")
     config = load_yaml(file)
 
+    # Override the first model in the config file if provided in the command line
     models = config['models']
     models[0]['catalog'] = get_arg(args, 'catalog', models[0]['catalog'])
     models[0]['model'] = get_arg(args, 'model', models[0]['model'])
@@ -145,13 +142,21 @@ if __name__ == '__main__':
         exp_list.append(model['exp'])
         source_list.append(model['source'])
 
-    outputdir = get_arg(args, "outputdir", config["outputdir"])
+    # Check if models_list or exp_list are empty or a list of None
+    if not any(models_list) or not any(exp_list):
+        raise ValueError("No models or experiments provided, please use the config file or the command line arguments.")
+
+    outputdir = get_arg(args, "outputdir", config['output'].get("outputdir"))
+    rebuild = config['output'].get("rebuild")
+    save_pdf = config['output'].get("save_pdf")
+    save_png = config['output'].get("save_png")
+    dpi = config['output'].get("dpi")
 
     if "timeseries" in config:
         logger.info("Plotting timeseries")
 
         for var in config["timeseries"]:
-            logger.info(f"Plotting {var} time series")
+            logger.info(f"Plotting {var} timeseries")
             monthly, annual, regrid, plot_ref, plot_ref_kw, startdate, \
                 enddate, monthly_std, annual_std, std_startdate, std_enddate, \
                 plot_kw, longname, units, extend = get_plot_options(config, var)
@@ -178,23 +183,27 @@ if __name__ == '__main__':
                             extend=extend,
                             plot_kw=plot_kw,
                             outdir=outputdir,
-                            loglevel=loglevel)
+                            loglevel=loglevel,
+                            rebuild=rebuild,
+                            save_pdf=save_pdf,
+                            save_png=save_png,
+                            dpi=dpi)
             try:
                 ts.run()
             except NotEnoughDataError as e:
-                logger.warning(f"Skipping {var} time series plot: {e}")
+                logger.warning(f"Skipping {var} timeseries plot: {e}")
             except NoDataError as e:
-                logger.warning(f"Skipping {var} time series plot: {e}")
+                logger.warning(f"Skipping {var} timeseries plot: {e}")
             except NoObservationError as e:
-                logger.warning(f"Skipping {var} time series plot: {e}")
+                logger.warning(f"Skipping {var} timeseries plot: {e}")
             except Exception as e:
-                logger.error(f"Error plotting {var} time series: {e}")
+                logger.error(f"Error plotting {var} timeseries: {e}")
 
     if "timeseries_formulae" in config:
-        logger.info("Plotting timeseries formular")
+        logger.info("Plotting timeseries formula")
 
         for var in config["timeseries_formulae"]:
-            logger.info(f"Plotting {var} time series")
+            logger.info(f"Plotting {var} timeseries")
             monthly, annual, regrid, plot_ref, plot_ref_kw, startdate, \
                 enddate, monthly_std, annual_std, std_startdate, std_enddate, \
                 plot_kw, longname, units, extend = get_plot_options(config, var)
@@ -221,17 +230,21 @@ if __name__ == '__main__':
                             units=units,
                             extend=extend,
                             outdir=outputdir,
-                            loglevel=loglevel)
+                            loglevel=loglevel,
+                            rebuild=rebuild,
+                            save_pdf=save_pdf,
+                            save_png=save_png,
+                            dpi=dpi)
             try:
                 ts.run()
             except NotEnoughDataError as e:
-                logger.warning(f"Skipping {var} time series plot: {e}")
+                logger.warning(f"Skipping {var} timeseries plot: {e}")
             except NoDataError as e:
-                logger.warning(f"Skipping {var} time series plot: {e}")
+                logger.warning(f"Skipping {var} timeseries plot: {e}")
             except NoObservationError as e:
-                logger.warning(f"Skipping {var} time series plot: {e}")
+                logger.warning(f"Skipping {var} timeseries plot: {e}")
             except Exception as e:
-                logger.error(f"Error plotting {var} time series: {e}")
+                logger.error(f"Error plotting {var} timeseries: {e}")
 
     if "gregory" in config:
         logger.info("Plotting gregory plot")
@@ -264,7 +277,11 @@ if __name__ == '__main__':
                          toa_std_end=toa_std_end,
                          outdir=outputdir,
                          regrid=regrid,
-                         loglevel=loglevel)
+                         loglevel=loglevel,
+                         rebuild=rebuild,
+                         save_pdf=save_pdf,
+                         save_png=save_png,
+                         dpi=dpi)
 
         try:
             gp.run()
@@ -303,7 +320,11 @@ if __name__ == '__main__':
                                outdir=outputdir,
                                longname=longname,
                                units=units,
-                               loglevel=loglevel)
+                               loglevel=loglevel,
+                               rebuild=rebuild,
+                               save_pdf=save_pdf,
+                               save_png=save_png,
+                               dpi=dpi)
             try:
                 sc.run()
             except NotEnoughDataError as e:
@@ -341,7 +362,11 @@ if __name__ == '__main__':
                                outdir=outputdir,
                                longname=longname,
                                units=units,
-                               loglevel=loglevel)
+                               loglevel=loglevel,
+                               rebuild=rebuild,
+                               save_pdf=save_pdf,
+                               save_png=save_png,
+                               dpi=dpi)
             try:
                 sc.run()
             except NotEnoughDataError as e:
@@ -353,4 +378,4 @@ if __name__ == '__main__':
             except Exception as e:
                 logger.error(f"Error plotting {var} seasonal cycle: {e}")
 
-    logger.info("Global Time Series is terminated.")
+    logger.info("Timeseries is terminated.")
