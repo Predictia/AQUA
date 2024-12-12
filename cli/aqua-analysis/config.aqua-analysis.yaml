@@ -34,9 +34,9 @@ job:
     script_path_base: "${AQUA}/diagnostics"  # Base directory for the diagnostic scripts
 
 cluster:  # options for dask cluster
-    workers: 64
-    threads: 1  # per worker
-    memory_limit: 3.5GiB  # per worker
+    workers: 32
+    threads: 2  # per worker
+    memory_limit: 7GiB  # per worker
 
 diagnostics:
 
@@ -95,7 +95,7 @@ diagnostics:
   tropical_rainfall:
     nworkers: 16
     #extra: "--regrid=r100 --freq=M --xmax=75 --bufferdir=${OUTPUT}/tropical_rainfall/"
-    extra: "--regrid=r100 --freq=M --xmax=75 --bufferdir=/users/jvonhar/work/aqua-analysis/output/climatedt-phase1/IFS-NEMO/ssp370/tropical_rainfall/"
+    extra: "--regrid=r100 --freq=M --xmax=75 --bufferdir=${OUTPUT}/tropical_rainfall/"
   ecmean:
     nworkers: 4
     nocluster: true
