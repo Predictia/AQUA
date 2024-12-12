@@ -40,36 +40,46 @@ class TestGsv():
     """Pytest marked class to test GSV."""
 
     # Low-level tests
-
     def test_gsv_constructor(self) -> None:
         """Simplest test, to check that we can create it correctly."""
         print(DEFAULT_GSV_PARAMS['request'])
         source = GSVSource(DEFAULT_GSV_PARAMS['request'], "20080101", "20080101", timestep="h",
-                           chunks="S", var='167', metadata=None)
+                           chunks="S", var='167', metadata={'fdb_home': '/app'})
         assert source is not None
 
-    @pytest.mark.parametrize('gsv', [{'request': {
-        'domain': 'g',
-        'stream': 'oper',
-        'class': 'ea',
-        'type': 'an',
-        'expver': '0001',
-        'param': '130',
-        'levtype': 'pl',
-        'levelist': ['1000'],
-        'date': '20080101',
-        'time': '1200',
-        'step': '0'
+    # Fixture to process gsv_args
+    @pytest.fixture
+    def gsv_source(gsv_args):
+        # Initialize the GSVSource with gsv_args
+        gsv = GSVSource(**gsv_args)
+        # Add metadata directly
+        gsv.metadata = {'fdbhome': '/app'}
+        return gsv
+
+    @pytest.mark.parametrize('gsv_args', [{
+        'request': {
+            'domain': 'g',
+            'stream': 'oper',
+            'class': 'ea',
+            'type': 'an',
+            'expver': '0001',
+            'param': '130',
+            'levtype': 'pl',
+            'levelist': ['1000'],
+            'date': '20080101',
+            'time': '1200',
+            'step': '0'
         },
         'data_start_date': '20080101T1200', 
         'data_end_date': '20080101T1200',
         'timestep': 'h', 
         'timestyle': 'date', 
-        'var': 130,
-        'fdbhome': '/app'}], indirect=True)
-    def test_gsv_read_chunked(self, gsv: GSVSource) -> None:
+        'var': 130
+    }], indirect=True)
+    def test_gsv_read_chunked(self, gsv_source) -> None:
         """Test that the ``GSVSource`` is able to read data from FDB."""
-        data = gsv.read_chunked()
+        # Now gsv_source is a GSVSource object with metadata applied
+        data = gsv_source.read_chunked()
         dd = next(data)
         assert len(dd) > 0, 'GSVSource could not load data'
         assert dd.t.GRIB_paramId == 130, 'Wrong GRIB param in Dask data'
