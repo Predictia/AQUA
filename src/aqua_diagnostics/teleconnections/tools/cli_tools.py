@@ -156,8 +156,10 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
             # Regressions
             if full_year:
                 maps.append(reg_full)
-                title = f'ENSO {model} {exp} regression map (avg_tos)'
-                description = f'ENSO {model} {exp} regression map (avg_tos)'
+                filename_def = set_filename(filename, "regression")
+                title = f'ENSO {model} {exp} regression map (tos)'
+                description = f'ENSO {model} {exp} regression map (tos)'
+
                 if ref:
                     title += f' compared to {ref}'
                     description += f' compared to {ref}.'
@@ -168,14 +170,15 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                 map_names.append(output_saver.generate_name(suffix='pdf', **common_save_args))
                 titles.append(title)
                 descriptions.append(description)
-                cbar_labels.append('avg_tos [K]')
+                cbar_labels.append('tos [K]')
 
             if seasons:
                 for i, season in enumerate(seasons):
                     maps.append(reg_season[i])
-                    common_save_args.update({'seasons': season})
-                    title = f'ENSO {model} {exp} regression map (avg_tos) for {season}'
-                    description = f'ENSO {model} {exp} regression map (avg_tos) for {season}'
+                    filename_def = set_filename(filename, f"regression_{season}")
+                    title = f'ENSO {model} {exp} regression map (tos) for {season}'
+                    description = f'ENSO {model} {exp} regression map (tos) for {season}'
+
                     if ref:
                         title += f' compared to {ref}'
                         description += f' compared to {ref}.'
@@ -186,15 +189,17 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                     map_names.append(output_saver.generate_name(suffix='pdf', **common_save_args))
                     titles.append(title)
                     descriptions.append(description)
-                    cbar_labels.append('avg_tos [K]')
+                    cbar_labels.append('tos [K]')
 
         # Correlations
         if cor:
             common_save_args.update({'diagnostic_product': telec + '_' + 'correlation'})
             if full_year:
                 maps.append(cor_full)
-                title = f'ENSO {model} {exp} correlation map (avg_tos)'
-                description = f'ENSO {model} {exp} correlation map (avg_tos)'
+                filename_def = set_filename(filename, "correlation")
+                title = f'ENSO {model} {exp} correlation map (tos)'
+                description = f'ENSO {model} {exp} correlation map (tos)'
+
                 if ref:
                     title += f' compared to {ref}'
                     description += f' compared to {ref}'
@@ -210,9 +215,10 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
             if seasons:
                 for i, season in enumerate(seasons):
                     maps.append(cor_season[i])
-                    common_save_args.update({'seasons': season})
-                    title = f'ENSO {model} {exp} correlation map (avg_tos) for {season}'
-                    description = f'ENSO {model} {exp} correlation map (avg_tos) for {season}'
+                    filename_def = set_filename(filename, f"correlation_{season}")
+                    title = f'ENSO {model} {exp} correlation map (tos) for {season}'
+                    description = f'ENSO {model} {exp} correlation map (tos) for {season}'
+
                     if ref:
                         title += f' compared to {ref}'
                         description += f' compared to {ref}.'

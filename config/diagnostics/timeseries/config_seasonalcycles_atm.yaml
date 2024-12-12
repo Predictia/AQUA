@@ -3,27 +3,33 @@
 # --model, --exp, --source, --outputdir, --catalog
 models:
   - catalog: null
-    model: 'IFS-NEMO'
-    exp: 'ssp370'
+    model: null
+    exp: null
     source: 'lra-r100-monthly'
-outputdir: "./"
+
+output:
+  outputdir: "./"
+  rebuild: true
+  save_pdf: true
+  save_png: true
+  dpi: 300
 
 # This is the list of variables that will be plotted as seasonal cycles
-seasonal_cycle: ['2t', 'mtpr', 'mer', 'msl',
+seasonal_cycle: ['2t', 'tprate', 'ie', 'msl',
                  'tcc', 'lcc', 'mcc', 'hcc',
-                 'mslhf', #Mean surface latent heat flux
-                 'msshf', #Mean surface sensible heat flux
-                 'msdwswrf', #Mean surface downward short-wave radiation flux
-                 'msdwlwrf', #Mean surface downward long-wave radiation flux
-                 'msnswrf', #Mean surface net short-wave radiation flux
-                 'msnlwrf', #Mean surface net long-wave radiation flux
-                 'mtnlwrf', #Mean top net long-wave radiation flux
-                 'mtnswrf' #Mean top net short-wave radiation flux
+                 'slhtf', #Mean surface latent heat flux
+                 'ishf', #Mean surface sensible heat flux
+                 'sdswrf', #Mean surface downward short-wave radiation flux
+                 'sdlwrf', #Mean surface downward long-wave radiation flux
+                 'snswrf', #Mean surface net short-wave radiation flux
+                 'snlwrf', #Mean surface net long-wave radiation flux
+                 'tnlwrf', #Mean top net long-wave radiation flux
+                 'tnswrf' #Mean top net short-wave radiation flux
                  ]
 
 gregory:
   ts: '2t'
-  toa: ['mtnlwrf', 'mtnswrf']
+  toa: ['tnlwrf', 'tnswrf']
   monthly: True
   annual: True
 

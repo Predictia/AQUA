@@ -3,28 +3,34 @@
 # --model, --exp, --source, --outputdir, --catalog
 models:
   - catalog: null
-    model: 'IFS-NEMO'
-    exp: 'ssp370'
+    model: null
+    exp: null
     source: 'lra-r100-monthly'
-outputdir: "./"
+
+output:
+  outputdir: "./"
+  rebuild: true
+  save_pdf: true
+  save_png: true
+  dpi: 300
 
 # This is the list of variables that will be plotted as timeseries
-timeseries: ['2t', 'mer', 'msl',
+timeseries: ['2t', 'ie', 'msl',
              'tcc', 'lcc', 'mcc', 'hcc',
-             'mslhf', #Mean surface latent heat flux
-             'msshf', #Mean surface sensible heat flux
-             'msdwswrf', #Mean surface downward short-wave radiation flux
-             'msdwlwrf', #Mean surface downward long-wave radiation flux
-             'msnswrf', #Mean surface net short-wave radiation flux
-             'msnlwrf', #Mean surface net long-wave radiation flux
-             'mtnlwrf', #Mean top net long-wave radiation flux
-             'mtnswrf' #Mean top net short-wave radiation flux
+             'slhtf', #Mean surface latent heat flux
+             'ishf', #Mean surface sensible heat flux
+             'sdswrf', #Mean surface downward short-wave radiation flux
+             'sdlwrf', #Mean surface downward long-wave radiation flux
+             'snswrf', #Mean surface net short-wave radiation flux
+             'snlwrf', #Mean surface net long-wave radiation flux
+             'tnlwrf', #Mean top net long-wave radiation flux
+             'tnswrf' #Mean top net short-wave radiation flux
              ]
-timeseries_formulae: ['mtnlwrf+mtnswrf', '86400*mtpr']
+timeseries_formulae: ['tnlwrf+tnswrf', '86400*tprate']
 
 gregory:
   ts: '2t'
-  toa: ['mtnlwrf', 'mtnswrf']
+  toa: ['tnlwrf', 'tnswrf']
   monthly: True
   annual: True
 
@@ -40,11 +46,11 @@ timeseries_plot_params:
     annual: True
     std_startdate: '1990-01-01'
     std_enddate: '2020-12-31'
-  mtnlwrf+mtnswrf:
+  tnlwrf+tnswrf:
     longname: "Net top radiation" # This is to override title and ylabel
     std_startdate: '1990-01-01'
     std_enddate: '2020-12-31'
-  86400*mtpr:
+  86400*tprate:
     longname: "Precipitation" # This is to override title and ylabel
     units: "mm/day" # This is to override units
     std_startdate: '1990-01-01'
