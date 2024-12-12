@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+AQUA core complete list:
+- Safety checks and error messages on FDB folders (#1512)
+- Refreshed internal `to_list` function (#1512)
+
 ## [v0.13-alpha]
 
 Main changes are:
@@ -15,8 +19,6 @@ Main changes are:
 3. The FDB reader always rely on paramids, so that support for eccodes 2.39.0 and backward compatibility is ensured.
 
 AQUA core complete list:
-- Safety checks and error messages on FDB folders (#1512)
-- Refreshed internal `to_list` function (#1512)
 - Added the `cdo_options: "--force"` to the definitions of the HealPix grids (#1527)
 - Removing default fixes (#1519)
 - Support for eccodes=2.39.0 with full fixes refactoring (#1519)
