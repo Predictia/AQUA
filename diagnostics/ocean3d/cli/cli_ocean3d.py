@@ -11,7 +11,6 @@ from aqua.util import load_yaml
 from ocean3d import check_variable_name
 from ocean3d import stratification
 from ocean3d import plot_spatial_mld_clim
-from ocean3d import load_obs_data
 
 from ocean3d import hovmoller_plot
 from ocean3d import time_series
@@ -116,20 +115,24 @@ class Ocean3DCLI:
         self.logger.debug("model data: %s", self.data["catalog_data"])   
         if self.config["ocean_circulation"]:
             if self.config["ocean_circulation"]["compare_model_with_obs"]== True:
-                self.data["obs_data"] = load_obs_data(model='EN4', exp='en4', source='monthly')
+                obs_data = Reader("EN4", "en4", "monthly")
+                # self.data["obs_data"] = obs_data.retrieve(startdate= self.data["catalog_data"].time[0],
+                #                                         enddate= self.data["catalog_data"].time[-1])
+                self.data["obs_data"] = obs_data.retrieve()
+                # self.data["obs_data"] = load_obs_data(model='EN4', exp='en4', source='monthly')
                 self.data["obs_data"] = check_variable_name(self.data["obs_data"])
 
                 # import xarray as xr
                 # unified_data = xr.unify_chunks(self.data["catalog_data"])
                 # unified_dataset = unified_data[0]
                 # chunk_sizes = unified_dataset.chunksizes
-                adjusted_chunk_sizes = {
-                    'time': 4,
-                    'lev': 14,  # Adjust lev dimension
-                    'lat': 60,  # Adjust lat dimension
-                    'lon': 120   # Adjust lon dimension
-                }
-                self.data["obs_data"] = self.data["obs_data"].chunk(adjusted_chunk_sizes)
+                # adjusted_chunk_sizes = {
+                #     'time': 4,
+                #     'lev': 14,  # Adjust lev dimension
+                #     'lat': 60,  # Adjust lat dimension
+                #     'lon': 120   # Adjust lon dimension
+                # }
+                # self.data["obs_data"] = self.data["obs_data"].chunk(adjusted_chunk_sizes)
                 self.data["obs_data"] = self.data["obs_data"].astype('float64')
                 self.data["obs_data"].coords["lev"] = self.data["obs_data"].coords["lev"].astype('float64')
                 self.logger.debug("obs_data: %s", self.data["obs_data"])

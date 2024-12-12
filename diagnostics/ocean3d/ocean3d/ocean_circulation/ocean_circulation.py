@@ -243,7 +243,7 @@ def convert_variables(data, loglevel= "WARNING"):
 
 
 def prepare_data_for_stratification_plot(data, region=None, time=None, lat_s: float = None, lat_n: float = None, lon_w: float = None,
-                                         lon_e: float = None, loglevel= "WARNING"):
+                                         lon_e: float = None, areamean= False, timemean= False, compute_mld= False, loglevel= "WARNING"):
     """
     Prepare data for plotting stratification profiles.
 
@@ -260,11 +260,24 @@ def prepare_data_for_stratification_plot(data, region=None, time=None, lat_s: fl
         xarray.Dataset: Prepared data for plotting stratification profiles.
     """
     logger = log_configure(loglevel, 'prepare_data_for_stratification_plot')
-    data = weighted_area_mean(data, region, lat_s, lat_n, lon_w, lon_e)
+    if areamean == True:
+        data = weighted_area_mean(data, region, lat_s, lat_n, lon_w, lon_e)
+    else:
+        data = area_selection(data, region, lat_s, lat_n, lon_w, lon_e)
+        
     data = convert_variables(data)
     data_rho = data["rho"] - 1000
     data["rho"] = data_rho
+    if compute_mld == True:
+        mld = compute_mld_cont(data[["rho"]])
+        data = data.merge(mld)
+    
     data, time = data_time_selection(data, time)
+    if timemean == True:
+        data.attrs["start_year"] = data.time[0].data
+        data.attrs["end_year"] = data.time[-1].data
+        data = data.mean("time")
+        
     return data, time
 
 
@@ -318,7 +331,7 @@ def compute_mld_cont(rho, loglevel= "WARNING"):
     mld = cutoff_lev1+((ddif)*(rdif1))/(rdif1-rdif2)
     # The MLD is set as the maximum depth if the threshold is not exceeded before
     mld = xr.ufuncs.fmin(mld, depth)
-    # mld=mld.rename("mld")
+    mld=mld.rename({"rho":"mld"})
 
     return mld
 

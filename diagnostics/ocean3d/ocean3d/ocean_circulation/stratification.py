@@ -12,10 +12,10 @@ class stratification:
             self.obs_data = crop_obs_overlap_time(self.data, self.obs_data)
 
             self.obs_data, time = prepare_data_for_stratification_plot(
-                self.obs_data, self.region, self.time, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
+                self.obs_data, self.region, self.time, self.lat_s, self.lat_n, self.lon_w, self.lon_e, areamean=True, timemean= False)
             self.logger.debug("Data for Observation is done.")
         self.data, self.time = prepare_data_for_stratification_plot(
-            self.data, self.region, self.time, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
+            self.data, self.region, self.time, self.lat_s, self.lat_n, self.lon_w, self.lon_e, areamean= True, timemean= False)
         if self.obs_data:
             data_list, self.obs_data = compare_arrays(self.data, self.obs_data)
         else:
@@ -26,8 +26,8 @@ class stratification:
         self.logger.debug("Performing time mean and loading it into memory before going to plot it")
         self.logger.debug("Operation starts for Model")
         for i, data in enumerate(data_list):
-            data.attrs["start_year"] = data_list[0].time[0].data
-            data.attrs["end_year"] = data_list[0].time[-1].data
+            data.attrs["start_year"] = data_list[i].time[0].data
+            data.attrs["end_year"] = data_list[i].time[-1].data
             data_list[i] = data.mean("time")
             data_list[i] = data_list[i].compute()
         self.logger.debug("Finished for Model")

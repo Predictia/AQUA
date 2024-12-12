@@ -1,30 +1,5 @@
 from .ocean_circulation import *
 
-def data_for_plot_spatial_mld_clim(data, region=None, time=None,
-                                   lat_s: float = None, lat_n: float = None,
-                                   lon_w: float = None, lon_e: float = None, loglevel= "WARNING"):
-    """
-    Extracts and prepares data for plotting spatial mean mixed layer depth (MLD) climatology.
-    Parameters:
-    - data (pandas.DataFrame): Input data containing relevant variables.
-    - region (str or None): Optional region to subset the data (e.g., 'North Atlantic').
-    - time (str or None): Optional time period to select from the data (e.g., '2010-2020').
-    - lat_s (float or None): Southernmost latitude of the region (default: None).
-    - lat_n (float or None): Northernmost latitude of the region (default: None).
-    - lon_w (float or None): Westernmost longitude of the region (default: None).
-    - lon_e (float or None): Easternmost longitude of the region (default: None).
-    - Returns:
-        xarray.Dataset: Processed data suitable for plotting spatial MLD climatology.
-    """
-    logger = log_configure(loglevel, 'data_for_plot_spatial_mld_clim')
-
-    data = area_selection(data, region, lat_s, lat_n, lon_w, lon_e)
-    data = convert_variables(data)
-    data = compute_mld_cont(data[["rho"]])
-    data, time = data_time_selection(data, time)
-    return data.mean("time").persist(), time
-
-
 def plot_spatial_mld_clim(o3d_request,
                           overlap=True, loglevel= "WARNING"):
     """
@@ -41,7 +16,6 @@ def plot_spatial_mld_clim(o3d_request,
     -------
     None
     """
-    logger = log_configure(loglevel, 'plot_spatial_mld_clim')
     mod_data = o3d_request.get('data')
     obs_data = o3d_request.get('obs_data')
     model = o3d_request.get('model')
@@ -55,38 +29,54 @@ def plot_spatial_mld_clim(o3d_request,
     lon_e = o3d_request.get('lon_e', None)
     output = o3d_request.get('output')
     output_dir = o3d_request.get('output_dir')
+    loglevel = o3d_request.get('loglevel')
+    logger = log_configure(loglevel, 'plot_spatial_mld')
 
 
     if overlap:
         if obs_data:
             obs_data = crop_obs_overlap_time(mod_data, obs_data)
-            # mod_data = crop_obs_overlap_time(obs_data, mod_data)
+            mod_data = crop_obs_overlap_time(obs_data, mod_data)
             logger.debug("cropped the overlapped time of the model and obs")
     logger.debug("Processing Model")
-    mod_clim, time = data_for_plot_spatial_mld_clim(mod_data, region, time,
-                                                    lat_s, lat_n, lon_w, lon_e)  # To select the month and compute its climatology
-    logger.debug("Processing done for Model")
+    mod_clim, time = prepare_data_for_stratification_plot(mod_data, region, time,
+                                                    lat_s, lat_n, lon_w, lon_e,
+                                                    areamean= False, timemean= True,
+                                                    compute_mld= True, loglevel= loglevel)  # To select the month and compute its climatology
+    
     if obs_data:
         logger.debug("Processing Observation for MLD")
-        obs_clim, time = data_for_plot_spatial_mld_clim(obs_data, region, time,
-                                                        lat_s, lat_n, lon_w, lon_e)  # To select the month and compute its climatology
+        obs_clim, time = prepare_data_for_stratification_plot(obs_data, region, time,
+                                                        lat_s, lat_n, lon_w, lon_e, areamean= False,
+                                                        timemean= True, compute_mld= True, loglevel= loglevel )  # To select the month and compute its climatology
+        # obs_clim = obs_clim.chunk({"lev": 23, "lat": 13, "lon": 17}).compute()
+        # obs_clim = obs_clim["mld"]
         logger.debug("Processing done for Observation")
-    # obs_data=crop_obs_overlap_time(mod_data, obs_data)
 
-    # We identify the first year used in the climatology
-    myr1 = mod_data.time.dt.year[0].values
-    # We identify the last year used in the climatology
-    myr2 = mod_data.time.dt.year[-1].values
+    myr1 = mod_clim.attrs["start_year"].astype('datetime64[Y]').astype(str)
+    myr2 = mod_clim.attrs["end_year"].astype('datetime64[Y]').astype(str)
 
     if obs_data:
-        # We identify the first year used in the climatology
-        oyr1 = obs_data.time.dt.year[0].values
-        # We identify the last year used in the climatology
-        oyr2 = obs_data.time.dt.year[-1].values
+        oyr1 = obs_clim.attrs["start_year"].astype('datetime64[Y]').astype(str)
+        oyr2 = obs_clim.attrs["start_year"].astype('datetime64[Y]').astype(str)
 
-    mod_clim = mod_clim["rho"]
+    logger.debug("Loading MLD into memory before plotting")
+    logger.debug("Loading Model")
+    mod_clim = mod_clim["mld"].compute()
+    logger.debug("Loaded Model")
+    
     if obs_data:
-        obs_clim = obs_clim["rho"]
+        logger.debug("Loading Observation")
+        obs_clim = obs_clim["mld"].compute()
+        logger.debug("Loaded Observation")
+    logger.debug("Data loaded into memory")
+    
+    
+    logger.debug("Processing done for Model")
+
+    # mod_clim = mod_clim["rho"]
+    # if obs_data:
+    #     obs_clim = obs_clim["rho"]
 
 
     logger.debug("Spatial MLD plot is in process")
