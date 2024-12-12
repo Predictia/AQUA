@@ -45,7 +45,7 @@ class TeleconnectionsConfig():
         return namelist
 
 
-def _check_dim(data, dim: str):
+def check_dim(data, dim: str):
     """
     Check if dimension is in data.
 

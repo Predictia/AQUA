@@ -1,7 +1,7 @@
 """Module for computing regression maps."""
 import xarray as xr
 
-from .tools import _check_dim, select_season
+from .tools import check_dim, select_season
 
 xr.set_options(keep_attrs=True)
 
@@ -24,8 +24,8 @@ def reg_evaluation(indx,
     Returns:
         (xarray.DataArray):  Regression map
     """
-    _check_dim(indx, dim)
-    _check_dim(data, dim)
+    check_dim(indx, dim)
+    check_dim(data, dim)
 
     if season:
         indx = select_season(indx, season)
@@ -55,8 +55,8 @@ def cor_evaluation(indx,
     Returns:
         (xarray.DataArray):  Correlation map
     """
-    _check_dim(indx, dim)
-    _check_dim(data, dim)
+    check_dim(indx, dim)
+    check_dim(data, dim)
 
     if season:
         indx = select_season(indx, season)
