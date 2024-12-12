@@ -57,11 +57,18 @@ class TestGsv():
                            chunks="S", var='167', metadata={'fdb_home': '/app'})
         assert source is not None
 
-        # Low-level tests
+    def test_gsv_constructor_bridge(self) -> None:
+        """Test bridge"""
+        print(DEFAULT_GSV_PARAMS['request'])
+        source = GSVSource(DEFAULT_GSV_PARAMS['request'], "20080101", "20080101", timestep="h",
+                           chunks="S", var='167', bridge_end_date='complete',
+                           metadata={'fdbhome_bridge': '/app'})
+        assert source is not None
+            
     def test_gsv_constructor_raise(self) -> None:
         """Test raise for missing fdbhome"""
         print(DEFAULT_GSV_PARAMS['request'])
-        with pytest.raises(KeyError): 
+        with pytest.raises(ValueError):
             GSVSource(DEFAULT_GSV_PARAMS['request'], "20080101", "20080101", timestep="h",
                            chunks="S", var='167')
 
