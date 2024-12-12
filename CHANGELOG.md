@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+AQUA core complete list:
+- Added the `cdo_options: "--force"` to the definitions of the oceanic HealPix grids (#1539)
+
 AQUA diagnostic complete list:
 - Teleconnection: Integrating Updated OutputSaver (#1496)
 - Timeseries: The `timeseries` diagnostic is now integrated in the `aqua_diagnostics` module (#1340)
