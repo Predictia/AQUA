@@ -98,7 +98,7 @@ diagnostics:
     extra: "--regrid=r100 --freq=M --xmax=75 --bufferdir=${OUTPUT}/tropical_rainfall/"
   ecmean:
     nworkers: 4
-    nocluster: true
+    nocluster: true  # ECmean does not use the global dask cluster
     extra: "--interface ${AQUA}/diagnostics/ecmean/config/interface_AQUA_destine-v1.yml"
   ocean3d_drift:
     script_path: "ocean3d/cli/cli_ocean3d.py"
