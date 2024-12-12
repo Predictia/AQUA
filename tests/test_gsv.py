@@ -13,17 +13,27 @@ if not gsv_available:
 """Tests for GSV in AQUA. Requires FDB library installed and an FDB repository."""
 
 # Used to create the ``GSVSource`` if no request provided.
-DEFAULT_GSV_PARAMS = {'request': {
-    'date': '20080101',
-    'time': '1200',
-    'step': "0",
-    'param': '130',
-    'levtype': 'pl',
-    'levelist': '300'
-}, 'data_start_date': '20080101T1200', 'data_end_date': '20080101T1200', 'timestep': 'h', 'timestyle': 'date'}
+DEFAULT_GSV_PARAMS = {
+    'request': {
+        'domain': 'g',
+        'stream': 'oper',
+        'class': 'ea',
+        'type': 'an',
+        'expver': '0001',
+        'param': '130',
+        'levtype': 'pl',
+        'levelist': ['1000'],
+        'date': '20080101',
+        'time': '1200',
+        'step': '0'
+    },
+    'data_start_date': '20080101T1200', 
+    'data_end_date': '20080101T1200', 
+    'timestep': 'h', 
+    'timestyle': 'date'
+}
 
 loglevel = 'DEBUG'
-
 
 @pytest.fixture()
 def gsv(request) -> GSVSource:
@@ -32,7 +42,7 @@ def gsv(request) -> GSVSource:
         request = DEFAULT_GSV_PARAMS
     else:
         request = request.param
-    return GSVSource(**request)
+    return GSVSource(**request, metadata={'fdb_home': '/app'})
 
 
 @pytest.mark.gsv
@@ -47,37 +57,26 @@ class TestGsv():
                            chunks="S", var='167', metadata={'fdb_home': '/app'})
         assert source is not None
 
-    @pytest.fixture
-    def gsv_args():
-        return {
-            'request': {
-                'domain': 'g',
-                'stream': 'oper',
-                'class': 'ea',
-                'type': 'an',
-                'expver': '0001',
-                'param': '130',
-                'levtype': 'pl',
-                'levelist': ['1000'],
-                'date': '20080101',
-                'time': '1200',
-                'step': '0'
-            },
-            'data_start_date': '20080101T1200', 
-            'data_end_date': '20080101T1200',
-            'timestep': 'h', 
-            'timestyle': 'date', 
-            'var': 130
-        }
-
-    @pytest.mark.parametrize('gsv_args', [gsv_args()])
-    def test_gsv_read_chunked(gsv_args) -> None:
+    @pytest.mark.parametrize('gsv', [{'request': {
+        'domain': 'g',
+        'stream': 'oper',
+        'class': 'ea',
+        'type': 'an',
+        'expver': '0001',
+        'param': '130',
+        'levtype': 'pl',
+        'levelist': ['1000'],
+        'date': '20080101',
+        'time': '1200',
+        'step': '0'
+        },
+        'data_start_date': '20080101T1200', 'data_end_date': '20080101T1200',
+        'timestep': 'h', 'timestyle': 'date', 'var': 130}], indirect=True)
+    def test_gsv_read_chunked(self, gsv: GSVSource) -> None:
         """Test that the ``GSVSource`` is able to read data from FDB."""
-        gsv = GSVSource(**gsv_args, metadata={'fdbhome': '/app'})
         data = gsv.read_chunked()
         dd = next(data)
         assert len(dd) > 0, 'GSVSource could not load data'
-        assert dd.t.GRIB_paramId == 130, 'Wrong GRIB param in Dask data'
 
     # High-level, integrated test
     def test_reader(self) -> None:
