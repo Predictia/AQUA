@@ -272,6 +272,10 @@ Options
     
     Flag to use the native (local) AQUA version (default is the container version).
 
+.. option:: -j, --jobname
+    
+    Alternative prefix for the job name (the default is specified in the config file)
+
 
 .. _benchmarker:
 
