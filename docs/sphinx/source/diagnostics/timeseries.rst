@@ -1,7 +1,7 @@
-.. _global_timeseries:
+.. _timeseries:
 
-Global time series
-==================
+Timeseries
+==========
 
 Description
 -----------
@@ -17,15 +17,20 @@ Structure
 -----------
 
 * ``README.md``: a readme file which contains some technical information on how to install the diagnostic and its environment.
-* ``pyproject.toml``: a configuration file for the project. This is inteded to be used when installing the AQUA environment.
-* ``global_time_series``: a subdirectory which contains the diagnostic source code. Each class is implemented in a separate file.
-* ``notebooks``: a subdirectory which contains Jupyter notebooks that demonstrate the diagnostic functionalities.
-* ``cli``: a subdirectory which contains the command line interface for the diagnostic.
+* ``cli_timeseries.py``: the command line interface (CLI) script to run the diagnostic.
+* ``gregory.py``: contains the GregoryPlot class.
+* ``reference_data.py``: contains the code to retrieve the reference data for all the classes.
+* ``seasonalcycle.py``: contains the SeasonalCycle class.
+* ``timeseries.py``: contains the Timeseries class.
+* ``util.py``: contains the utility functions used by the classes.
 
 Input variables
 ---------------
 
 The diagnostic requires the variables that the user wants to analyse.
+A list of the variables that are compared automatically when running the full diagnostic is provided in the configuration files
+available in the ``config/diagnostics/timeseries`` directory.
+
 For the Gregory-like plot, the following variables are required:
 
 * ``2t`` (2 metre temperature, GRIB paramid 167)
@@ -35,12 +40,12 @@ For the Gregory-like plot, the following variables are required:
 Basic usage
 -----------
 
-The basic usage of each class is explained with a working example in the notebooks provided in the ``notebooks`` directory.
+The basic usage of each class is explained with a working example in the notebooks provided in the ``notebooks/diagnostics/timeseries`` directory.
 The basic structure of the analysis is the following:
 
 .. code-block:: python
 
-    from global_time_series import Timeseries
+    from aqua.diagnostic.timeseries import Timeseries
 
     # Define the models to analyse
     models = ['IFS-NEMO', 'ICON']
@@ -69,8 +74,8 @@ The diagnostic can be run from the command line interface (CLI) by running the f
 
 .. code-block:: bash
 
-    cd $AQUA/diagnostics/global_time_series/cli
-    python cli_global_time_series.py --config_file <path_to_config_file>
+    cd $AQUA/src/aqua_diagnostics/timeseries
+    python cli_timeseries.py --config_file <path_to_config_file>
 
 Three configuration files are provided and run when executing the aqua-analysis (see :ref:`aqua_analysis`).
 Two configuration files are for atmospheric and oceanic timeseries and gregory plots, and the third one is for the seasonal cycles.
@@ -92,7 +97,26 @@ Config file structure
 The configuration file is a YAML file that contains the following information:
 
 * ``models``: a list of models to analyse (defined by the catalog, model, exp, source arguments)
-* ``outputdir``: the directory where the output files will be saved
+
+.. code-block:: yaml
+
+    models:
+      - catalog: climatedt-phase1
+        model: IFS-NEMO
+        exp: historical-1990
+        source: lra-r100-monthly
+      - catalog: climatedt-phase1
+        model: ICON
+        exp: historical-1990
+        source: lra-r100-monthly
+
+* ``output``: a block describing the details of the output. Is contains:
+
+    * ``outputdir``: the output directory for the plots.
+    * ``rebuild``: a boolean that enables the rebuilding of the plots.
+    * ``save_pdf``: a boolean that enables the saving of the plots in pdf format.
+    * ``save_png``: a boolean that enables the saving of the plots in png format.
+    * ``dpi``: the resolution of the plots.
 * ``timeseries``: a list of variables to compute the global mean time series
 * ``timeseries_formulae``: a list of formulae to compute the global mean time series
 * ``gregory``: a block that contains the variables required for the Gregory plot
@@ -135,7 +159,7 @@ Area selection
 ^^^^^^^^^^^^^^
 
 The diagnostic can be run for a specific area by defining the longitude and latitude bounds while initialising the class.
-The area selection can be done for the Timeseries and SeasonalCycle classes.
+The area selection can be done for the **Timeseries** and **SeasonalCycle** classes.
 
 .. code-block:: python
 
@@ -160,7 +184,7 @@ The diagnostic produces three types of plots (see :ref:`global_timeseries_exampl
 * A comparison of the seasonal cycle of the model and the reference dataset.
 * A Gregory-like plot of the model and the reference dataset as bands.
 
-The timeseries, reference timeseries and standard deviation timeseries are saved in the output directory as netCDF files.
+The timeseries, reference timeseries and standard deviation timeseries are also saved in the output directory as netCDF files.
 
 Observations
 ------------
@@ -209,16 +233,16 @@ Available demo notebooks
 
 Notebooks are stored in diagnostics/global_time_series/notebooks
 
-* `global_time_series.ipynb <https://github.com/oloapinivad/DestinE-Climate-DT/blob/main/diagnostics/global_time_series/notebooks/global_time_series.ipynb>`_
-* `seasonal_cycles.ipynb <https://github.com/oloapinivad/DestinE-Climate-DT/blob/main/diagnostics/global_time_series/notebooks/seasonal_cycles.ipynb>`_
+* `timeseries.ipynb <https://github.com/DestinE-Climate-DT/AQUA/blob/main/notebooks/diagnostics/timeseries/timeseries.ipynb>`_
+* `seasonalcycles.ipynb <https://github.com/DestinE-Climate-DT/AQUA/blob/main/notebooks/diagnostics/timeseries/seasonalcycles.ipynb>`_
 
 Detailed API
 ------------
 
-This section provides a detailed reference for the Application Programming Interface (API) of the ``global_time_series`` diagnostic,
+This section provides a detailed reference for the Application Programming Interface (API) of the ``timeseries`` diagnostic,
 produced from the diagnostic function docstrings.
 
-.. automodule:: global_time_series
+.. automodule:: aqua.diagnostics.timeseries
     :members:
     :undoc-members:
     :show-inheritance:

@@ -37,6 +37,8 @@ AQUA core complete list:
 - Introduce `grids-checker.py` tool to verify presence and checksum of the grid files (#1486)
 
 AQUA diagnostic complete list:
+- Timeseries: The `timeseries` diagnostic is now integrated in the `aqua_diagnostics` module (#1340)
+- Integrating Updated OutputSaver into Timeseries (#1492)
 - Tropical Cyclones: Adaptation to IFS-FESOM and tool to compute orography from data (#1393)
 - Seaice: Hotfix for sea ice plots (#1432)
 
