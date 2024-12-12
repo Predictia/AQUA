@@ -111,13 +111,28 @@ class Ocean3DCLI:
         else:
             self.data["catalog_data"] = reader.retrieve()
         self.logger.info(f"data retrieved for model={model}, exp={exp}, source={source}")
-        self.logger.debug(self.data["catalog_data"])   
+        self.logger.debug("model data: %s", self.data["catalog_data"])   
         self.data["catalog_data"] = check_variable_name(self.data["catalog_data"])
-        self.logger.debug(self.data["catalog_data"])   
+        self.logger.debug("model data: %s", self.data["catalog_data"])   
         if self.config["ocean_circulation"]:
             if self.config["ocean_circulation"]["compare_model_with_obs"]== True:
                 self.data["obs_data"] = load_obs_data(model='EN4', exp='en4', source='monthly')
                 self.data["obs_data"] = check_variable_name(self.data["obs_data"])
+
+                # import xarray as xr
+                # unified_data = xr.unify_chunks(self.data["catalog_data"])
+                # unified_dataset = unified_data[0]
+                # chunk_sizes = unified_dataset.chunksizes
+                adjusted_chunk_sizes = {
+                    'time': 4,
+                    'lev': 14,  # Adjust lev dimension
+                    'lat': 60,  # Adjust lat dimension
+                    'lon': 120   # Adjust lon dimension
+                }
+                self.data["obs_data"] = self.data["obs_data"].chunk(adjusted_chunk_sizes)
+                self.data["obs_data"] = self.data["obs_data"].astype('float64')
+                self.data["obs_data"].coords["lev"] = self.data["obs_data"].coords["lev"].astype('float64')
+                self.logger.debug("obs_data: %s", self.data["obs_data"])
         # self.data["catalog_data"] = self.data["catalog_data"].chunk({'time': 1, 'lev': 1, 'lat': 45, 'lon': 90})
         return
 

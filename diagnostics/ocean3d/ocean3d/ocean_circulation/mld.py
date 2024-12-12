@@ -22,7 +22,7 @@ def data_for_plot_spatial_mld_clim(data, region=None, time=None,
     data = convert_variables(data)
     data = compute_mld_cont(data[["rho"]])
     data, time = data_time_selection(data, time)
-    return data.mean("time"), time
+    return data.mean("time").persist(), time
 
 
 def plot_spatial_mld_clim(o3d_request,
@@ -60,13 +60,17 @@ def plot_spatial_mld_clim(o3d_request,
     if overlap:
         if obs_data:
             obs_data = crop_obs_overlap_time(mod_data, obs_data)
-            mod_data = crop_obs_overlap_time(obs_data, mod_data)
-
+            # mod_data = crop_obs_overlap_time(obs_data, mod_data)
+            logger.debug("cropped the overlapped time of the model and obs")
+    logger.debug("Processing Model")
     mod_clim, time = data_for_plot_spatial_mld_clim(mod_data, region, time,
                                                     lat_s, lat_n, lon_w, lon_e)  # To select the month and compute its climatology
+    logger.debug("Processing done for Model")
     if obs_data:
+        logger.debug("Processing Observation for MLD")
         obs_clim, time = data_for_plot_spatial_mld_clim(obs_data, region, time,
                                                         lat_s, lat_n, lon_w, lon_e)  # To select the month and compute its climatology
+        logger.debug("Processing done for Observation")
     # obs_data=crop_obs_overlap_time(mod_data, obs_data)
 
     # We identify the first year used in the climatology
@@ -85,7 +89,7 @@ def plot_spatial_mld_clim(o3d_request,
         obs_clim = obs_clim["rho"]
 
 
-    logger.info("Spatial MLD plot is in process")
+    logger.debug("Spatial MLD plot is in process")
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(20, 6.5))
 
     region_title = custom_region(region=region, lat_s=lat_s, lat_n=lat_n, lon_w=lon_w, lon_e=lon_e)
