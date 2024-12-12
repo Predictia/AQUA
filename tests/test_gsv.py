@@ -57,6 +57,14 @@ class TestGsv():
                            chunks="S", var='167', metadata={'fdb_home': '/app'})
         assert source is not None
 
+        # Low-level tests
+    def test_gsv_constructor_raise(self) -> None:
+        """Test raise for missing fdbhome"""
+        print(DEFAULT_GSV_PARAMS['request'])
+        with pytest.raises(KeyError): 
+            GSVSource(DEFAULT_GSV_PARAMS['request'], "20080101", "20080101", timestep="h",
+                           chunks="S", var='167')
+
     @pytest.mark.parametrize('gsv', [{'request': {
         'domain': 'g',
         'stream': 'oper',
