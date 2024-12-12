@@ -94,7 +94,6 @@ diagnostics:
     outname: teleconnections
   tropical_rainfall:
     nworkers: 16
-    #extra: "--regrid=r100 --freq=M --xmax=75 --bufferdir=${OUTPUT}/tropical_rainfall/"
     extra: "--regrid=r100 --freq=M --xmax=75 --bufferdir=${OUTPUT}/tropical_rainfall/"
   ecmean:
     nworkers: 4
