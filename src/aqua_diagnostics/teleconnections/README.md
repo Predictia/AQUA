@@ -1,3 +1,56 @@
+# Teleconnections diagnostic
+
+Main authors: 
+- Matteo Nurisso (m.nurisso@isac.cnr.it)
+
+## Description
+
+The folder contains jupyter-notebooks and python scripts in order to evaluate teleconnections in the DE_340 AQUA model evaluation framework.
+The script are based on the `AQUA` framework.
+
+At the moment the following teleconnections are available:
+- [NAO](https://github.com/DestinE-Climate-DT/AQUA/tree/main/notebooks/diagnostics/teleconnections/NAO.ipynb)
+- [ENSO](https://github.com/DestinE-Climate-DT/AQUA/tree/main/notebooks/diagnostics/teleconnections/ENSO.ipynb)
+
+See the documentation for more details on the teleconnections.
+
+## Table of contents
+
+- [Teleconnections diagnostic](#teleconnections-diagnostic)
+  - [Description](#description)
+  - [Table of contents](#table-of-contents)
+  - [Installation instructions](#installation-instructions)
+  - [Data requirements](#data-requirements)
+- [Teleconnections CLI](#teleconnections-cli)
+  - [Usage](#usage)
+    - [Configuration](#configuration)
+  - [Computational requirements](#computational-requirements)
+  - [Bootstrap CLI](#bootstrap-cli)
+- [Contributing](#contributing)
+
+## Installation instructions
+
+The diagnostic is based on the `AQUA` framework, and requires the installation of the `AQUA` package.
+Follow the instructions in the `AQUA` documentation to install it.
+
+## Data requirements
+
+The diagnostic requires the following data:
+- 'msl' (Mean sea level pressure) for NAO
+- 'tos' (Sea surface temperature) for ENSO
+
+These are the minimum requirements, but the diagnostic can be easily extended to other variables, since the regression and correlation maps can be done with every variable available in the dataset.
+The names of the variables refers to the DestinE data governance, but the diagnostic can be easily adapted to other standards with the usage of the interface files.
+
+Data should be preferably in the form of monthly means and it would be optimal for efficiency to have data on a grid with a resolution of 1°x1° (LRA format).
+It is possible to initialize the class with different regridding and time aggregation options, so that the diagnostic can deal with different resolutions and time frequencies.
+
+Comparisons with observations are also available, and require to have access to ERA5 data.
+Data are already available on Levante and LUMI.
+
+Additionally, NCAR data with monthly values of NAO and ENSO indices are available in the `notebooks/diagnostics/teleconnections/data` folder.
+These are used to compare the teleconnections in the DE_340 simulations with the observations in the notebooks.
+
 # Teleconnections CLI
 
 This folder contains the code to perform the analysis with the teleconnections diagnostic.
@@ -96,3 +149,8 @@ python cli_bootstrap.py -c config_bootstrap.yaml
 ```
 
 The configuration file has the same structure of the `cli_config_*.yaml` files.
+
+# Contributing
+
+Contributions are welcome, please open an issue or a pull request.
+If you have any doubt or suggestion, please contact the AQUA team or Matteo Nurisso (@mnurisso, m.nurisso@isac.cnr.it).
