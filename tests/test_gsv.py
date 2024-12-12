@@ -47,25 +47,31 @@ class TestGsv():
                            chunks="S", var='167', metadata={'fdb_home': '/app'})
         assert source is not None
 
-    @pytest.mark.parametrize('gsv_args', [{'request': {
-        'domain': 'g',
-        'stream': 'oper',
-        'class': 'ea',
-        'type': 'an',
-        'expver': '0001',
-        'param': '130',
-        'levtype': 'pl',
-        'levelist': ['1000'],
-        'date': '20080101',
-        'time': '1200',
-        'step': '0'
-        },
-        'data_start_date': '20080101T1200', 
-        'data_end_date': '20080101T1200',
-        'timestep': 'h', 
-        'timestyle': 'date', 
-        'var': 130}], indirect=True)
-    def test_gsv_read_chunked(self, gsv_args) -> None:
+    @pytest.fixture
+    def gsv_args():
+        return {
+            'request': {
+                'domain': 'g',
+                'stream': 'oper',
+                'class': 'ea',
+                'type': 'an',
+                'expver': '0001',
+                'param': '130',
+                'levtype': 'pl',
+                'levelist': ['1000'],
+                'date': '20080101',
+                'time': '1200',
+                'step': '0'
+            },
+            'data_start_date': '20080101T1200', 
+            'data_end_date': '20080101T1200',
+            'timestep': 'h', 
+            'timestyle': 'date', 
+            'var': 130
+        }
+
+    @pytest.mark.parametrize('gsv_args', [gsv_args()])
+    def test_gsv_read_chunked(gsv_args) -> None:
         """Test that the ``GSVSource`` is able to read data from FDB."""
         gsv = GSVSource(**gsv_args, metadata={'fdbhome': '/app'})
         data = gsv.read_chunked()
