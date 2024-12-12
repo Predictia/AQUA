@@ -1,6 +1,7 @@
 """Module containing cli tools"""
 from aqua.util import OutputSaver
 
+
 def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
              loglevel='WARNING',
              cor=False, reg=False,
@@ -156,7 +157,6 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
             # Regressions
             if full_year:
                 maps.append(reg_full)
-                filename_def = set_filename(filename, "regression")
                 title = f'ENSO {model} {exp} regression map (tos)'
                 description = f'ENSO {model} {exp} regression map (tos)'
 
@@ -175,7 +175,6 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
             if seasons:
                 for i, season in enumerate(seasons):
                     maps.append(reg_season[i])
-                    filename_def = set_filename(filename, f"regression_{season}")
                     title = f'ENSO {model} {exp} regression map (tos) for {season}'
                     description = f'ENSO {model} {exp} regression map (tos) for {season}'
 
@@ -196,7 +195,6 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
             common_save_args.update({'diagnostic_product': telec + '_' + 'correlation'})
             if full_year:
                 maps.append(cor_full)
-                filename_def = set_filename(filename, "correlation")
                 title = f'ENSO {model} {exp} correlation map (tos)'
                 description = f'ENSO {model} {exp} correlation map (tos)'
 
@@ -215,7 +213,6 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
             if seasons:
                 for i, season in enumerate(seasons):
                     maps.append(cor_season[i])
-                    filename_def = set_filename(filename, f"correlation_{season}")
                     title = f'ENSO {model} {exp} correlation map (tos) for {season}'
                     description = f'ENSO {model} {exp} correlation map (tos) for {season}'
 
