@@ -62,7 +62,7 @@ class TestGsv():
         print(DEFAULT_GSV_PARAMS['request'])
         source = GSVSource(DEFAULT_GSV_PARAMS['request'], "20080101", "20080101", timestep="h",
                            chunks="S", var='167', bridge_end_date='complete',
-                           metadata={'fdbhome_bridge': '/app'})
+                           metadata={'fdb_home_bridge': '/app'})
         assert source is not None
             
     def test_gsv_constructor_raise(self) -> None:
@@ -71,6 +71,13 @@ class TestGsv():
         with pytest.raises(ValueError):
             GSVSource(DEFAULT_GSV_PARAMS['request'], "20080101", "20080101", timestep="h",
                            chunks="S", var='167')
+    
+    def test_gsv_constructor_raise_bridge(self) -> None:
+        """Test raise for missing fdbhome"""
+        print(DEFAULT_GSV_PARAMS['request'])
+        with pytest.raises(ValueError):
+            GSVSource(DEFAULT_GSV_PARAMS['request'], "20080101", "20080101", timestep="h",
+                           chunks="S", var='167', bridge_end_date='complete')
 
     @pytest.mark.parametrize('gsv', [{'request': {
         'domain': 'g',
