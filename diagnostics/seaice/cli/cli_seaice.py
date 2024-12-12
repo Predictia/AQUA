@@ -94,10 +94,12 @@ if __name__ == '__main__':
     # Dask distributed cluster
     nworkers = get_arg(args, 'nworkers', None)
     cluster = get_arg(args, 'cluster', None)
+    private_cluster = False
     if nworkers or cluster:
         if not cluster:
             cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
             logger.info(f"Initializing private cluster {cluster.scheduler_address} with {nworkers} workers.")
+            private_cluster = True
         else:
             logger.info(f"Connecting to cluster {cluster}.")
         client = Client(cluster)
@@ -179,3 +181,7 @@ if __name__ == '__main__':
     if client:
         client.close()
         logger.debug("Dask client closed.")
+
+    if private_cluster:
+        cluster.close()
+        logger.debug("Dask cluster closed.")

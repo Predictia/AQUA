@@ -50,6 +50,10 @@ def main():
     if trop_rainfall_cli.client:
         trop_rainfall_cli.client.close()
         logger.debug("Dask client closed.")
+
+    if trop_rainfall_cli.private_cluster:
+        trop_rainfall_cli.cluster.close()
+        logger.debug("Dask cluster closed.")
     
     logger.info("Tropical rainfall diagnostic has finished.")
 
