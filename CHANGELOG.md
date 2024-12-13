@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Catgen fixes (#1536)
+- Introduced fixer for phase 2 (#1536)
 - Added the `cdo_options: "--force"` to the definitions of the oceanic HealPix grids (#1539)
 
 ## [v0.13-alpha]
