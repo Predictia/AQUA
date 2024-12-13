@@ -10,7 +10,11 @@ Unreleased in the current development version:
 AQUA core complete list:
 - Catgen fixes (#1536)
 - Introduced fixer for phase 2 (#1536)
+- `aqua_analysis.py` using a common central dask cluster (#1525)
 - Added the `cdo_options: "--force"` to the definitions of the oceanic HealPix grids (#1539)
+
+AQUA diagnostic complete list:
+- Minor fix to allow Ocean3D to read new variable names (#1540)
 
 ## [v0.13-alpha]
 
