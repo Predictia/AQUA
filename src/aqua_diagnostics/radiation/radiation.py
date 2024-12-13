@@ -9,9 +9,7 @@ xr.set_options(keep_attrs=True)
 
 class Radiation:
 
-    import xarray as xr
-
-    def boxplot(self, datasets=None, model_names=None, variables=None, variable_names=None):
+    def boxplot(self, datasets=None, model_names=None, variables=None, variable_names=None, loglevel='WARNING'):
         """
         Generate a boxplot showing the uncertainty of a global variable for different models.
 
@@ -20,12 +18,13 @@ class Radiation:
             model_names (list of str): Names for the plotting, corresponding to the datasets.
             variables (list of str): List of variables to be plotted.
             variable_names (list of str): List of alternative names for the variables.
+            loglevel (str): Logging level.
 
         Returns:
             tuple: Matplotlib figure, axis objects, Pandas DataFrame of the processed boxplot data, and xarray Dataset of the boxplot data.
         """
 
-        logger = log_configure(log_level='INFO', log_name='Boxplot')
+        logger = log_configure(log_level=loglevel, log_name='Boxplot')
         logger.info('Generating boxplot.')
 
         sns.set_palette("pastel")
