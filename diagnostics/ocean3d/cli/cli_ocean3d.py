@@ -61,17 +61,6 @@ class Ocean3DCLI:
                 self.loglevel = self.get_arg('loglevel', self.ocean3d_config_dict["loglevel"])
                 self.logger = log_configure(log_name='Ocean3D CLI', log_level=self.loglevel)
                 
-        # Dask distributed cluster
-        nworkers = self.get_arg('nworkers', self.ocean3d_config_dict["nworkers"])
-        self.logger.info(f'Selecting {nworkers} workers')
-        hostname = socket.gethostname()
-        if nworkers:
-            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
-            client = Client(cluster)
-            self.logger.info(f"Running with {nworkers} dask distributed workers.")
-             # Start a Dask client
-            self.logger.info(client.dashboard_link)  # Open the link in a browser
-
             
         self.config["model"] = self.get_arg('model', self.ocean3d_config_dict['model'])
         self.config["exp"] = self.get_arg('exp', self.ocean3d_config_dict['exp'])
@@ -241,11 +230,20 @@ class Ocean3DCLI:
         self.logger = log_configure(log_name='Ocean3D CLI', log_level=self.loglevel)
 
         # Dask distributed cluster
-        nworkers = self.get_arg('nworkers', None)
-        if nworkers:
-            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+        nworkers = get_arg(args, 'nworkers', None)
+        cluster = get_arg(args, 'cluster', None)
+        private_cluster = False
+        if nworkers or cluster:
+            if not cluster:
+                cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+                self.logger.info(f"Initializing private cluster {cluster.scheduler_address} with {nworkers} workers.")
+                private_cluster = True
+            else:
+                self.logger.info(f"Connecting to cluster {cluster}.")
             client = Client(cluster)
-            self.logger.info(f"Running with {nworkers} dask distributed workers.")
+            self.logger.info(client.dashboard_link)
+        else:
+            client = None
 
         # Change the current directory to the one of the CLI so that relative paths work
         abspath = os.path.abspath(__file__)
