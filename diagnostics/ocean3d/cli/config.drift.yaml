@@ -17,7 +17,7 @@ ocean_drift:
     - Atlantic Ocean
     - Arctic Ocean
     - Southern Ocean
-    - Global Ocean  # possible trend plot fails 
+    - Global Ocean 
   plots: [
           hovmoller,
           time_series,

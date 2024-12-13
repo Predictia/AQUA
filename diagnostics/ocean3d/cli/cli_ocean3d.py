@@ -194,7 +194,7 @@ class Ocean3DCLI:
             self.logger.info("Evaluating zonal mean trend")
             zonal_trend = zonal_mean_trend(o3d_request)
             zonal_trend.plot()
-            self.logger.wanring("Zonal trend plot completed")
+            self.logger.warning("Zonal trend plot completed")
 
         self.logger.warning(f"Finished ocean drift diags for {region}")
 
