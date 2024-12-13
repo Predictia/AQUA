@@ -87,6 +87,9 @@ def test_catgen_reduced(tmp_path, model, nsources, nocelevels):
     # check how many sources
     assert len(sources['sources']) == nsources
 
+    # check if realization is correctly formatted
+    assert "realization: '{{ realization }}'"
+
     # check number of vertical levels in the atmosphere
     if model == 'IFS-NEMO':
         grid, freq = 'lon-lat', 'monthly'
