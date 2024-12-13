@@ -73,6 +73,7 @@ def check_variable_name(data, loglevel= "WARNING"):
     data = kelvin_to_celsius(data, "avg_thetao")
     # if "thetao_uncertainty" in data:
     #     data = kelvin_to_celsius(data, "thetao_uncertainty")
+    data = data.resample(time="MS").mean()
     return data
 
 def time_slicing(data, start_year, end_year, loglevel= "WARNING"):
@@ -313,26 +314,26 @@ def load_obs_data(model='EN4', exp='en4', source='monthly', loglevel= "WARNING")
     return den4
 
 
-def crop_obs_overlap_time(data1, data2, loglevel="WARNING"):
+def crop_obs_overlap_time(ref_data, data, loglevel="WARNING"):
     """
     Crop the observational data to the overlapping time period with the model data.
 
     Parameters:
-        data1 (xarray.Dataset): data1.
-        data2 (xarray.Dataset): data2.
+        data1 (xarray.Dataset): ref_data.
+        data2 (xarray.Dataset): data.
 
     Returns:
         xarray.Dataset: Observational data cropped to the overlapping time period with the model data.
     """
     logger = log_configure(loglevel, 'crop_obs_overlap_time')
-    data1_time = data1.time
-    data2_time = data2.time
-    common_time = data1_time.where(data1_time.isin(data2_time), drop=True)
+    ref_data_time = ref_data.time
+    data_time = data.time
+    common_time = ref_data_time.where(ref_data_time.isin(data_time), drop=True)
     if len(common_time) > 0:
-        data2 = data2.sel(time=common_time)
+        data = data.sel(time=common_time)
         logger.debug(
             "Selected the overlapping time of the obs data compared to the model")
-    return data2
+    return data
 
 
 def data_time_selection(data, time, loglevel= "WARNING"):

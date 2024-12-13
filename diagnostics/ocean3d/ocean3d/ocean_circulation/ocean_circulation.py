@@ -274,8 +274,8 @@ def prepare_data_for_stratification_plot(data, region=None, time=None, lat_s: fl
     
     data, time = data_time_selection(data, time)
     if timemean == True:
-        data.attrs["start_year"] = data.time[0].data
-        data.attrs["end_year"] = data.time[-1].data
+        data.attrs["start_year"] = data.time[0].data.astype('datetime64[Y]').astype(str)
+        data.attrs["end_year"] = data.time[-1].data.astype('datetime64[Y]').astype(str)
         data = data.mean("time")
         
     return data, time
