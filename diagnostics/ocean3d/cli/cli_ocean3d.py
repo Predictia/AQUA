@@ -272,7 +272,7 @@ class Ocean3DCLI:
 
         if private_cluster:
             cluster.close()
-            logger.debug("Dask cluster closed.")
+            self.logger.debug("Dask cluster closed.")
 
         self.logger.warning("Ocean3D diagnostic has finished.")
 
