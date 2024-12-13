@@ -28,15 +28,13 @@
       savefreq: {{ savefreq }}
       timestep: h
       timestyle: date
-    parameters:
     {% if num_of_realizations > 1 %}
+    parameters:
       realization:
         allowed: {{ range(1, num_of_realizations + 1) | list }}
         description: realization member
         type: int
         default: 1
-    {% else %}
-      None
     {% endif %}
     description: {{ description }}
     driver: gsv
