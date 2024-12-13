@@ -17,7 +17,7 @@ job:
     #                                              on the number of concurrent threads, like a login node.
 
     max_threads: 0  # Set to the desired maximum number of threads, or leave it as 0 for no limit
-    loglevel: "DEBUG" # DEBUG, IN FO, WARNING, ERROR, CRITICAL
+    loglevel: "WARNING" # DEBUG, IN FO, WARNING, ERROR, CRITICAL
 
     # Run a dummy analysis to test the configuration and the presence of needed data
     run_dummy: false
@@ -41,10 +41,11 @@ cluster:  # options for dask cluster
 diagnostics:
 
   # List of diagnostics to run
-  run: [
-        "ocean3d_drift",
-        "ocean3d_circulation",
-        ]
+  run: ["tropical_rainfall", "timeseries_atm", "seasonal_cycles",
+        "radiation", "teleconnections_atm", "atmglobalmean",
+        "timeseries_oce", "teleconnections_oce", "ocean3d_drift",
+        "ocean3d_circulation", "seaice_extent", "seaice_conc",
+        "seaice_volume", "seaice_thick", "ecmean"]
 
   # List of diagnostics
 
