@@ -6,7 +6,7 @@ import socket
 from dask.distributed import Client, LocalCluster
 
 from aqua import Reader
-from aqua.util import load_yaml
+from aqua.util import load_yaml, get_arg
 
 from ocean3d import check_variable_name
 from ocean3d import stratification
@@ -240,6 +240,12 @@ class Ocean3DCLI:
         self.loglevel = self.get_arg('loglevel', 'WARNING')
         self.logger = log_configure(log_name='Ocean3D CLI', log_level=self.loglevel)
 
+        # Dask distributed cluster
+        nworkers = self.get_arg('nworkers', None)
+        if nworkers:
+            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+            client = Client(cluster)
+            self.logger.info(f"Running with {nworkers} dask distributed workers.")
 
         # Change the current directory to the one of the CLI so that relative paths work
         abspath = os.path.abspath(__file__)
@@ -262,7 +268,15 @@ class Ocean3DCLI:
         if self.config["ocean_circulation"]:
             self.ocean_circulation_diags()
 
-        self.logger.warning("Ocean3D diagnostic terminated!")
+        if client:
+            client.close()
+            self.logger.debug("Dask client closed.")
+
+        if private_cluster:
+            cluster.close()
+            logger.debug("Dask cluster closed.")
+
+        self.logger.warning("Ocean3D diagnostic has finished.")
 
 
 def parse_arguments(args):
@@ -283,6 +297,8 @@ def parse_arguments(args):
     parser.add_argument('--source', type=str, help='Source name')
     parser.add_argument('--outputdir', type=str,
                         help='Output directory')
+    parser.add_argument("--cluster", type=str,
+                        required=False, help="dask cluster address")
 
     return parser.parse_args(args)
 

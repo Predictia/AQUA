@@ -5,7 +5,7 @@
 
 job:
     # The max_threads variable serves as a mechanism to control the maximum number of threads
-    # or parallel processes that can run simultaneously.
+    # i.e. diagnostic scripts that can run concurrently.
     # - If max_threads is set to 0 or a negative value: There is no limit on the number of threads,
     #                                                   and all processes run in parallel without waiting. 
     #                                                   This is suitable for situations where you want to utilize
@@ -33,6 +33,11 @@ job:
 
     script_path_base: "${AQUA}/diagnostics"  # Base directory for the diagnostic scripts
 
+cluster:  # options for dask cluster
+    workers: 32
+    threads: 2  # per worker
+    memory_limit: 7GiB  # per worker
+
 diagnostics:
 
   # List of diagnostics to run
@@ -43,13 +48,14 @@ diagnostics:
 
   # List of diagnostics
 
-  # Each diagnostic can have the following options:
-  # nworkers: the number of workers to use for the diagnostic. Default is 1.
-  # extra: extra command line arguments to pass to the diagnostic script.
-  # outname: the name of the output directory for the diagnostic.
-  #          Default is the diagnostic name itself.
-  # script_path: the location of the script to run the diagnostic.
-  #              Default script_path is "$script_path_base/$diagnostic/cli/cli_${diagnostic}.py"
+  # Each diagnostic can have the following options (all optional):
+  #    nworkers: the number of workers to use for the diagnostic if a global dask cluster is not used. Default is 1.
+  #              Notice: these are still provided mostly for testing the local cluster option, using a global cluster (not using this option) is the new default.
+  #    extra: extra command line arguments to pass to the diagnostic script.
+  #    outname: the name of the output directory for the diagnostic. Default is the diagnostic name itself.
+  #    script_path: the location of the script to run the diagnostic.
+  #                 Default script_path is "$script_path_base/$diagnostic/cli/cli_${diagnostic}.py"
+  #    nocluster: boolean, if set to true, the diagnostic will not use the global dask cluster. Default false (needed for ECmean)
 
   atmglobalmean:
     nworkers: 16
@@ -90,9 +96,7 @@ diagnostics:
     extra: "--regrid=r100 --freq=M --xmax=75 --bufferdir=${OUTPUT}/tropical_rainfall/"
   ecmean:
     nworkers: 4
-    # Command line extra arguments for ecmean:
-    # -c --config (ecmean config file)
-    # -i --interface (custom interface file)
+    nocluster: true  # ECmean does not use the global dask cluster
     extra: "--interface ${AQUA}/diagnostics/ecmean/config/interface_AQUA_destine-v1.yml"
   ocean3d_drift:
     script_path: "ocean3d/cli/cli_ocean3d.py"
