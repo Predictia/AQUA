@@ -29,10 +29,10 @@ ocean_circulation: #specify region and climatology time
   compare_model_with_obs: True
   regions:
     Labrador Sea : DJF
-    # Irminger Sea : DJF
-    # Ross Sea : JJA
-    # Weddell Sea : JJA
-    # Gin Sea : DJF
+    Irminger Sea : DJF
+    Ross Sea : JJA
+    Weddell Sea : JJA
+    Gin Sea : DJF
   plots:
     [stratification,
     MLD]
