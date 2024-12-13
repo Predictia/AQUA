@@ -508,7 +508,6 @@ class GSVSource(base.DataSource):
 
         i, j = self._index_to_timelevel(ii)
 
-        #ds = dask.delayed(self._get_partition, dask_key_name=f'partition-{ii}-{var}')(ii, var=var)
         ds = dask.delayed(self._get_partition)(ii, var=var)
 
         # get the data from the first (and only) data array
