@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 
+- Minor fix to allow Ocean3D to read new variable names (#1540)
 - `aqua_analysis.py` using a common central dask cluster (#1525)
 - Added the `cdo_options: "--force"` to the definitions of the oceanic HealPix grids (#1539)
 
