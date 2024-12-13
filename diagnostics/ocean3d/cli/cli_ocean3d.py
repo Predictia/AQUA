@@ -94,10 +94,10 @@ class Ocean3DCLI:
         else:
             self.data["catalog_data"] = reader.retrieve()
             
-        self.data["catalog_data"] = check_variable_name(self.data["catalog_data"])
+        self.data["catalog_data"] = check_variable_name(self.data["catalog_data"], loglevel=self.loglevel)
 
         if self.config["compare_model"]== True:
-            self.data["obs_data"] = load_obs_data(model='EN4', exp='en4', source='monthly')
+            self.data["obs_data"] = load_obs_data(model='EN4', exp='en4', source='monthly', loglevel=self.loglevel)
         self.data["obs_data"] = check_variable_name(self.data["obs_data"])
         
         return
