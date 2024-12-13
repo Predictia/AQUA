@@ -268,13 +268,12 @@ def plot_single_map_diff(data: xr.DataArray,
     diff_map = data - data_ref
 
     return_main_fig = kwargs.get('return_fig', False)
-    if 'return_fig' in kwargs:
-        del kwargs['return_fig']  # Remove the return_fig kwarg from the kwargs
-    if 'contour' in kwargs:
-        del kwargs['contour']
+    
+    for key in ['return_fig', 'contour']:
+        kwargs.pop(key, None) 
 
     fig, ax = plot_single_map(diff_map, return_fig=True,
-                              contour=False,  # Disable contour for the color map
+                              contour=contour,  # Disable contour for the color map
                               sym=sym,
                               save=False, loglevel=loglevel,
                               vmin=vmin_fill, vmax=vmax_fill,
