@@ -462,7 +462,7 @@ class Teleconnection():
 
         common_save_args = {'diagnostic_product': self.telecname + '_' + 'index', 'var': self.var}
         filename = self.output_saver.generate_name(suffix='nc', **common_save_args)
-        file = self.outputdir + '/netcdf/' + filename
+        file = os.join(self.outputdir, 'netcdf', filename)
         if os.path.isfile(file):
             self.logger.info('Index found in %s', file)
             self.index = xr.open_mfdataset(file)
