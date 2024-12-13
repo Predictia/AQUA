@@ -4,7 +4,6 @@ source: lra-r100-monthly
 
 loglevel: warning
 outputdir: ./output
-nworkers: 3
 
 # select_time:
 #   start_year : 1991
