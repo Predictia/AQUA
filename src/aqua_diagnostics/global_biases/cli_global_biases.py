@@ -24,17 +24,47 @@ def parse_arguments(args):
     parser.add_argument('--exp', type=str, help='Experiment name')
     parser.add_argument('--source', type=str, help='Source name')
     parser.add_argument('--outputdir', type=str, help='Output directory')
+    parser.add_argument("--cluster", type=str, required=False, help="dask cluster address")
 
     return parser.parse_args(args)
 
-def initialize_dask(nworkers, logger):
-    """Initialize Dask distributed cluster if nworkers is specified."""
-    if nworkers:
-        cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+def initialize_dask(nworkers=None, cluster=None, logger='WARNING'):
+    """
+    Initialize a Dask distributed cluster.
+    
+    Parameters:
+    - nworkers: int, optional
+        Number of workers to start if initializing a LocalCluster.
+    - cluster: dask.distributed.Cluster, optional
+        An existing cluster to connect to.
+    - logger: logging.Logger, optional
+        Logger to record cluster initialization messages.
+    
+    Returns:
+    - client: dask.distributed.Client
+        A Dask client connected to the cluster.
+    - private_cluster: bool
+        True if a new LocalCluster was created, False otherwise.
+    """
+    private_cluster = False  # Default value
+    
+    if nworkers or cluster:
+        if not cluster:
+            # Initialize a LocalCluster
+            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+            private_cluster = True
+            logger.info(f"Initializing private cluster at {cluster.scheduler_address} "
+                        f"with {nworkers} workers.")
+        else:
+            logger.info(f"Connecting to provided cluster: {cluster}.")
+        
+        # Connect to the cluster
         client = Client(cluster)
-        logger.info(f"Running with {nworkers} Dask distributed workers.")
-        return client
-    return None
+        return client, cluster, private_cluster
+    
+    else:
+        logger.warning("Neither nworkers nor cluster specified. No Dask cluster initialized.")
+        return None, private_cluster
 
 def main():
     args = parse_arguments(sys.argv[1:])
@@ -48,7 +78,11 @@ def main():
         os.chdir(script_dir)
         logger.info(f"Changing working directory to {script_dir}")
 
-    client = initialize_dask(get_arg(args, 'nworkers', None), logger)
+    client, cluster, private_cluster = initialize_dask(nworkers=get_arg(args, 'nworkers', None), cluster=get_arg(args, 'cluster', None), logger=logger)
+    if private_cluster:
+        logger.info("A private Dask cluster was initialized.")
+    else:
+        logger.info("Using an existing Dask cluster.")
 
     homedir = os.environ.get('HOME')
     config_filename = os.path.join(homedir, '.aqua', 'diagnostics', 'global_biases', 'cli', 'config_global_biases.yaml')
@@ -205,6 +239,14 @@ def main():
 
         except Exception as e:
             logger.error(f"Error processing {var_name}: {e}")
+
+    if client:
+        client.close()
+        logger.debug("Dask client closed.")
+
+    if private_cluster:
+        cluster.close()
+        logger.debug("Dask cluster closed.")
 
     logger.info("Global Biases diagnostic completed.")
 
