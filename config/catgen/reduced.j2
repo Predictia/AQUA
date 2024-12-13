@@ -7,7 +7,7 @@
         experiment: {{ experiment }}  # To be overwritten by workflow/config file
         generation: {{ generation | default(1) }}   # To be overwritten by workflow/config file
         model: {{ model }}
-        realization: {% if num_of_realizations > 1 %}{% raw %}{{ realization }}{% endraw %}{% else %}1{% endif %} 
+        realization: {% if num_of_realizations > 1 %}{% raw %}'{{ realization }}'{% endraw %}{% else %}1{% endif %} 
         resolution: {{ resolution }}
         expver: {{ expver }}  # To be overwritten by workflow/config file
         type: fc
@@ -28,9 +28,15 @@
       savefreq: {{ savefreq }}
       timestep: h
       timestyle: yearmonth
-
+    parameters:
     {% if num_of_realizations > 1 %}
-    parameters: {{ parameters }}
+      realization:
+        allowed: {{ range(1, num_of_realizations + 1) | list }}
+        description: realization member
+        type: int
+        default: 1
+    {% else %}
+      None
     {% endif %}
     description: {{ description }}
     driver: gsv
