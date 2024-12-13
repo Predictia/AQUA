@@ -33,7 +33,7 @@ reference_model_annual:
 outputdir: "./"
 
 # This is the variable that will be plotted as timeseries
-timeseries: '2t'
+timeseries: 'hcc'
 
 timeseries_plot_params:
   startdate: 

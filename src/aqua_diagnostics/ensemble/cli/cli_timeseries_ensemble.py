@@ -46,7 +46,7 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def get_plot_options(config: dict = None, var: str = None):
+def get_plot_options(config: dict = None, variable: str = None):
     """
     Extracts timeseries plot options from a configuration dictionary.
 
@@ -58,7 +58,7 @@ def get_plot_options(config: dict = None, var: str = None):
             which is load by the load_yaml function. 
             It is expected to include the key `timeseries_plot_params` with 
             sub-keys for various plotting parameters. Defaults to None.
-        var (str): A variable name (not used in the current implementation, 
+        variable (str): A variable name (not used in the current implementation, 
             but reserved for future use). Defaults to None.
             
     Returns:
@@ -90,17 +90,17 @@ def get_plot_options(config: dict = None, var: str = None):
     return startdate, enddate, plot_std, plot_ensemble_members, ensemble_label, figure_size, ref_label, label_ncol, label_size, pdf_save, units
 
 
-def retrieve_data(var=None, models=None, exps=None, sources=None, startdate=None, enddate=None, ens_dim="Ensembles"):
+def retrieve_data(variable=None, models=None, exps=None, sources=None, startdate=None, enddate=None, ens_dim="Ensembles"):
     """
     Retrieves, merges, and slices datasets based on specified models, experiments, 
     sources, and time boundaries.
 
-    This function reads data for a given variable (`var`) from multiple models, experiments, 
+    This function reads data for a given variable (`variable`) from multiple models, experiments, 
     and sources, combines the datasets along the specified ensemble dimension, and slices 
     the merged dataset to the given start and end dates.
 
     Args:
-        var (str): The variable to retrieve data for. Defaults to None.
+        variable (str): The variable to retrieve data for. Defaults to None.
         models (list): A list of model names. Each model corresponds to an 
             experiment and source in the `exps` and `sources` lists, respectively. 
             Defaults to None.
@@ -133,7 +133,7 @@ def retrieve_data(var=None, models=None, exps=None, sources=None, startdate=None
     else:
         for i, model in enumerate(models):
             reader = Reader(model=model, exp=exps[i], source=sources[i], areas=False)
-            data = reader.retrieve(var)
+            data = reader.retrieve(var=variable)
             dataset_list.append(data)
             startdate_list.append(data.time[0].values)
             enddate_list.append(data.time[-1].values)
@@ -184,10 +184,10 @@ if __name__ == '__main__':
     logger.info(f"Reading configuration file {file}")
     config = load_yaml(file)
 
-    var = config['timeseries']
-    logger.info(f"Plotting {var} timeseries")
+    variable = config['timeseries']
+    logger.info(f"Plotting {variable} timeseries")
     startdate, enddate, plot_std, plot_ensemble_members, ensemble_label, figure_size, ref_label, label_ncol, label_size, pdf_save, units = get_plot_options(
-        config, var)
+        config, variable)
 
     outputdir = get_arg(args, "outputdir", config["outputdir"])
 
@@ -206,7 +206,7 @@ if __name__ == '__main__':
             mon_source_list.append(model['source'])
 
     mon_startdate, mon_enddate, mon_dataset = retrieve_data(
-        var, models=mon_model_list, exps=mon_exp_list, sources=mon_source_list)
+        variable, models=mon_model_list, exps=mon_exp_list, sources=mon_source_list)
 
     # Annual model data
     ann_model = config['models_annual']
@@ -223,7 +223,7 @@ if __name__ == '__main__':
             ann_source_list.append(model['source'])
 
     ann_startdate, ann_enddate, ann_dataset = retrieve_data(
-        var, models=mon_model_list, exps=mon_exp_list, sources=ann_source_list)
+        variable, models=mon_model_list, exps=mon_exp_list, sources=ann_source_list)
 
     # Reference monthly data
     ref_mon = config['reference_model_monthly']
@@ -234,7 +234,7 @@ if __name__ == '__main__':
 
     reader = Reader(model=ref_mon_model, exp=ref_mon_exp, source=ref_mon_source,
                     startdate=mon_startdate, enddate=mon_enddate, areas=False)
-    ref_mon_dataset = reader.retrieve(var)
+    ref_mon_dataset = reader.retrieve(var=variable)
 
     # Reference annual data
     ref_ann = config['reference_model_annual']
@@ -245,13 +245,13 @@ if __name__ == '__main__':
 
     reader = Reader(model=ref_ann_model, exp=ref_ann_exp, source=ref_ann_source,
                     startdate=ann_startdate, enddate=ann_enddate, areas=False)
-    ref_ann_dataset = reader.retrieve(var)
+    ref_ann_dataset = reader.retrieve(var=variable)
 
-    ts = EnsembleTimeseries(var=var, mon_model_dataset=mon_dataset, ann_model_dataset=ann_dataset,
+    ts = EnsembleTimeseries(var=variable, mon_model_dataset=mon_dataset, ann_model_dataset=ann_dataset,
                             mon_ref_data=ref_mon_dataset, ann_ref_data=ref_ann_dataset)
     try:
         ts.edit_attributes(plot_std=plot_std, plot_ensemble_members=plot_ensemble_members, ensemble_label=ensemble_label,
                          ref_label=ref_label, figure_size=figure_size, label_ncol=label_ncol, label_size=label_size, pdf_save=pdf_save)
         ts.run()
     except Exception as e:
-        logger.error(f'Error plotting {var} timeseries: {e}')
+        logger.error(f'Error plotting {variable} timeseries: {e}')
