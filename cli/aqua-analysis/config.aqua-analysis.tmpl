@@ -27,7 +27,7 @@ job:
 cluster:  # options for dask cluster
     workers: {{ number_of_workers, int }}  # Total number of dask workers
     threads: {{ threads_per_worker, int }}  # Threads allowed by each worker
-    memory_limit: {{ memory_limit }}  # Memory limit for each worker {e.g 7GiB)
+    memory_limit: {{ memory_limit, int }}  # Memory limit for each worker {e.g 7GiB)
 
 diagnostics:
 
