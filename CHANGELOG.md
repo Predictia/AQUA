@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+AQUA core complete list:
+- Added the `cdo_options: "--force"` to the definitions of the oceanic HealPix grids (#1539)
+
 ## [v0.13-alpha]
 
 Main changes are:
@@ -37,6 +40,8 @@ AQUA core complete list:
 - Introduce `grids-checker.py` tool to verify presence and checksum of the grid files (#1486)
 
 AQUA diagnostic complete list:
+- Timeseries: The `timeseries` diagnostic is now integrated in the `aqua_diagnostics` module (#1340)
+- Integrating Updated OutputSaver into Timeseries (#1492)
 - Tropical Cyclones: Adaptation to IFS-FESOM and tool to compute orography from data (#1393)
 - Seaice: Hotfix for sea ice plots (#1432)
 
