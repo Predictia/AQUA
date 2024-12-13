@@ -94,7 +94,6 @@ class Teleconnection():
 
         # Load AQUA config and check that the data is available
         self.aquaconfigdir = aquaconfigdir
-        self._aqua_config()
 
         self.regrid = regrid
         if self.regrid is None:
@@ -109,10 +108,6 @@ class Teleconnection():
         self.logger.debug("Frequency: %s", self.freq)
 
         self.outputdir = outputdir
-
-        self.output_saver = OutputSaver(diagnostic='teleconnections', catalog=self.catalog, model=self.model, exp=self.exp,
-                                        loglevel=self.loglevel, default_path=self.outputdir, rebuild=rebuild,
-                                        filename_keys=filename_keys)
 
         # Teleconnection variables
         avail_telec = ['NAO', 'ENSO', 'MJO']
@@ -149,6 +144,11 @@ class Teleconnection():
         # but **kwargs are passed to it so that it can be used to pass
         # arguments to the reader if needed
         self._reader(startdate=self.startdate, enddate=self.enddate)
+
+        if self.save_netcdf or self.save_pdf or self.save_png:
+            self.output_saver = OutputSaver(diagnostic='teleconnections', catalog=self.catalog, model=self.model, exp=self.exp,
+                                            loglevel=self.loglevel, default_path=self.outputdir, rebuild=rebuild,
+                                            filename_keys=filename_keys)
 
     def retrieve(self, var=None, **kwargs):
         """Retrieve teleconnection data with the AQUA reader.
@@ -372,22 +372,22 @@ class Teleconnection():
         self.namelist = config.load_namelist()
         self.logger.info('Namelist loaded')
 
-    def _aqua_config(self):
-        """Load AQUA configuration.
+    # def _aqua_config(self):
+    #     """Load AQUA configuration.
 
-        Raises:
-            NoDataError: If the data is not available.
-        """
+    #     Raises:
+    #         NoDataError: If the data is not available.
+    #     """
 
-        aqua_config = ConfigPath(catalog=self.catalog, configdir=self.aquaconfigdir)
-        self.catalog = aqua_config.catalog
-        self.logger.debug("Catalog: %s", self.catalog)
+    #     aqua_config = ConfigPath(catalog=self.catalog, configdir=self.aquaconfigdir)
+    #     self.catalog = aqua_config.catalog
+    #     self.logger.debug("Catalog: %s", self.catalog)
 
-        # Check that the data is available in the catalog
-        if inspect_catalog(catalog_name=self.catalog, model=self.model, exp=self.exp,
-                           source=self.source,
-                           verbose=False) is False:
-            raise NoDataError('Data not available')
+    #     # Check that the data is available in the catalog
+    #     if inspect_catalog(catalog_name=self.catalog, model=self.model, exp=self.exp,
+    #                        source=self.source,
+    #                        verbose=False) is False:
+    #         raise NoDataError('Data not available')
 
     def _reader(self, **kwargs):
         """Initialize AQUA reader.
@@ -398,6 +398,7 @@ class Teleconnection():
 
         self.reader = Reader(catalog=self.catalog, model=self.model, exp=self.exp, source=self.source,
                              regrid=self.regrid, loglevel=self.loglevel, **kwargs)
+        self.catalog = self.reader.catalog
         self.logger.info('Reader initialized')
 
     def _prepare_corr_reg(self, data=None, var=None,
