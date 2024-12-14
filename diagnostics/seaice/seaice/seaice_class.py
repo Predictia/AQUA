@@ -76,14 +76,10 @@ class SeaIceExtent:
         if config is None:
             raise ValueError("No configuration provided")
 
-        try:
-            self.myRegions = config['regions']
-        except KeyError:
+        self.myRegions = config.get('regions', None)
+        if not self.myRegions:
             self.logger.error("No regions specified in configuration file")
             self.logger.warning("Using all regions")
-            self.myRegions = None
-
-        if self.myRegions is None:
             self.myRegions = ["Arctic", "Hudson Bay",
                               "Southern Ocean", "Ross Sea",
                               "Amundsen-Bellingshausen Seas",
@@ -94,23 +90,11 @@ class SeaIceExtent:
         self.nRegions = len(self.myRegions)
         self.logger.debug("Number of regions: " + str(self.nRegions))
 
-        try:
-            self.mySetups = config['models']
-
-            # Attribute a color for plotting
-            reserveColorList = ["#1898e0", "#00b2ed", "#00bb62",
-                                "#8bcd45", "#dbe622", "#f9c410",
-                                "#f89e13", "#fb4c27", "#fb4865",
-                                "#d24493", "#8f57bf", "#645ccc",]
-            js = 0
-            for s in self.mySetups:
-                if s["model"] == "OSI-SAF":
-                    s["color_plot"] = [0.2, 0.2, 0.2]
-                else:
-                    s["color_plot"] = reserveColorList[js]
-                js += 1
-        except KeyError:
+        self.mySetups = config.get('models', None)
+        if not self.mySetups:
+            self.logger.error("No models specified in configuration file")
             raise NoDataError("No models specified in configuration")
+
 
     def run(self):
         """
@@ -146,19 +130,13 @@ class SeaIceExtent:
             self.logger.info(f"Retrieving data for {model} {exp} {source}")
 
             # Instantiate reader
-            try:
-                reader = Reader(model=model, exp=exp, source=source,
-                                regrid=regrid, loglevel=self.loglevel)
-                tmp = reader.retrieve()
-            except Exception as e:
-                self.logger.error("An exception occurred while instantiating reader: %s", e)
-                raise NoDataError("Error while instantiating reader")
-
-            try:
-                data = reader.retrieve(var=var)
-            except KeyError:
+            reader = Reader(model=model, exp=exp, source=source,
+                            regrid=regrid, loglevel=self.loglevel)  
+            data = reader.retrieve(var=var)
+            if not data:
                 self.logger.error("Variable %s not found in dataset", var)
                 raise NoDataError("Variable not found in dataset")
+
             if timespan is None:
                 # if timespan is set to None, retrieve the timespan
                 # from the data directly
@@ -397,14 +375,10 @@ class SeaIceVolume:
         if config is None:
             raise ValueError("No configuration provided")
 
-        try:
-            self.myRegions = config['regions']
-        except KeyError:
+        self.myRegions = config.get('regions', None)
+        if not self.myRegions:
             self.logger.error("No regions specified in configuration file")
             self.logger.warning("Using all regions")
-            self.myRegions = None
-
-        if self.myRegions is None:
             self.myRegions = ["Arctic", "Hudson Bay",
                               "Southern Ocean", "Ross Sea",
                               "Amundsen-Bellingshausen Seas",
@@ -415,22 +389,8 @@ class SeaIceVolume:
         self.nRegions = len(self.myRegions)
         self.logger.debug("Number of regions: " + str(self.nRegions))
 
-        try:
-            self.mySetups = config['models']
-
-            # Attribute a color for plotting
-            reserveColorList = ["#1898e0", "#00b2ed", "#00bb62",
-                                "#8bcd45", "#dbe622", "#f9c410",
-                                "#f89e13", "#fb4c27", "#fb4865",
-                                "#d24493", "#8f57bf", "#645ccc",]
-            js = 0
-            for s in self.mySetups:
-                if s["model"] == "PSC":
-                    s["color_plot"] = [0.2, 0.2, 0.2]
-                else:
-                    s["color_plot"] = reserveColorList[js]
-                js += 1
-        except KeyError:
+        self.mySetups = config.get('models', None)
+        if not self.mySetups:
             raise NoDataError("No models specified in configuration")
 
     def run(self):
@@ -466,27 +426,18 @@ class SeaIceVolume:
 
             self.logger.info(f"Retrieving data for {model} {exp} {source}")
 
-            # Instantiate reader
-            try:
-                reader = Reader(model=model, exp=exp, source=source,
-                                regrid=regrid, loglevel=self.loglevel)
-                tmp = reader.retrieve()
-            except Exception as e:
-                self.logger.error("An exception occurred while instantiating reader: %s", e)
-                raise NoDataError("Error while instantiating reader")
-
-            try:
-                data = reader.retrieve(var=var)
-                
-            except KeyError:
-                try:
-                    data = reader.retrieve(var = "sithick")
-                    self.logger.warning("WARNING! Variable sivol was NOT FOUND, sithick was loaded instead")
-                    
-                    data = data.rename({"sithick": "sivol"})
-                except KeyError:
-                    self.logger.error("Variable %s not found in dataset " + model + "-" + exp + "-" + source, var)
+            # Load the data
+            reader = Reader(model=model, exp=exp, source=source, regrid=regrid, loglevel=self.loglevel)
+            data = reader.retrieve(var=var)
+            if not data:
+                self.logger.debug("Variable %s not found in dataset %s-%s-%s", var, model, exp, source)
+                self.logger.debug("Trying to load sithick instead")
+                data = reader.retrieve(var="sithick")
+                if not data:
+                    self.logger.error("Variable sithick not found in dataset %s-%s-%s", var, model, exp, source)
                     raise NoDataError("Variable not found in dataset")
+                else:
+                    data = data.rename({"sithick": "sivol"})
                     
             if timespan is None:
                 # if timespan is set to None, retrieve the timespan
@@ -706,20 +657,18 @@ class SeaIceConcentration:
 
         self.configure(config)
     
-
     
     def configure(self, config=None):
-        """Sets the list of setupts
-        """
+        """Sets the list of setups"""
         if config is None:
             raise ValueError("No configuration provided")
 
-        try:
-            self.mySetups = config['models']
-
-            self.nModels  = len(self.mySetups)
-        except KeyError:
+        self.mySetups = config.get('models', None)
+        if not self.mySetups:
             raise NoDataError("No models specified in configuration")
+        
+        self.nModels  = len(self.mySetups)
+
 
     def run(self):
         """
@@ -764,18 +713,11 @@ class SeaIceConcentration:
  
                 # Load the data
                 # Instantiate reader
-                try:
-                    reader = Reader(model=model, exp=exp, source=source,
-                                    regrid=regrid, loglevel=self.loglevel)
 
-                    tmp = reader.retrieve()
-                except Exception as e:
-                    self.logger.error("An exception occurred while instantiating reader: %s", e)
-                    raise NoDataError("Error while instantiating reader")
-
-                try:
-                    data= reader.retrieve(var=var)
-                except KeyError:
+                reader = Reader(model=model, exp=exp, source=source,
+                                regrid=regrid, loglevel=self.loglevel)
+                data= reader.retrieve(var=var)
+                if not data:
                     self.logger.error("Variable %s not found in dataset", var)
                     raise NoDataError("Variable not found in dataset")
 
@@ -905,7 +847,6 @@ class SeaIceThickness:
 
         self.configure(config)
     
-
     
     def configure(self, config=None):
         """Sets the list of setups
@@ -913,12 +854,12 @@ class SeaIceThickness:
         if config is None:
             raise ValueError("No configuration provided")
 
-        try:
-            self.mySetups = config['models']
-            
-            self.nModels  = len(self.mySetups)
-        except KeyError:
+        self.mySetups = config.get('models', None)
+        if not self.mySetups:
             raise NoDataError("No models specified in configuration")
+            
+        self.nModels  = len(self.mySetups)
+
 
     def run(self):
         """
@@ -957,18 +898,18 @@ class SeaIceThickness:
                 self.logger.info(f"Retrieving data for {model} {exp} {source}")
 
                 # Load the data
-                try:
-                    reader = Reader(model=model, exp=exp, source=source, regrid=regrid, loglevel=self.loglevel)
-                    data = reader.retrieve(var=var)
-                except KeyError:
-                    try:
-                        data = reader.retrieve(var="sithick")
-                        self.logger.warning("WARNING! Variable sivol was NOT FOUND, sithick was loaded instead")
-                        data = data.rename({"sithick": "sivol"})
-                    except KeyError:
-                        self.logger.error("Variable %s not found in dataset %s-%s-%s", var, model, exp, source)
+                reader = Reader(model=model, exp=exp, source=source, regrid=regrid, loglevel=self.loglevel)
+                data = reader.retrieve(var=var)
+                if not data:
+                    self.logger.debug("Variable %s not found in dataset %s-%s-%s", var, model, exp, source)
+                    self.logger.debug("Trying to load sithick instead")
+                    data = reader.retrieve(var="sithick")
+                    if not data:
+                        self.logger.error("Variable sithick not found in dataset %s-%s-%s", var, model, exp, source)
                         raise NoDataError("Variable not found in dataset")
-
+                    else:
+                        data = data.rename({"sithick": "sivol"})
+                    
                 if regrid:
                     self.logger.info("Regridding data")
                     data = reader.regrid(data)
