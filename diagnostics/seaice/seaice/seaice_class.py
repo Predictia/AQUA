@@ -95,7 +95,6 @@ class SeaIceExtent:
             self.logger.error("No models specified in configuration file")
             raise NoDataError("No models specified in configuration")
 
-
     def run(self):
         """
         The run diagnostic method.
@@ -201,8 +200,7 @@ class SeaIceExtent:
                         & (lon >= lonW)
                         & (lon <= lonE)
                     )
-
-                      
+       
                 myExtent = areacello.where(regionMask).where(ci_mask.notnull()).sel(time=slice(timespan[0], timespan[1])).sum(skipna = True, min_count = 1, dim=reader.space_coord) / 1e12
            
                 myExtent.attrs["units"] = "million km^2"
@@ -499,7 +497,6 @@ class SeaIceVolume:
                         & (lon <= lonE)
                     )
                 
-
                 sivol_mask = data.sivol.where((data.sivol > 0) &
                                         (data.sivol < 99.0))
 
@@ -657,7 +654,6 @@ class SeaIceConcentration:
 
         self.configure(config)
     
-    
     def configure(self, config=None):
         """Sets the list of setups"""
         if config is None:
@@ -668,7 +664,6 @@ class SeaIceConcentration:
             raise NoDataError("No models specified in configuration")
         
         self.nModels  = len(self.mySetups)
-
 
     def run(self):
         """
@@ -763,8 +758,6 @@ class SeaIceConcentration:
                         else:
                             ax1 = ax1.flatten()
     
-    
-    
                         # Create color sequence for sic
                         sourceColors = [[0.0, 0.0, 0.2], [0.0, 0.0, 0.0],[0.5, 0.5, 0.5], [0.6, 0.6, 0.6], [0.7, 0.7, 0.7], [0.8, 0.8, 0.8], [0.9, 0.9, 0.9],[1.0, 1.0, 1.0]]
                         myCM = LinearSegmentedColormap.from_list('myCM', sourceColors, N = 15)
@@ -786,7 +779,6 @@ class SeaIceConcentration:
                         contour = ax1[jMonth].pcolormesh(lon, lat, dataPlot,  \
                                 transform=ccrs.PlateCarree(), cmap = myCM
                                 )
-    
     
                         # Add coastlines and gridlines
                         ax1[jMonth].coastlines()
@@ -845,8 +837,7 @@ class SeaIceThickness:
 
         self.logger.debug("CONFIG:" + str(config))
 
-        self.configure(config)
-    
+        self.configure(config)  
     
     def configure(self, config=None):
         """Sets the list of setups
@@ -859,7 +850,6 @@ class SeaIceThickness:
             raise NoDataError("No models specified in configuration")
             
         self.nModels  = len(self.mySetups)
-
 
     def run(self):
         """
