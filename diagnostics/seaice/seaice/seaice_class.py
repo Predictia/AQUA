@@ -230,7 +230,7 @@ class SeaIceExtent:
                 timespan = setup["timespan"]
                 strTimeInfo = " to ".join(timespan)
                 label = setup["model"] + " " + setup["exp"] + " " + setup["source"] + " " + strTimeInfo
-                color_plot = setup["color_plot"]
+                color_plot = setup.get("color_plot")
                 self.logger.debug(f"Plotting {label} for region {region}")
 
                 extent = self.myExtents[js][jr]
@@ -531,7 +531,7 @@ class SeaIceVolume:
                 timespan = setup["timespan"]
                 strTimeInfo = " to ".join(timespan)
                 label = setup["model"] + " " + setup["exp"] + " " + setup["source"] + " " + strTimeInfo
-                color_plot = setup["color_plot"]
+                color_plot = setup.get("color_plot")
                 self.logger.debug(f"Plotting {label} for region {region}")
                 volume = self.myVolumes[js][jr]
 
