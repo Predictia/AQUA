@@ -5,16 +5,15 @@ import random
 import string
 import re
 import sys
-import json
 import numpy as np
 import xarray as xr
 import datetime
-import subprocess
 from glob import glob
 from pypdf import PdfReader, PdfWriter
 from PIL import Image, PngImagePlugin
 from aqua.logger import log_configure
 from IPython.display import display, Image as IPImage, FileLink
+from ..version import __version__ as version
 
 
 def generate_random_string(length):
@@ -342,11 +341,13 @@ def open_image(file_path: str, loglevel: str = 'WARNING') -> dict:
 
     return metadata
 
+
 def normalize_key(key: str) -> str:
     """
     Normalize metadata key by removing leading '/' and converting to lowercase.
     """
     return key.lstrip('/').lower()
+
 
 def normalize_value(value):
     """
@@ -378,6 +379,7 @@ def normalize_value(value):
     # Return the value as-is if it can't be processed further
     return value
 
+
 def update_metadata(metadata: dict = None, additional_metadata: dict = None) -> dict:
     """
     Update the provided metadata dictionary with the current date, time, aqua package version,
@@ -397,13 +399,7 @@ def update_metadata(metadata: dict = None, additional_metadata: dict = None) -> 
     now = datetime.datetime.now()
     date_now = now.strftime("%Y-%m-%d %H:%M:%S")
     metadata['timestamp'] = date_now
-
-    # Get aqua package version and add to metadata
-    try:
-        aqua_version = subprocess.run(["aqua", "--version"], stdout=subprocess.PIPE, text=True).stdout.strip()
-        metadata['aqua_version'] = aqua_version
-    except Exception as e:
-        metadata['aqua_version'] = f"Error retrieving version: {str(e)}"
+    metadata['aqua_version'] = version
 
     # Add additional metadata fields
     if additional_metadata:
