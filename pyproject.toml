@@ -107,7 +107,7 @@ platforms = ["any"]
 "aqua.diagnostics" = "src/aqua_diagnostics"
 
 [tool.setuptools.dynamic]
-version = {attr = "aqua.__version__"}
+version = {attr = "aqua.version.__version__"}
 
 [tool.pytest.ini_options]
 addopts = "-v --cov=aqua --cov-config=.coveragerc"
