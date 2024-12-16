@@ -11,9 +11,9 @@ import datetime
 from glob import glob
 from pypdf import PdfReader, PdfWriter
 from PIL import Image, PngImagePlugin
-from aqua.logger import log_configure
 from IPython.display import display, Image as IPImage, FileLink
-from ..version import __version__ as version
+from aqua.logger import log_configure
+from aqua.version import __version__ as version
 
 
 def generate_random_string(length):

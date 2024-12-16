@@ -1,7 +1,7 @@
 """AQUA module"""
-from .version import __version__ as _version
+from .version import __version__
 
-__version__ = _version
+__version__ = __version__
 
 from .graphics import plot_single_map, plot_maps, plot_single_map_diff, plot_timeseries
 from .graphics import plot_hovmoller
