@@ -8,14 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
-- Fix seaice to read sithick instead of sivol (#1543)
+- Fix pdf attributes (#1547)
 - Catgen fixes (#1536)
 - Introduced fixer for phase 2 (#1536)
 - `aqua_analysis.py` using a common central dask cluster (#1525)
 - Added the `cdo_options: "--force"` to the definitions of the oceanic HealPix grids (#1539)
 
 AQUA diagnostic complete list:
-- Minor fix to allow Ocean3D to read new variable names (#1540)
+- Seaice: Fix to read sithick as fallback instead of sivol (#1543)
+- Ocean3d: Minor fix to allow to read new variable names (#1540)
+- Timeseries: The `timeseries` diagnostic is now integrated in the `aqua_diagnostics` module (#1340)
+- Integrating Updated OutputSaver into Timeseries (#1492)
 
 ## [v0.13-alpha]
 
@@ -47,8 +50,6 @@ AQUA core complete list:
 - Introduce `grids-checker.py` tool to verify presence and checksum of the grid files (#1486)
 
 AQUA diagnostic complete list:
-- Timeseries: The `timeseries` diagnostic is now integrated in the `aqua_diagnostics` module (#1340)
-- Integrating Updated OutputSaver into Timeseries (#1492)
 - Tropical Cyclones: Adaptation to IFS-FESOM and tool to compute orography from data (#1393)
 - Seaice: Hotfix for sea ice plots (#1432)
 
