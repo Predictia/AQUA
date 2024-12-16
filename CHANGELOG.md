@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Reorganizing and extending CI/CD catalog with 5 years of hpz3 data from ERA5 (atm) and FESOM (oce) (#1552)
 - Catgen fixes (#1536)
 - Introduced fixer for phase 2 (#1536)
 - `aqua_analysis.py` using a common central dask cluster (#1525)
