@@ -403,6 +403,19 @@ class SeaIceVolume:
         self.mySetups = config.get('models', None)
         if not self.mySetups:
             raise NoDataError("No models specified in configuration")
+        else:
+            # Attribute a color for plotting
+            reserveColorList = ["#1898e0", "#00b2ed", "#00bb62",
+                                "#8bcd45", "#dbe622", "#f9c410",
+                                "#f89e13", "#fb4c27", "#fb4865",
+                                "#d24493", "#8f57bf", "#645ccc",]
+            js = 0
+            for s in self.mySetups:
+                if s["model"] == "PSC":
+                    s["color_plot"] = [0.2, 0.2, 0.2]
+                else:
+                    s["color_plot"] = reserveColorList[js]
+                js += 1
 
     def run(self):
         """
