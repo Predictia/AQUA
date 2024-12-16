@@ -203,7 +203,7 @@ def extract_literal_and_numeric(text):
 
 
 def add_pdf_metadata(filename: str,
-                     metadata_value: str,
+                     metadata_value: str | dict,
                      metadata_name: str = '/Description',
                      old_metadata: bool = True,
                      loglevel: str = 'WARNING'):
@@ -213,7 +213,7 @@ def add_pdf_metadata(filename: str,
     Args:
         filename (str): the filename of the pdf.
                         It must be a valid full path.
-        metadata_value (str): the value of the new metadata.
+        metadata_value (str | dict): the value(s) of the new metadata.
         metadata_name (str): the name of the new metadata.
                             Default is '/Description'.
         old_metadata (bool): if True, the old metadata will be kept.
@@ -247,7 +247,11 @@ def add_pdf_metadata(filename: str,
         pdf_writer.add_metadata(metadata)
 
     # Add the new metadata
-    pdf_writer.add_metadata({metadata_name: metadata_value})
+    if isinstance(metadata_value, dict):
+        metadata_value = {f'/{k}' if not k.startswith('/') else k: v for k, v in metadata_value.items()}  # Ensure keys start with '/'
+        pdf_writer.add_metadata(metadata_value)
+    else:
+        pdf_writer.add_metadata({metadata_name: metadata_value})
 
     # Overwrite input PDF
     with open(filename, 'wb') as f:
