@@ -8,8 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
-- Catgen fixes (#1536)
-- Introduced fixer for phase 2 (#1536)
+- More general checksum checker for grids and observations ( #1550)
+- Catalog generator various fixes (#1536)
+- Introduce general fixer for phase 2 (#1536)
 - `aqua_analysis.py` using a common central dask cluster (#1525)
 - Added the `cdo_options: "--force"` to the definitions of the oceanic HealPix grids (#1539)
 
