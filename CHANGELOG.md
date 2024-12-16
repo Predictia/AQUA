@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Corrected `tcc` units to % (#1551)
 - Fix pdf attributes (#1547)
 - Catgen fixes (#1536)
 - Introduced fixer for phase 2 (#1536)

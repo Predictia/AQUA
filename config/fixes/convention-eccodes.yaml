@@ -191,7 +191,7 @@ convention_name:
           - meantcc #legacy eccodes name
           - avg_tcc
           - TCC # AQUA ERA5
-        grib: 164
+        grib: 131164
       tciw: # Total column vertically-integrated cloud ice water
         source:
           - 79 # original GRIB2 code
