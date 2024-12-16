@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Reorganizing and extending CI/CD catalog with 5 years of hpz3 data from ERA5 (atm) and FESOM (oce) (#1552)
+- Fix pdf attributes (#1547)
 - Catgen fixes (#1536)
 - Introduced fixer for ClimateDT phase 2 (#1536)
 - `aqua_analysis.py` using a common central dask cluster (#1525)
