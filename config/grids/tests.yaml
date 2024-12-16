@@ -37,3 +37,14 @@ grids:
     #vert_coord: ["level"]
     cdo_extra: 
       - -selname,dummy
+  # Healpix
+  test-hpz3-nested:
+    path: '{{ grids }}/HealPix/hpz3_nested_atm.nc'
+    cdo_options: '--force'
+    space_coord: ['cells']
+  test-hpz3-nested-fesom-3d:
+    path: 
+      level: '{{ grids }}/HealPix/fesom_hpz3_nested_oce_level.nc'
+    space_coord: ['cells']
+    vert_coord: ["level"]
+    cdo_options: '--force'

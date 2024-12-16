@@ -70,6 +70,7 @@ class RegridMixin():
         self.logger.warning("Attempting to generate it ...")
 
         src_extra = source_grid.get("cdo_extra", [])
+        src_options = source_grid.get("cdo_options", [])
 
         #grid_area = self.cdo_generate_areas(source=sgrid,
         #                                    gridpath=gridpath,
@@ -77,7 +78,7 @@ class RegridMixin():
         #                                    extra=src_extra)
 
         generator = CdoGenerate(sgrid, cdo_extra=src_extra,
-                                cdo_options=None, cdo_download_path=gridpath, 
+                                cdo_options=src_options, cdo_download_path=gridpath, 
                                 cdo_icon_grids=icongridpath,
                                 cdo=self.cdo, loglevel=self.loglevel)
         grid_area = generator.areas()['cell_area']
