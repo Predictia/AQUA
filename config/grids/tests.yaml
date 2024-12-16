@@ -20,7 +20,7 @@ grids:
     path:
       nz1: '{{ grids }}/FESOM/pi_fesom_mask_nz1.nc'
       nz: '{{ grids }}/FESOM/pi_fesom_mask_nz.nc'
-    space_coord: [nod2]
+    #space_coord: [x]
     vert_coord: [nz1, nz]
     cdo_extra:
     - -setgrid,{{ grids }}/FESOM/pi_griddes_nodes_IFS.nc
