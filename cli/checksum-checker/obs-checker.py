@@ -7,7 +7,8 @@ from aqua.util import ConfigPath, load_yaml
 from aqua.util.checksum import generate_checksums, verify_checksums
 
 # default grids to be scanned by the grids-checker tool
-OBS_FOLDERS = ['ERA5']
+OBS_FOLDERS = ['CERES', 'EN4', 'ERA5', 'ESA-CCI-L4',
+               'OSI-SA', 'PHC3', 'PSC', 'WOA18']
 
 def main():
     parser = argparse.ArgumentParser(description="MD5 checksum utility for folders.")
