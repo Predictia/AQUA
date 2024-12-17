@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Reorganizing and extending CI/CD catalog with 5 years of hpz3 data from ERA5 (atm) and FESOM (oce) (#1552)
+- Version info in a separate module (#1546) 
 - Corrected `tcc` units to % (#1551)
 - Fix pdf attributes (#1547)
 - Catgen fixes (#1536)
