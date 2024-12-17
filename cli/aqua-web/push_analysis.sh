@@ -37,6 +37,8 @@ collect_figures() {
         mkdir -p $dstdir
     fi
 
+    mkdir -p $dstdir
+
     find $indir -name "*.pdf"  -exec cp {} $dstdir/ \;
 
     # Remove dates from EC-mean filenames
