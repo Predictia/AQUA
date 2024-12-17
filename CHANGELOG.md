@@ -17,7 +17,10 @@ AQUA core complete list:
 - Added the `cdo_options: "--force"` to the definitions of the oceanic HealPix grids (#1539)
 
 AQUA diagnostic complete list:
-- Minor fix to allow Ocean3D to read new variable names (#1540)
+- Seaice: Fix to read sithick as fallback instead of sivol (#1543)
+- Ocean3d: Minor fix to allow to read new variable names (#1540)
+- Timeseries: The `timeseries` diagnostic is now integrated in the `aqua_diagnostics` module (#1340)
+- Integrating Updated OutputSaver into Timeseries (#1492)
 
 ## [v0.13-alpha]
 
@@ -49,8 +52,6 @@ AQUA core complete list:
 - Introduce `grids-checker.py` tool to verify presence and checksum of the grid files (#1486)
 
 AQUA diagnostic complete list:
-- Timeseries: The `timeseries` diagnostic is now integrated in the `aqua_diagnostics` module (#1340)
-- Integrating Updated OutputSaver into Timeseries (#1492)
 - Tropical Cyclones: Adaptation to IFS-FESOM and tool to compute orography from data (#1393)
 - Seaice: Hotfix for sea ice plots (#1432)
 
