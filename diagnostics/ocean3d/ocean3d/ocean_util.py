@@ -48,16 +48,15 @@ def check_variable_name(data, loglevel= "WARNING"):
     vars = list(data.variables)
     required_vars= []
     var_list= ["SO","avg_so","thetao","THETAO","avg_SO","avg_so","avg_thetao","avg_THETAO",
-               "toce_mean","soce_mean"]
+               "toce_mean","soce_mean", "so"]
     for var in vars:
         if var in var_list:
             required_vars.append(var)
     if required_vars != []:
         logger.debug("This are the variables %s available for the diags in the catalog.", required_vars)
         data = data[required_vars]
-        logger.debug("Selected this variables")
         for var in required_vars:
-            if 'avg_so' in var.lower() or 'soce' in var.lower():
+            if 'so' in var.lower():
                 data = data.rename({var: "avg_so"})
                 logger.debug("renaming %s as avg_so", var)
             if 'thetao' in var.lower() or 'toce' in var.lower():
