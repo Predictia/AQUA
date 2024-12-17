@@ -133,6 +133,7 @@ jobs:
           rm -rf /app/
           ls -l *
           cp -r ./AQUA/AQUA_tests/fdb/ /app/
+          ls -l /app/
           cat /app/etc/fdb/config.yaml
           mkdir -pv /app/localroot/
           cd /app/
