@@ -7,8 +7,7 @@ import sys
 import argparse
 import os
 import xarray as xr
-from ecmean.performance_indices import performance_indices
-from ecmean.global_mean import global_mean
+from aqua import performance_indices, global_mean
 from ecmean import __version__ as eceversion
 from aqua.util import load_yaml, get_arg, ConfigPath
 from aqua import Reader
