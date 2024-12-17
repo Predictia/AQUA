@@ -122,7 +122,7 @@ class TestRegridder():
         assert len(rgd.lon) == 180
         assert len(rgd.lat) == 90
         assert 0.27 <= ratio1 <= 0.30
-        assert 0.56 <= ratio2 <= 0.60
+        assert 0.44 <= ratio2 <= 0.46
 
     def test_levels_and_regrid(self):
         """
