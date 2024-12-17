@@ -5,7 +5,7 @@ import sys
 from dask.distributed import Client, LocalCluster
 
 from aqua import Reader
-from aqua.util import load_yaml
+from aqua.util import load_yaml, get_arg
 
 from ocean3d import check_variable_name
 from ocean3d import stratification
@@ -190,12 +190,20 @@ class Ocean3DCLI:
         self.logger = log_configure(log_name='Ocean3D CLI', log_level=self.loglevel)
 
         # Dask distributed cluster
-        nworkers = self.get_arg('nworkers', None)
-        if nworkers:
-            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+        nworkers = get_arg(args, 'nworkers', None)
+        cluster = get_arg(args, 'cluster', None)
+        private_cluster = False
+        if nworkers or cluster:
+            if not cluster:
+                cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+                self.logger.info(f"Initializing private cluster {cluster.scheduler_address} with {nworkers} workers.")
+                private_cluster = True
+            else:
+                self.logger.info(f"Connecting to cluster {cluster}.")
             client = Client(cluster)
-            self.logger.info(f"Running with {nworkers} dask distributed workers.")
-
+        else:
+            client = None
+        
         # Change the current directory to the one of the CLI so that relative paths work
         abspath = os.path.abspath(__file__)
         dname = os.path.dirname(abspath)
@@ -217,7 +225,15 @@ class Ocean3DCLI:
         if self.config["ocean_circulation"]:
             self.ocean_circulation_diags()
 
-        self.logger.warning("Ocean3D diagnostic terminated!")
+        if client:
+            client.close()
+            self.logger.debug("Dask client closed.")
+
+        if private_cluster:
+            cluster.close()
+            self.logger.debug("Dask cluster closed.")
+
+        self.logger.warning("Ocean3D diagnostic has finished.")
 
 
 def parse_arguments(args):
@@ -238,6 +254,8 @@ def parse_arguments(args):
     parser.add_argument('--source', type=str, help='Source name')
     parser.add_argument('--outputdir', type=str,
                         help='Output directory')
+    parser.add_argument("--cluster", type=str,
+                        required=False, help="dask cluster address")
 
     return parser.parse_args(args)
 

@@ -41,6 +41,8 @@ def parse_arguments(cli_args):
                         help='if True, run is dry, no files are written')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
+    parser.add_argument("--cluster", type=str,
+                        required=False, help="dask cluster address")
 
     # This arguments will override the configuration file if provided
     parser.add_argument('--catalog', type=str, help='catalog name',
@@ -78,10 +80,18 @@ if __name__ == '__main__':
 
     # Dask distributed cluster
     nworkers = get_arg(args, 'nworkers', None)
-    if nworkers:
-        cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+    cluster = get_arg(args, 'cluster', None)
+    private_cluster = False
+    if nworkers or cluster:
+        if not cluster:
+            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+            logger.info(f"Initializing private cluster {cluster.scheduler_address} with {nworkers} workers.")
+            private_cluster = True
+        else:
+            logger.info(f"Connecting to cluster {cluster}.")
         client = Client(cluster)
-        logger.info(f"Running with {nworkers} dask distributed workers.")
+    else:
+        client = None
 
     # Read configuration file
     file = get_arg(args, 'config', 'cli_config_atm.yaml')
@@ -365,5 +375,13 @@ if __name__ == '__main__':
                 fig.tight_layout()
                 filename = set_filename(tc.filename, fig_type='concordance')
                 fig.savefig(os.path.join(outputpdf, filename + '.pdf'))
+
+    if client:
+        client.close()
+        logger.debug("Dask client closed.")
+
+    if private_cluster:
+        cluster.close()
+        logger.debug("Dask cluster closed.")
 
     logger.info('Teleconnections diagnostic finished.')
