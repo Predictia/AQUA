@@ -7,7 +7,7 @@ import sys
 import argparse
 import os
 import xarray as xr
-from aqua import performance_indices, global_mean
+from aqua.diagnostics.ecmean import performance_indices, global_mean
 from ecmean import __version__ as eceversion
 from aqua.util import load_yaml, get_arg, ConfigPath
 from aqua import Reader
@@ -95,9 +95,9 @@ if __name__ == '__main__':
     numproc = get_arg(args, 'nworkers', configfile['compute']['numproc'])
 
     # define the interface file
-    Configurer = ConfigPath(configdir=None)
-    #interface = '../config/interface_AQUA_' + Configurer.catalog + '.yml'
-    interface = '../config/interface_AQUA_destine-v1.yml'
+    Configurer = ConfigPath()
+    ecmeandir = os.path.join(Configurer.configdir, 'diagnostics', 'ecmean')
+    interface = os.path.join(ecmeandir, 'interface_AQUA_climatedt.yaml')
     logger.debug('Default interface file: %s', interface)
 
     # activate override from command line
