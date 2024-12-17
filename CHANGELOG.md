@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Version info in a separate module (#1546) 
+- Corrected `tcc` units to % (#1551)
 - Fix pdf attributes (#1547)
 - Catgen fixes (#1536)
 - Introduced fixer for phase 2 (#1536)
