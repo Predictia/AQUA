@@ -5,10 +5,10 @@
 models:
   - model: 'IFS-NEMO'
     exp: 'historical-1990'
-    source: 'aqua-zonalmean-atlantic'
+    source: 'aqua-zonalmean'
   - model: 'IFS-NEMO'
     exp: 'historical-1990'
-    source: 'aqua-zonalmean-atlantic'
+    source: 'aqua-zonalmean'
 
 outputdir: "./"
 

@@ -132,7 +132,7 @@ def retrieve_data(variable=None, models=None, exps=None, sources=None, startdate
         raise NoDataError("No models, exps or sources provided")
     else:
         for i, model in enumerate(models):
-            reader = Reader(model=model, exp=exps[i], source=sources[i], areas=False)
+            reader = Reader(model=model, exp=exps[i], source=sources[i], areas=False,variable=variable)
             data = reader.retrieve(var=variable)
             dataset_list.append(data)
             startdate_list.append(data.time[0].values)
@@ -233,7 +233,7 @@ if __name__ == '__main__':
         ref_mon_source = ref_mon[0]['source']
 
     reader = Reader(model=ref_mon_model, exp=ref_mon_exp, source=ref_mon_source,
-                    startdate=mon_startdate, enddate=mon_enddate, areas=False)
+                    startdate=mon_startdate, enddate=mon_enddate, areas=False,variable=variable)
     ref_mon_dataset = reader.retrieve(var=variable)
 
     # Reference annual data
@@ -244,7 +244,7 @@ if __name__ == '__main__':
         ref_ann_source = ref_ann[0]['source']
 
     reader = Reader(model=ref_ann_model, exp=ref_ann_exp, source=ref_ann_source,
-                    startdate=ann_startdate, enddate=ann_enddate, areas=False)
+                    startdate=ann_startdate, enddate=ann_enddate, areas=False,variable=variable)
     ref_ann_dataset = reader.retrieve(var=variable)
 
     ts = EnsembleTimeseries(var=variable, mon_model_dataset=mon_dataset, ann_model_dataset=ann_dataset,

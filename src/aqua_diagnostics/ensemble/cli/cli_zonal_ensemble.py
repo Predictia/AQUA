@@ -45,7 +45,7 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def get_plot_options(config: dict = None, var: str = None):
+def get_plot_options(config: dict = None, variable: str = None):
     """
     Extracts zonal mean plot options from a config file.
 
@@ -57,7 +57,7 @@ def get_plot_options(config: dict = None, var: str = None):
             which is load by the load_yaml function. 
             It is expected to include the key `zonalmean_plot_params` with 
             sub-keys for various plotting parameters. Defaults to None.
-        var (str): A variable name (not used in the current implementation, 
+        variable (str): A variable name (not used in the current implementation, 
             but reserved for future use). Defaults to None.
 
     Returns:
@@ -81,16 +81,16 @@ def get_plot_options(config: dict = None, var: str = None):
     return figure_size, plot_std, plot_label, pdf_save, mean_plot_title, std_plot_title, cbar_label
 
 
-def retrieve_data(var=None, models=None, exps=None, sources=None, ens_dim="Ensembles"):
-   """
+def retrieve_data(variable=None, models=None, exps=None, sources=None, ens_dim="Ensembles"):
+    """
     Retrieves and merges datasets based on specified models, experiments, and sources.
 
-    This function reads data for a given variable (`var`) from multiple models, experiments, 
+    This function reads data for a given variable (`variable`) from multiple models, experiments, 
     and sources, combines them along the specified ensemble dimension, and returns the 
     merged dataset.
 
     Args:
-        var (str): The variable to retrieve data for. Defaults to None.
+        variable (str): The variable to retrieve data for. Defaults to None.
         models (list): A list of model names. Each model corresponds to an 
             experiment and source in the `exps` and `sources` lists, respectively. 
             Defaults to None.
@@ -112,8 +112,8 @@ def retrieve_data(var=None, models=None, exps=None, sources=None, ens_dim="Ensem
         raise NoDataError("No models, exps or sources provided")
     else:
         for i, model in enumerate(models):
-            reader = Reader(model=model, exp=exps[i], source=sources[i], areas=False)
-            data = reader.retrieve(var)
+            reader = Reader(model=model, exp=exps[i], source=sources[i], areas=False,variable=variable)
+            data = reader.retrieve(var=variable)
             dataset_list.append(data)
     merged_dataset = xr.concat(dataset_list, ens_dim)
     del reader
@@ -150,9 +150,9 @@ if __name__ == '__main__':
     logger.info(f"Reading configuration file {file}")
     config = load_yaml(file)
 
-    var = config['aqua-zonalmean']
-    logger.info(f"Plotting {var} Zonal average")
-    figure_size, plot_std, plot_label, pdf_save, mean_plot_title, std_plot_title, cbar_label = get_plot_options(config, var)
+    variable = config['aqua-zonalmean']
+    logger.info(f"Plotting {variable} Zonal average")
+    figure_size, plot_std, plot_label, pdf_save, mean_plot_title, std_plot_title, cbar_label = get_plot_options(config, variable)
 
     model = config['models']
     model_list = []
@@ -167,14 +167,14 @@ if __name__ == '__main__':
             exp_list.append(model['exp'])
             source_list.append(model['source'])
 
-    zonal_dataset = retrieve_data(var=var, models=model_list, exps=exp_list, sources=source_list)
+    zonal_dataset = retrieve_data(variable=variable, models=model_list, exps=exp_list, sources=source_list)
 
     outdir = get_arg(args, "outputdir", config["outputdir"])
     outfile = 'aqua-analysis-ensemble-zonalmean-map'
-    zm = EnsembleZonal(var=var, dataset=zonal_dataset)
+    zm = EnsembleZonal(var=variable, dataset=zonal_dataset)
     try:
         zm.edit_attributes(cbar_label=cbar_label)  # to change class attributes
         zm.run()
 
     except Exception as e:
-        logger.error(f'Error plotting {var} ensemble: {e}')
+        logger.error(f'Error plotting {variable} ensemble: {e}')
