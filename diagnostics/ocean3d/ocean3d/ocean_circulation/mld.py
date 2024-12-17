@@ -58,7 +58,7 @@ def plot_spatial_mld_clim(o3d_request,
 
     if obs_data:
         oyr1 = obs_clim.attrs["start_year"].astype('datetime64[Y]').astype(str)
-        oyr2 = obs_clim.attrs["start_year"].astype('datetime64[Y]').astype(str)
+        oyr2 = obs_clim.attrs["end_year"].astype('datetime64[Y]').astype(str)
 
     logger.debug("Loading MLD into memory before plotting")
     logger.debug("Loading Model")
