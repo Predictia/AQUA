@@ -64,7 +64,7 @@ def initialize_dask(nworkers=None, cluster=None, logger='WARNING'):
     
     else:
         logger.warning("Neither nworkers nor cluster specified. No Dask cluster initialized.")
-        return None, private_cluster
+        return None, None, private_cluster
 
 def main():
     args = parse_arguments(sys.argv[1:])
