@@ -90,6 +90,14 @@ class GSVSource(base.DataSource):
                 self.logger.debug("ECCODES switching is off")
                 self.eccodes_path = None
             self.levels = metadata.get('levels', None)
+
+            # safety check for paths
+            for attr in ['fdbhome', 'fdbpath', 'fdbhome_bridge', 
+                         'fdbpath_bridge', 'eccodes_path']:
+                attr_path = getattr(self, attr)
+                if attr_path and not os.path.exists(attr_path):
+                    raise FileNotFoundError(f'{attr} path {attr_path} does not exist!')
+
         else:
             self.fdbpath = None
             self.fdbhome = None
@@ -153,15 +161,14 @@ class GSVSource(base.DataSource):
         self.data_startdate, self.data_starttime = split_date(data_start_date)
 
         if "levelist" in self._request:
-            levelist = self._request["levelist"]
-            if not isinstance(levelist, list): levelist = [levelist]
+            levelist = to_list(self._request["levelist"])
             if level:
-                if not isinstance(level, list): level = [level]
+                level = to_list(level)
                 idx = list(map(levelist.index, level))
                 self.idx_3d = idx
                 self._request["levelist"] = level  # override default levels
                 if self.levels:  # if levels in metadata select them too
-                    if not isinstance(self.levels, list): self.levels = [self.levels]
+                    self.levels = to_list(self.levels)
                     self.levels = [self.levels[i] for i in idx]
             else:
                 self.idx_3d = list(range(0, len(levelist)))
@@ -185,6 +192,9 @@ class GSVSource(base.DataSource):
 
         if self.bridge_end_date and not self.fdbpath_bridge and not self.fdbhome_bridge:
             raise ValueError('Bridge end date requested but no bridge FDB path or FDB home specified in catalog.')
+        if not self.bridge_end_date or self.bridge_end_date != 'complete':
+            if not self.fdbpath and not self.fdbhome:
+                raise ValueError('Data is not entirely on the bridge but no local FDB path or FDB home is specified in catalog.')
 
         if self.bridge_end_date == "complete" or not self.bridge_end_date or (
                 self.bridge_end_date and
@@ -247,8 +257,7 @@ class GSVSource(base.DataSource):
         if "levelist" in self._request:
             self.chunking_vertical = chunking_vertical
             if self.chunking_vertical:
-                levelist = self._request["levelist"]
-                if not isinstance(levelist, list): levelist = [levelist]
+                levelist = to_list(self._request["levelist"])
                 if len(levelist) <= self.chunking_vertical:
                     self.chunking_vertical = None
                 else:

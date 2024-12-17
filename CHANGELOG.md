@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Safety checks and error messages on FDB folders (#1512)
+- Refreshed internal `to_list` function (#1512)
 - Reorganizing and extending CI/CD catalog with 5 years of hpz3 data from ERA5 (atm) and FESOM (oce) (#1552)
 - Version info in a separate module (#1546) 
 - Corrected `tcc` units to % (#1551)
@@ -21,7 +23,7 @@ AQUA diagnostic complete list:
 - Seaice: Fix to read sithick as fallback instead of sivol (#1543)
 - Ocean3d: Minor fix to allow to read new variable names (#1540)
 - Timeseries: The `timeseries` diagnostic is now integrated in the `aqua_diagnostics` module (#1340)
-- Integrating Updated OutputSaver into Timeseries (#1492)
+- Timeseries: Integrating Updated OutputSaver (#1492)
 
 ## [v0.13-alpha]
 

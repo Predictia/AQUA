@@ -28,17 +28,28 @@ def generate_random_string(length):
 
 def to_list(arg):
     """
-    Support function to ensure conversion of a variable to list
+    Converts the input to a list.
+    - Returns [] if input is None.
+    - Returns the list itself if input is already a list.
+    - Converts tuples, sets, and dictionaries to a list.
+    - Wraps other types in a single-element list.
 
-    Args:
-        arg: the variable to convert to list
+    Parameters:
+    arg: The input object to convert.
 
     Returns:
-        arg: the input arg transformed as list type (if possible)
+    list: A list representation of the input.
     """
-    if isinstance(arg, str) or isinstance(arg, int):
-        arg = [arg]
-    return arg
+    if arg is None:  # Preserve None
+        return []
+    if isinstance(arg, list):  # Already a list
+        return arg
+    if isinstance(arg, (tuple, set)):  # Convert tuples and sets to a list
+        return list(arg)
+    if isinstance(arg, dict):  # Convert dictionary keys to a list
+        return list(arg.keys())
+    return [arg]
+
 
 
 def files_exist(path):
