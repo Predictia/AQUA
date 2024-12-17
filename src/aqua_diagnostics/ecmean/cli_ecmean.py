@@ -33,7 +33,7 @@ def parse_arguments(args):
     parser.add_argument('-e', '--exp', type=str,
                         help='exp to be analysed')
     parser.add_argument('-s', '--source', type=str,
-                        help='source to be analysed', default='lra-r100-monthly')
+                        help='source to be analysed')
     parser.add_argument('-i', '--interface', type=str,
                         help='non-standard interface file')
     parser.add_argument('-o', '--outputdir', type=str,
@@ -55,8 +55,9 @@ def reader_data(model, exp, source, catalog=None, keep_vars=None):
     # Try to read the data, if dataset is not available return None
     try:
         reader = Reader(model=model, exp=exp, source=source, catalog=catalog, 
-                        areas=False)
+                        regrid='r100')
         data = reader.retrieve()
+        data = reader.regrid(data)
      
     except Exception as err:
         logger.error('Error while reading model %s: %s', model, err)
@@ -90,7 +91,6 @@ if __name__ == '__main__':
     oce_vars = configfile['dataset']['oce_vars']
     year1 = configfile['dataset']['year1']
     year2 = configfile['dataset']['year2']
-    config = configfile['setup']['config_file']
 
     numproc = get_arg(args, 'nworkers', configfile['compute']['numproc'])
 
@@ -100,9 +100,12 @@ if __name__ == '__main__':
     interface = os.path.join(ecmeandir, 'interface_AQUA_climatedt.yaml')
     logger.debug('Default interface file: %s', interface)
 
+    config = os.path.join(ecmeandir, configfile['setup']['config_file'])
+    logger.debug('Default config file: %s', config)
+
     # activate override from command line
     exp = get_arg(args, 'exp', configfile['dataset']['exp'])
-    source = get_arg(args, 'source', 'lra-r100-monthly')
+    source = get_arg(args, 'source', configfile['dataset'].get('source', 'lra-r100-monthly'))
     model = get_arg(args, 'model', configfile['dataset']['model'])
     catalog = get_arg(args, 'catalog', configfile['dataset']['catalog'])
     outputdir = get_arg(args, 'outputdir', configfile['setup']['outputdir'])
