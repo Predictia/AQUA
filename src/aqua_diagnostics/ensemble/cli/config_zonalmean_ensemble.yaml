@@ -14,7 +14,8 @@ outputdir: "./"
 
 # This is the variable that will be plotted from aqua-analysis output
 
-aqua-zonalmean: 'avg_so'
+aqua-zonalmean: 'arctic'
+_var: 'so'
 
 zonalmean_plot_params:
   figure_size: [5,5]

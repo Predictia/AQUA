@@ -81,7 +81,7 @@ def get_plot_options(config: dict = None, variable: str = None):
     return figure_size, plot_std, plot_label, pdf_save, mean_plot_title, std_plot_title, cbar_label
 
 
-def retrieve_data(variable=None, models=None, exps=None, sources=None, ens_dim="Ensembles"):
+def retrieve_data(variable=None,_var=None, models=None, exps=None, sources=None, ens_dim="Ensembles"):
     """
     Retrieves and merges datasets based on specified models, experiments, and sources.
 
@@ -90,7 +90,8 @@ def retrieve_data(variable=None, models=None, exps=None, sources=None, ens_dim="
     merged dataset.
 
     Args:
-        variable (str): The variable to retrieve data for. Defaults to None.
+        variable (str): The variable to retrieve data for. Defaults to None. Example: 'atlantic'
+        _var (str): The variable to retrieve data for. Default to None. Example 'so', 'thetao'
         models (list): A list of model names. Each model corresponds to an 
             experiment and source in the `exps` and `sources` lists, respectively. 
             Defaults to None.
@@ -112,8 +113,9 @@ def retrieve_data(variable=None, models=None, exps=None, sources=None, ens_dim="
         raise NoDataError("No models, exps or sources provided")
     else:
         for i, model in enumerate(models):
-            reader = Reader(model=model, exp=exps[i], source=sources[i], areas=False,variable=variable)
-            data = reader.retrieve(var=variable)
+            reader = Reader(model=model, exp=exps[i], source=sources[i], areas=False,variable=variable,_var=_var)
+            data = reader.retrieve(var=_var)
+            print(data)
             dataset_list.append(data)
     merged_dataset = xr.concat(dataset_list, ens_dim)
     del reader
@@ -151,6 +153,7 @@ if __name__ == '__main__':
     config = load_yaml(file)
 
     variable = config['aqua-zonalmean']
+    _var = config['_var']
     logger.info(f"Plotting {variable} Zonal average")
     figure_size, plot_std, plot_label, pdf_save, mean_plot_title, std_plot_title, cbar_label = get_plot_options(config, variable)
 
@@ -167,11 +170,11 @@ if __name__ == '__main__':
             exp_list.append(model['exp'])
             source_list.append(model['source'])
 
-    zonal_dataset = retrieve_data(variable=variable, models=model_list, exps=exp_list, sources=source_list)
+    zonal_dataset = retrieve_data(variable=variable, _var=_var, models=model_list, exps=exp_list, sources=source_list)
 
     outdir = get_arg(args, "outputdir", config["outputdir"])
     outfile = 'aqua-analysis-ensemble-zonalmean-map'
-    zm = EnsembleZonal(var=variable, dataset=zonal_dataset)
+    zm = EnsembleZonal(var=_var, dataset=zonal_dataset)
     try:
         zm.edit_attributes(cbar_label=cbar_label)  # to change class attributes
         zm.run()
