@@ -170,11 +170,11 @@ class Teleconnection():
         """
         if var is None:
             try:
-                self.data = self.reader.retrieve(var=self.var, **kwargs)
+                data = self.reader.retrieve(var=self.var, **kwargs)
             except (ValueError, KeyError) as e:
                 self.logger.debug(f"Error: {e}")
                 raise NoDataError("Variable {} not found".format(self.var)) from e
-        else:
+        else:  # We're asking for a non default variable
             try:
                 data = self.reader.retrieve(var=var, **kwargs)
                 # Check if var is in the data
@@ -186,12 +186,12 @@ class Teleconnection():
         self.logger.info('Data retrieved')
 
         if self.regrid:
-            self.data = self.reader.regrid(self.data)
+            data = self.reader.regrid(data)
             self.logger.info('Data regridded to %s', self.regrid)
 
         if self.freq:
             if self.freq == 'monthly':
-                self.data = self.reader.timmean(data=self.data, freq=self.freq)
+                data = self.reader.timmean(data=data, freq=self.freq)
                 self.logger.info('Time aggregated to %s', self.freq)
             else:
                 self.logger.warning('Time aggregation %s not implemented for teleconnections', self.freq)
@@ -199,6 +199,8 @@ class Teleconnection():
         if var:
             self.logger.info("Returning data as xarray.DataArray")
             return data
+        else:
+            self.data = data
 
     def evaluate_index(self, rebuild=False, **kwargs):
         """Evaluate teleconnection index.
@@ -371,23 +373,6 @@ class Teleconnection():
 
         self.namelist = config.load_namelist()
         self.logger.info('Namelist loaded')
-
-    # def _aqua_config(self):
-    #     """Load AQUA configuration.
-
-    #     Raises:
-    #         NoDataError: If the data is not available.
-    #     """
-
-    #     aqua_config = ConfigPath(catalog=self.catalog, configdir=self.aquaconfigdir)
-    #     self.catalog = aqua_config.catalog
-    #     self.logger.debug("Catalog: %s", self.catalog)
-
-    #     # Check that the data is available in the catalog
-    #     if inspect_catalog(catalog_name=self.catalog, model=self.model, exp=self.exp,
-    #                        source=self.source,
-    #                        verbose=False) is False:
-    #         raise NoDataError('Data not available')
 
     def _reader(self, **kwargs):
         """Initialize AQUA reader.
