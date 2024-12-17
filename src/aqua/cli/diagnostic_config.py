@@ -24,18 +24,18 @@ diagnostic_config = {
         },
         {
             'config_file': 'atm_mask_r100.nc',
-            'source_path': 'diagnostics/ecmean/data',
-            'target_path': 'diagnostics/ecmean/cli'
+            'source_path': 'config/diagnostics/ecmean/data',
+            'target_path': 'diagnostics/ecmean'
         },
         {
             'config_file': 'cell_area_r100.nc',
-            'source_path': 'diagnostics/ecmean/data',
+            'source_path': 'config/diagnostics/ecmean/data',
             'target_path': 'diagnostics/ecmean'
         },
         {
             'config_file': 'oce_mask_r100.nc',
-            'source_path': 'diagnostics/ecmean/data',
-            'target_path': 'diagnostics/ecmean/config'
+            'source_path': 'config/diagnostics/ecmean/data',
+            'target_path': 'diagnostics/ecmean'
         }
     ],
     'timeseries': [
