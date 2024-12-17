@@ -42,6 +42,10 @@ grids:
     path: '{{ grids }}/HealPix/hpz3_nested_atm.nc'
     cdo_options: '--force'
     space_coord: ['cells']
+  test-hpz7-nested-fdb:
+    path: '{{ grids }}/HealPix/hpz7_nested_atm.nc'
+    cdo_options: '--force'
+    space_coord: ['ncells']
   test-hpz3-nested-fesom-3d:
     path: 
       level: '{{ grids }}/HealPix/fesom_hpz3_nested_oce_level.nc'
