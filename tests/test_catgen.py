@@ -31,7 +31,7 @@ def load_and_prepare(tmp_path, model, kind, reso, num_of_realizations=1):
         'kind': kind, 
         'resolution': reso,
         'num_of_realizations': num_of_realizations
-    }
+    } 
     config = load_yaml(config_file, definitions)
     model_config = f'{tmp_path}/test.yaml'
     
@@ -52,7 +52,7 @@ def load_and_prepare(tmp_path, model, kind, reso, num_of_realizations=1):
         raise  # Re-raise the exception to allow for higher-level handling if necessary
     except Exception as e:
         # Catch other unforeseen exceptions
-        logging.error(f"Unexpected error: %", e)
+        logging.error("Unexpected error: %s", e)
         raise
 
     model = config['model']
