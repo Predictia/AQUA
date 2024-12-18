@@ -97,10 +97,12 @@ if __name__ == '__main__':
     # define the interface file
     Configurer = ConfigPath()
     ecmeandir = os.path.join(Configurer.configdir, 'diagnostics', 'ecmean')
-    interface = os.path.join(ecmeandir, 'interface_AQUA_climatedt.yaml')
+    interface = os.path.join(ecmeandir, configfile['setup']['interface_file'])
     logger.debug('Default interface file: %s', interface)
 
     config = os.path.join(ecmeandir, configfile['setup']['config_file'])
+    config = load_yaml(config)
+    config['dirs']['exp'] = ecmeandir
     logger.debug('Default config file: %s', config)
 
     # activate override from command line
