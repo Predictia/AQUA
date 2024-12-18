@@ -34,7 +34,6 @@ collect_figures() {
     if [ "$wipe" -eq 1 ]; then
         log_message INFO "Wiping destination directory $dstdir"
         git rm -r $dstdir
-        mkdir -p $dstdir
     fi
 
     mkdir -p $dstdir
