@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Units utility are now functions and not methods of FixerMixin (#1558)
 - Safety checks and error messages on FDB folders (#1512)
 - Refreshed internal `to_list` function (#1512)
 - Reorganizing and extending CI/CD catalog with 5 years of hpz3 data from ERA5 (atm) and FESOM (oce) (#1552)
