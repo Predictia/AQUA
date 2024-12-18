@@ -2,7 +2,7 @@
 
 from .config import ConfigPath
 from .eccodes import read_eccodes_def, get_eccodes_attr
-from .fixer import normalize_units, convert_units
+from .units import normalize_units, convert_units
 from .graphics import add_cyclic_lon, plot_box, minmax_maps
 from .graphics import evaluate_colorbar_limits, cbar_get_label, set_map_title
 from .graphics import coord_names, ticks_round, set_ticks
