@@ -81,7 +81,7 @@ tests = [
     "pycobertura"
 ]
 diagnostics = [
-    "git+https://github.com/oloapinivad/ECmean4.git@main"
+    { git = "https://github.com/oloapinivad/ECmean4.git", branch = "main" }
 ]
 all = [
     "aqua[docs]",
