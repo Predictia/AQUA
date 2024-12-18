@@ -1,0 +1,13 @@
+regions:
+  nh:
+    longname: Northern Hemisphere
+    lon_limits: [-180, 180]
+    lat_limits: [20, 90]
+  sh:
+    longname: Southern Hemisphere
+    lon_limits: [-180, 180]
+    lat_limits: [-90, -20]
+  tropics:
+    longname: Tropics
+    lon_limits: [-180, 180]
+    lat_limits: [-20, 20]

@@ -30,6 +30,11 @@ diagnostic_config = {
     ],
     'timeseries': [
         {
+            'config_file': 'regions.yaml',
+            'source_path': 'config/diagnostics/timeseries/interface',
+            'target_path': 'diagnostics/timeseries/interface'
+        },
+        {
             'config_file': 'config_seasonalcycles_atm.yaml',
             'source_path': 'config/diagnostics/timeseries',
             'target_path': 'diagnostics/timeseries'
