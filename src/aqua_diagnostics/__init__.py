@@ -1,5 +1,8 @@
+from .teleconnections import Teleconnection
 from .timeseries import GregoryPlot, SeasonalCycle, Timeseries
-from .ecmean import performance_indices, global_mean
+from .ecmean import PerformanceIndices, GlobalMean
 
-__all__ = ["GregoryPlot", "SeasonalCycle", "Timeseries",
-           "performance_indices", "global_mean"]
+__all__ = ["Teleconnection",
+           "GregoryPlot", "SeasonalCycle", "Timeseries",
+           "GlobalMean", "PerformanceIndices"]
+
