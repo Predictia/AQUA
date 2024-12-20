@@ -4,7 +4,7 @@ import os
 import pytest
 from aqua import Reader
 from aqua.util import load_yaml, ConfigPath
-from aqua.diagnostics.ecmean import performance_indices, global_mean
+from aqua.diagnostics import performance_indices, global_mean
 
 @pytest.mark.ecmean
 def test_ecmean_generic(tmp_path):
