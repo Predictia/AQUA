@@ -15,6 +15,7 @@ Main changes are:
 3. The FDB reader always rely on paramids, so that support for eccodes 2.39.0 and backward compatibility is ensured.
 
 AQUA core complete list:
+- push-analysis.sh maintenance (#1555)
 - Added the `cdo_options: "--force"` to the definitions of the HealPix grids (#1527)
 - Removing default fixes (#1519)
 - Support for eccodes=2.39.0 with full fixes refactoring (#1519)
