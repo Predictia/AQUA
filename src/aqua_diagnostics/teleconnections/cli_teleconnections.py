@@ -13,14 +13,13 @@ from dask.distributed import Client, LocalCluster
 
 from aqua import __version__ as aquaversion
 from aqua.util import load_yaml, get_arg, add_pdf_metadata
+from aqua.util import OutputSaver, ConfigPath
 from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure
 from aqua.graphics import plot_single_map, plot_single_map_diff
-from teleconnections import __version__ as telecversion
-from teleconnections.plots import indexes_plot
-from teleconnections.tc_class import Teleconnection
-from teleconnections.tools import set_figs, set_filename
-
+from aqua.diagnostics.teleconnections.plots import indexes_plot
+from aqua.diagnostics.teleconnections.tc_class import Teleconnection
+from aqua.diagnostics.teleconnections.tools import set_figs
 
 def parse_arguments(cli_args):
     """Parse command line arguments"""
@@ -65,7 +64,7 @@ if __name__ == '__main__':
     loglevel = get_arg(args, 'loglevel', 'WARNING')
     logger = log_configure(log_name='Teleconnections CLI', log_level=loglevel)
 
-    logger.info(f'Running AQUA v{aquaversion} Teleconnections diagnostic v{telecversion}')
+    logger.info(f'Running AQUA v{aquaversion} Teleconnections diagnostic')
 
     # change the current directory to the one of the CLI so that relative path works
     # before doing this we need to get the directory from wich the script is running
@@ -92,7 +91,10 @@ if __name__ == '__main__':
         client = None
     
     # Read configuration file
-    file = get_arg(args, 'config', 'cli_config_atm.yaml')
+    configdir = ConfigPath(loglevel=loglevel).configdir
+    default_config = os.path.join(configdir, "diagnostics", "teleconnections",
+                                  "cli_config_atm.yaml")
+    file = get_arg(args, 'config', default_config)
     logger.info('Reading configuration yaml file: {}'.format(file))
     config = load_yaml(file)
 
@@ -105,24 +107,20 @@ if __name__ == '__main__':
     dry = get_arg(args, 'dry', False)
     if dry:
         logger.warning('Dry run, no files will be written')
-        savefig = False
-        savefile = False
+        save_pdf, save_png = False, False
+        save_netcdf = False
     else:
         logger.debug('Saving files')
-        savefig = True
-        savefile = True
+        save_pdf, save_png = True, True
+        save_netcdf = True
 
     try:
         outputdir = get_arg(args, 'outputdir', config['outputdir'])
         # if the outputdir is relative we need to make it absolute
         if not os.path.isabs(outputdir):
             outputdir = os.path.join(execdir, outputdir)
-        outputnetcdf = os.path.join(outputdir, 'netcdf')
-        outputpdf = os.path.join(outputdir, 'pdf')
     except KeyError:
         outputdir = None
-        outputnetcdf = None
-        outputpdf = None
         logger.error('Output directory not defined')
 
     configdir = config['configdir']
@@ -156,6 +154,8 @@ if __name__ == '__main__':
     models[0]['exp'] = get_arg(args, 'exp', models[0]['exp'])
     models[0]['source'] = get_arg(args, 'source', models[0]['source'])
 
+    output_saver = OutputSaver(diagnostic='teleconnections', catalog=models[0]['catalog'], model=models[0]['model'],
+                               exp=models[0]['exp'], loglevel=loglevel, default_path=outputdir, filename_keys=None)
     for telec in teleclist:
         logger.info('Running %s teleconnection', telec)
         # Getting generic configs
@@ -182,9 +182,8 @@ if __name__ == '__main__':
                                     model=model_ref, exp=exp_ref, source=source_ref,
                                     regrid=regrid, freq=freq,
                                     months_window=months_window,
-                                    outputdir=outputnetcdf,
-                                    outputfig=outputpdf,
-                                    savefig=savefig, savefile=savefile,
+                                    outputdir=outputdir,
+                                    save_pdf=save_pdf, save_png=save_png, save_netcdf=save_netcdf,
                                     interface=interface,
                                     loglevel=loglevel)
                 tc.retrieve()
@@ -275,9 +274,8 @@ if __name__ == '__main__':
                                     model=model, exp=exp, source=source,
                                     regrid=regrid, freq=freq,
                                     months_window=months_window,
-                                    outputdir=outputnetcdf,
-                                    outputfig=outputpdf,
-                                    savefig=savefig, savefile=savefile,
+                                    outputdir=outputdir,
+                                    save_pdf=save_pdf, save_png=save_png, save_netcdf=save_netcdf,
                                     startdate=startdate, enddate=enddate,
                                     interface=interface,
                                     loglevel=loglevel)
@@ -333,7 +331,7 @@ if __name__ == '__main__':
                 reg_season = None
                 cor_season = None
 
-            if savefig:
+            if save_pdf or save_png:
                 if ref:  # Plot against the reference model
                     title = '{} index'.format(telec)
                     titles = ['{} index for {} {}'.format(telec, model, exp),
@@ -342,16 +340,14 @@ if __name__ == '__main__':
                     logger.debug('Description: %s', description)
                     # Index plots
                     try:
-                        filename = set_filename(filename=tc.filename, fig_type='index')
-                        filename += '_{}'.format(model_ref)
-                        filename += '.pdf'
+                        filename = 'pdf/' + output_saver.generate_name(suffix='pdf',
+                                                                       diagnostic_product=telec + '_index', model_2=model_ref)
                         indexes_plot(indx1=tc.index, indx2=ref_index,
                                      titles=titles,
-                                     save=True, outputdir=tc.outputfig,
+                                     save=True, outputdir=outputdir,
                                      filename=filename,
                                      loglevel=loglevel)
-                        add_pdf_metadata(filename=os.path.join(tc.outputfig, filename),
-                                         metadata_value=description)
+                        add_pdf_metadata(filename=os.path.join(outputdir, filename), metadata_value=description)
                     except Exception as e:
                         logger.error('Error plotting %s index: %s', telec, e)
 
@@ -360,7 +356,6 @@ if __name__ == '__main__':
                                                                                             model=model,
                                                                                             exp=exp,
                                                                                             ref=model_ref,
-                                                                                            filename=tc.filename,
                                                                                             cor=True, reg=False,
                                                                                             full_year=full_year,
                                                                                             seasons=seasons,
@@ -384,7 +379,7 @@ if __name__ == '__main__':
                                                  save=True,
                                                  sym=False, sym_contour=False,
                                                  cbar_label=cbar_labels[i],
-                                                 outputdir=tc.outputfig,
+                                                 outputdir=outputdir,
                                                  filename=map_names[i],
                                                  title=titles[i],
                                                  transform_first=False,
@@ -401,7 +396,7 @@ if __name__ == '__main__':
                                                      save=True,
                                                      sym=False, sym_contour=False,
                                                      cbar_label=cbar_labels[i],
-                                                     outputdir=tc.outputfig,
+                                                     outputdir=outputdir,
                                                      filename=map_names[i],
                                                      title=titles[i],
                                                      transform_first=True,
@@ -412,8 +407,7 @@ if __name__ == '__main__':
                                 logger.error('Error plotting %s %s %s: %s',
                                              model, exp, map_names[i], err2)
                         try:
-                            add_pdf_metadata(filename=os.path.join(tc.outputfig, map_names[i]),
-                                             metadata_value=descriptions[i])
+                            add_pdf_metadata(filename=os.path.join(outputdir, map_names[i]), metadata_value=descriptions[i])
                         except FileNotFoundError as e:
                             logger.error('Error adding metadata to %s: %s', map_names[i], e)
 
@@ -422,7 +416,6 @@ if __name__ == '__main__':
                                                                                             model=model,
                                                                                             exp=exp,
                                                                                             ref=model_ref,
-                                                                                            filename=tc.filename,
                                                                                             cor=False, reg=True,
                                                                                             full_year=full_year,
                                                                                             seasons=seasons,
@@ -449,7 +442,7 @@ if __name__ == '__main__':
                                                  save=True, sym=sym,
                                                  vmin_fill=vmin, vmax_fill=vmax,
                                                  cbar_label=cbar_labels[i],
-                                                 outputdir=tc.outputfig,
+                                                 outputdir=outputdir,
                                                  filename=map_names[i],
                                                  title=titles[i],
                                                  transform_first=False,
@@ -463,7 +456,7 @@ if __name__ == '__main__':
                                                      data_ref=ref_maps[i],
                                                      save=True, sym=sym,
                                                      cbar_label=cbar_labels[i],
-                                                     outputdir=tc.outputfig,
+                                                     outputdir=outputdir,
                                                      filename=map_names[i],
                                                      title=titles[i],
                                                      transform_first=True,
@@ -472,8 +465,7 @@ if __name__ == '__main__':
                                 logger.error('Error plotting %s %s %s: %s',
                                              model, exp, map_names[i], err2)
                         try:
-                            add_pdf_metadata(filename=os.path.join(tc.outputfig, map_names[i]),
-                                             metadata_value=descriptions[i])
+                            add_pdf_metadata(filename=os.path.join(outputdir, map_names[i]), metadata_value=descriptions[i])
                         except FileNotFoundError as e:
                             logger.error('Error adding metadata to %s: %s', map_names[i], e)
                 else:  # Individual plots
@@ -486,7 +478,6 @@ if __name__ == '__main__':
                     map_names, maps, ref_maps, titles, descriptions, cbar_labels = set_figs(telec=telec,
                                                                                             model=model,
                                                                                             exp=exp,
-                                                                                            filename=tc.filename,
                                                                                             cor=True, reg=False,
                                                                                             full_year=full_year,
                                                                                             seasons=seasons,
@@ -504,7 +495,7 @@ if __name__ == '__main__':
                             plot_single_map(data=data_map,
                                             save=True, sym=False,
                                             cbar_label=cbar_labels[i],
-                                            outputdir=tc.outputfig,
+                                            outputdir=outputdir,
                                             filename=map_names[i],
                                             title=titles[i],
                                             transform_first=False,
@@ -518,7 +509,7 @@ if __name__ == '__main__':
                                 plot_single_map(data=data_map,
                                                 save=True, sym=False,
                                                 cbar_label=cbar_labels[i],
-                                                outputdir=tc.outputfig,
+                                                outputdir=outputdir,
                                                 filename=map_names[i],
                                                 title=titles[i],
                                                 transform_first=True,
@@ -528,15 +519,13 @@ if __name__ == '__main__':
                                 logger.error('Error plotting %s %s %s: %s',
                                              model, exp, map_names[i], err2)
                         try:
-                            add_pdf_metadata(filename=os.path.join(tc.outputfig, map_names[i]),
-                                             metadata_value=descriptions[i])
+                            add_pdf_metadata(filename=os.path.join(outputdir, map_names[i]), metadata_value=descriptions[i])
                         except FileNotFoundError as e:
                             logger.error('Error adding metadata to %s: %s', map_names[i], e)
                     # Regression plot
                     map_names, maps, ref_maps, titles, descriptions, cbar_labels = set_figs(telec=telec,
                                                                                             model=model,
                                                                                             exp=exp,
-                                                                                            filename=tc.filename,
                                                                                             cor=False, reg=True,
                                                                                             full_year=full_year,
                                                                                             seasons=seasons,
@@ -558,7 +547,7 @@ if __name__ == '__main__':
                                             save=True, sym=sym,
                                             vmin=vmin, vmax=vmax,
                                             cbar_label=cbar_labels[i],
-                                            outputdir=tc.outputfig,
+                                            outputdir=outputdir,
                                             filename=map_names[i],
                                             title=titles[i],
                                             transform_first=False,
@@ -571,7 +560,7 @@ if __name__ == '__main__':
                                 plot_single_map(data=data_map,
                                                 save=True, sym=sym,
                                                 cbar_label=cbar_labels[i],
-                                                outputdir=tc.outputfig,
+                                                outputdir=outputdir,
                                                 filename=map_names[i],
                                                 title=titles[i],
                                                 transform_first=True,
@@ -580,8 +569,7 @@ if __name__ == '__main__':
                                 logger.error('Error plotting %s %s %s: %s',
                                              model, exp, map_names[i], err2)
                         try:
-                            add_pdf_metadata(filename=os.path.join(tc.outputfig, map_names[i]),
-                                             metadata_value=descriptions[i])
+                            add_pdf_metadata(filename=os.path.join(outputdir, map_names[i]), metadata_value=descriptions[i])
                         except FileNotFoundError as e:
                             logger.error('Error adding metadata to %s: %s', map_names[i], e)
 

@@ -87,7 +87,7 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                     ref_maps.append(ref_reg_full_year)
                 else:
                     description += '\nThe contour plot is the model regression map.'
-                map_names.append(output_saver.generate_name(suffix='pdf', **common_save_args))
+                map_names.append('pdf/' + output_saver.generate_name(suffix='pdf', **common_save_args))
                 titles.append(title)
                 descriptions.append(description)
                 cbar_labels.append('msl [hPa]')
@@ -109,7 +109,7 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                         ref_maps.append(ref_reg_season[i])
                     else:
                         description += '\nThe contour plot is the model regression map.'
-                    map_names.append(output_saver.generate_name(suffix='pdf', **common_save_args))
+                    map_names.append('pdf/' + output_saver.generate_name(suffix='pdf', **common_save_args))
                     titles.append(title)
                     descriptions.append(description)
                     cbar_labels.append('msl [hPa]')
@@ -128,7 +128,7 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                     ref_maps.append(ref_cor_full_year)
                 else:
                     description += '\nThe contour plot is the model correlation map.'
-                map_names.append(output_saver.generate_name(suffix='pdf', **common_save_args))
+                map_names.append('pdf/' + output_saver.generate_name(suffix='pdf', **common_save_args))
                 titles.append(title)
                 descriptions.append(description)
                 cbar_labels.append('Pearson correlation coefficient')
@@ -146,7 +146,7 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                         ref_maps.append(ref_cor_season[i])
                     else:
                         description += '\nThe contour plot is the model correlation map.'
-                    map_names.append(output_saver.generate_name(suffix='pdf', **common_save_args))
+                    map_names.append('pdf/' + output_saver.generate_name(suffix='pdf', **common_save_args))
                     titles.append(title)
                     descriptions.append(description)
                     cbar_labels.append('Pearson correlation coefficient')
@@ -167,7 +167,7 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                     ref_maps.append(ref_reg_full_year)
                 else:
                     description += '\nThe contour plot is the model regression map.'
-                map_names.append(output_saver.generate_name(suffix='pdf', **common_save_args))
+                map_names.append('pdf/' + output_saver.generate_name(suffix='pdf', **common_save_args))
                 titles.append(title)
                 descriptions.append(description)
                 cbar_labels.append('tos [K]')
@@ -185,7 +185,7 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                         ref_maps.append(ref_reg_season[i])
                     else:
                         description += '\nThe contour plot is the model regression map.'
-                    map_names.append(output_saver.generate_name(suffix='pdf', **common_save_args))
+                    map_names.append('pdf/' + output_saver.generate_name(suffix='pdf', **common_save_args))
                     titles.append(title)
                     descriptions.append(description)
                     cbar_labels.append('tos [K]')
@@ -205,7 +205,7 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                     ref_maps.append(ref_cor_full_year)
                 else:
                     description += '\nThe contour plot is the model correlation map.'
-                map_names.append(output_saver.generate_name(suffix='pdf', **common_save_args))
+                map_names.append('pdf/' + output_saver.generate_name(suffix='pdf', **common_save_args))
                 titles.append(title)
                 descriptions.append(description)
                 cbar_labels.append('Pearson correlation coefficient')
@@ -223,7 +223,7 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                         ref_maps.append(ref_cor_season[i])
                     else:
                         description += '\nThe contour plot is the model correlation map.'
-                    map_names.append(output_saver.generate_name(suffix='pdf', **common_save_args))
+                    map_names.append('pdf/' + output_saver.generate_name(suffix='pdf', **common_save_args))
                     titles.append(title)
                     descriptions.append(description)
                     cbar_labels.append('Pearson correlation coefficient')
