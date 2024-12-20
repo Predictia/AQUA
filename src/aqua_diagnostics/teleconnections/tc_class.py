@@ -82,7 +82,7 @@ class Teleconnection():
         self.logger = log_configure(self.loglevel, 'Teleconnection')
 
         # Reader variables
-        self.catalog = catalog
+        self.catalog = catalog # Then updated by the Reader, it can be None here.
         self.model = model
         self.exp = exp
         self.source = source
