@@ -43,7 +43,9 @@ collect_figures() {
     # Remove dates from EC-mean filenames
     for file in $dstdir/PI4*_????_????.pdf $dstdir/global_mean*_????_????.pdf
     do
-        mv -- "$file" "${file%_*_*}.pdf"
+        if [ -e "$file" ]; then
+            mv -- "$file" "${file%_*_*}.pdf"
+        fi
     done
 
     echo $(date) > $dstdir/last_update.txt
