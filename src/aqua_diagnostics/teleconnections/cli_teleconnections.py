@@ -89,7 +89,7 @@ if __name__ == '__main__':
         client = Client(cluster)
     else:
         client = None
-    
+
     # Read configuration file
     configdir = ConfigPath(loglevel=loglevel).configdir
     default_config = os.path.join(configdir, "diagnostics", "teleconnections",
@@ -113,6 +113,8 @@ if __name__ == '__main__':
         logger.debug('Saving files')
         save_pdf, save_png = True, True
         save_netcdf = True
+
+    dpi = 300
 
     try:
         outputdir = get_arg(args, 'outputdir', config['outputdir'])
@@ -340,14 +342,12 @@ if __name__ == '__main__':
                     logger.debug('Description: %s', description)
                     # Index plots
                     try:
-                        filename = 'pdf/' + output_saver.generate_name(suffix='pdf',
-                                                                       diagnostic_product=telec + '_index', model_2=model_ref)
-                        indexes_plot(indx1=tc.index, indx2=ref_index,
-                                     titles=titles,
-                                     save=True, outputdir=outputdir,
-                                     filename=filename,
-                                     loglevel=loglevel)
-                        add_pdf_metadata(filename=os.path.join(outputdir, filename), metadata_value=description)
+                        fig, _ = indexes_plot(indx1=tc.index, indx2=ref_index, titles=titles, loglevel=loglevel)
+                        common_save_args = {'diagnostic_product': telec + '_index', 'dpi': dpi, 'model_2': model_ref}
+                        if save_pdf:
+                            output_saver.save_pdf(fig, **common_save_args, metadata={'description': description})
+                        if save_png:
+                            output_saver.save_png(fig, **common_save_args, metadata={'description': description})
                     except Exception as e:
                         logger.error('Error plotting %s index: %s', telec, e)
 
