@@ -5,7 +5,7 @@ from .index import regional_mean_anomalies
 from .mjo import mjo_hovmoller
 from .plots import index_plot, indexes_plot
 from .plots import maps_diffs_plot
-from .statistics import reg_evaluation, cor_evaluation
+from .tc_statistics import reg_evaluation, cor_evaluation
 from .tc_class import Teleconnection
 from .tools import TeleconnectionsConfig
 from .tools import wgt_area_mean

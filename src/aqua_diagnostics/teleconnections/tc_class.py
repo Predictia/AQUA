@@ -22,7 +22,7 @@ from aqua.reader import Reader, inspect_catalog
 from aqua.util import ConfigPath, OutputSaver
 from .index import station_based_index, regional_mean_anomalies
 from .plots import index_plot
-from .statistics import reg_evaluation, cor_evaluation
+from .tc_statistics import reg_evaluation, cor_evaluation
 from .tools import TeleconnectionsConfig
 
 xr.set_options(keep_attrs=True)
