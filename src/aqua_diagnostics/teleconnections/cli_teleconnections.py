@@ -22,6 +22,7 @@ from aqua.diagnostics.teleconnections.plots import indexes_plot
 from aqua.diagnostics.teleconnections.tc_class import Teleconnection
 from aqua.diagnostics.teleconnections.tools import set_figs
 
+
 def parse_arguments(cli_args):
     """Parse command line arguments"""
 
