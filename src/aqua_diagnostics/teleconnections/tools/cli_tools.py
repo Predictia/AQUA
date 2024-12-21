@@ -95,7 +95,8 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                     if ref:
                         ref_reg_season[i] = ref_reg_season[i] / 100
                     maps.append(reg_season[i])
-                    common_save_args.update({'seasons': season})
+                    season_save_args = common_save_args.copy()
+                    season_save_args.update({'seasons': season})
                     title = f'NAO {model} {exp} regression map (msl) for {season}'
                     description = f'NAO {model} {exp} regression map (msl) for {season}'
                     if ref:
@@ -105,7 +106,7 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                         ref_maps.append(ref_reg_season[i])
                     else:
                         description += '\nThe contour plot is the model regression map.'
-                    common_save_args_list.append(common_save_args)
+                    common_save_args_list.append(season_save_args)
                     titles.append(title)
                     descriptions.append(description)
                     cbar_labels.append('msl [hPa]')
@@ -132,7 +133,8 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
             if seasons:
                 for i, season in enumerate(seasons):
                     maps.append(cor_season[i])
-                    common_save_args.update({'seasons': season})
+                    season_save_args = common_save_args.copy()
+                    season_save_args.update({'seasons': season})
                     title = f'NAO {model} {exp} correlation map (msl) for {season}'
                     description = f'NAO {model} {exp} correlation map (msl) for {season}'
                     if ref:
@@ -142,7 +144,7 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                         ref_maps.append(ref_cor_season[i])
                     else:
                         description += '\nThe contour plot is the model correlation map.'
-                    common_save_args_list.append(common_save_args)
+                    common_save_args_list.append(season_save_args)
                     titles.append(title)
                     descriptions.append(description)
                     cbar_labels.append('Pearson correlation coefficient')
@@ -155,7 +157,6 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                 maps.append(reg_full)
                 title = f'ENSO {model} {exp} regression map (tos)'
                 description = f'ENSO {model} {exp} regression map (tos)'
-
                 if ref:
                     title += f' compared to {ref}'
                     description += f' compared to {ref}.'
@@ -173,7 +174,8 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                     maps.append(reg_season[i])
                     title = f'ENSO {model} {exp} regression map (tos) for {season}'
                     description = f'ENSO {model} {exp} regression map (tos) for {season}'
-
+                    season_save_args = common_save_args.copy()
+                    season_save_args.update({'seasons': season})
                     if ref:
                         title += f' compared to {ref}'
                         description += f' compared to {ref}.'
@@ -181,7 +183,7 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                         ref_maps.append(ref_reg_season[i])
                     else:
                         description += '\nThe contour plot is the model regression map.'
-                    common_save_args_list.append(common_save_args)
+                    common_save_args_list.append(season_save_args)
                     titles.append(title)
                     descriptions.append(description)
                     cbar_labels.append('tos [K]')
@@ -211,7 +213,8 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                     maps.append(cor_season[i])
                     title = f'ENSO {model} {exp} correlation map (tos) for {season}'
                     description = f'ENSO {model} {exp} correlation map (tos) for {season}'
-
+                    season_save_args = common_save_args.copy()
+                    season_save_args.update({'seasons': season})
                     if ref:
                         title += f' compared to {ref}'
                         description += f' compared to {ref}.'
@@ -219,7 +222,7 @@ def set_figs(telec=None, catalog=None, model=None, exp=None, ref=False,
                         ref_maps.append(ref_cor_season[i])
                     else:
                         description += '\nThe contour plot is the model correlation map.'
-                    common_save_args_list.append(common_save_args)
+                    common_save_args_list.append(season_save_args)
                     titles.append(title)
                     descriptions.append(description)
                     cbar_labels.append('Pearson correlation coefficient')
