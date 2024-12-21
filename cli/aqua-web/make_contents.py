@@ -52,7 +52,7 @@ def make_content(catalog, model, exp, diagnostics, experiments, force):
             content['experiment']['last_update'] = date_time
 
         filename_list = []
-        description = {}
+        properties = {}
 
         for fn in os.listdir(f"{catalog}/{model}/{exp}"):
             if fn.endswith(".png"):
@@ -62,9 +62,7 @@ def make_content(catalog, model, exp, diagnostics, experiments, force):
                 pdf_path = f"../pdf/{catalog}/{model}/{exp}/" + os.path.splitext(fn)[0] + ".pdf"
                 pdf_reader = PdfReader(pdf_path)
                 metadata = pdf_reader.metadata
-                description[fn_line] = str(metadata.get("/Description"))
-                if description[fn_line] == "None":
-                    description[fn_line] = ""
+                properties[fn_line] = metadata
 
         grouping = {}
         for key, val in diagnostics.items():
@@ -92,9 +90,12 @@ def make_content(catalog, model, exp, diagnostics, experiments, force):
                 content['diagnostics'].append(key)
             for v in val:
                 content['files'][v] = {'diagnostic': key}
-                desc = description.get(v, "")
-                if desc:
-                    content['files'][v]['description'] = desc
+                prop = properties.get(v, {})
+                if prop:
+                    content['files'][v] = {}
+                    for key, val in prop.items():
+                        keystr = str(key).lstrip('/').lower()
+                        content['files'][v][keystr] = str(val)
 
         with open(f"{catalog}/{model}/{exp}/content.yaml", "w") as file:
             yaml.dump(content, file, default_style='"')
