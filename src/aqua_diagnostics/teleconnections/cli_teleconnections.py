@@ -475,7 +475,7 @@ if __name__ == '__main__':
                     for i, data_map in enumerate(maps):
                         vmin = -1
                         vmax = 1
-                        plot_args = {'data': data_map, 'save': True, 'sym': False,
+                        plot_args = {'data': data_map, 'save': False, 'sym': False,
                                      'cbar_label': cbar_labels[i], 'outputdir': outputdir,
                                      'title': titles[i], 'vmin': vmin, 'vmax': vmax, 'return_fig': True,
                                      'loglevel': loglevel}
@@ -516,7 +516,7 @@ if __name__ == '__main__':
                             sym = True
                         else:
                             sym = False
-                        plot_args = {'data': data_map, 'save': True, 'sym': sym,
+                        plot_args = {'data': data_map, 'save': False, 'sym': sym,
                                      'cbar_label': cbar_labels[i], 'outputdir': outputdir,
                                      'title': titles[i], 'vmin_fill': vmin, 'vmax_fill': vmax, 'return_fig': True,
                                      'loglevel': loglevel}
