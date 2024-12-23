@@ -1,14 +1,13 @@
 """
 Module to plot multiple maps
 
-Functions:
-    plot_maps:          plot multiple maps
 """
 import cartopy.crs as ccrs
 import cartopy.mpl.ticker as cticker
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
+import os
 
 from aqua.logger import log_configure
 from aqua.util import plot_box, add_cyclic_lon, set_ticks
