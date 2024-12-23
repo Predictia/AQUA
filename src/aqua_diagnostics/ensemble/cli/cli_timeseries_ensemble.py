@@ -139,14 +139,17 @@ def retrieve_data(variable=None, models=None, exps=None, sources=None, startdate
             enddate_list.append(data.time[-1].values)
 
     merged_dataset = xr.concat(dataset_list, ens_dim)
+    if startdate == None:
+        istartdate = max(startdate_list)
+    if enddate == None:
+        ienddate = min(enddate_list)
     if startdate != None:
+        istartdate = max(startdate_list)
         startdate = max(istartdate, startdate)
     if enddate != None:
+        ienddate = min(enddate_list)
         enddate = min(ienddate, enddate)
-    if startdate == None:
-        startdate = max(startdate_list)
-    if enddate == None:
-        enddate = min(enddate_list)
+
     merged_dataset = merged_dataset.sel(time=slice(startdate, enddate))
     del reader
     del data
