@@ -21,7 +21,7 @@ AQUA core complete list:
 
 AQUA diagnostic complete list:
 - Teleconnections: The `teleconnections` diagnostic is now integrated in the `aqua_diagnostics` module (#1352)
-- Teleconnections: OutputSaver for the teleconnections diagnostic (#1567)
+- Teleconnections: OutputSaver for the teleconnections diagnostic (#1567, #1570)
 - Ocean3d: Fix to improve memory usage and cli (#1490)
 - Seaice: Fix to read sithick as fallback instead of sivol (#1543)
 - Ocean3d: Minor fix to allow to read new variable names (#1540)
