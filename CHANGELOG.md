@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+## [v0.13-beta]
+
+Main changes are:
+1. All the diagnostics are now compatible with the new fixes and eccodes version.
+2. Full compatibility with HealPix grids and the new CDO version.
+3. Major improvements in the Ocean3D diagnostic.
+
 AQUA core complete list:
 - Safety checks and error messages on FDB folders (#1512)
 - Refreshed internal `to_list` function (#1512)
@@ -738,7 +745,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-alpha...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-beta...HEAD
+[v0.13-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-alpha...v0.13-beta
 [v0.13-alpha]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.12.2...v0.13-alpha
 [v0.12.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.12.1...v0.12.2
 [v0.12.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.12...v0.12.1
