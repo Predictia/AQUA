@@ -89,13 +89,13 @@ def make_content(catalog, model, exp, diagnostics, experiments, force):
             if val:
                 content['diagnostics'].append(key)
             for v in val:
-                content['files'][v] = {'diagnostic': key}
+                print(f"key: {key}, val: {v}")
+                content['files'][v] = {'grouping': str(key)}
                 prop = properties.get(v, {})
                 if prop:
-                    content['files'][v] = {}
-                    for key, val in prop.items():
-                        keystr = str(key).lstrip('/').lower()
-                        content['files'][v][keystr] = str(val)
+                    for kk, vv in prop.items():
+                        keystr = str(kk).lstrip('/').lower()
+                        content['files'][v][keystr] = str(vv)
 
         with open(f"{catalog}/{model}/{exp}/content.yaml", "w") as file:
             yaml.dump(content, file, default_style='"')
