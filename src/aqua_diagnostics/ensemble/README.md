@@ -53,6 +53,8 @@ Please note that notebooks may load data from the DKRZ cluster, so they may not 
 - A combined CLI for all three ensemble sub-classes.
 - Implement a class to handle an ensemble of 3D data.
 - Integrated in the github workflow.
+- Include the Reader class in the notebooks in addition to the specific paths. 
+- Include the catalogs whereever the Reader class is used.
 
 ## Contributing
 
