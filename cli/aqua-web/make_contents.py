@@ -89,7 +89,6 @@ def make_content(catalog, model, exp, diagnostics, experiments, force):
             if val:
                 content['diagnostics'].append(key)
             for v in val:
-                print(f"key: {key}, val: {v}")
                 content['files'][v] = {'grouping': str(key)}
                 prop = properties.get(v, {})
                 if prop:
