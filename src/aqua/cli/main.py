@@ -441,8 +441,7 @@ class AquaConsole():
         try:
             fs = fsspec.filesystem("github",
                                     org="DestinE-Climate-DT",
-                                    repo="Climate-DT-catalog",
-                                    username="mnurisso")
+                                    repo="Climate-DT-catalog")
             self.logger.info('Accessed remote repository https://github.com/DestinE-Climate-DT/Climate-DT-catalog')
         except HTTPError:
             self.logger.error('Permission issues in accessing Climate-DT catalog, please contact AQUA maintainers')
