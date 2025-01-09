@@ -146,7 +146,7 @@ create_aqua_file() {
   echo '# Load modules' >> $load_aqua_file
   # Removed, see issue #1195
   # echo 'module purge' >> $load_aqua_file
-  echo 'module fdb/5.12.1-cpeCray-24.03-eccodes-2.39' >> $load_aqua_file
+  echo 'module load fdb/5.12.1-cpeCray-24.03-eccodes-2.39' >> $load_aqua_file
   # These are loaded automatically with the fdb module
   # echo 'module load eckit/1.26.3-cpeCray-24.03' >> $load_aqua_file
   # echo 'module load metkit/1.11.14-cpeCray-24.03' >> $load_aqua_file
