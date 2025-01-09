@@ -29,4 +29,3 @@ dependencies:
     - -e ./diagnostics/tropical_rainfall/ # pip install -e of tropical_rainfall
     # pip install -e of AQUA itself
     - -e .[all]
-    

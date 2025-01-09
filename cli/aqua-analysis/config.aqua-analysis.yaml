@@ -41,7 +41,8 @@ cluster:  # options for dask cluster
 diagnostics:
 
   # List of diagnostics to run
-  run: ["teleconnections_atm", "teleconnections_oce"]
+  run: ["atmglobalmean", "timeseries_atm", "timeseries_oce", "seasonal_cycles", "radiation", "teleconnections_atm", "teleconnections_oce",
+        "tropical_rainfall", "ecmean", "ocean3d_drift", "ocean3d_circulation", "seaice_volume", "seaice_thick", "seaice_conc", "seaice_extent"]
 
   # List of diagnostics
 
