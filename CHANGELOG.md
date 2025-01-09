@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
-- Include all available figure metadata in conntent.json for dashboard/aqua-web (#1573)
+- Include all available figure metadata in content.json for dashboard/aqua-web (#1573)
 
 ## [v0.13-beta]
 
