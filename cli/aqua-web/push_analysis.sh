@@ -7,6 +7,7 @@
 push_lumio() {
     # This assumes that we are inside the aqua-web repository
 
+    log_message INFO "Pushing to LUMI-O"
     cd content/png
     python $SCRIPT_DIR/push_s3.py $1 $2
     cd ../..
@@ -166,7 +167,7 @@ while [[ $# -gt 2 ]]; do
         shift 2
         ;;
     -o|--lumio)
-        content=1
+        lumio=1
         shift
         ;;
     -*|--*)
