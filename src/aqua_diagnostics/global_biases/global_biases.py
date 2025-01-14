@@ -169,7 +169,8 @@ class GlobalBiases:
 
     def plot_seasonal_bias(self, seasons_stat='mean', vmin=None, vmax=None):
         """
-        Plots seasonal biases for each season (DJF, MAM, JJA, SON).
+        Plots seasonal biases for each season (DJF, MAM, JJA, SON) and returns an xarray.Dataset
+        containing the calculated seasonal biases.
 
         Args:
             seasons_stat (str): Statistic for seasonal analysis ('mean' by default).
@@ -177,7 +178,7 @@ class GlobalBiases:
             vmax (float, optional): Maximum colorbar value.
 
         Returns:
-            tuple: Matplotlib figure, axis objects, and a list of xarray Datasets of the calculated seasonal biases.
+            tuple: Matplotlib figure, axis objects, and an xarray.Dataset of the calculated seasonal biases.
         """
         self.logger.info('Plotting seasonal biases.')
 
@@ -189,35 +190,39 @@ class GlobalBiases:
             self.logger.warning(f"Variable {self.var_name} has multiple pressure levels, but no specific level was selected. Skipping 2D bias plotting.")
             return None  # Return None for both fig and ax  
 
-        # Plot seasonal biases if seasons is True
-
-        season_list = ['DJF', 'MAM', 'JJA', 'SON']    
+        # Validate seasons_stat
         stat_funcs = {'mean': 'mean', 'max': 'max', 'min': 'min', 'std': 'std'}
-
         if seasons_stat not in stat_funcs:
             raise ValueError("Invalid statistic. Please choose one of 'mean', 'std', 'max', 'min'.")
 
-        seasonal_data = []
-        seasonal_data_ref = []
-        seasonal_biases = []
+        # Prepare seasonal data and compute biases
+        season_list = ['DJF', 'MAM', 'JJA', 'SON']
+        seasonal_biases = {}
 
         for season in season_list:
+            # Select season for both data and reference
             data_season = select_season(self.data[self.var_name], season)
             data_ref_season = select_season(self.data_ref[self.var_name], season)
-            data_stat =  getattr(data_season, stat_funcs[seasons_stat])(dim='time') 
+
+            # Compute seasonal statistics
+            data_stat = getattr(data_season, stat_funcs[seasons_stat])(dim='time')
             data_ref_stat = getattr(data_ref_season, stat_funcs[seasons_stat])(dim='time')
 
+            # Compute bias and store in dictionary
             bias = data_stat - data_ref_stat
-            seasonal_data.append(bias)
-            seasonal_biases.append(bias)
+            seasonal_biases[season] = bias
 
+        # Combine seasonal biases into an xarray.Dataset
+        bias_dataset = xr.Dataset(seasonal_biases)
+
+        # Plot seasonal biases
         plot_kwargs = {
-            'maps': seasonal_data,
-            'maps_ref': seasonal_data_ref,
+            'maps': [bias_dataset[season] for season in season_list],
             'return_fig': True,
             'titles': season_list,
             'contour': True,
-            'sym': sym }
+            'sym': sym
+        }
 
         if vmin is not None:
             plot_kwargs['vmin'] = vmin
@@ -226,7 +231,7 @@ class GlobalBiases:
 
         fig, ax = plot_maps(**plot_kwargs)
 
-        return fig, ax, seasonal_biases
+        return fig, ax, bias_dataset
 
     def plot_vertical_bias(self, data=None, data_ref=None, var_name=None, plev_min=None, plev_max=None, vmin=None, vmax=None):
         """
