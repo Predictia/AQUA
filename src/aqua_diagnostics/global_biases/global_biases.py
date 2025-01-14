@@ -143,6 +143,8 @@ class GlobalBiases:
                                       return_fig=True, 
                                       title=title,
                                       vmin=vmin, vmax=vmax)
+            ax.set_xlabel("Longitude")
+            ax.set_ylabel("Latitude")
             bias = self.data[self.var_name].mean(dim='time')
         else:
             # Plot the bias map if two datasets are provided
@@ -161,8 +163,8 @@ class GlobalBiases:
                                            title=title,
                                            sym=sym,
                                            vmin_fill=vmin, vmax_fill=vmax)
-
-            # Calculate the bias between the two datasets
+            ax.set_xlabel("Longitude")
+            ax.set_ylabel("Latitude")
             bias = self.data[self.var_name].mean(dim='time') - self.data_ref[self.var_name].mean(dim='time')
 
         return fig, ax, bias
