@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 AQUA diagnostics complete list:
+- Fix Seasonal Bias Output in global_biases for NetCDF Saving Compatibility (#1585)
 - Biases and Radiation: Adding `save_netcdf` flag and function (#1510)
 - Biases and Radiation: Integrating Updated OutputSaver (#1487)
 
