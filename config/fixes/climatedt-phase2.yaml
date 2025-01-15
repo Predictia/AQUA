@@ -2,6 +2,9 @@ fixer_name:
     climatedt-phase2-production:
         deltat: 3600  # true only for atm. 
         convention: eccodes
+    climatedt-phase2-IFS-NEMO-freeze:
+        deltat: 3600  # true only for atm. 
+        convention: eccodes
         vars:
             tprate:
                 source: tp
