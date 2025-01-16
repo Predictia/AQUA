@@ -14,7 +14,7 @@ xr.set_options(keep_attrs=True)
 
 class GlobalBiases:
     """
-    A class to process and visualize atmospheric global mean data.
+    A class to process and visualize global mean data.
     
     Attributes:
         data (xr.Dataset): Input data for analysis.
