@@ -86,7 +86,7 @@ diagnostics:
     nworkers: 8
     extra: "--config ${AQUA}/config/diagnostics/radiation/config_radiation-boxplots.yaml"
   radiation-timeseries:
-    script_path: "global_time_series/cli/cli_global_time_series.py"
+    script_path: "../src/aqua_diagnostics/timeseries/cli_timeseries.py"
     nworkers: 8
     extra: "--config ${AQUA}/config/diagnostics/radiation/config_radiation-timeseries.yaml"
   teleconnections_atm:
