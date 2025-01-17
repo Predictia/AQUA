@@ -83,7 +83,7 @@ def test_timeseries_regions():
                     units='mm/day')
 
     assert ts.lon_limits == [-180, 180]
-    assert ts.lat_limits == [20, 90]
+    assert ts.lat_limits == [30, 90]
 
     ts.retrieve_data()
     # we have no reference data
