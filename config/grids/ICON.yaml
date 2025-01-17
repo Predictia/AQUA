@@ -48,3 +48,14 @@ grids:
       component: ocean
     space_coord: ["cell"]
     vert_coord: ["depth_half", "depth_full"]
+
+  icon-R02B08-hpz6-nested-v2: #ClimateDT cycle2, 14415 missing values
+    cdo_options: '--force'
+    path: '{{ grids }}/HealPix/icon-R02B08_hpz6_nested_oce_v2.nc'
+    space_coord: ["cell"]
+
+  icon-R02B08-hpz6-nested-3d-v2: #ClimateDT cycle2, 72 levels starting at 1,  14415 missing values
+    cdo_options: '--force'
+    path: '{{ grids }}/HealPix/icon-R02B08_hpz6_nested_oce_level_full_v2.nc'
+    space_coord: ["cell"]
+    vert_coord: ["level"]
