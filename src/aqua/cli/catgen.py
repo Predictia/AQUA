@@ -13,6 +13,7 @@ import jinja2
 from aqua.util import load_yaml, dump_yaml, get_arg, ConfigPath
 from aqua.logger import log_configure
 from aqua.lra_generator.lra_util import replace_intake_vars
+import yaml
 
 def catgen_parser(parser=None):
     if parser is None:
@@ -283,15 +284,31 @@ class AquaFDBGenerator:
         for profile in self.dp[self.model]:
             if not grid_resolutions:
                 self.logger.error('No resolutions found, generating an empty file!')
+            if 'omit-resolutions' in profile:
+                grid_resolutions = [res for res in grid_resolutions if res not in profile['omit-resolutions']]
             for grid_resolution in grid_resolutions:
                 content = self.get_profile_content(profile, grid_resolution)
                 combined = {**self.config, **content}
-                self.logger.debug('Creating catalog entry for %s', combined['source'])
-                #self.logger.debug(combined)
-                for replacepath in ['fdb_home', 'fdb_home_bridge']:
-                    if 'replacepath' in combined:
-                        combined[replacepath] = '"' + replace_intake_vars(combined[replacepath], catalog=combined['catalog_dir']) + '"'
-                all_content.append(self.template.render(combined))
+                sources = [content.split('\n')[0].strip().rstrip(':') for content in all_content]
+                self.logger.debug('Sources: %s', sources)
+
+                if combined['source'] in sources:
+                    self.logger.debug('Source %s already exists, updating variables', combined['source'])
+                    index = sources.index(combined['source'])
+                    source_content = all_content[index]                
+                    try:
+                        parsed_content = yaml.safe_load(source_content)
+                        parsed_content[combined['source']]['metadata']['variables'] += combined['variables']
+                        all_content[index] = yaml.dump(parsed_content)
+                        self.logger.info('Added variables %s to source %s', combined['variables'], combined['source'])
+                    except yaml.YAMLError as e:
+                        self.logger.error('Failed to parse source content: %s', e)
+                else:
+                    self.logger.debug('Creating catalog entry for %s', combined['source'])
+                    for replacepath in ['fdb_home', 'fdb_home_bridge']:
+                        if 'replacepath' in combined:
+                            combined[replacepath] = '"' + replace_intake_vars(combined[replacepath], catalog=combined['catalog_dir']) + '"'
+                    all_content.append(self.template.render(combined))
 
         self.create_catalog_entry(all_content)
 
