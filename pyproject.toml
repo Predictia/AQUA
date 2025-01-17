@@ -61,7 +61,7 @@ dependencies = [
     "h5py@git+https://github.com/h5py/h5py.git@3.12.1", #specific github pin to avoid installation of binaries
     "fastparquet",
     "pyfdb==0.1.1",
-    "gsv==2.9.0"
+    "gsv-interface==2.9.0"
 ]
 
 [project.optional-dependencies]
