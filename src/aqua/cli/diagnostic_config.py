@@ -4,7 +4,14 @@ diagnostic_config = {
             'config_file': 'atm_mean_bias_config.yaml',
             'source_path': 'diagnostics/atmglobalmean/cli/config',
             'target_path': 'diagnostics/atmglobalmean/cli'
-        }
+        },
+    ],
+    'global_biases': [
+        {
+            'config_file': 'config_global_biases.yaml',
+            'source_path': 'config/diagnostics/global_biases',
+            'target_path': 'diagnostics/global_biases/cli'
+        },
     ],
     'ecmean': [
         {
@@ -77,7 +84,22 @@ diagnostic_config = {
             'config_file': 'radiation_config.yml',
             'source_path': 'diagnostics/radiation/cli/config',
             'target_path': 'diagnostics/radiation/cli'
-        }
+        },
+        {
+            'config_file': 'config_radiation-boxplots.yaml',
+            'source_path': 'config/diagnostics/radiation',
+            'target_path': 'diagnostics/radiation/cli'
+        },
+        {
+            'config_file': 'config_radiation-biases.yaml',
+            'source_path': 'config/diagnostics/radiation',
+            'target_path': 'diagnostics/radiation/cli'
+        },
+        {
+            'config_file': 'config_radiation-timeseries.yaml',
+            'source_path': 'config/diagnostics/radiation',
+            'target_path': 'diagnostics/radiation/cli'
+        },
     ],
     'seaice': [
         {
@@ -121,33 +143,33 @@ diagnostic_config = {
     'teleconnections': [
         {
             'config_file': 'teleconnections-ci.yaml',
-            'source_path': 'diagnostics/teleconnections/config',
+            'source_path': 'config/diagnostics/teleconnections/interface',
             'target_path': 'diagnostics/teleconnections/config'
         },
         {
             'config_file': 'teleconnections-destine.yaml',
-            'source_path': 'diagnostics/teleconnections/config',
+            'source_path': 'config/diagnostics/teleconnections/interface',
             'target_path': 'diagnostics/teleconnections/config'
         },
         {
-            'config_file': 'teleconnections-netgems.yaml',
-            'source_path': 'diagnostics/teleconnections/config',
+            'config_file': 'teleconnections-netgems3.yaml',
+            'source_path': 'config/diagnostics/teleconnections/interface',
             'target_path': 'diagnostics/teleconnections/config'
         },
         {
             'config_file': 'cli_config_atm.yaml',
-            'source_path': 'diagnostics/teleconnections/cli',
-            'target_path': 'diagnostics/teleconnections/cli'
+            'source_path': 'config/diagnostics/teleconnections',
+            'target_path': 'diagnostics/teleconnections'
         },
         {
             'config_file': 'cli_config_oce.yaml',
-            'source_path': 'diagnostics/teleconnections/cli',
-            'target_path': 'diagnostics/teleconnections/cli'
+            'source_path': 'config/diagnostics/teleconnections',
+            'target_path': 'diagnostics/teleconnections'
         },
         {
             'config_file': 'config_bootstrap.yaml',
-            'source_path': 'diagnostics/teleconnections/cli',
-            'target_path': 'diagnostics/teleconnections/cli'
+            'source_path': 'config/diagnostics/teleconnections',
+            'target_path': 'diagnostics/teleconnections'
         },
     ],
     'tropical_cyclones': [
