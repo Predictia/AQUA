@@ -119,6 +119,8 @@ This script is used to push the figures produced by the AQUA analysis to the aqu
 ``EXPS`` is the subfolder to push, e.g ``climatedt-phase1/IFS-NEMO/historical-1990``
 or a text file containing a list of experiments in the format "catalog model experiment".
 It creates ``content.yaml`` files for each experiment and pushes the images to the aqua-web repository.
+An option to push also to LUMI-O has been added. In this case
+the AWS credentials can be stored in the ``~/.aws/credentials`` file or in environment variables ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY`` or passed as arguments.
 
 Additional options
 ^^^^^^^^^^^^^^^^^^
@@ -185,6 +187,7 @@ Pushing to LUMI-O or another S3 bucket
 --------------------------------------
 
 Tool to upload the contents of a directory or a single file to an S3 bucket.
+The AWS credentials can be stored in the ``~/.aws/credentials`` file or in environment variables ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY`` or passed as arguments.
 
 Basic usage:
 ^^^^^^^^^^^
