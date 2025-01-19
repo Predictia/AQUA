@@ -172,11 +172,54 @@ Additional options
         
             Set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2.
 
-Another script is used to upload the documentation to the aqua-web repository.
+Another script is used to upload the documentation to the aqua-web repository:
 
 .. code-block:: bash
 
     bash make_push_docs.py 
+
+
+.. _push_s3:
+
+Pushing to LUMI-O or another S3 bucket
+--------------------------------------
+
+Tool to upload the contents of a directory or a single file to an S3 bucket.
+
+Basic usage:
+^^^^^^^^^^^
+
+.. code-block:: bash
+
+    python push_s3.py <bucket_name> <source> [-d <destination>] [--aws_access_key_id <aws_access_key_id>] [--aws_secret_access_key <aws_secret_access_key>] [--endpoint_url <endpoint_url>]
+
+Options
+^^^^^^^
+
+.. option:: <bucket_name>
+
+    The name of the S3 bucket.
+
+.. option:: <source>
+
+    The path to the directory or file to upload.
+
+.. option:: -d <destination>, --destination <destination>
+
+    Optional destination path.
+
+.. option:: -k <aws_access_key_id>, --aws_access_key_id <aws_access_key_id>
+
+    AWS access key ID.
+
+.. option:: -s <aws_secret_access_key>, --aws_secret_access_key <aws_secret_access_key>
+
+    AWS secret access key.
+
+.. option:: --endpoint_url <endpoint_url>
+
+    Custom endpoint URL for S3. Default is 'https://lumidata.eu'.
+
 
 .. _submit-aqua-web:
 
