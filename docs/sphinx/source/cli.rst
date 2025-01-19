@@ -160,7 +160,15 @@ Additional options
     
         Do not convert PDFs to PNGs.
 
-.. option:: -l, --loglevel LEVEL
+.. option:: -o, --lumio
+    
+        Push a copy of the figures also to LUMI-O.
+
+.. option:: --bucket <bucket>   
+    
+        Specify the bucket to use for the LUMI-O push (default 'aqua').
+
+.. option:: -l, --loglevel <level>>
         
             Set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2.
 
