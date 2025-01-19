@@ -245,6 +245,6 @@ def read_bridge_date(obj):
         with open(obj, 'r') as file:
             date = file.read()
         date = pd.Timestamp(date.strip())
-        return (date.strftime('%Y%m%d'))
+        return date.strftime('%Y%m%dT%H%M')
     else:
         return obj
