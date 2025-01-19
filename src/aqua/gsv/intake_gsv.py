@@ -133,6 +133,7 @@ class GSVSource(base.DataSource):
         self.logger.debug("List of paramid to retrieve %s", self._var)
                 
         self._kwargs = kwargs
+        self.hpc_expver = hpc_expver
 
         if data_start_date == 'auto' or data_end_date == 'auto':
             self.logger.debug('Autoguessing of the FDB start and end date enabled.')
@@ -194,7 +195,6 @@ class GSVSource(base.DataSource):
 
         self.bridge_end_date = read_bridge_date(bridge_end_date)  # Reads from file if possible
         self.bridge_start_date = read_bridge_date(bridge_start_date)
-        self.hpc_expver = hpc_expver
 
         if self.bridge_start_date == 'complete' or self.bridge_end_date == 'complete':
             self.bridge_start_date = self.data_start_date
@@ -607,8 +607,11 @@ class GSVSource(base.DataSource):
             root = cfg['spaces'][0]['roots'][0]['path']
 
         req = self._request
+        expver = req['expver']
+        if self.hpc_expver:
+            expver = self.hpc_expver
 
-        file_mask = f"{req['class']}:{req['dataset']}:{req['activity']}:{req['experiment']}:{req['generation']}:{req['model']}:{req['realization']}:{req['expver']}:{req['stream']}:*"
+        file_mask = f"{req['class']}:{req['dataset']}:{req['activity']}:{req['experiment']}:{req['generation']}:{req['model']}:{req['realization']}:{expver}:{req['stream']}:*"
         file_list = glob.glob(os.path.join(root, file_mask))
 
         datesel = [filename[-8:] for filename in file_list if (filename[-8:].isdigit() and len(filename[-8:]) == 8)]
