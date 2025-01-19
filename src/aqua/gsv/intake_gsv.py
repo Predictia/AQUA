@@ -36,7 +36,8 @@ class GSVSource(base.DataSource):
     _da = None
     dask_access = False  # Flag if dask has been requested
 
-    def __init__(self, request, data_start_date, data_end_date, bridge_start_date=None, bridge_end_date=None, timestyle="date",
+    def __init__(self, request, data_start_date, data_end_date, bridge_start_date=None, bridge_end_date=None, 
+                 hpc_expver=None, timestyle="date",
                  chunks="S", savefreq="h", timestep="h", timeshift=None,
                  startdate=None, enddate=None, var=None, metadata=None, level=None,
                  switch_eccodes=False, loglevel='WARNING', **kwargs):
@@ -50,6 +51,7 @@ class GSVSource(base.DataSource):
             data_end_date (str): End date of the available data.
             bridge_end_date (str, optional): End date of the bridge data. Defaults to None.
             bridge_start_date (str, optional): Start date of the bridge data. Defaults to None.
+            hpc_expver (str, optional): Alternative expver to be used if the data are on hpc
             timestyle (str, optional): Time style. Defaults to "date".
             chunks (str or dict, optional): Time and vertical chunking.
                                         If a string is provided, it is assumed to be time chunking.
@@ -192,6 +194,7 @@ class GSVSource(base.DataSource):
 
         self.bridge_end_date = read_bridge_date(bridge_end_date)  # Reads from file if possible
         self.bridge_start_date = read_bridge_date(bridge_start_date)
+        self.hpc_expver = hpc_expver
 
         if self.bridge_start_date == 'complete' or self.bridge_end_date == 'complete':
             self.bridge_start_date = self.data_start_date
@@ -263,6 +266,7 @@ class GSVSource(base.DataSource):
             'chunking_vertical': self.chunking_vertical,
             'chk_vert': self.chk_vert,
             'chk_type': self.chk_type,
+            'hpc_expver': self.hpc_expver,
             '_request': self._request,
             'timestyle': self.timestyle,
             'fdbhome': self.fdbhome,
@@ -291,6 +295,7 @@ class GSVSource(base.DataSource):
         self.chunking_vertical = state['chunking_vertical']
         self.chk_vert = state['chk_vert']
         self.chk_type = state['chk_type']
+        self.hpc_expver = state['hpc_expver']
         self.timestyle = state['timestyle']
         self.fdbhome = state['fdbhome']
         self.fdbpath = state['fdbpath']
@@ -456,6 +461,8 @@ class GSVSource(base.DataSource):
                 os.environ["FDB_HOME"] = self.fdbhome
             if self.fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
                 os.environ["FDB5_CONFIG_FILE"] = self.fdbpath
+            if self.hpc_expver:
+                request["expver"] = self.hpc_expver
 
         self._switch_eccodes()
 
