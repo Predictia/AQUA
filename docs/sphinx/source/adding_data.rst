@@ -207,7 +207,7 @@ Some of the parameters are here described:
     This is the first date/time for which data are stored on the databridge. Previous data are assumed to be on the HPC.    
     If set to "complete" then all data are assumed to be on the bridge. 
     If omitted, but ``bridge_end_date`` is set, it is assumed to be the same as ``data_start_date``.
-    It can also be set to a filename, from which to read the date.
+    It can be set to a filename from which to read the date/time (in any format understood by pandas).
 
 .. option:: bridge_end_date
 
@@ -215,7 +215,7 @@ Some of the parameters are here described:
     This is the last date/time (included) for which data are stored on the databridge. Following data are assumed to be on the HPC.    
     If set to "complete" then all data are assumed to be on the bridge (equivalent to setting ``data_end_date`` to "complete").
      If omitted, but ``bridge_start_date`` is set, it is assumed to be the same as ``data_end_date``.
-    It can also be set to a filename, from which to read the date.
+    It can be set to a filename from which to read the date/time (in any format understood by pandas)
 
 .. option:: hpc_expver
 
