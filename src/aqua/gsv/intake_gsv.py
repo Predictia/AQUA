@@ -224,7 +224,7 @@ class GSVSource(base.DataSource):
             if not self.fdbpath and not self.fdbhome:
                 raise ValueError('Some data is on HPC but no local FDB path or FDB home is specified in catalog.')
         if np.any(self.chk_type == 1):
-            if not self.fdbpath and not self.fdbhome:
+            if not self.fdbpath_bridge and not self.fdbhome_bridge:
                 raise ValueError('Some data is on bridge but no bridge FDB path or FDB home specified in catalog.')
 
         self.chk_vert = None
