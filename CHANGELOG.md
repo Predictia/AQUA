@@ -5,17 +5,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-AQUA diagnostics complete list:
-- Refactoring of Bias and Radiation Diagnostics (#1243)
-- Fix Seasonal Bias Output in global_biases for NetCDF Saving Compatibility (#1585)
-- Biases and Radiation: Adding `save_netcdf` flag and function (#1510)
-- Biases and Radiation: Integrating Updated OutputSaver (#1487)
-
 Unreleased in the current development version:
 
 AQUA core complete list:
 - Include all available figure metadata in content.json for dashboard/aqua-web (#1573)
 - Upgrade LUMI module to 24.03 and to eccodes 2.39.0
+
+AQUA diagnostics complete list:
+- Ocean3d: Bugfix of values for Ocean trend function (#1583)
+- Biases and Radiation: Refactoring of Bias and Radiation Diagnostics (#1243)
+- Biases and Radiation: Fix Seasonal Bias Output in global_biases for NetCDF Saving Compatibility (#1585)
+- Biases and Radiation: Adding `save_netcdf` flag and function (#1510)
+- Biases and Radiation: Integrating Updated OutputSaver (#1487)
 
 ## [v0.13-beta]
 
