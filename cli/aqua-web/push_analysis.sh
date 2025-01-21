@@ -8,9 +8,8 @@ push_lumio() {
     # This assumes that we are inside the aqua-web repository
 
     log_message INFO "Pushing to LUMI-O"
-    cd content/png
-    python $SCRIPT_DIR/push_s3.py $1 $2
-    cd ../..
+    python $SCRIPT_DIR/push_s3.py $1 content/png/$2
+    python $SCRIPT_DIR/push_s3.py $1 content/pdf/$2
 }
 
 make_contents() {
@@ -99,7 +98,7 @@ print_help() {
     echo "  -t, --title TITLE      title for the automatic PR (optional)"
     echo "  -u, --user USER:PAT    credentials (in the format "username:PAT") to create an automatic PR for the branch (optional)"
     echo "  -w, --wipe             wipe the destination directory before copying the images"
-    echo "  --bucket BUCKET        push to the specified bucket (optional, dafaults to 'aqua')"
+    echo "  --bucket BUCKET        push to the specified bucket (optional, dafaults to 'aqua-web')"
 }
 
 if [ -z "$1" ] || [ -z "$2" ]; then
@@ -117,7 +116,7 @@ dry=0
 content=0
 convert=1
 loglevel=2
-bucket="aqua"
+bucket="aqua-web"
 lumio=0
 
 while [[ $# -gt 2 ]]; do
