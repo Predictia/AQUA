@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Adding ICON phase2 hpx6 and hpz9 grids (#1596)
 - Push figures also to LUMI-O for dashboard (#1582)
 - Bridge_start_date and expver switching (#1597)
 - Include all available figure metadata in content.json for dashboard/aqua-web (#1573)
