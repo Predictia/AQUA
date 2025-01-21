@@ -313,6 +313,11 @@ class AquaFDBGenerator:
                             combined[replace_path] = (
                                 '"' + replace_intake_vars(combined[replace_path], catalog=combined['catalog_dir']) + '"'
                             )
+
+                    # Convert lists to inline format before rendering for better readability
+                    for key in ['levels', 'variables']:
+                        if key in combined and combined[key] is not None:
+                            combined[key] = list(combined[key])
                     try:
                         rendered_content = yaml.safe_load(self.template.render(combined))
                         all_content['sources'][source_name] = rendered_content[source_name]

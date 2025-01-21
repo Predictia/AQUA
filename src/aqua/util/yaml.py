@@ -139,6 +139,7 @@ def dump_yaml(outfile=None, cfg=None, typ='rt'):
     """
     # Initialize YAML object
     yaml = YAML(typ=typ)
+    yaml.default_flow_style = None 
 
     # Check input
     if outfile is None:
