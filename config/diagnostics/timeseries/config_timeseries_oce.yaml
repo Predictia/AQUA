@@ -33,7 +33,7 @@ timeseries_plot_params:
     # and installed with the aqua install command.
     # Global timeseries are always plotted.
     # regions: ['nh', 'sh', 'tropics', 'europe']
-    regrid: None
+    regrid: null
     std_startdate: '1990-01-01'
     std_enddate: '2020-12-31'
   tos:
