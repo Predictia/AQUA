@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 AQUA diagnostics complete list:
+- Adding ICON phase2 hpx6 and hpz9 grids (#1596)
 - Refactoring of Bias and Radiation Diagnostics (#1243)
 - Fix Seasonal Bias Output in global_biases for NetCDF Saving Compatibility (#1585)
 - Biases and Radiation: Adding `save_netcdf` flag and function (#1510)
