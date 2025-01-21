@@ -138,9 +138,6 @@ Examples
     - **Variable**: 3d ocean data with level as vertical coordinate
     - **Version**: Not specified
 
-Conclusion
-----------
-This naming scheme ensures clarity and consistency, providing key information about each dataset file in a standardized format.
 
 Vertical interpolation
 ^^^^^^^^^^^^^^^^^^^^^^
