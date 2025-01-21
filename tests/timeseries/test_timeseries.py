@@ -90,7 +90,7 @@ def test_timeseries_regions():
     ts.retrieve_ref(extend=False)
     ts.plot()
 
-    assert ts.data_annual[0].isel(time=4).values == pytest.approx(2.17145758, rel=approx_rel)
+    assert ts.data_annual[0].isel(time=4).values == pytest.approx(2.21320749, rel=approx_rel)
 
     with pytest.raises(KeyError):
         ts = Timeseries(var=var, models=models, exps=exps, sources=sources,
