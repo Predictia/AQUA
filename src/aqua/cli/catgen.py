@@ -283,6 +283,8 @@ class AquaFDBGenerator:
         for profile in self.dp[self.model]:
             if not grid_resolutions:
                 self.logger.error('No resolutions found, generating an empty file!')
+            if 'omit-resolutions' in profile:
+                grid_resolutions = [res for res in grid_resolutions if res not in profile['omit-resolutions']]
             for grid_resolution in grid_resolutions:
                 content = self.get_profile_content(profile, grid_resolution)
                 combined = {**self.config, **content}
