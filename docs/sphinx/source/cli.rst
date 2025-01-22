@@ -89,8 +89,6 @@ so that the script can be used in a batch job or in a workflow.
     This is a legacy feature to run the diagnostics with multiple dask.distributed 'local' clusters (not reccomended)
     In this case predefined number of workers is used for each diagnostic, set in the configuration file `config.aqua-analysis.yaml`.
     
-.. option:: 
-    
 .. note ::
 
     By default the script will run all the state-of-the-art diagnostics available in AQUA.
@@ -189,7 +187,7 @@ Pushing to LUMI-O or another S3 bucket
 Tool to upload the contents of a directory or a single file to an S3 bucket.
 The AWS credentials can be stored in the ``~/.aws/credentials`` file or in environment variables ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY`` or passed as arguments.
 
-Basic usage:
+Basic usage
 ^^^^^^^^^^^
 
 .. code-block:: bash
