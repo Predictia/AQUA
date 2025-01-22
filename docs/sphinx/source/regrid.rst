@@ -104,7 +104,7 @@ The oceanic grid naming scheme is quite complex and here is reported for interna
 Unfortunately, every small change in land sea mask requires a new oceanic grids since interpolation relies on pre-computed weights.
 
 Elements Description
---------------------
+====================
 - **model**: The model used, e.g., `fesom`, `icon`, `nemo`.
 - **resolution**: The horizontal resolution or specific configuration of the model, e.g., `D3`, `NG5`, `R02B08`, `eORCA025`.
 - **configuration**: Specific configuration details such as HealPix level or grid type, e.g., `hpz7`, `hpz10`.
@@ -113,7 +113,7 @@ Elements Description
 - **version**: The version of the file, indicated by `v1`, `v2`, etc. Missing version is used for single version files
 
 Examples
---------
+========
 1. `fesom-D3_hpz7_nested_oce.nc`
     - **Model**: FESOM
     - **Resolution**: D3

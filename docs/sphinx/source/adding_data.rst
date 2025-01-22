@@ -214,7 +214,7 @@ Some of the parameters are here described:
     This optional date is used for cases where part of the data are on the HPC FDB and part on the databridge.
     This is the last date/time (included) for which data are stored on the databridge. Following data are assumed to be on the HPC.    
     If set to "complete" then all data are assumed to be on the bridge (equivalent to setting ``data_end_date`` to "complete").
-     If omitted, but ``bridge_start_date`` is set, it is assumed to be the same as ``data_end_date``.
+    If omitted, but ``bridge_start_date`` is set, it is assumed to be the same as ``data_end_date``.
     It can be set to a filename from which to read the date/time (in any format understood by pandas)
 
 .. option:: hpc_expver
