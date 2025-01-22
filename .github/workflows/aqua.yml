@@ -44,7 +44,7 @@ jobs:
     continue-on-error: false
     container:
       # To run FDB tests we need to use a Docker image with FDB installed.
-      image: ghcr.io/destine-climate-dt/base:ubuntu-22.04
+      image: ghcr.io/destine-climate-dt/base:python-3.11_ubuntu-22.04_0e6f90ce04a5
       # image: ghcr.io/destine-climate-dt/ubuntu22.04-fdb-aqua:ubuntu-docker
       credentials:
         username: ${{ secrets.DOCKER_USERNAME }}
