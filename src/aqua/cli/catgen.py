@@ -289,6 +289,7 @@ class AquaFDBGenerator:
             return
 
         for profile in self.dp[self.model]:
+
             # Filter out omitted resolutions, if any
             current_resolutions = [
                 res for res in grid_resolutions 
@@ -296,6 +297,7 @@ class AquaFDBGenerator:
             ]
 
             for grid_resolution in current_resolutions:
+        
                 content = self.get_profile_content(profile, grid_resolution)
                 combined = {**self.config, **content}
                 source_name = combined.get('source')
