@@ -314,10 +314,7 @@ class AquaFDBGenerator:
                     # Replace paths 
                     for replace_path in ['fdb_home', 'fdb_home_bridge']:
                         if replace_path in combined:
-                            combined[replace_path] = (
-                                '"' + replace_intake_vars(combined[replace_path], catalog=combined['catalog_dir']) + '"'
-                            )
-
+                            combined[replace_path] = '"' + replace_intake_vars(combined[replace_path], catalog=combined['catalog_dir']) + '"'               
                     # Convert lists to inline format before rendering for better readability
                     for key in ['levels', 'variables']:
                         if key in combined and combined[key] is not None:
