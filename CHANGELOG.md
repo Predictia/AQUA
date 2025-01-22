@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
  
 AQUA core complete list:
+- Update the catalog generator to align with changes in the data portfolio (#1593)
 - Include all available figure metadata in content.json for dashboard/aqua-web (#1573)
 - Upgrade LUMI module to 24.03 and to eccodes 2.39.0
 
