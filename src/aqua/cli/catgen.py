@@ -13,7 +13,11 @@ import jinja2
 from aqua.util import load_yaml, dump_yaml, get_arg, ConfigPath
 from aqua.logger import log_configure
 from aqua.lra_generator.lra_util import replace_intake_vars
-import yaml
+
+from ruamel.yaml import YAML
+yaml = YAML()
+yaml.default_flow_style = None  # Ensure default flow style is None
+
 
 def catgen_parser(parser=None):
     if parser is None:
@@ -319,7 +323,7 @@ class AquaFDBGenerator:
                         if key in combined and combined[key] is not None:
                             combined[key] = list(combined[key])
                     try:
-                        rendered_content = yaml.safe_load(self.template.render(combined))
+                        rendered_content = yaml.load(self.template.render(combined))
                         all_content['sources'][source_name] = rendered_content[source_name]
                     except Exception as e:
                         self.logger.error('Error rendering template for source %s: %s', source_name, str(e))
