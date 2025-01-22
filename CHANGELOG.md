@@ -6,8 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
-
+ 
 AQUA core complete list:
+
+- Update the catalog generator to align with changes in the data portfolio (#1593)
 - Adding ICON phase2 hpx6 and hpz9 grids (#1596)
 - Push figures also to LUMI-O for dashboard (#1582)
 - Bridge_start_date and expver switching (#1597)

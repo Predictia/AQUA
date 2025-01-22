@@ -14,6 +14,11 @@ from aqua.util import load_yaml, dump_yaml, get_arg, ConfigPath
 from aqua.logger import log_configure
 from aqua.lra_generator.lra_util import replace_intake_vars
 
+from ruamel.yaml import YAML
+yaml = YAML()
+yaml.default_flow_style = None  # Ensure default flow style is None
+
+
 def catgen_parser(parser=None):
     if parser is None:
         parser = argparse.ArgumentParser(description='AQUA FDB entries generator')
@@ -239,7 +244,7 @@ class AquaFDBGenerator:
         Create catalog entry file and update main YAML.
 
         Args:
-            all_content (list): List of all generated content strings.
+            all_content (dict): Dictionary of all generated content strings.
         """
         output_dir = os.path.join(self.catalog_dir_path, 'catalogs',
                                   self.config['catalog_dir'], 'catalog', self.model.upper())
@@ -247,14 +252,12 @@ class AquaFDBGenerator:
         output_filename = f"{self.config['exp']}.yaml"
         output_path = os.path.join(output_dir, output_filename)
 
+        # Remove the existing file if it exists
         if os.path.exists(output_path):
             os.remove(output_path)
 
-        with open(output_path, "w", encoding='utf8') as f:
-            f.write('sources:\n')
-            for content in all_content:
-                f.write(f'  {content}\n')
-
+        # Write the catalog entry file
+        dump_yaml(output_path, all_content)
         self.logger.info("File %s has been created in %s", output_filename, output_dir)
 
         main_yaml_path = os.path.join(output_dir, 'main.yaml')
@@ -276,28 +279,59 @@ class AquaFDBGenerator:
         """
         Generate the entire catalog by processing profiles and resolutions.
         """
+        all_content = {'sources': {}}
 
-        all_content = []
-
+        # Retrieve available resolutions for the current model
         grid_resolutions = self.get_available_resolutions(self.local_grids, self.model)
+        
+        if not grid_resolutions:
+            self.logger.error('No resolutions found, generating an empty file!')
+            return
+
         for profile in self.dp[self.model]:
-            if not grid_resolutions:
-                self.logger.error('No resolutions found, generating an empty file!')
-            if 'omit-resolutions' in profile:
-                grid_resolutions = [res for res in grid_resolutions if res not in profile['omit-resolutions']]
-            for grid_resolution in grid_resolutions:
+
+            # Filter out omitted resolutions, if any
+            current_resolutions = [
+                res for res in grid_resolutions 
+                if 'omit-resolutions' not in profile or res not in profile['omit-resolutions']
+            ]
+
+            for grid_resolution in current_resolutions:
+        
                 content = self.get_profile_content(profile, grid_resolution)
                 combined = {**self.config, **content}
-                self.logger.debug('Creating catalog entry for %s', combined['source'])
-                #self.logger.debug(combined)
-                for replacepath in ['fdb_home', 'fdb_home_bridge']:
-                    if 'replacepath' in combined:
-                        combined[replacepath] = '"' + replace_intake_vars(combined[replacepath], catalog=combined['catalog_dir']) + '"'
-                all_content.append(self.template.render(combined))
+                source_name = combined.get('source')
 
+                if source_name in all_content['sources']:
+                    self.logger.debug('Source %s already exists, updating variables.', source_name)
+
+                    source_content = all_content['sources'][source_name]
+                    source_content['metadata']['variables'].extend(combined['variables'])
+
+                    all_content['sources'][source_name] = source_content
+                    self.logger.info('Added variables %s to source %s.', combined['variables'], source_name)
+                else:
+                    self.logger.debug('Creating catalog entry for %s.', source_name)
+
+                    # Replace paths 
+                    for replace_path in ['fdb_home', 'fdb_home_bridge']:
+                        if replace_path in combined:
+                            combined[replace_path] = '"' + replace_intake_vars(combined[replace_path], catalog=combined['catalog_dir']) + '"'               
+                    # Convert lists to inline format before rendering for better readability
+                    for key in ['levels', 'variables']:
+                        if key in combined and combined[key] is not None:
+                            combined[key] = list(combined[key])
+                    try:
+                        rendered_content = yaml.load(self.template.render(combined))
+                        all_content['sources'][source_name] = rendered_content[source_name]
+                    except Exception as e:
+                        self.logger.error('Error rendering template for source %s: %s', source_name, str(e))
+
+        # Create final catalog entry
         self.create_catalog_entry(all_content)
 
 def catgen_execute(args):
+
 
     """Useful wrapper for the FDB catalog generator class"""
 
