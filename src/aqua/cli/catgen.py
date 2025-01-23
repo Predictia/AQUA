@@ -315,11 +315,6 @@ class AquaFDBGenerator:
                     self.logger.info('Added variables %s to source %s.', combined['variables'], source_name)
                 else:
                     self.logger.debug('Creating catalog entry for %s.', source_name)
-
-                    # Replace paths 
-                    for replace_path in ['fdb_home', 'fdb_home_bridge']:
-                        if replace_path in combined:
-                            combined[replace_path] = '"' + replace_intake_vars(combined[replace_path], catalog=combined['catalog_dir']) + '"'               
                     # Convert lists to inline format before rendering for better readability
                     for key in ['levels', 'variables']:
                         if key in combined and combined[key] is not None:
