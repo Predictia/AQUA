@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
  
 AQUA core complete list:
-
+- Units utility are now functions and not methods of FixerMixin (#1558)
 - Update the catalog generator to align with changes in the data portfolio (#1593)
 - Adding ICON phase2 hpx6 and hpz9 grids (#1596)
 - Push figures also to LUMI-O for dashboard (#1582)
@@ -32,7 +32,6 @@ Main changes are:
 3. Major improvements in the Ocean3D diagnostic.
 
 AQUA core complete list:
-- Units utility are now functions and not methods of FixerMixin (#1558)
 - Safety checks and error messages on FDB folders (#1512)
 - Refreshed internal `to_list` function (#1512)
 - Reorganizing and extending CI/CD catalog with 5 years of hpz3 data from ERA5 (atm) and FESOM (oce) (#1552)
