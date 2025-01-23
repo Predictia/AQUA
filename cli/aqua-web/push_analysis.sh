@@ -56,9 +56,6 @@ convert_pdf_to_png() {
     fi
 }
 
-# Note: the -r|--repository option is implemented but deactivated at the moment since 
-# it may create issues when the repository history is purged. To be evaluated.
-
 print_help() {
     echo "Usage: $0 [OPTIONS] INDIR EXPS"
     echo "Arguments:"
@@ -67,12 +64,13 @@ print_help() {
     echo "                         or the name of a text file containing a list of catalog, model, experiment (space separated)"
     echo
     echo "Options:"
+    echo "  -b, --bucket BUCKET    push to the specified bucket (defaults to 'aqua-web')"
     echo "  -d, --dry-run          do not push to the repository"
     echo "  -h, --help             display this help and exit"
     echo "  -l, --loglevel LEVEL   set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2."
     echo "  -n, --no-convert       do not convert PDFs to PNGs"
     echo "  -r, --repository       remote aqua-web repository (default 'DestinE-Climate-DT/aqua-web'). If it starts with 'local:' a local directory is used."
-    echo "  -b, --bucket BUCKET    push to the specified bucket (optional, dafaults to 'aqua-web')"
+    echo "  --branch BRANCH        push to the specified branch (defaults to 'main')"
 }
 
 if [ -z "$1" ] || [ -z "$2" ]; then
@@ -219,4 +217,11 @@ else
     git push
     log_message INFO "Pushed new figures to lumi-o"
 fi
+
 cd ..
+
+if [ $localrepo -eq 0 ]; then
+    log_message DEBUG "Removing $repo"
+    rm -rf $repo
+fi
+
