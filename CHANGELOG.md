@@ -6,9 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
+
+Deprecated:
+- `aqua-analysis.sh` script is deprecated and will be removed in the next release. Use the `aqua-analysis.py` instead.
+- `cli_dummy.py` script is deprecated and will be removed in the next release. Use the `cli_checker.py` instead.
  
 AQUA core complete list:
-
+- New `cli_checker.py` tool to check the existance of the required model in the catalog and rebuild the area files (#1619)
 - Update the catalog generator to align with changes in the data portfolio (#1593)
 - Adding ICON phase2 hpx6 and hpz9 grids (#1596)
 - Push figures also to LUMI-O for dashboard (#1582)
