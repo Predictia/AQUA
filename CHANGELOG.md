@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
+ 
+AQUA core complete list:
+
+- Update the catalog generator to align with changes in the data portfolio (#1593)
+- Adding ICON phase2 hpx6 and hpz9 grids (#1596)
+- Push figures also to LUMI-O for dashboard (#1582)
+- Bridge_start_date and expver switching (#1597)
+- Include all available figure metadata in content.json for dashboard/aqua-web (#1573)
+- Upgrade LUMI module to 24.03 and to eccodes 2.39.0
+
+AQUA diagnostics complete list:
+- Timeseries: enabled region selection in the CLI (#1564)
+- Ocean3d: Bugfix of values for Ocean trend function (#1583)
+- Biases and Radiation: Refactoring of Bias and Radiation Diagnostics (#1243)
+- Biases and Radiation: Fix Seasonal Bias Output in global_biases for NetCDF Saving Compatibility (#1585)
+- Biases and Radiation: Adding `save_netcdf` flag and function (#1510)
+- Biases and Radiation: Integrating Updated OutputSaver (#1487)
+
+## [v0.13-beta]
+
+Main changes are:
+1. All the diagnostics are now compatible with the new fixes and eccodes version.
+2. Full compatibility with HealPix grids and the new CDO version.
+3. Major improvements in the Ocean3D diagnostic.
 
 AQUA core complete list:
 - Units utility are now functions and not methods of FixerMixin (#1558)
@@ -21,6 +45,9 @@ AQUA core complete list:
 - Added the `cdo_options: "--force"` to the definitions of the oceanic HealPix grids (#1539)
 
 AQUA diagnostic complete list:
+- ECmean: Integrating the performance indices and global mean within the `aqua_diagnostics` module (#1556)
+- Teleconnections: The `teleconnections` diagnostic is now integrated in the `aqua_diagnostics` module (#1352)
+- Teleconnections: OutputSaver for the teleconnections diagnostic (#1567, #1570)
 - Ocean3d: Fix to improve memory usage and cli (#1490)
 - Seaice: Fix to read sithick as fallback instead of sivol (#1543)
 - Ocean3d: Minor fix to allow to read new variable names (#1540)
@@ -35,6 +62,7 @@ Main changes are:
 3. The FDB reader always rely on paramids, so that support for eccodes 2.39.0 and backward compatibility is ensured.
 
 AQUA core complete list:
+- push-analysis.sh maintenance (#1555)
 - Added the `cdo_options: "--force"` to the definitions of the HealPix grids (#1527)
 - Removing default fixes (#1519)
 - Support for eccodes=2.39.0 with full fixes refactoring (#1519)
@@ -736,7 +764,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-alpha...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-beta...HEAD
+[v0.13-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-alpha...v0.13-beta
 [v0.13-alpha]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.12.2...v0.13-alpha
 [v0.12.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.12.1...v0.12.2
 [v0.12.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.12...v0.12.1
