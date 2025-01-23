@@ -9,6 +9,7 @@ Unreleased in the current development version:
  
 AQUA core complete list:
 
+- Automatic identification of ocean grid in the catalog generator (#1621)
 - Update the catalog generator to align with changes in the data portfolio (#1593)
 - Adding ICON phase2 hpx6 and hpz9 grids (#1596)
 - Push figures also to LUMI-O for dashboard (#1582)
