@@ -10,6 +10,7 @@ from dask.distributed import LocalCluster
 from aqua.logger import log_configure
 from aqua.util import load_yaml, create_folder
 
+
 def run_command(cmd: str, log_file: str = None, logger=None) -> int:
     """
     Run a system command and capture the exit code, redirecting output to the specified log file.
@@ -35,7 +36,9 @@ def run_command(cmd: str, log_file: str = None, logger=None) -> int:
             logger.error(f"Error running command {cmd}: {e}")
         raise
 
-def run_diagnostic(diagnostic: str, script_path: str, extra_args: str, loglevel: str = 'INFO', logger=None, logfile: str = 'diagnostic.log'):
+
+def run_diagnostic(diagnostic: str, script_path: str, extra_args: str,
+                   loglevel: str = 'INFO', logger=None, logfile: str = 'diagnostic.log'):
     """
     Run the diagnostic script with specified arguments.
 
@@ -65,9 +68,10 @@ def run_diagnostic(diagnostic: str, script_path: str, extra_args: str, loglevel:
     except Exception as e:
         logger.error(f"Failed to run diagnostic {diagnostic}: {e}")
 
-def run_diagnostic_func(diagnostic: str, parallel: bool = False, 
-                        config=None, model='default_model', exp='default_exp', 
-                        source='default_source', output_dir='./output', loglevel='INFO', 
+
+def run_diagnostic_func(diagnostic: str, parallel: bool = False,
+                        config=None, model='default_model', exp='default_exp',
+                        source='default_source', output_dir='./output', loglevel='INFO',
                         logger=None, aqua_path='', cluster=None):
     """
     Run the diagnostic and log the output, handling parallel processing if required.
@@ -102,19 +106,21 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False,
             extra_args += f" --nworkers {nworkers}"
 
     if cluster and not diagnostic_config.get('nocluster', False):  # This is needed for ECmean which uses multiprocessing
-        extra_args += f" --cluster {cluster}"  
+        extra_args += f" --cluster {cluster}"
 
     outname = f"{output_dir}/{diagnostic_config.get('outname', diagnostic)}"
     args = f"--model {model} --exp {exp} --source {source} --outputdir {outname} {extra_args}"
 
     run_diagnostic(
         diagnostic=diagnostic,
-        script_path=os.path.join(aqua_path, "diagnostics", diagnostic_config.get('script_path', f"{diagnostic}/cli/cli_{diagnostic}.py")),
+        script_path=os.path.join(aqua_path, "diagnostics",
+                                 diagnostic_config.get('script_path', f"{diagnostic}/cli/cli_{diagnostic}.py")),
         extra_args=args,
         loglevel=loglevel,
         logger=logger,
         logfile=logfile
     )
+
 
 def get_args():
     """
@@ -131,7 +137,8 @@ def get_args():
     parser.add_argument("-f", "--config", type=str, default="$AQUA/cli/aqua-analysis/config.aqua-analysis.yaml",
                         help="Configuration file")
     parser.add_argument("-c", "--catalog", type=str, help="Catalog")
-    parser.add_argument("--local_clusters", action="store_true", help="Use separate local clusters instead of single global one")
+    parser.add_argument("--local_clusters", action="store_true",
+                        help="Use separate local clusters instead of single global one")
     parser.add_argument("-p", "--parallel", action="store_true", help="Run diagnostics in parallel with a cluster")
     parser.add_argument("-t", "--threads", type=int, default=-1, help="Maximum number of threads")
     parser.add_argument("-l", "--loglevel", type=lambda s: s.upper(),
@@ -241,14 +248,15 @@ def main():
             nworkers = config.get('cluster', {}).get('workers', 64)
             mem_limit = config.get('cluster', {}).get('memory_limit', "3.1GiB")
 
-            cluster = LocalCluster(threads_per_worker=nthreads, n_workers=nworkers, memory_limit=mem_limit, silence_logs=logging.ERROR)  # avoids excessive logging (see https://github.com/dask/dask/issues/9888)
+            cluster = LocalCluster(threads_per_worker=nthreads, n_workers=nworkers, memory_limit=mem_limit,
+                                   silence_logs=logging.ERROR)  # avoids excessive logging (see https://github.com/dask/dask/issues/9888)
             cluster_address = cluster.scheduler_address
             logger.info(f"Initialized global dask cluster {cluster_address} providing {len(cluster.workers)} workers.")
     else:
         logger.info("Running diagnostics without a dask cluster.")
         cluster = None
         cluster_address = None
-    
+
     with ThreadPoolExecutor(max_workers=max_threads if max_threads > 0 else None) as executor:
         futures = []
         for diagnostic in diagnostics:
@@ -276,7 +284,7 @@ def main():
     if cluster:
         cluster.close()
         logger.info("Dask cluster closed.")
-    
+
     logger.info("All diagnostics finished.")
 
 
