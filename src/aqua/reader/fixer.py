@@ -566,7 +566,8 @@ class FixerMixin():
                     self.logger.info("%s: converting units %s --> %s", var, data[source].units, tgt_units)
                     if data[source].units != tgt_units:
                         log_history(data[source], f"Converting units of {var}: from {data[source].units} to {tgt_units}")
-                    conversion_dictionary = self._convert_units(data[source].units, tgt_units, var)
+                    conversion_dictionary = convert_units(data[source].units, tgt_units, deltat=self.deltat,
+                                                          var=var, loglevel=self.loglevel)
 
                     # if some unit conversion is defined, modify the attributes and history for later usage
                     if conversion_dictionary:
@@ -1092,23 +1093,6 @@ class FixerMixin():
 
         check_direction(data, lat_coord, lat_dir)  # set 'flipped' attribute if lat direction has changed
         return data
-
-    def _convert_units(self, src, dst, var="input var"):
-        """
-        Converts source to destination units using metpy.
-
-        Arguments:
-            src (str):  source units
-            dst (str):  destination units
-            var (str):  variable name (optional, used only for diagnostic output)
-
-        Returns:
-            conversion (dict): a dictionary which includes factor, offset and possible extra 
-                                            flags to be stored as attributes in the data array and 
-                                            used for later conversion (as time_conversion_flag)
-        """
-
-        return convert_units(src, dst, deltat=self.deltat, var=var, loglevel=self.loglevel)
 
     def apply_unit_fix(self, data):
         """
