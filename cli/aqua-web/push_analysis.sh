@@ -87,6 +87,8 @@ loglevel=2
 convert=1
 bucket="aqua-web"
 repository="DestinE-Climate-DT/aqua-web"
+branch="main"
+branch="content_lumio"
 
 while [[ $# -gt 2 ]]; do
   case "$1" in
@@ -112,6 +114,10 @@ while [[ $# -gt 2 ]]; do
         ;;
     -r|--repository)
         repository="$2"
+        shift 2
+        ;;
+    --branch)
+        branch="$2"
         shift 2
         ;;
     -*|--*)
@@ -161,9 +167,11 @@ else
 fi
 
 cd $repo
-git checkout content_lumio
+git checkout $branch
+git pull
 
-echo "Updated figures on $(date) for the following experiments:" > updated.txt
+echo "Updated figures in bucket $bucket"  > updated.txt
+echo "on $(date) for the following experiments:" >> updated.txt
 
 # erase content and copy all files to content
 log_message INFO "Collect and update figures in content/pdf"
