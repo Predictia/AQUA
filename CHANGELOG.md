@@ -21,6 +21,7 @@ AQUA core complete list:
 - Upgrade LUMI module to 24.03 and to eccodes 2.39.0
 
 AQUA diagnostics complete list:
+- `--catalog` is accepted by all the diagnostics altough it is not used by all of them yet (#1619)
 - Timeseries: enabled region selection in the CLI (#1564)
 - Ocean3d: Bugfix of values for Ocean trend function (#1583)
 - Biases and Radiation: Refactoring of Bias and Radiation Diagnostics (#1243)
