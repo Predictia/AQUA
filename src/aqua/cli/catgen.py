@@ -52,7 +52,7 @@ class AquaFDBGenerator:
         self.model = self.config["model"].lower()
         #self.portfolio = self.config["portfolio"]
         self.resolution = self.config["resolution"]
-        self.ocean_grid = self.config["ocean_grid"]
+        self.ocean_grid = self.config.get("ocean_grid") 
         self.num_of_realizations = int(self.config.get("num_of_realizations", 1))
 
         #sefaty check
@@ -204,6 +204,9 @@ class AquaFDBGenerator:
             profile["levtype"]
         )
 
+        if not self.ocean_grid:
+            self.ocean_grid = self.matching_grids['ocean_grid'][self.model][self.resolution]
+        
         grid_mappings = self.matching_grids['grid_mappings']
         levtype = profile["levtype"]
 

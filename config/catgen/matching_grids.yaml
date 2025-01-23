@@ -6,6 +6,24 @@ H1024: hpz10
 
 r360x181: lon-lat
 
+# Ocean grids
+ocean_grid:
+  ifs-nemo: 
+    production: eORCA12
+    develop: eORCA12
+    lowres: eORCA1
+    intermediate: eORCA025
+  ifs-fesom:
+    production: NG5
+    develop: NG5
+    lowres: CORE2
+    intermediate: D3
+  icon:
+    production:
+    develop: R2B9
+    lowres: null
+    intermediate: null
+
 # Grid string mappings
 grid_mappings:
   sfc:
