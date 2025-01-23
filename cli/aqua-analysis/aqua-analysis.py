@@ -70,7 +70,7 @@ def run_diagnostic(diagnostic: str, script_path: str, extra_args: str,
 
 
 def run_diagnostic_func(diagnostic: str, parallel: bool = False,
-                        config=None, model='default_model', exp='default_exp',
+                        config=None, catalog=None, model='default_model', exp='default_exp',
                         source='default_source', output_dir='./output', loglevel='INFO',
                         logger=None, aqua_path='', cluster=None):
     """
@@ -80,6 +80,7 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False,
         diagnostic (str): Name of the diagnostic to run.
         parallel (bool): Whether to run in parallel mode.
         config (dict): Configuration dictionary loaded from YAML.
+        catalog (str): Catalog name.
         model (str): Model name.
         exp (str): Experiment name.
         source (str): Source name.
@@ -108,6 +109,9 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False,
     if cluster and not diagnostic_config.get('nocluster', False):  # This is needed for ECmean which uses multiprocessing
         extra_args += f" --cluster {cluster}"
 
+    if catalog:
+        extra_args += f" --catalog {catalog}"
+
     outname = f"{output_dir}/{diagnostic_config.get('outname', diagnostic)}"
     args = f"--model {model} --exp {exp} --source {source} --outputdir {outname} {extra_args}"
 
@@ -128,8 +132,6 @@ def get_args():
     """
     parser = argparse.ArgumentParser(description="Run diagnostics for the AQUA project.")
 
-    parser.add_argument("-a", "--model_atm", type=str, help="Atmospheric model")
-    parser.add_argument("-o", "--model_oce", type=str, help="Oceanic model")
     parser.add_argument("-m", "--model", type=str, help="Model (atmospheric and oceanic)")
     parser.add_argument("-e", "--exp", type=str, help="Experiment")
     parser.add_argument("-s", "--source", type=str, help="Source")
@@ -190,7 +192,7 @@ def main():
     loglevel = args.loglevel or config.get('job', {}).get('loglevel', "info")
     logger = log_configure(loglevel.lower(), 'AQUA Analysis')
 
-    catalog = args.catalog or config.get('job', {}).get('catalog')
+    catalog = args.catalog or config.get('job', {}).get('catalog', None)
     model = args.model or config.get('job', {}).get('model')
     exp = args.exp or config.get('job', {}).get('exp')
     source = args.source or config.get('job', {}).get('source', 'lra-r100-monthly')
@@ -264,6 +266,7 @@ def main():
                 diagnostic=diagnostic,
                 parallel=args.parallel,
                 config=config,
+                catalog=catalog,
                 model=model,
                 exp=exp,
                 source=source,
