@@ -35,10 +35,15 @@ def make_content(catalog, model, exp, diagnostics, experiments, force):
             date_time = None
 
         exp_description = experiments.get(f"{catalog}_{model}_{exp}")
+
         if exp_description:
             title = exp_description.get("title", f"{exp}")         
             desc = exp_description.get("description", "")
             note = exp_description.get("note", "")
+        else:
+            title = None
+            desc = None
+            note = None
 
         content = {}
         content['experiment'] = {"catalog": catalog, "model": model, "experiment": exp}
