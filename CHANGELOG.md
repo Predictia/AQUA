@@ -12,6 +12,7 @@ AQUA core complete list:
 - Bridge_start_date and expver switching (#1597)
 - Include all available figure metadata in content.json for dashboard/aqua-web (#1573)
 - Upgrade LUMI module to 24.03 and to eccodes 2.39.0
+- Some fixes to Biases and Radiation diagniostics (#1604)
 
 AQUA diagnostics complete list:
 - Timeseries: enabled region selection in the CLI (#1564)
