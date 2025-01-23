@@ -88,7 +88,6 @@ convert=1
 bucket="aqua-web"
 repository="DestinE-Climate-DT/aqua-web"
 branch="main"
-branch="content_lumio"
 
 while [[ $# -gt 2 ]]; do
   case "$1" in
