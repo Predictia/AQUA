@@ -190,12 +190,12 @@ def main():
     loglevel = args.loglevel or config.get('job', {}).get('loglevel', "info")
     logger = log_configure(loglevel.lower(), 'AQUA Analysis')
 
+    catalog = args.catalog or config.get('job', {}).get('catalog')
     model = args.model or config.get('job', {}).get('model')
     exp = args.exp or config.get('job', {}).get('exp')
-    source = args.source or config.get('job', {}).get('source')
+    source = args.source or config.get('job', {}).get('source', 'lra-r100-monthly')
     outputdir = os.path.expandvars(args.outputdir or config.get('job', {}).get('outputdir', './output'))
     max_threads = args.threads
-    catalog = args.catalog or config.get('job', {}).get('catalog')
 
     logger.debug(f"outputdir: {outputdir}")
     logger.debug(f"max_threads: {max_threads}")
@@ -218,25 +218,24 @@ def main():
     os.environ["AQUA"] = aqua_path
     create_folder(output_dir)
 
-    run_dummy = config.get('job', {}).get('run_dummy')
-    logger.debug(f"run_dummy: {run_dummy}")
-    if run_dummy:
-        dummy_script = os.path.join(aqua_path, "diagnostics/dummy/cli/cli_dummy.py")
-        output_log_path = os.path.expandvars(f"{output_dir}/setup_checker.log")
-        command = f"python {dummy_script} --model_atm {model} --model_oce {model} --exp {exp} --source {source} -l {loglevel}"
+    run_checker = config.get('job', {}).get('run_checker', False)
+    if run_checker:
         logger.info("Running setup checker")
+        checker_script = os.path.join(aqua_path, "src/aqua_diagnostics/cli/cli_checker.py")
+        output_log_path = os.path.expandvars(f"{output_dir}/setup_checker.log")
+        command = f"python {checker_script} --model {model} --exp {exp} --source {source} -l {loglevel}"
+        if catalog:
+            command += f" --catalog {catalog}"
         logger.debug(f"Command: {command}")
         result = run_command(command, log_file=output_log_path, logger=logger)
 
         if result == 1:
             logger.critical("Setup checker failed, exiting.")
             sys.exit(1)
-        elif result == 2:
-            logger.warning("Atmospheric model not found, it will be skipped.")
-        elif result == 3:
-            logger.warning("Oceanic model not found, it will be skipped.")
-        else:
+        elif result == 0:
             logger.info("Setup checker completed successfully.")
+        else:
+            logger.error(f"Setup checker returned exit code {result}, check the logs for more information.")
 
     if args.parallel:
         if args.local_clusters:
