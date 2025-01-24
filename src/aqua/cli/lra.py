@@ -128,7 +128,6 @@ def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, l
     """
 
     models = to_list(get_arg(args, 'model', config['data']))
-    first_execution = True
     for model in models:
         exps = to_list(get_arg(args, 'exp', config['data'][model]))
         for exp in exps:
@@ -158,8 +157,8 @@ def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, l
                         if zoom is not None:
                             extra_args = {**extra_args, **{'zoom': zoom}}
                         
-                        # disabling rebuild
-                        if not first_execution:
+                        # disabling rebuild if we are not in the first realization and first varname
+                        if not varname == varnames[0] and realization == loop_realizations[0]:
                             rebuild = False
                     
                         # init the LRA
@@ -174,7 +173,6 @@ def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, l
                                         exclude_incomplete=True,
                                         **extra_args)
 
-                        first_execution = False
 
                         
                         if not only_catalog:
