@@ -406,7 +406,7 @@ class Timeseries():
                 output_saver.save_netcdf(self.data_annual[i], frequency='annual', **common_save_args)
 
         if self.plot_ref:
-            output_saver_ref = self._get_output_saver(model=self.plot_ref_kw['model'], exp=self.plot_ref_kw['exp'])
+            output_saver_ref = self._get_output_saver(catalog=self.plot_ref_kw['catalog'], model=self.plot_ref_kw['model'], exp=self.plot_ref_kw['exp'])
             common_save_args = self._get_common_save_args()
             common_save_args.pop('dpi', None)
 
