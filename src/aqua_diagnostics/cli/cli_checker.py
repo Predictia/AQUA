@@ -64,7 +64,7 @@ if __name__ == '__main__':
     try:
         reader = Reader(catalog=catalog, model=model, exp=exp, source=source,
                         loglevel=loglevel, rebuild=True)
-        reader.retrieve()
+        reader.retrieve(sample=True)
     except Exception as e:
         logger.error('Failed to retrieve data: {}'.format(e))
         logger.error('Check that the model is available in the Reader catalog.')
