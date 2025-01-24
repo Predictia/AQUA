@@ -6,8 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
-
+ 
 AQUA core complete list:
+
+- Update the catalog generator to align with changes in the data portfolio (#1593)
 - Adding ICON phase2 hpx6 and hpz9 grids (#1596)
 - Push figures to LUMI-O for dashboard (#1582, #1607)
 - Bridge_start_date and expver switching (#1597)
@@ -42,6 +44,7 @@ AQUA core complete list:
 - Added the `cdo_options: "--force"` to the definitions of the oceanic HealPix grids (#1539)
 
 AQUA diagnostic complete list:
+- ECmean: Integrating the performance indices and global mean within the `aqua_diagnostics` module (#1556)
 - Teleconnections: The `teleconnections` diagnostic is now integrated in the `aqua_diagnostics` module (#1352)
 - Teleconnections: OutputSaver for the teleconnections diagnostic (#1567, #1570)
 - Ocean3d: Fix to improve memory usage and cli (#1490)

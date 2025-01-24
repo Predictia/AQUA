@@ -89,8 +89,6 @@ so that the script can be used in a batch job or in a workflow.
     This is a legacy feature to run the diagnostics with multiple dask.distributed 'local' clusters (not reccomended)
     In this case predefined number of workers is used for each diagnostic, set in the configuration file `config.aqua-analysis.yaml`.
     
-.. option:: 
-    
 .. note ::
 
     By default the script will run all the state-of-the-art diagnostics available in AQUA.
@@ -230,7 +228,7 @@ The AWS credentials can be stored in the ``~/.aws/credentials`` file or in envir
     Do not use this to push the results of AQUA analysis to LUMI-O for aqua-web but rather 
     use ``push-analysis.py`` described above. 
 
-Basic usage:
+Basic usage
 ^^^^^^^^^^^
 
 .. code-block:: bash

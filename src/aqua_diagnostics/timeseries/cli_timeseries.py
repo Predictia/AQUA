@@ -84,7 +84,7 @@ def get_plot_options(config: dict = None,
     else:
         monthly = config["timeseries_plot_params"]["default"].get("monthly", True)
         annual = config["timeseries_plot_params"]["default"].get("annual", True)
-        regrid = config["timeseries_plot_params"]["default"].get("regrid", False)
+        regrid = config["timeseries_plot_params"]["default"].get("regrid", None)
         plot_ref = config["timeseries_plot_params"]["default"].get("plot_ref", True)
         plot_ref_kw = config["timeseries_plot_params"]["default"].get("plot_ref_kw", {'model': 'ERA5',
                                                                                       'exp': 'era5',
