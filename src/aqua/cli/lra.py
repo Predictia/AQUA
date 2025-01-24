@@ -120,7 +120,10 @@ def lra_execute(args):
             monitoring=monitoring, do_zarr=do_zarr, verify_zarr=verify_zarr, only_catalog=only_catalog)
 
 def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, loglevel,
-            definitive, overwrite, rebuild, monitoring, default_workers, do_zarr, verify_zarr, only_catalog):
+            definitive=False, overwrite=False,
+            rebuild=False, monitoring=False,
+            default_workers=1, do_zarr=False, verify_zarr=False,
+            only_catalog=False):
     """
     Running the default LRA from CLI, looping on all the configuration model/exp/source/var combination
     Optional feature for each source can be defined as `zoom`, `workers` and `realizations`
@@ -150,17 +153,17 @@ def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, l
 
                     # define realization as extra args only if this is found in the configuration file
                     extra_args = {'realization': realization} if realizations else {}
+                    print(varnames)
                     for varname in varnames:
 
-                        # get the zoom level - this might need some tuning for extra kwargs 
+                        # get the zoom level - this might need some tuning for extra kwargs
                         zoom = config['data'][model][exp][source].get('zoom', None)
                         if zoom is not None:
                             extra_args = {**extra_args, **{'zoom': zoom}}
                         
                         # disabling rebuild if we are not in the first realization and first varname
-                        if varname != varnames[0] and realization != loop_realizations[0]:
+                        if varname != varnames[0] or realization != loop_realizations[0]:
                             rebuild = False
-                    
                         # init the LRA
                         lra = LRAgenerator(catalog=catalog, model=model, exp=exp, source=source,
                                         var=varname, resolution=resolution,
