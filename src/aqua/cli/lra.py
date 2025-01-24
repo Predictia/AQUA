@@ -158,7 +158,7 @@ def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, l
                             extra_args = {**extra_args, **{'zoom': zoom}}
                         
                         # disabling rebuild if we are not in the first realization and first varname
-                        if not varname == varnames[0] and realization == loop_realizations[0]:
+                        if varname != varnames[0] and realization != loop_realizations[0]:
                             rebuild = False
                     
                         # init the LRA
