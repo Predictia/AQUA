@@ -22,6 +22,7 @@ Welcome to AQUA's documentation!
    diagnostics/index
    adding_data
    lra
+   aqua-analysis
    examples_tutorials
    cli
    advanced_topics
