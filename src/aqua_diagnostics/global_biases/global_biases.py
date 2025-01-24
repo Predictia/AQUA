@@ -41,14 +41,14 @@ class GlobalBiases:
         self.var_name = var_name
         self.plev = plev
         self.outputdir = outputdir
-        self.logger = log_configure(log_level=loglevel, log_name='Atmospheric global')
+        self.logger = log_configure(log_level=loglevel, log_name='Global Biases')
         self.model = model
         self.exp = exp
-        self.startdate_data = startdate_data
-        self.enddate_data = enddate_data
+        self.startdate_data = startdate_data or pd.to_datetime(data.time[0].values).strftime('%Y-%m-%d')
+        self.enddate_data = enddate_data or pd.to_datetime(data.time[-1].values).strftime('%Y-%m-%d')
         self.model_obs = model_obs
-        self.startdate_obs = startdate_obs
-        self.enddate_obs = enddate_obs
+        self.startdate_obs = startdate_obs or pd.to_datetime(data_ref.time[0].values).strftime('%Y-%m-%d')
+        self.enddate_obs = enddate_obs or pd.to_datetime(data_ref.time[-1].values).strftime('%Y-%m-%d')
 
         self._process_data(self.data)
         if self.data_ref is not None:
