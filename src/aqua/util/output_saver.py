@@ -31,7 +31,16 @@ class OutputSaver:
             filename_keys (list, optional): List of keys to keep in the filename. Default is None, which includes all keys.
         """
         self.diagnostic = diagnostic
-        self.catalog = catalog if catalog is not None else ConfigPath().catalog
+
+        if catalog:
+            self.catalog = catalog
+        else:
+            # HACK: This is a temporary solution to get the catalog with the complete triplet.
+            # At the moment we assume that the source is the 'lra-r100-monthly'.
+            config = ConfigPath()
+            _ = config.deliver_intake_catalog(model=model, exp=exp, source='lra-r100-monthly')
+            self.catalog = config.catalog
+
         self.model = model
         self.exp = exp
         self.diagnostic_product = diagnostic_product
@@ -114,6 +123,13 @@ class OutputSaver:
                     raise ValueError(f"Invalid time_precision: {time_precision}")
             except (ValueError, TypeError) as e:
                 raise ValueError(f"Invalid date format: {e}")
+
+        if catalog_2 is None and model_2 is not None and exp_2 is not None:
+            # HACK: This is a temporary solution to get the catalog with the complete triplet.
+            # At the moment we assume that the source is the 'lra-r100-monthly'.
+            config = ConfigPath()
+            _ = config.deliver_intake_catalog(model=model_2, exp=exp_2, source='lra-r100-monthly')
+            catalog_2 = config.catalog
 
         parts_dict = {
             'diagnostic': self.diagnostic,
@@ -199,6 +215,13 @@ class OutputSaver:
         if not self.rebuild and os.path.exists(full_path):
             self.logger.info(f"File already exists and rebuild is set to False: {full_path}")
             return full_path
+
+        if catalog_2 is None and model_2 is not None and exp_2 is not None:
+            # HACK: This is a temporary solution to get the catalog with the complete triplet.
+            # At the moment we assume that the source is the 'lra-r100-monthly'.
+            config = ConfigPath()
+            _ = config.deliver_intake_catalog(model=model_2, exp=exp_2, source='lra-r100-monthly')
+            catalog_2 = config.catalog
 
         # Add metadata if provided, including the current time and additional fields
         additional_metadata = {
@@ -296,6 +319,13 @@ class OutputSaver:
         else:
             raise ValueError("The provided fig parameter is not a valid matplotlib Figure or pyplot figure.")
 
+        if catalog_2 is None and model_2 is not None and exp_2 is not None:
+            # HACK: This is a temporary solution to get the catalog with the complete triplet.
+            # At the moment we assume that the source is the 'lra-r100-monthly'.
+            config = ConfigPath()
+            _ = config.deliver_intake_catalog(model=model_2, exp=exp_2, source='lra-r100-monthly')
+            catalog_2 = config.catalog
+
         # Add metadata if provided
         additional_metadata = {
             'diagnostic': self.diagnostic,
@@ -380,6 +410,13 @@ class OutputSaver:
             fig.savefig(full_path, format='png', dpi=dpi, bbox_inches='tight')
         else:
             raise ValueError("The provided fig parameter is not a valid matplotlib Figure or pyplot figure.")
+
+        if catalog_2 is None and model_2 is not None and exp_2 is not None:
+            # HACK: This is a temporary solution to get the catalog with the complete triplet.
+            # At the moment we assume that the source is the 'lra-r100-monthly'.
+            config = ConfigPath()
+            _ = config.deliver_intake_catalog(model=model_2, exp=exp_2, source='lra-r100-monthly')
+            catalog_2 = config.catalog
 
         # Add metadata if provided, including the current time and additional fields
         additional_metadata = {
