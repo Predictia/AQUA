@@ -12,13 +12,12 @@ AQUA core complete list:
 - Bridge_start_date and expver switching (#1597)
 - Include all available figure metadata in content.json for dashboard/aqua-web (#1573)
 - Upgrade LUMI module to 24.03 and to eccodes 2.39.0
-- Some fixes to Biases and Radiation diagniostics (#1604)
 
 AQUA diagnostics complete list:
 - Timeseries: enabled region selection in the CLI (#1564)
 - Ocean3d: Bugfix of values for Ocean trend function (#1583)
 - Biases and Radiation: Refactoring of Bias and Radiation Diagnostics (#1243)
-- Biases and Radiation: Fix Seasonal Bias Output in global_biases for NetCDF Saving Compatibility (#1585)
+- Biases and Radiation: Fix Seasonal Bias Output in global_biases for NetCDF Saving Compatibility and other fixes (#1585, #1604)
 - Biases and Radiation: Adding `save_netcdf` flag and function (#1510)
 - Biases and Radiation: Integrating Updated OutputSaver (#1487)
 
