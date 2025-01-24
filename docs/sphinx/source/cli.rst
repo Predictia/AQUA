@@ -107,6 +107,11 @@ AQUA figures produced by the analysis can be uploaded to the [aqua-web](https://
 repository to publish them automatically on a dedicated website. The same site is used to host the documentation.
 Two scripts in the ``cli/aqua-web`` folder are available to push figures or documentation to aqua-web.
 
+If you plan to use these scripts outside the AQUA container or environment to push figures to aqua-web,
+you will need the following scripts: ``push-analysis.sh``, ``make_contents.py``, ``pdf_to_png.sh``
+ and ``push_s3.py``. 
+ The following python packages will be needed: ``boto3``, ``pyYAML`` and ``pypdf`` and the ``imagemagick``package.
+
 Basic usage
 ^^^^^^^^^^^
 
@@ -218,6 +223,12 @@ Pushing to LUMI-O or another S3 bucket
 
 Tool to upload the contents of a directory or a single file to an S3 bucket.
 The AWS credentials can be stored in the ``~/.aws/credentials`` file or in environment variables ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY`` or passed as arguments.
+
+.. warning::
+
+    This is a basic utility used by the other scripts (but you could also use it directly). 
+    Do not use this to push the results of AQUA analysis to LUMI-O for aqua-web but rather 
+    use ``push-analysis.py`` described above. 
 
 Basic usage:
 ^^^^^^^^^^^
