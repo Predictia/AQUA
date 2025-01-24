@@ -12,6 +12,7 @@ Deprecated:
 - `cli_dummy.py` script is deprecated and will be removed in the next release. Use the `cli_checker.py` instead.
  
 AQUA core complete list:
+- Pin zarr<3.0.0 to avoid breaking changes (#1625)
 - Units utility are now functions and not methods of FixerMixin (#1558)
 - New `cli_checker.py` tool to check the existance of the required model in the catalog and rebuild the area files (#1619)
 - Update the catalog generator to align with changes in the data portfolio (#1593)
