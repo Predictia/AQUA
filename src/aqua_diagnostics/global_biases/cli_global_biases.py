@@ -5,7 +5,7 @@ import argparse
 from dask.distributed import Client, LocalCluster
 import pandas as pd
 
-from aqua.util import load_yaml, get_arg, OutputSaver, create_folder
+from aqua.util import load_yaml, get_arg, OutputSaver, ConfigPath
 from aqua import Reader
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.logger import log_configure
@@ -19,7 +19,7 @@ def parse_arguments(args):
     parser.add_argument("--loglevel", "-l", type=str, help="Logging level")
 
     # Arguments to override configuration file settings
-    parser.add_argument("--catalog", type=str, help="Catalog name")
+    parser.add_argument("--catalog", type=str, required=False, help="Catalog name")
     parser.add_argument('--model', type=str, help='Model name')
     parser.add_argument('--exp', type=str, help='Experiment name')
     parser.add_argument('--source', type=str, help='Source name')
@@ -28,43 +28,6 @@ def parse_arguments(args):
 
     return parser.parse_args(args)
 
-def initialize_dask(nworkers=None, cluster=None, logger='WARNING'):
-    """
-    Initialize a Dask distributed cluster.
-    
-    Parameters:
-    - nworkers: int, optional
-        Number of workers to start if initializing a LocalCluster.
-    - cluster: dask.distributed.Cluster, optional
-        An existing cluster to connect to.
-    - logger: logging.Logger, optional
-        Logger to record cluster initialization messages.
-    
-    Returns:
-    - client: dask.distributed.Client
-        A Dask client connected to the cluster.
-    - private_cluster: bool
-        True if a new LocalCluster was created, False otherwise.
-    """
-    private_cluster = False  # Default value
-    
-    if nworkers or cluster:
-        if not cluster:
-            # Initialize a LocalCluster
-            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
-            private_cluster = True
-            logger.info(f"Initializing private cluster at {cluster.scheduler_address} "
-                        f"with {nworkers} workers.")
-        else:
-            logger.info(f"Connecting to provided cluster: {cluster}.")
-        
-        # Connect to the cluster
-        client = Client(cluster)
-        return client, cluster, private_cluster
-    
-    else:
-        logger.warning("Neither nworkers nor cluster specified. No Dask cluster initialized.")
-        return None, None, private_cluster
 
 def main():
     args = parse_arguments(sys.argv[1:])
@@ -72,25 +35,28 @@ def main():
     logger = log_configure(loglevel, 'CLI Global Biases')
     logger.info("Starting Global Biases diagnostic")
 
-    # Set working directory to script location for relative paths
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    if os.getcwd() != script_dir:
-        os.chdir(script_dir)
-        logger.info(f"Changing working directory to {script_dir}")
-
-    client, cluster, private_cluster = initialize_dask(nworkers=get_arg(args, 'nworkers', None), cluster=get_arg(args, 'cluster', None), logger=logger)
-    if private_cluster:
-        logger.info("A private Dask cluster was initialized.")
+    # Dask distributed cluster
+    nworkers = get_arg(args, 'nworkers', None)
+    cluster = get_arg(args, 'cluster', None)
+    private_cluster = False
+    if nworkers or cluster:
+        if not cluster:
+            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+            logger.info(f"Initializing private cluster {cluster.scheduler_address} with {nworkers} workers.")
+            private_cluster = True
+        else:
+            logger.info(f"Connecting to cluster {cluster}.")
+        client = Client(cluster)
     else:
-        logger.info("Using an existing Dask cluster.")
+        client = None
 
-    homedir = os.environ.get('HOME')
-    config_filename = os.path.join(homedir, '.aqua', 'diagnostics', 'global_biases', 'cli', 'config_global_biases.yaml')
-
-    # Load the configuration
-    config_file = get_arg(args, "config", config_filename)
-    logger.info(f"Reading configuration file {config_file}")
-    config = load_yaml(config_file)
+    # Load configuration file
+    configdir = ConfigPath(loglevel=loglevel).configdir
+    default_config = os.path.join(configdir, "diagnostics", "global_biases",
+                                  "config_global_biases.yaml")
+    file = get_arg(args, "config", default_config)
+    logger.info(f"Reading configuration file {file}")
+    config = load_yaml(file)
 
     catalog_data = get_arg(args, 'catalog', config['data']['catalog'])
     model_data = get_arg(args, 'model', config['data']['model'])
