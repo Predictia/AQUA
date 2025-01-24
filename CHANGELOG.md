@@ -12,6 +12,7 @@ Deprecated:
 - `cli_dummy.py` script is deprecated and will be removed in the next release. Use the `cli_checker.py` instead.
  
 AQUA core complete list:
+- Units utility are now functions and not methods of FixerMixin (#1558)
 - New `cli_checker.py` tool to check the existance of the required model in the catalog and rebuild the area files (#1619)
 - Update the catalog generator to align with changes in the data portfolio (#1593)
 - Adding ICON phase2 hpx6 and hpz9 grids (#1596)
