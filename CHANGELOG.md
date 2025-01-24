@@ -29,7 +29,7 @@ AQUA diagnostics complete list:
 - Timeseries: enabled region selection in the CLI (#1564)
 - Ocean3d: Bugfix of values for Ocean trend function (#1583)
 - Biases and Radiation: Refactoring of Bias and Radiation Diagnostics (#1243)
-- Biases and Radiation: Fix Seasonal Bias Output in global_biases for NetCDF Saving Compatibility and other fixes (#1585, #1604)
+- Biases and Radiation: Fix Seasonal Bias Output in global_biases for NetCDF Saving Compatibility and other fixes (#1585, #1604, #1628)
 - Biases and Radiation: Adding `save_netcdf` flag and function (#1510)
 - Biases and Radiation: Integrating Updated OutputSaver (#1487)
 
