@@ -13,6 +13,7 @@ Deprecated:
  
 AQUA core complete list:
 - `OutputSaver` can deduce the catalog name from the model, exp (#1627)
+- Pin zarr<3.0.0 to avoid breaking changes (#1625)
 - LRA generator integrates ``-rebuild`` option to regenerate areas and weights. The `--autosubmit` option is removed (#1623)
 - Units utility are now functions and not methods of FixerMixin (#1558)
 - New `cli_checker.py` tool to check the existance of the required model in the catalog and rebuild the area files (#1619)
@@ -24,6 +25,7 @@ AQUA core complete list:
 - Upgrade LUMI module to 24.03 and to eccodes 2.39.0
 
 AQUA diagnostics complete list:
+- Old AtmoGlobalMean and Radiation diagnostics removed (#1622)
 - `--catalog` is accepted by all the diagnostics altough it is not used by all of them yet (#1619)
 - Timeseries: enabled region selection in the CLI (#1564)
 - Ocean3d: Bugfix of values for Ocean trend function (#1583)
