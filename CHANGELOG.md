@@ -13,6 +13,7 @@ Deprecated:
  
 AQUA core complete list:
 - Pin zarr<3.0.0 to avoid breaking changes (#1625)
+- LRA generator integrates ``-rebuild`` option to regenerate areas and weights. The `--autosubmit` option is removed (#1623)
 - Units utility are now functions and not methods of FixerMixin (#1558)
 - New `cli_checker.py` tool to check the existance of the required model in the catalog and rebuild the area files (#1619)
 - Update the catalog generator to align with changes in the data portfolio (#1593)
