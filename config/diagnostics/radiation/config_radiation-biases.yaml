@@ -9,8 +9,8 @@ data:
 
 obs: 
   catalog: null
-  model: 'ERA5'
-  exp: 'era5'
+  model: 'CERES'
+  exp: 'ebaf-toa41'
   source: 'monthly'
 
 output:
@@ -30,7 +30,7 @@ diagnostic_attributes:
   vertical: False
   startdate_data: null
   enddate_data: null
-  startdate_obs: "1990-01-01" 
+  startdate_obs: "2000-01-01" 
   enddate_obs: "2020-12-31"
 
 # Here you can specify the colorbar limits for each variable
