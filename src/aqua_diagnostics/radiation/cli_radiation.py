@@ -1,64 +1,75 @@
 # Imports for CLI
-import sys
-import os
 import argparse
+import os
+import sys
+
 from dask.distributed import Client, LocalCluster
-import numpy as np
-from aqua.util import load_yaml, get_arg, OutputSaver, create_folder
+
 from aqua import Reader
+from aqua.util import load_yaml, get_arg, ConfigPath, OutputSaver
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.logger import log_configure
 from aqua.diagnostics import Radiation
 
 def parse_arguments(args):
     """Parse command line arguments"""
-    parser = argparse.ArgumentParser(description='Radiation CLI')
-    parser.add_argument('-c', '--config', type=str, help='yaml configuration file')
-    parser.add_argument('-n', '--nworkers', type=int, help='number of Dask distributed workers')
-    parser.add_argument("--loglevel", "-l", type=str, required=False, help="loglevel")                  
-    # Override config file if provided
-    parser.add_argument("--catalog", type=str, required=False, help="catalog name")
-    parser.add_argument('--model', type=str, help='model name', required=False)
-    parser.add_argument('--exp', type=str, help='experiment name', required=False)
-    parser.add_argument('--source', type=str, help='source name', required=False)
-    parser.add_argument('--outputdir', type=str, help='output directory', required=False)
+    parser = argparse.ArgumentParser(description="Radiation CLI")
+
+    parser.add_argument("-c", "--config",
+                        type=str, required=False,
+                        help="yaml configuration file")
+    parser.add_argument('-n', '--nworkers', type=int,
+                        help='number of dask distributed workers')
+    parser.add_argument("--loglevel", "-l", type=str,
+                        required=False, help="loglevel")       
+
+    # These will override the first one in the config file if provided
+    parser.add_argument("--catalog", type=str,
+                        required=False, help="catalog name")
+    parser.add_argument("--model", type=str,
+                        required=False, help="model name")
+    parser.add_argument("--exp", type=str,
+                        required=False, help="experiment name")
+    parser.add_argument("--source", type=str,
+                        required=False, help="source name")
+    parser.add_argument("--outputdir", type=str,
+                        required=False, help="output directory")
+    parser.add_argument("--cluster", type=str,
+                        required=False, help="dask cluster address")
     return parser.parse_args(args)
 
-def initialize_dask(nworkers, logger):
-    """Set up a Dask distributed cluster with a specified number of workers."""
-    cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
-    client = Client(cluster)
-    logger.info(f"Running with {nworkers} Dask distributed workers.")
-    return client
-
 if __name__ == '__main__':
+
     args = parse_arguments(sys.argv[1:])
+
     loglevel = get_arg(args, "loglevel", "WARNING")
     logger = log_configure(loglevel, 'CLI Radiation')
     logger.info("Running Radiation diagnostic")
 
-    # Move to script directory
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    if os.getcwd() != dname:
-        os.chdir(dname)
-        logger.info(f"Changing directory to {dname}")
-
-    # Initialize Dask if nworkers provided
+    # Dask distributed cluster
     nworkers = get_arg(args, 'nworkers', None)
-    client = None
-    if nworkers:
-        client = initialize_dask(nworkers, logger)
+    cluster = get_arg(args, 'cluster', None)
+    private_cluster = False
+    if nworkers or cluster:
+        if not cluster:
+            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+            logger.info(f"Initializing private cluster {cluster.scheduler_address} with {nworkers} workers.")
+            private_cluster = True
+        else:
+            logger.info(f"Connecting to cluster {cluster}.")
+        client = Client(cluster)
+    else:
+        client = None
 
-    homedir = os.environ.get('HOME')
-    config_filename = os.path.join(homedir, '.aqua', 'diagnostics', 'radiation', 'cli', 'config_radiation-boxplots.yaml')
-
-    # Load the configuration
-    file = get_arg(args, "config", config_filename)
+    # Load configuration file
+    configdir = ConfigPath(loglevel=loglevel).configdir
+    default_config = os.path.join(configdir, "diagnostics", "radiation",
+                                  "config_radiation-boxplots.yaml")
+    file = get_arg(args, "config", default_config)
     logger.info(f"Reading configuration file {file}")
     config = load_yaml(file)
 
-    # Process model information and datasets
+    # Override the first model in the config file if provided in the command line
     models = config['models']
     models[0]['catalog'] = get_arg(args, 'catalog', models[0]['catalog'])
     models[0]['model'] = get_arg(args, 'model', models[0]['model'])
@@ -113,3 +124,13 @@ if __name__ == '__main__':
             output_saver.save_pdf(fig=fig, diagnostic_product='boxplot', metadata=metadata, dpi=dpi)
         if save_png:
             output_saver.save_png(fig=fig, diagnostic_product='boxplot', metadata=metadata, dpi=dpi)
+
+    if client:
+        client.close()
+        logger.debug("Dask client closed.")
+
+    if private_cluster:
+        cluster.close()
+        logger.debug("Dask cluster closed.")
+
+    logger.info("Radiation diagnostic completed.")

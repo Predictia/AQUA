@@ -6,21 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
+
+Deprecated:
+- `aqua-analysis.sh` script is deprecated and will be removed in the next release. Use the `aqua-analysis.py` instead.
+- `cli_dummy.py` script is deprecated and will be removed in the next release. Use the `cli_checker.py` instead.
  
 AQUA core complete list:
 - Units utility are now functions and not methods of FixerMixin (#1558)
+- New `cli_checker.py` tool to check the existance of the required model in the catalog and rebuild the area files (#1619)
 - Update the catalog generator to align with changes in the data portfolio (#1593)
 - Adding ICON phase2 hpx6 and hpz9 grids (#1596)
-- Push figures also to LUMI-O for dashboard (#1582)
+- Push figures to LUMI-O for dashboard (#1582, #1607)
 - Bridge_start_date and expver switching (#1597)
 - Include all available figure metadata in content.json for dashboard/aqua-web (#1573)
 - Upgrade LUMI module to 24.03 and to eccodes 2.39.0
 
 AQUA diagnostics complete list:
+- `--catalog` is accepted by all the diagnostics altough it is not used by all of them yet (#1619)
 - Timeseries: enabled region selection in the CLI (#1564)
 - Ocean3d: Bugfix of values for Ocean trend function (#1583)
 - Biases and Radiation: Refactoring of Bias and Radiation Diagnostics (#1243)
-- Biases and Radiation: Fix Seasonal Bias Output in global_biases for NetCDF Saving Compatibility (#1585)
+- Biases and Radiation: Fix Seasonal Bias Output in global_biases for NetCDF Saving Compatibility and other fixes (#1585, #1604)
 - Biases and Radiation: Adding `save_netcdf` flag and function (#1510)
 - Biases and Radiation: Integrating Updated OutputSaver (#1487)
 

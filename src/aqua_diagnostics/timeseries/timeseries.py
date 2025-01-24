@@ -507,13 +507,13 @@ class Timeseries():
                 self.extending_ref_range = True
 
                 # TODO: startdate has to be rounded to the first of the month
-                # if startdate > self.startdate:
-                #     self.logger.debug("Adding a seasonal cycle to the start of the reference data")
-                #     ref_mon_loop = loop_seasonalcycle(data=self.ref_mon,
-                #                                       startdate=self.startdate,
-                #                                       enddate=startdate,
-                #                                       freq='MS')
-                #     self.ref_mon = xr.concat([ref_mon_loop, self.ref_mon], dim='time')
+                if startdate > self.startdate:
+                    self.logger.debug("Adding a seasonal cycle to the start of the reference data")
+                    ref_mon_loop = loop_seasonalcycle(data=self.ref_mon,
+                                                       startdate=self.startdate,
+                                                       enddate=startdate,
+                                                       freq='MS')
+                    self.ref_mon = xr.concat([ref_mon_loop, self.ref_mon], dim='time')
 
                 if enddate < self.enddate:
                     self.logger.debug("Adding a seasonal cycle to the end of the reference data")
@@ -538,13 +538,13 @@ class Timeseries():
                 self.extending_ref_range = True
 
                 # TODO: startdate has to be rounded to the center of the year (month=7)
-                # if startdate > self.startdate:
-                #     self.logger.debug("Adding a band to the start of the reference data")
-                #     ref_ann_loop = loop_seasonalcycle(data=self.ref_ann,
-                #                                       startdate=self.startdate,
-                #                                       enddate=startdate,
-                #                                       freq='YS')
-                #     self.ref_ann = xr.concat([ref_ann_loop, self.ref_ann], dim='time')
+                if startdate > self.startdate:
+                    self.logger.debug("Adding a band to the start of the reference data")
+                    ref_ann_loop = loop_seasonalcycle(data=self.ref_ann,
+                                                       startdate=self.startdate,
+                                                       enddate=startdate,
+                                                       freq='YS')
+                    self.ref_ann = xr.concat([ref_ann_loop, self.ref_ann], dim='time')
 
                 if enddate < self.enddate:
                     self.logger.debug("Adding a band to the end of the reference data")
