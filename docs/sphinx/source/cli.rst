@@ -152,6 +152,10 @@ Additional options
     The remote aqua-web repository to push to (default is 'DestinE-Climate-DT/aqua-web').
     If it starts with 'local:', a local directory is used.
 
+.. option:: --branch <branch>
+
+    The branch to push to (default is 'main').
+
 Configuration file
 ^^^^^^^^^^^^^^^^^^
 
@@ -173,9 +177,39 @@ Uploading documentation
 
 Another script is avaliable to upload the AQUA documentation to LUMI-O:
 
+Basic usage
+^^^^^^^^^^^
+
 .. code-block:: bash
 
     bash make_push_docs.sh
+
+This script will build the documentation, push it to the LUMI-O bucket and trigger a rebuild of aqua-web.
+
+Options
+^^^^^^^
+
+.. option:: -b <bucket>, --bucket <bucket>
+
+    The bucket to use for the LUMI-O push (default is 'aqua-web').
+
+.. option:: -d, --dry-run
+
+    Do not push to the repository.
+
+.. option:: -h, --help
+
+    Display the help and exit.
+
+.. option:: -l <level>, --loglevel <level>
+
+    Set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2.  
+
+.. option:: -r <repository>, --repository <repository>
+
+    The remote aqua-web repository to push to (default is 'DestinE-Climate-DT/aqua-web').
+    If it starts with 'local:', a local directory is used.
+
 
 .. _push_s3:
 
