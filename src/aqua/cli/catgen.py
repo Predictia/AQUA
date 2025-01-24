@@ -206,7 +206,9 @@ class AquaFDBGenerator:
 
         if not self.ocean_grid:
             self.ocean_grid = self.matching_grids['ocean_grid'][self.model][self.resolution]
-        
+            if self.ocean_grid is None:
+                raise ValueError(f"No ocean grid available for: {self.model} {self.resolution}")
+                
         grid_mappings = self.matching_grids['grid_mappings']
         levtype = profile["levtype"]
 
