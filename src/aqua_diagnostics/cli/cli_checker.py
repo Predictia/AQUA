@@ -6,8 +6,9 @@ Check that the imports are correct and the requested model is available in the
 Reader catalog.
 '''
 import sys
+import os
 import argparse
-
+import yaml
 
 def parse_arguments(args):
     """Parse command line arguments"""
@@ -24,6 +25,8 @@ def parse_arguments(args):
                         required=False, help="experiment name")
     parser.add_argument("--source", type=str,
                         required=False, help="source name")
+    parser.add_argument("--yaml", type=str,
+                        required=False, help="write an experiment.yaml file to a given directory")
 
     return parser.parse_args(args)
 
@@ -55,6 +58,7 @@ if __name__ == '__main__':
     model = get_arg(args, 'model', None)
     exp = get_arg(args, 'exp', None)
     source = get_arg(args, 'source', None)
+    yamldir = get_arg(args, 'yaml', None)
 
     if model is None or exp is None or source is None:
         raise ValueError('model, exp and source are required arguments')
@@ -65,6 +69,13 @@ if __name__ == '__main__':
         reader = Reader(catalog=catalog, model=model, exp=exp, source=source,
                         loglevel=loglevel, rebuild=True)
         reader.retrieve(sample=True)
+
+        if yamldir:
+            metadata = reader.expcat.metadata
+            yaml_path = os.path.join(yamldir, "experiment.yaml")
+            with open(yaml_path, "w") as file:
+                yaml.dump(metadata, file, default_flow_style=False)
+
     except Exception as e:
         logger.error('Failed to retrieve data: {}'.format(e))
         logger.error('Check that the model is available in the Reader catalog.')
