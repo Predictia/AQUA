@@ -105,6 +105,11 @@ AQUA figures produced by the analysis can be uploaded to the [aqua-web](https://
 repository to publish them automatically on a dedicated website. The same site is used to host the documentation.
 Two scripts in the ``cli/aqua-web`` folder are available to push figures or documentation to aqua-web.
 
+If you plan to use these scripts outside the AQUA container or environment to push figures to aqua-web,
+you will need the following scripts: ``push-analysis.sh``, ``make_contents.py``, ``pdf_to_png.sh``
+ and ``push_s3.py``. 
+ The following python packages will be needed: ``boto3``, ``pyYAML`` and ``pypdf`` and the ``imagemagick``package.
+
 Basic usage
 ^^^^^^^^^^^
 
@@ -116,67 +121,97 @@ This script is used to push the figures produced by the AQUA analysis to the aqu
 ``INDIR`` is the directory containing the output, e.g. ``~/work/aqua-analysis/output``.
 ``EXPS`` is the subfolder to push, e.g ``climatedt-phase1/IFS-NEMO/historical-1990``
 or a text file containing a list of experiments in the format "catalog model experiment".
-It creates ``content.yaml`` files for each experiment and pushes the images to the aqua-web repository.
-An option to push also to LUMI-O has been added. In this case the needed AWS credentials can be stored 
-in the ``~/.aws/credentials`` file or in environment variables ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY``.
+It creates ``content.yaml`` files for each experiment, pushes the images to the ``aqua-web`` bucket on LUMI-O and
+updates the ``updated.txt`` file on the aqua-web github repository to trigger the website update.
+
+The needed AWS credentials can be stored in the ``~/.aws/credentials`` file or in environment 
+variables ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY``.
 
 Additional options
 ^^^^^^^^^^^^^^^^^^
 
-.. option:: -b <branch>, --branch <branch>
+.. option:: -b <bucket>, --bucket <bucket>
 
-    The branch to push to (optional, default is ``main``).
-
-.. option:: -c, --content
-
-    Flag to refresh all content.yaml files (default is only specific experiment).
+    The bucket to use for the LUMI-O push (default is 'aqua-web').
 
 .. option:: -d, --dry-run
 
     Do not push to the repository.
 
+.. option:: -h, --help
+
+    Display the help and exit.
+
 .. option:: -l <level>, --loglevel <level>
 
-    Set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2.
-
-.. option:: -u <user:PAT>, --user <user:PAT>
-
-    Credentials (in the format username:PAT) to create an automatic PR for the branch (optional).
-    If this is option is specified and a branch is used, then an automatic PR is generated.
-
-.. option:: -m <message>, --message <message>
-
-    Description of the automatic PR (optional, is generated automatically by default). 
-
-.. option:: -t <title>, --title <title>
-
-    Title for the automatic PR (optional).
-
-.. option:: -w, --wipe
-    
-        Wipe the destination directory before copying the images.
+    Set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2.  
 
 .. option:: -n, --no-convert
-    
-        Do not convert PDFs to PNGs.
 
-.. option:: -o, --lumio
-    
-        Push a copy of the figures also to LUMI-O.
+    Do not convert PDFs to PNGs.
 
-.. option:: --bucket <bucket>   
-    
-        Specify the bucket to use for the LUMI-O push (default 'aqua').
+.. option:: -r <repository>, --repository <repository>
 
-.. option:: -l, --loglevel <level>>
-        
-            Set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2.
+    The remote aqua-web repository to push to (default is 'DestinE-Climate-DT/aqua-web').
+    If it starts with 'local:', a local directory is used.
 
-Another script is used to upload the documentation to the aqua-web repository:
+.. option:: --branch <branch>
+
+    The branch to push to (default is 'main').
+
+Configuration file
+^^^^^^^^^^^^^^^^^^
+
+The best way to store the credentials is by setting up a ``.aws/credentials`` file in the home directory.
+As an example, the file should look like this:
+
+.. code-block:: yaml
+
+    [default]
+    aws_access_key_id = 5RQ83GL0NJ4XXC72Y9VK
+    aws_secret_access_key = DZW9SaKtIhRqYXXX3P2Sbv0te2Lb4R0kTxCsTEoc
+
+The `access_key` and `secret_key` are the AWS credentials for the LUMI-O S3 bucket (the tokens above are fake).
+As an alternative, set the environment variables ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY`` 
+(the endpoint url ``https://lumidata.eu`` for LUMI-O is used by default).
+
+Uploading documentation
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Another script is avaliable to upload the AQUA documentation to LUMI-O:
+
+Basic usage
+^^^^^^^^^^^
 
 .. code-block:: bash
 
-    bash make_push_docs.py 
+    bash make_push_docs.sh
+
+This script will build the documentation, push it to the LUMI-O bucket and trigger a rebuild of aqua-web.
+
+Options
+^^^^^^^
+
+.. option:: -b <bucket>, --bucket <bucket>
+
+    The bucket to use for the LUMI-O push (default is 'aqua-web').
+
+.. option:: -d, --dry-run
+
+    Do not push to the repository.
+
+.. option:: -h, --help
+
+    Display the help and exit.
+
+.. option:: -l <level>, --loglevel <level>
+
+    Set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2.  
+
+.. option:: -r <repository>, --repository <repository>
+
+    The remote aqua-web repository to push to (default is 'DestinE-Climate-DT/aqua-web').
+    If it starts with 'local:', a local directory is used.
 
 
 .. _push_s3:
@@ -186,6 +221,12 @@ Pushing to LUMI-O or another S3 bucket
 
 Tool to upload the contents of a directory or a single file to an S3 bucket.
 The AWS credentials can be stored in the ``~/.aws/credentials`` file or in environment variables ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY`` or passed as arguments.
+
+.. warning::
+
+    This is a basic utility used by the other scripts (but you could also use it directly). 
+    Do not use this to push the results of AQUA analysis to LUMI-O for aqua-web but rather 
+    use ``push-analysis.py`` described above. 
 
 Basic usage
 ^^^^^^^^^^^
