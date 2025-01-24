@@ -15,3 +15,9 @@ fixer_name:
             # only tp is correct, so we overwrite the convention fixer
             tprate:
                 source: tp
+    
+    climatedt-phase2-ICON-freeze:
+        convention: eccodes
+        vars:
+            tcc:
+                src_units: frac

@@ -1,7 +1,6 @@
 """
 Module to extract the seasonal cycle of a variable from a time series.
 """
-import os
 import gc
 
 import xarray as xr
@@ -199,7 +198,8 @@ class SeasonalCycle(Timeseries):
             output_saver.save_netcdf(self.cycle[i], **common_save_args)
 
         if self.plot_ref:
-            output_saver_ref = self._get_output_saver(model=self.plot_ref_kw['model'], exp=self.plot_ref_kw['exp'])
+            output_saver_ref = self._get_output_saver(catalog=self.plot_ref_kw['catalog'],
+                                                      model=self.plot_ref_kw['model'], exp=self.plot_ref_kw['exp'])
             output_saver_ref.save_netcdf(self.cycle_ref, **common_save_args)
 
     def _get_output_saver(self, catalog=None, model=None, exp=None):

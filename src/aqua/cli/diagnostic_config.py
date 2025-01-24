@@ -1,11 +1,4 @@
 diagnostic_config = {
-    'atmglobalmean': [
-        {
-            'config_file': 'atm_mean_bias_config.yaml',
-            'source_path': 'diagnostics/atmglobalmean/cli/config',
-            'target_path': 'diagnostics/atmglobalmean/cli'
-        },
-    ],
     'global_biases': [
         {
             'config_file': 'config_global_biases.yaml',
@@ -15,27 +8,42 @@ diagnostic_config = {
     ],
     'ecmean': [
         {
-            'config_file': 'ecmean_config_destine-v1-levante.yml',
-            'source_path': 'diagnostics/ecmean/config',
-            'target_path': 'diagnostics/ecmean/config'
+            'config_file': 'ecmean_config_climatedt.yaml',
+            'source_path': 'config/diagnostics/ecmean',
+            'target_path': 'diagnostics/ecmean'
         },
         {
-            'config_file': 'ecmean_config_destine-v1.yml',
-            'source_path': 'diagnostics/ecmean/config',
-            'target_path': 'diagnostics/ecmean/config'
-        },
-        {
-            'config_file': 'interface_AQUA_destine-v1.yml',
-            'source_path': 'diagnostics/ecmean/config',
-            'target_path': 'diagnostics/ecmean/config'
+            'config_file': 'interface_AQUA_climatedt.yaml',
+            'source_path': 'config/diagnostics/ecmean/interface',
+            'target_path': 'diagnostics/ecmean'
         },
         {
             'config_file': 'config_ecmean_cli.yaml',
-            'source_path': 'diagnostics/ecmean/cli',
-            'target_path': 'diagnostics/ecmean/cli'
+            'source_path': 'config/diagnostics/ecmean',
+            'target_path': 'diagnostics/ecmean'
+        },
+        {
+            'config_file': 'atm_mask_r100.nc',
+            'source_path': 'config/diagnostics/ecmean/data',
+            'target_path': 'diagnostics/ecmean'
+        },
+        {
+            'config_file': 'cell_area_r100.nc',
+            'source_path': 'config/diagnostics/ecmean/data',
+            'target_path': 'diagnostics/ecmean'
+        },
+        {
+            'config_file': 'oce_mask_r100.nc',
+            'source_path': 'config/diagnostics/ecmean/data',
+            'target_path': 'diagnostics/ecmean'
         }
     ],
     'timeseries': [
+        {
+            'config_file': 'regions.yaml',
+            'source_path': 'config/diagnostics/timeseries/interface',
+            'target_path': 'diagnostics/timeseries/interface'
+        },
         {
             'config_file': 'config_seasonalcycles_atm.yaml',
             'source_path': 'config/diagnostics/timeseries',
@@ -75,11 +83,6 @@ diagnostic_config = {
         }
     ],
     'radiation': [
-        {
-            'config_file': 'radiation_config.yml',
-            'source_path': 'diagnostics/radiation/cli/config',
-            'target_path': 'diagnostics/radiation/cli'
-        },
         {
             'config_file': 'config_radiation-boxplots.yaml',
             'source_path': 'config/diagnostics/radiation',

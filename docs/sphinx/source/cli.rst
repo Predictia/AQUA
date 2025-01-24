@@ -6,98 +6,6 @@ Command Line Interface tools
 This sections describes the series of Command Line Interface (CLI) tools currently available in AQUA.
 It includes software with a variety of goals, which are mostly made for advanced usage. 
 
-.. _aqua_analysis:
-
-AQUA analysis wrapper
----------------------
-
-A wrapper containing calls to all the state-of-the-art diagnostic available in AQUA
-is provided in the ``cli/aqua-analysis/`` folder.
-
-Basic usage
-^^^^^^^^^^^
-
-.. code-block:: bash
-
-    python aqua-analysis.py
-
-Without any argument, the script will run all the diagnostics available in AQUA on an hard-coded dataset,
-with LUMI configuration and output directory in the ``cli/aqua-analysis/output`` folder.
-
-All the diagnostic logfiles will be saved in this main folder, while the diagnostics output will be saved in subfolders
-named after the diagnostic name.
-Inside each diagnostic folder, the output will be saved in a subfolder named with the filetype (e.g. ``pdf``, ``netcdf``).
-
-The exact list of diagnostics to run and technical details of the analysis
-(such as the number of workers/thread/memory to use for the dask cluster) 
-are specified in the configuration file ``config.aqua-analysis.yaml``. 
-
-.. warning::
-
-    A bash script called ``aqua-analysis.sh`` is also available in the same folder but it is deprecated and will be removed in future releases.
-
-Additional options
-^^^^^^^^^^^^^^^^^^
-
-Some options are available to launch the script without having to modify the script itself,
-so that the script can be used in a batch job or in a workflow.
-
-.. option:: -m <model>
-
-    The  model to use.
-
-.. option:: -e <exp>, --exp <exp>
-
-    The experiment to use.
-
-.. option:: -s <source>, --source <source>
-
-    The source to use.
-
-.. option:: -c <catalog>, --catalog <catalog>
-
-    The catalog to use.
-    Default is using the catalog currently defined by the AQUA console.
-
-.. option:: -f <config>, --config <source>
-
-    The config file to use.
-
-.. option:: -d <dir>, --outputdir <dir>
-
-    The output directory to use.
-    Default is ``$AQUA/cli/aqua-analysis/output``.
-    Prefer to use an absolute path.
-
-.. option:: -l <loglevel>, --loglevel <loglevel>
-
-    The log level to use for the cli and the diagnostics.
-    Default is ``WARNING``.
-
-.. option:: -t <threads>, --threads <threads>
-
-    This is the number of diagnostics running in parallel.
-    Default is ``0``, which means no limit.
-
-.. option:: -p, --parallel
-
-    This flag activates running the diagnostics with multiple dask.distributed workers.
-    By default the script will set up a common dask cluster/scheduler and close it when finished.
-    
-.. option:: --local_clusters
-    
-    This is a legacy feature to run the diagnostics with multiple dask.distributed 'local' clusters (not reccomended)
-    In this case predefined number of workers is used for each diagnostic, set in the configuration file `config.aqua-analysis.yaml`.
-    
-.. option:: 
-    
-.. note ::
-
-    By default the script will run all the state-of-the-art diagnostics available in AQUA.
-    It is possible to run only a subset of the diagnostics by modifying the script itself,
-    where arrays with atmospheric and oceanic diagnostics are defined.
-
-
 .. _aqua_web:
 
 Automatic uploading of figures and documentation to aqua-web
@@ -106,6 +14,11 @@ Automatic uploading of figures and documentation to aqua-web
 AQUA figures produced by the analysis can be uploaded to the [aqua-web](https://github.com/DestinE-Climate-DT/aqua-web)
 repository to publish them automatically on a dedicated website. The same site is used to host the documentation.
 Two scripts in the ``cli/aqua-web`` folder are available to push figures or documentation to aqua-web.
+
+If you plan to use these scripts outside the AQUA container or environment to push figures to aqua-web,
+you will need the following scripts: ``push-analysis.sh``, ``make_contents.py``, ``pdf_to_png.sh``
+and ``push_s3.py``. 
+The following python packages will be needed: ``boto3``, ``pyYAML`` and ``pypdf`` and the ``imagemagick``package.
 
 Basic usage
 ^^^^^^^^^^^
@@ -118,57 +31,147 @@ This script is used to push the figures produced by the AQUA analysis to the aqu
 ``INDIR`` is the directory containing the output, e.g. ``~/work/aqua-analysis/output``.
 ``EXPS`` is the subfolder to push, e.g ``climatedt-phase1/IFS-NEMO/historical-1990``
 or a text file containing a list of experiments in the format "catalog model experiment".
-It creates ``content.yaml`` files for each experiment and pushes the images to the aqua-web repository.
+It creates ``content.yaml`` files for each experiment, pushes the images to the ``aqua-web`` bucket on LUMI-O and
+updates the ``updated.txt`` file on the aqua-web github repository to trigger the website update.
+
+The needed AWS credentials can be stored in the ``~/.aws/credentials`` file or in environment 
+variables ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY``.
 
 Additional options
 ^^^^^^^^^^^^^^^^^^
 
-.. option:: -b <branch>, --branch <branch>
+.. option:: -b <bucket>, --bucket <bucket>
 
-    The branch to push to (optional, default is ``main``).
-
-.. option:: -c, --content
-
-    Flag to refresh all content.yaml files (default is only specific experiment).
+    The bucket to use for the LUMI-O push (default is 'aqua-web').
 
 .. option:: -d, --dry-run
 
     Do not push to the repository.
 
+.. option:: -h, --help
+
+    Display the help and exit.
+
 .. option:: -l <level>, --loglevel <level>
 
-    Set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2.
-
-.. option:: -u <user:PAT>, --user <user:PAT>
-
-    Credentials (in the format username:PAT) to create an automatic PR for the branch (optional).
-    If this is option is specified and a branch is used, then an automatic PR is generated.
-
-.. option:: -m <message>, --message <message>
-
-    Description of the automatic PR (optional, is generated automatically by default). 
-
-.. option:: -t <title>, --title <title>
-
-    Title for the automatic PR (optional).
-
-.. option:: -w, --wipe
-    
-        Wipe the destination directory before copying the images.
+    Set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2.  
 
 .. option:: -n, --no-convert
-    
-        Do not convert PDFs to PNGs.
 
-.. option:: -l, --loglevel LEVEL
-        
-            Set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2.
+    Do not convert PDFs to PNGs.
 
-Another script is used to upload the documentation to the aqua-web repository.
+.. option:: -r <repository>, --repository <repository>
+
+    The remote aqua-web repository to push to (default is 'DestinE-Climate-DT/aqua-web').
+    If it starts with 'local:', a local directory is used.
+
+.. option:: --branch <branch>
+
+    The branch to push to (default is 'main').
+
+Configuration file
+^^^^^^^^^^^^^^^^^^
+
+The best way to store the credentials is by setting up a ``.aws/credentials`` file in the home directory.
+As an example, the file should look like this:
+
+.. code-block:: yaml
+
+    [default]
+    aws_access_key_id = 5RQ83GL0NJ4XXC72Y9VK
+    aws_secret_access_key = DZW9SaKtIhRqYXXX3P2Sbv0te2Lb4R0kTxCsTEoc
+
+The `access_key` and `secret_key` are the AWS credentials for the LUMI-O S3 bucket (the tokens above are fake).
+As an alternative, set the environment variables ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY`` 
+(the endpoint url ``https://lumidata.eu`` for LUMI-O is used by default).
+
+Uploading documentation
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Another script is avaliable to upload the AQUA documentation to LUMI-O:
+
+Basic usage
+^^^^^^^^^^^
 
 .. code-block:: bash
 
-    bash make_push_docs.py 
+    bash make_push_docs.sh
+
+This script will build the documentation, push it to the LUMI-O bucket and trigger a rebuild of aqua-web.
+
+Options
+^^^^^^^
+
+.. option:: -b <bucket>, --bucket <bucket>
+
+    The bucket to use for the LUMI-O push (default is 'aqua-web').
+
+.. option:: -d, --dry-run
+
+    Do not push to the repository.
+
+.. option:: -h, --help
+
+    Display the help and exit.
+
+.. option:: -l <level>, --loglevel <level>
+
+    Set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2.  
+
+.. option:: -r <repository>, --repository <repository>
+
+    The remote aqua-web repository to push to (default is 'DestinE-Climate-DT/aqua-web').
+    If it starts with 'local:', a local directory is used.
+
+
+.. _push_s3:
+
+Pushing to LUMI-O or another S3 bucket
+--------------------------------------
+
+Tool to upload the contents of a directory or a single file to an S3 bucket.
+The AWS credentials can be stored in the ``~/.aws/credentials`` file or in environment variables ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY`` or passed as arguments.
+
+.. warning::
+
+    This is a basic utility used by the other scripts (but you could also use it directly). 
+    Do not use this to push the results of AQUA analysis to LUMI-O for aqua-web but rather 
+    use ``push-analysis.py`` described above. 
+
+Basic usage
+^^^^^^^^^^^
+
+.. code-block:: bash
+
+    python push_s3.py <bucket_name> <source> [-d <destination>] [--aws_access_key_id <aws_access_key_id>] [--aws_secret_access_key <aws_secret_access_key>] [--endpoint_url <endpoint_url>]
+
+Options
+^^^^^^^
+
+.. option:: <bucket_name>
+
+    The name of the S3 bucket.
+
+.. option:: <source>
+
+    The path to the directory or file to upload.
+
+.. option:: -d <destination>, --destination <destination>
+
+    Optional destination path.
+
+.. option:: -k <aws_access_key_id>, --aws_access_key_id <aws_access_key_id>
+
+    AWS access key ID.
+
+.. option:: -s <aws_secret_access_key>, --aws_secret_access_key <aws_secret_access_key>
+
+    AWS secret access key.
+
+.. option:: --endpoint_url <endpoint_url>
+
+    Custom endpoint URL for S3. Default is 'https://lumidata.eu'.
+
 
 .. _submit-aqua-web:
 
