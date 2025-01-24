@@ -70,8 +70,11 @@ if __name__ == '__main__':
                         loglevel=loglevel, rebuild=True)
         reader.retrieve(sample=True)
 
+        # extract metadata from catalog
         if yamldir:
             metadata = reader.expcat.metadata
+            metadata.pop("catalog_dir", None)
+            metadata['description'] = reader.expcat.description
             yaml_path = os.path.join(yamldir, "experiment.yaml")
             with open(yaml_path, "w") as file:
                 yaml.dump(metadata, file, default_flow_style=False)
