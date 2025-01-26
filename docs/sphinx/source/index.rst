@@ -23,6 +23,7 @@ Welcome to AQUA's documentation!
    adding_data
    lra
    aqua-analysis
+   dashboard
    examples_tutorials
    cli
    advanced_topics
