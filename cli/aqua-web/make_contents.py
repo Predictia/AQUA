@@ -98,6 +98,9 @@ def make_content(catalog, model, exp, diagnostics, config_experiments, force):
                 experiment['description'] = exp_metadata.get("description", "")
                 experiment['note'] = exp_metadata.get("note", "")
 
+        if "dashboard" in experiment:
+            experiment.update(experiment.pop("dashboard"))
+
         if "title" in experiment:  # Duplicate to future proof (ultimately we want to switch to 'label')
             experiment["label"] = experiment["title"]
 
