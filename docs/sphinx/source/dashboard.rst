@@ -1,7 +1,7 @@
 .. _dashboard:
 
-Analysis pipeline, aqua-web and the dashboard
-=============================================
+Dashboard
+=========
 
 General description and main components
 ---------------------------------------
@@ -10,8 +10,10 @@ AQUA can act a backend for a an online web application (a "dashboard") that can 
 
 A series of scripts is used to automatize running of the diagnostics on experiment output, collecting the figures and storing them 
 in a remote object storage. The figures are then used to update a website that shows the results of the analysis.
+
 Currently AQUA supports `aqua-web <https://github.com/DestinE-Climate-DT/aqua-web>`_ (The "AQUA Explorer"), providing a basic static webpage for showing aqua results, 
 hosted in CSC Openshift and using the LUMI-O object storage.
+
 An alternative, more complete, dashboard is under development. The future dashboard will use the same LUMI-O storage already used by aqua-web.
 
 The full pipeline is composed of the following components:
@@ -20,12 +22,16 @@ The full pipeline is composed of the following components:
     This script produces all figures in a specified output directory following a ``catalog/model/experiment`` structure.
     After the analysis run is completed, the figures for each diagnostic will be stored in individual subdirectories of the output directory.
     The script also produces an ``experiment.yaml`` file with metadata about the experiment (extracted from the catalog entry).
-    See the :ref:`aqua-analysis` section for more details.
+
+    See the :ref:`aqua_analysis` section for more details.
+
 
 2.  **(optional, not used in the workflow)** In order to submit several ``aqua-analysis.py`` jobs in parallel, for different experiments,
     the ``submit-aqua-web.py`` script can be used. This script reads a list of experiments from a file and submits the ``aqua-analysis`` 
     jobs to the HPC. After all the jobs are completed, the script can push the produced figures to aqua-web wesite using ``push_analysis.sh``.
+
     See the :ref:`submit-aqua-web` section for more details.
+
 
 3.  The ``push_analysis.sh`` bash script is used to push the produced figures to a remote object store (LUMI-O for DestinE).
     It collects figures from the ``aqua-analysis.py`` output directory, pushes them to the ``aqua-web`` bucket on LUMI-O,
@@ -33,10 +39,14 @@ The full pipeline is composed of the following components:
     updates the ``updated.txt`` file on the aqua-web github repository to trigger the website update.
     It uses the ``experiment.yaml`` file for each experiment created by ``aqua-analysis.py`` to get the metadata.
     It also generates a general ``experiments.yaml`` file listing all experiments available, stored on LUMI-O in ``s3://aqua-web/content/png``.
+    
     See the :ref:`aqua_web` section for more details.
 
-4. The ``make_push_docs.sh`` script can be used to build the documentation, push it to the LUMI-O bucket and trigger a rebuild of aqua-web.
+
+4.  The ``make_push_docs.sh`` script can be used to build the documentation, push it to the LUMI-O bucket and trigger a rebuild of aqua-web.
+   
     See the :ref:`aqua_web` section for more details.
+
 
 5.  The AQUA Explorer software is stored on github in the repository `aqua-web <https://github.com/DestinE-Climate-DT/aqua-web>`_.
     Any commit in the `aqua-web` repository will trigger a rebuild of the enclosed Dockerfile by the CSC `Rahti 2 service <https://research.csc.fi/-/rahti>`_ using OpenShift. The resulting container will run serving the web pages.
@@ -232,12 +242,12 @@ This will read a text file EXPLIST containing a list of models/experiments in th
 .. code-block:: rst
 
     # List of experiments to analyze in the format
-    # model exp [source]
+    # catalog model exp [source]
 
-    IFS-NEMO  ssp370  lra-r100-monthly
-    IFS-NEMO historical-1990
-    ICON historical-1990
-    ICON ssp370
+    climatedt-phase1 IFS-NEMO  ssp370  lra-r100-monthly
+    climatedt-phase1 IFS-NEMO historical-1990
+    climatedt-phase1 ICON historical-1990
+    nextgems4 IFS-FESOM ssp370
 
 A sample file ``aqua-web.experiment.list`` is provided in the source code of AQUA.
 Specifying the source is optional ('lra-r100-monthly' is the default).

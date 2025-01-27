@@ -6,17 +6,6 @@ Command Line Interface tools
 This sections describes a series of Command Line Interface (CLI) tools currently available in AQUA.
 It includes software with a variety of goals, which are mostly made for advanced usage. 
 
-.. toctree::
-    :maxdepth: 2
-
-    cli/aqua-analysis
-    cli/benchmarker
-    cli/grids-management
-    cli/hpc-container
-    cli/installation-lumi
-    cli/weights
-    cli/orography
-    cli/orca-grids
 
 .. _benchmarker:
 
