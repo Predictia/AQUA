@@ -78,20 +78,22 @@ def make_content(catalog, model, exp, diagnostics, config_experiments, force):
                     experiment["experiment"] = experiment.pop("exp")
                 if "expver" in experiment:
                     experiment["expid"] = experiment.pop("expver")
+                if "resolution" in experiment:
+                    experiment["resolution_id"] = experiment.pop("resolution")
 
                 # Build title based on resolution and expid if available
-
                 if has_valid_key(experiment, "menu"):
                     experiment["title"] = experiment["menu"]
-                    info_parts = []
-                    if has_valid_key(experiment, "resolution"):
-                        info_parts.append(experiment["resolution"])
-                    if has_valid_key(experiment, "expid"):
-                        info_parts.append(experiment["expid"])
-                    if info_parts:
-                        experiment["title"] += f" ({','.join(info_parts)})"
                 else:
                     experiment["title"] = exp
+                
+                info_parts = []
+                if has_valid_key(experiment, "resolution_id"):
+                    info_parts.append(experiment["resolution_id"])
+                if has_valid_key(experiment, "expid"):
+                    info_parts.append(experiment["expid"])
+                if info_parts:
+                    experiment["title"] += f" ({','.join(info_parts)})"
 
         else:
             # No experiment file. Check if some info is still in the config.yaml (legacy, will be removed)
