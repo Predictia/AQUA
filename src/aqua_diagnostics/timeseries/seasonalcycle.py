@@ -257,9 +257,9 @@ class SeasonalCycle(Timeseries):
         if self.plot_ref:
             description += f" with {ref_label} as reference,"
             try:
-                description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}"
+                description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}"  # noqa: E501
             except ValueError:
-                description += f" std evaluated from {time_to_string(self.ref_mon.time.values[0])} to {time_to_string(self.ref_mon.time.values[-1])}"
+                description += f" std evaluated from {time_to_string(self.ref_mon.time.values[0])} to {time_to_string(self.ref_mon.time.values[-1])}"  # noqa: E501
         description += "."
         if self.lon_limits is not None or self.lat_limits is not None:
             description += " The data have been averaged over a region defined by"
