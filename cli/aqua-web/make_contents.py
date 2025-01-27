@@ -70,18 +70,24 @@ def make_content(catalog, model, exp, diagnostics, config_experiments, force):
             with open(f"{catalog}/{model}/{exp}/experiment.yaml", "r") as file:
                 experiment = yaml.safe_load(file)
 
-                if "exp" in experiment:  # rename to experiment
-                    experiment["experiment"] = experiment.pop("exp")
+                if "dashboard" in experiment:
+                    experiment.update(experiment.pop("dashboard"))
 
-                # Build title based on resolution and expver if available
+                # rename legacy keys
+                if "exp" in experiment:
+                    experiment["experiment"] = experiment.pop("exp")
+                if "expver" in experiment:
+                    experiment["expid"] = experiment.pop("expver")
+
+                # Build title based on resolution and expid if available
 
                 if has_valid_key(experiment, "menu"):
                     experiment["title"] = experiment["menu"]
                     info_parts = []
                     if has_valid_key(experiment, "resolution"):
                         info_parts.append(experiment["resolution"])
-                    if has_valid_key(experiment, "expver"):
-                        info_parts.append(experiment["expver"])
+                    if has_valid_key(experiment, "expid"):
+                        info_parts.append(experiment["expid"])
                     if info_parts:
                         experiment["title"] += f" ({','.join(info_parts)})"
                 else:
@@ -97,9 +103,6 @@ def make_content(catalog, model, exp, diagnostics, config_experiments, force):
                 experiment['title'] = exp_metadata.get("title", f"{exp}")      
                 experiment['description'] = exp_metadata.get("description", "")
                 experiment['note'] = exp_metadata.get("note", "")
-
-        if "dashboard" in experiment:
-            experiment.update(experiment.pop("dashboard"))
 
         if "title" in experiment:  # Duplicate to future proof (ultimately we want to switch to 'label')
             experiment["label"] = experiment["title"]

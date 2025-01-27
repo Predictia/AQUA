@@ -82,7 +82,7 @@ if __name__ == '__main__':
             metadata['description'] = reader.expcat.description
             metadata['catalog'] = catalog
             metadata['model'] = model
-            metadata['exp'] = exp
+            metadata['experiment'] = exp
             yaml_path = os.path.join(yamldir, "experiment.yaml")
             with open(yaml_path, "w") as file:
                 yaml.dump(metadata, file, default_flow_style=False)
