@@ -13,7 +13,7 @@ Deprecated:
  
 AQUA core complete list:
 
--  Experiment metadata for aqua-web and dashboard from catalog entry (#1633)
+- Experiment metadata for aqua-web and dashboard from catalog entry (#1633)
 - Automatic identification of ocean grid in the catalog generator (#1621)
 - `OutputSaver` can deduce the catalog name from the model, exp (#1627)
 - Pin zarr<3.0.0 to avoid breaking changes (#1625)
