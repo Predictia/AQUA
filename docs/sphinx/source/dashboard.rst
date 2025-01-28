@@ -6,7 +6,7 @@ Dashboard
 General description and main components
 ---------------------------------------
 
-AQUA can act a backend for a an online web application (a "dashboard") that can be used to monitor the progress of the analysis and the results.
+AQUA can act as a backend for an online web application (a "dashboard") to monitor the progress of the analysis and of the results.
 
 A series of scripts is used to automatize running of the diagnostics on experiment output, collecting the figures and storing them 
 in a remote object storage. The figures are then used to update a website that shows the results of the analysis.
@@ -60,7 +60,7 @@ More details on the available tools and on their dependencies are provided in th
 Automatic uploading of figures and documentation to aqua-web
 ------------------------------------------------------------
 
-AQUA figures produced by the analysis can be uploaded to the [aqua-web](https://github.com/DestinE-Climate-DT/aqua-web)
+AQUA figures produced by the analysis can be uploaded to the <https://github.com/DestinE-Climate-DT/aqua-web>`_
 repository to publish them automatically on a dedicated website. The same site is used to host the documentation.
 Two scripts in the ``cli/aqua-web`` folder are available to push figures or documentation to aqua-web.
 
@@ -219,7 +219,7 @@ Options
 
 .. option:: --endpoint_url <endpoint_url>
 
-    Custom endpoint URL for S3. Default is 'https://lumidata.eu'.
+    Custom endpoint URL for S3. Default is https://lumidata.eu.
 
 
 .. _submit-aqua-web:

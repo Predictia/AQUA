@@ -26,7 +26,7 @@ File-based sources
 
 Adding file-based sources in AQUA is done with default interface by ``intake``. 
 Files supported can include NetCDF files (as the one described in the example below) or other formats as GRIB or Zarr. 
-The best way to explain the process is to follow the example of adding some fake dataset to an existing catalog (`obs` in our example).
+The best way to explain the process is to follow the example of adding some fake dataset to an existing catalog (``obs`` in our example).
 
 Let's imagine we have a dataset called ``SST``, with yearly data, part of a data collection called ``NEWSATDATA`` which we would like to add. 
 Suppose that the dataset consists of the following:
@@ -39,7 +39,7 @@ Suppose that the dataset consists of the following:
 We will create a catalog entry that will describe this dataset.
 The "model" name will be ``NEWSATDATA`` (we use the "model/exp/source" hierarchy also for observations)
 
-The first step is to add a new entry to the ``config/catalogs/lumi/catalog.yaml`` file.
+The first step is to add a new entry to the ``config/catalogs/obs/catalog.yaml`` file.
 
 The additional entry, to be added in the `sources:` section, will look like this:
 
@@ -331,7 +331,7 @@ It is highly recommended (but optional) to provide additional metadata for each 
 This information is particularly useful to documents aspects of experiments such as resolution, forcing type, autosubmit expid, etc.
 These details are later used by the AQUA :ref:`dashboard` for visualization of model results.
 
-This can be done with an additional ``metatdata`` key in the ``main.yaml`` file, as shown below:
+This can be done with an additional ``metadata`` key in the ``main.yaml`` file, as shown below:
 
 .. code-block:: yaml
 
