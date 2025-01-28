@@ -99,7 +99,11 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False,
     create_folder(output_dir)
 
     logfile = f"{output_dir}/{diagnostic}.log"
+
     extra_args = diagnostic_config.get('extra', "")
+    cfg = diagnostic_config.get('config')
+    if cfg:
+        extra_args += f" --config {cfg}"
 
     if parallel:
         nworkers = diagnostic_config.get('nworkers')
@@ -192,30 +196,31 @@ def main():
     loglevel = args.loglevel or config.get('job', {}).get('loglevel', "info")
     logger = log_configure(loglevel.lower(), 'AQUA Analysis')
 
-    catalog = args.catalog or config.get('job', {}).get('catalog', None)
+    catalog = args.catalog or config.get('job', {}).get('catalog')
     model = args.model or config.get('job', {}).get('model')
     exp = args.exp or config.get('job', {}).get('exp')
     source = args.source or config.get('job', {}).get('source', 'lra-r100-monthly')
+
     outputdir = os.path.expandvars(args.outputdir or config.get('job', {}).get('outputdir', './output'))
     max_threads = args.threads
 
     logger.debug(f"outputdir: {outputdir}")
     logger.debug(f"max_threads: {max_threads}")
-    logger.debug(f"catalog: {catalog}")
 
     diagnostics = config.get('diagnostics', {}).get('run')
     if not diagnostics:
         logger.error("No diagnostics found in configuration.")
         sys.exit(1)
 
-    if not all([model, exp, source]):
-        logger.error("Model, experiment, and source must be specified either in config or as command-line arguments.")
+    if not all([catalog, model, exp, source]):
+        logger.error("Catalog, model, experiment, and source must be specified either in config or as command-line arguments.")
         sys.exit(1)
     else:
-        logger.info(f"Successfully validated inputs: Model = {model}, Experiment = {exp}, Source = {source}.")
+        logger.info(f"Successfully validated inputs: Catalog = {catalog}, Model = {model}, Experiment = {exp}, Source = {source}.")
 
-    output_dir = f"{outputdir}/{model}/{exp}"
+    output_dir = f"{outputdir}/{catalog}/{model}/{exp}"
     output_dir = os.path.expandvars(output_dir)
+
     os.environ["OUTPUT"] = output_dir
     os.environ["AQUA"] = aqua_path
     create_folder(output_dir)
