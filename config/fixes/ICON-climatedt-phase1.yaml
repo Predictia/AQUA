@@ -51,3 +51,9 @@ fixer_name:
         vars:
             tcc:
                 src_units: frac
+    
+    icon-destine-lra-story-2017-control:
+        convention: eccodes
+        vars:
+            tos:
+                src_units: degC

@@ -16,7 +16,8 @@ obs:
 output:
   outputdir: "./"
   rebuild: true
-  filename_keys: null # or, for example,  ['diagnostic', 'catalog', 'model', 'diagnostic_product', 'var']
+  filename_keys: ['diagnostic', 'diagnostic_product', 'catalog', 'model', 'exp',
+                  'var', 'model_2', 'exp_2', 'catalog_2', 'area', 'time_precision'] # null or, for example,  ['diagnostic', 'catalog', 'model', 'diagnostic_product', 'var']
   save_netcdf: true
   save_pdf: true
   save_png: true

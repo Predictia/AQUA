@@ -474,7 +474,7 @@ class Timeseries():
         if self.plot_ref:
             description += f" with {ref_label} as reference,"
             if self.std_startdate is not None and self.std_enddate is not None:
-                description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}" # noqa
+                description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}." # noqa
             else:
                 description += " std evaluated from the full time range."
         if self.extending_ref_range:
