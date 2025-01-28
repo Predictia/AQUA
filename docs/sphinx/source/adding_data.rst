@@ -354,14 +354,21 @@ This can be done with an additional ``metatdata`` key in the ``main.yaml`` file,
 All keys are optional, others could be freely added, the following are recommended:
 
 - ``expid``: the autosubmit expid of the experiment, useful to uniquely identify it.
+
 - ``resolution_atm``: the atmospheric resolution of the experiment.
+
 - ``resolution_oce``: the oceanic resolution of the experiment.
+
 - ``forcing``: the forcing type of the experiment (examples are "historical", "scenario ssp370", etc).
+
 - ``start``: the starting year of the experiment.
+
 - ``dashboard``: a dictionary with additional information for the dashboard/aqua-web:
+
   - ``menu``: the name of the experiment as it will appear in the dashboard menu.
-  - ``resolution_id``: a short string to identify the resolution of the experiment in the dashboard (LR, MR, SR, HR). 
-  This is an internal classification for aqua-web. Our convention is LR=about 144 km, MR=about 36 km, SR=about 25 km, SR=about 10 km, HR=about 5 km.
+
+  - ``resolution_id``: a short string to identify the resolution of the experiment in the dashboard (LR, MR, SR, HR).  
+    This is an internal classification for aqua-web. Our convention is LR=about 144 km, MR=about 36 km, SR=about 25 km, SR=about 10 km, HR=about 5 km.
 
 Regridding capabilities
 -----------------------
@@ -420,7 +427,7 @@ As an example, we use the healpix grid for ICON and tco1279 for IFS:
 
 .. note::
 
-    Two kinds of template replacament are available in the files contained in the ``config/grids`` folder. The Jinja formatting ``{{ var }}`` is used to set
+    Two kinds of template replacement are available in the files contained in the ``config/grids`` folder. The Jinja formatting ``{{ var }}`` is used to set
     variables as path that comes from the ``catalog.yaml`` file. The default python formatting ``{}`` is used for file structure which comes
     Reader arguments, as model, experiment or any other kwargs the user might set. Please pay attention to which one you are using in your files.
     In the future we will try to uniform this towards the Jinja formatting.
