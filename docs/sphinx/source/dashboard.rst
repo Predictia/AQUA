@@ -60,14 +60,14 @@ More details on the available tools and on their dependencies are provided in th
 Automatic uploading of figures and documentation to aqua-web
 ------------------------------------------------------------
 
-AQUA figures produced by the analysis can be uploaded to the <https://github.com/DestinE-Climate-DT/aqua-web>`_
+AQUA figures produced by the analysis can be uploaded to the `aqua-web <https://github.com/DestinE-Climate-DT/aqua-web>`_ 
 repository to publish them automatically on a dedicated website. The same site is used to host the documentation.
 Two scripts in the ``cli/aqua-web`` folder are available to push figures or documentation to aqua-web.
 
 If you plan to use these scripts outside the AQUA container or environment to push figures to aqua-web,
 you will need the following scripts: ``push-analysis.sh``, ``make_contents.py``, ``pdf_to_png.sh``
 and ``push_s3.py``. 
-The following python packages will be needed: ``boto3``, ``pyYAML`` and ``pypdf`` and the ``imagemagick``package.
+The following python packages will be needed: ``boto3``, ``pyYAML`` and ``pypdf`` and the ``imagemagick`` package.
 
 Basic usage
 ^^^^^^^^^^^
