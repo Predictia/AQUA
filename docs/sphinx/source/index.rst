@@ -21,6 +21,7 @@ Welcome to AQUA's documentation!
    container
    diagnostics/index
    adding_data
+   catalog_generator
    lra
    aqua-analysis
    examples_tutorials
