@@ -248,3 +248,37 @@ def read_bridge_date(obj):
         return date.strftime('%Y%m%dT%H%M')
     else:
         return obj
+    
+def floor_datetime(dt, freq, output_format="%Y%m%dT%H%M"):
+    """
+    Floors a datetime object to the specified pandas frequency, 
+    using `to_period` and special last string drop for better handling of non-fixed frequencies.
+    
+    Parameters:
+        dt (datetime or pandas.Timestamp): The datetime object to be floored.
+        freq (str): The frequency string (e.g., 'H', 'D', '6H', '1MS', '3YS').
+         output_format (str): The format for output datetime as a string. Default is "%Y%m%dT%H%M".
+        
+    Returns:
+        String with "%Y%m%dT%H%M" format (e.g. 19900101T000)
+    """
+
+    # safety checks
+    if dt is None:
+        return dt
+
+    if not isinstance(dt, pd.Timestamp):
+        dt = pd.Timestamp(str(dt))
+    elif not isinstance(dt, (pd.Timestamp, pd.DatetimeIndex, pd.Timestamp)):
+        raise TypeError("Input must be a datetime-like object or string.")
+
+    if freq in ['M', 'MS']:  # Floor to the first of the month
+        dt = pd.Timestamp(dt.year, dt.month, 1)
+    elif freq in ['Y', 'YS']:  # Floor to the first of the year
+        dt = pd.Timestamp(dt.year, 1, 1)
+    elif freq in ['ME', 'YE']:
+        raise KeyError(f'Freq {freq} is not supported, please use {freq[0]}S')
+    else:
+        dt = dt.floor(freq)
+    
+    return dt.strftime(output_format)
