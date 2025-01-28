@@ -278,6 +278,8 @@ def floor_datetime(dt, freq, output_format="%Y%m%dT%H%M"):
         dt = pd.Timestamp(dt.year, 1, 1)
     elif freq in ['ME', 'YE']:
         raise KeyError(f'Freq {freq} is not supported, please use {freq[0]}S')
+    elif 'W' in freq: 
+        raise KeyError('Weekly frequency not supported')
     else:
         dt = dt.floor(freq)
     
