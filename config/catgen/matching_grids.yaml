@@ -9,15 +9,15 @@ r360x181: lon-lat
 # Atmosphere grids
 atm_grid:
   ifs-nemo: 
-    production: 
-    develop: 
-    lowres: 
-    intermediate: 
+    production: tco2559
+    develop: tco1279
+    lowres: tco79
+    intermediate: tco399
   ifs-fesom:
-    production:
-    develop: 
-    lowres: 
-    intermediate: 
+    production: tco2559
+    develop: tco1279
+    lowres: tco79
+    intermediate: tco399
   icon:
     production: R2B9
     develop: R2B9
