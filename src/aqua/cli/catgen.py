@@ -53,6 +53,7 @@ class AquaFDBGenerator:
         #self.portfolio = self.config["portfolio"]
         self.resolution = self.config["resolution"]
         self.ocean_grid = self.config.get("ocean_grid") 
+        self.atm_grid = self.config.get("atm_grid")
         self.num_of_realizations = int(self.config.get("num_of_realizations", 1))
 
         #sefaty check
@@ -208,6 +209,11 @@ class AquaFDBGenerator:
             self.ocean_grid = self.matching_grids['ocean_grid'][self.model][self.resolution]
             if self.ocean_grid is None:
                 raise ValueError(f"No ocean grid available for: {self.model} {self.resolution}")
+
+        if not self.atm_grid:
+            self.atm_grid = self.matching_grids['atm_grid'][self.model][self.resolution]
+            if self.atm_grid is None:
+                raise ValueError(f"No atmospheric grid available for: {self.model} {self.resolution}")
                 
         grid_mappings = self.matching_grids['grid_mappings']
         levtype = profile["levtype"]
@@ -270,8 +276,37 @@ class AquaFDBGenerator:
             main_yaml = {'sources': {}}
         else:
             main_yaml = load_yaml(main_yaml_path)
+
+        if 'forcing' in self.config and self.config['forcing']:
+            forcing = self.config['forcing']
+        elif self.config['experiment'] == 'hist':
+            forcing = 'historical'
+        elif self.config['experiment'] == 'cont':
+            forcing = 'control'
+        elif self.config['experiment'] == 'SSP3-7.0':
+            forcing = 'ssp370'
+        else:
+            raise ValueError(f"Unexpected experiment: {self.config['experiment']}")
+
         main_yaml['sources'][self.config['exp']] = {
-            'description': self.config['description'],
+            'description': (
+                self.config['description']
+                if 'description' in self.config and self.config['description']
+                else f"{self.model} {self.config['exp']}, {self.config['data_start_date'][:4]}, "
+                     f"grids: {self.atm_grid} {self.ocean_grid}"
+            ),
+            'metadata': {
+                'expid': self.config['expver'],
+                'resolution_atm': self.atm_grid,
+                'resolution_oce': self.ocean_grid,
+                'forcing': forcing,
+                'start': self.config['data_start_date'][:4], #year only
+                'dashboard': {
+                    'menu': self.config['menu'] if 'menu' in self.config and self.config['menu'] else self.config['exp'],
+                    'resolution_id': 'HR' if 'high' in self.grid_resolutions else 'SR',
+                    'note': self.config['note']
+                }
+            },
             'driver': 'yaml_file_cat',
             'args': {
                 'path': f"{{{{CATALOG_DIR}}}}/{self.config['exp']}.yaml"
@@ -287,9 +322,9 @@ class AquaFDBGenerator:
         all_content = {'sources': {}}
 
         # Retrieve available resolutions for the current model
-        grid_resolutions = self.get_available_resolutions(self.local_grids, self.model)
+        self.grid_resolutions = self.get_available_resolutions(self.local_grids, self.model)
         
-        if not grid_resolutions:
+        if not self.grid_resolutions:
             self.logger.error('No resolutions found, generating an empty file!')
             return
 
@@ -297,7 +332,7 @@ class AquaFDBGenerator:
 
             # Filter out omitted resolutions, if any
             current_resolutions = [
-                res for res in grid_resolutions 
+                res for res in self.grid_resolutions 
                 if 'omit-resolutions' not in profile or res not in profile['omit-resolutions']
             ]
 
