@@ -52,7 +52,7 @@ class AquaFDBGenerator:
         self.model = self.config["model"].lower()
         #self.portfolio = self.config["portfolio"]
         self.resolution = self.config["resolution"]
-        self.ocean_grid = self.config["ocean_grid"]
+        self.ocean_grid = self.config.get("ocean_grid") 
         self.num_of_realizations = int(self.config.get("num_of_realizations", 1))
 
         #sefaty check
@@ -204,6 +204,11 @@ class AquaFDBGenerator:
             profile["levtype"]
         )
 
+        if not self.ocean_grid:
+            self.ocean_grid = self.matching_grids['ocean_grid'][self.model][self.resolution]
+            if self.ocean_grid is None:
+                raise ValueError(f"No ocean grid available for: {self.model} {self.resolution}")
+                
         grid_mappings = self.matching_grids['grid_mappings']
         levtype = profile["levtype"]
 
@@ -312,11 +317,6 @@ class AquaFDBGenerator:
                     self.logger.info('Added variables %s to source %s.', combined['variables'], source_name)
                 else:
                     self.logger.debug('Creating catalog entry for %s.', source_name)
-
-                    # Replace paths 
-                    for replace_path in ['fdb_home', 'fdb_home_bridge']:
-                        if replace_path in combined:
-                            combined[replace_path] = '"' + replace_intake_vars(combined[replace_path], catalog=combined['catalog_dir']) + '"'               
                     # Convert lists to inline format before rendering for better readability
                     for key in ['levels', 'variables']:
                         if key in combined and combined[key] is not None:

@@ -13,6 +13,7 @@ Deprecated:
  
 AQUA core complete list:
 - Safety checks for dates according to frequency for HPC and bridge in intake GSV (#1636)
+- Automatic identification of ocean grid in the catalog generator (#1621)
 - `OutputSaver` can deduce the catalog name from the model, exp (#1627)
 - Pin zarr<3.0.0 to avoid breaking changes (#1625)
 - LRA generator integrates ``-rebuild`` option to regenerate areas and weights. The `--autosubmit` option is removed (#1623)
