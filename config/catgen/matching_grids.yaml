@@ -20,7 +20,7 @@ atm_grid:
     intermediate: tco399
   icon:
     production: R2B9
-    develop: R2B9
+    develop: R2B8
     lowres: null
     intermediate: null
 
@@ -38,7 +38,7 @@ ocean_grid:
     intermediate: D3
   icon:
     production: R2B9
-    develop: R2B9
+    develop: R2B8
     lowres: null
     intermediate: null
 
