@@ -271,6 +271,7 @@ class AquaFDBGenerator:
         dump_yaml(output_path, all_content)
         self.logger.info("File %s has been created in %s", output_filename, output_dir)
 
+        # Update main.yaml
         main_yaml_path = os.path.join(output_dir, 'main.yaml')
         if not os.path.exists(main_yaml_path):
             main_yaml = {'sources': {}}
@@ -314,6 +315,26 @@ class AquaFDBGenerator:
         }
         dump_yaml(main_yaml_path, main_yaml)
         self.logger.info("%s entry in 'main.yaml' has been updated in %s", self.config['exp'], output_dir)
+
+        # Update catalog.yaml if a new model is added
+        catalog_yaml_path = os.path.join(self.catalog_dir_path, 'catalogs',  self.config['catalog_dir'], 'catalog.yaml')
+        catalog_yaml = load_yaml(catalog_yaml_path)
+
+        if catalog_yaml.get('sources') is None:
+            catalog_yaml['sources'] = {}
+
+        if self.model not in catalog_yaml.get('sources', {}):  
+            catalog_yaml.setdefault('sources', {}) 
+            catalog_yaml['sources'][self.model.upper()] = {
+                'description': f"{self.model.upper()} model",
+                'driver': 'yaml_file_cat',
+                'args': {
+                    'path': f"{{{{CATALOG_DIR}}}}/catalog/{self.model.upper()}/main.yaml"
+                }
+            }
+            dump_yaml(catalog_yaml_path, catalog_yaml)
+            self.logger.info("%s entry in 'catalog.yaml' has been created at %s", self.model, catalog_yaml_path)
+
 
     def generate_catalog(self):
         """
