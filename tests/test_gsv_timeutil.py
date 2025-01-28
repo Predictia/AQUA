@@ -1,10 +1,8 @@
 """Tests for GSV timeutile in AQUA"""
 
+import pytest
+import pandas as pd
 from aqua.gsv.timeutil import floor_datetime
-import pytest
-import pandas as pd
-import pytest
-import pandas as pd
 
 # Assuming floor_datetime is already imported
 
@@ -14,8 +12,8 @@ def test_floor_datetime_all_cases():
         ('2025-01-28 15:30:45', 'h',  "20250128T1500"),  # Hour
         ('2025-01-28 15:30:45', 'H',  "20250128T1500"),  # Hour
         ('2025-01-28 15:30:45', 'D',  "20250128T0000"),  # Day
-        ('2025-01-28 15:30:45', 'M',  "20250101T0000"),  # Month
-        ('2025-01-28 15:30:45', 'Y',  "20250101T0000"),  # Year
+        ('2025-03-15 15:30:45', 'M',  "20250301T0000"),  # Month
+        ('2025-03-15 15:30:45', 'Y',  "20250101T0000"),  # Year
         ('2025-03-15 12:45:00', 'MS', "20250301T0000"),  # Month Start
         ('2025-03-15 12:45:00', 'YS', "20250101T0000"),  # Year Start
         ('2025-01-28 15:30:45', 'T',  "20250128T1530"),  # Minute
