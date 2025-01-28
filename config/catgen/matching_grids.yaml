@@ -6,6 +6,24 @@ H1024: hpz10
 
 r360x181: lon-lat
 
+# Atmosphere grids
+atm_grid:
+  ifs-nemo: 
+    production: 
+    develop: 
+    lowres: 
+    intermediate: 
+  ifs-fesom:
+    production:
+    develop: 
+    lowres: 
+    intermediate: 
+  icon:
+    production: R2B9
+    develop: R2B9
+    lowres: null
+    intermediate: null
+
 # Ocean grids
 ocean_grid:
   ifs-nemo: 
@@ -19,7 +37,7 @@ ocean_grid:
     lowres: CORE2
     intermediate: D3
   icon:
-    production:
+    production: R2B9
     develop: R2B9
     lowres: null
     intermediate: null
