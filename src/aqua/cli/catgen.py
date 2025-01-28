@@ -158,6 +158,17 @@ class AquaFDBGenerator:
         }
         return freq2time[frequency]
 
+    @staticmethod
+    def get_value_from_map(value, value_map, value_type):
+        """
+        Get the value from the map based on the value type.
+        """
+        result = value_map.get(value)
+        if not result:
+            raise ValueError(f"Unexpected {value_type}: {value}")
+        return result
+
+
     def load_jinja_template(self, template_file):
         """
         Load a Jinja2 template.
@@ -278,16 +289,22 @@ class AquaFDBGenerator:
         else:
             main_yaml = load_yaml(main_yaml_path)
 
-        if 'forcing' in self.config and self.config['forcing']:
-            forcing = self.config['forcing']
-        elif self.config['experiment'] == 'hist':
-            forcing = 'historical'
-        elif self.config['experiment'] == 'cont':
-            forcing = 'control'
-        elif self.config['experiment'] == 'SSP3-7.0':
-            forcing = 'ssp370'
-        else:
-            raise ValueError(f"Unexpected experiment: {self.config['experiment']}")
+        resolution_map = {
+            'production': 'HR',
+            'develop': 'SR',
+            'lowres': 'LR',
+            'intermediate': 'MR'
+        }
+        
+        resolution_id = self.get_value_from_map(self.config['resolution'], resolution_map, 'resolution')
+
+        forcing_map = {
+            'hist': 'historical',
+            'cont': 'control',
+            'SSP3-7.0': 'ssp370'
+        }
+
+        forcing = self.config.get('forcing') or self.get_value_from_map(self.config['experiment'], forcing_map, 'experiment')
 
         main_yaml['sources'][self.config['exp']] = {
             'description': (
@@ -304,7 +321,7 @@ class AquaFDBGenerator:
                 'start': self.config['data_start_date'][:4], #year only
                 'dashboard': {
                     'menu': self.config['menu'] if 'menu' in self.config and self.config['menu'] else self.config['exp'],
-                    'resolution_id': 'HR' if 'high' in self.grid_resolutions else 'SR',
+                    'resolution_id': resolution_id,
                     'note': self.config['note']
                 }
             },
