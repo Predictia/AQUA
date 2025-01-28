@@ -13,6 +13,7 @@ def test_class_timeseries():
     """
     Test that the timeseries class works
     """
+    catalogs = ['ci']
     models = ['IFS']
     exps = ['test-tco79']
     sources = ['teleconnections']
@@ -21,7 +22,7 @@ def test_class_timeseries():
     lat_limits = [-30, 30]
     plot_ref_kw = {'catalog': 'ci', 'model': 'IFS', 'exp': 'test-tco79', 'source': 'teleconnections'}
 
-    ts = Timeseries(var=var, models=models, exps=exps, sources=sources,
+    ts = Timeseries(var=var, models=models, exps=exps, sources=sources, catalogs=catalogs,
                     loglevel=loglevel, plot_ref_kw=plot_ref_kw,
                     lon_limits=lon_limits, lat_limits=lat_limits)
 
@@ -70,13 +71,14 @@ def test_class_timeseries():
 @pytest.mark.timeseries
 def test_timeseries_regions():
 
+    catalogs = ['ci']
     models = ['ERA5']
     exps = ['era5-hpz3']
     sources = ['monthly']
     var = '86400*tprate'
     region = 'nh'
 
-    ts = Timeseries(var=var, models=models, exps=exps, sources=sources,
+    ts = Timeseries(var=var, models=models, exps=exps, sources=sources, catalogs=catalogs,
                     loglevel=loglevel, region=region, formula=True,
                     save=False, regrid='r100',
                     longname='Total precipitation rate',

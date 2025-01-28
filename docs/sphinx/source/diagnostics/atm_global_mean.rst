@@ -1,5 +1,5 @@
 Global Biases Diagnostic
-==========================================
+========================
 
 Description
 -----------
@@ -14,14 +14,15 @@ This class provides functionality for bias analysis, including the ability to:
 - Generate vertical profiles to assess biases across pressure levels.
 
 Structure
------------
+---------
 
 * ``global_biases.py``: contains the GlobalBiases class
 * ``cli_global_biases.py``: the command line interface (CLI) script to run the diagnostic.
 
 
 Input variables 
-----------------
+---------------
+
 The diagnostic requires the variables that the user wants to analyse. 
 A list of the variables that are compared automatically when running the full diagnostic is provided in the configuration files
 available in the ``config/diagnostics/global_biases`` directory.
@@ -138,6 +139,7 @@ The configuration file is a YAML file that contains the following information:
 
 Output
 ------
+
 The diagnostic generates three types of plots for each variable:
 
   * The global bias of the model compared to the reference dataset.

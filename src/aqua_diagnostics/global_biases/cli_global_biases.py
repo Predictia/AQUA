@@ -86,8 +86,6 @@ def main():
     seasons_stat = config['diagnostic_attributes'].get('seasons_stat', 'mean')
     vertical = config['diagnostic_attributes'].get('vertical', False)
 
-    output_saver = OutputSaver(diagnostic='global_biases', catalog=catalog_data, model=model_data, exp=exp_data, loglevel=loglevel,
-                               default_path=outputdir, rebuild=rebuild, filename_keys=filename_keys)
 
     # Retrieve data and handle potential errors
     try:
@@ -121,6 +119,9 @@ def main():
     startdate_obs = startdate_obs or pd.to_datetime(data_obs.time[0].values).strftime('%Y-%m-%d')
     enddate_obs = enddate_obs or pd.to_datetime(data_obs.time[-1].values).strftime('%Y-%m-%d')
 
+    output_saver = OutputSaver(diagnostic='global_biases', catalog=reader.catalog, model=model_data, exp=exp_data, loglevel=loglevel,
+                               default_path=outputdir, rebuild=rebuild, filename_keys=filename_keys)
+
     # Loop over variables for diagnostics
     for var_name in variables:
         logger.info(f"Running Global Biases diagnostic for variable: {var_name}")
@@ -135,7 +136,7 @@ def main():
 
             # Define common save arguments
             common_save_args = {'var': var_name, 'dpi': dpi,
-                                'catalog_2': catalog_obs, 'model_2': model_obs, 'exp_2': exp_obs,
+                                'catalog_2': reader_obs.catalog, 'model_2': model_obs, 'exp_2': exp_obs,
                                 'time_start': startdate_data, 'time_end': enddate_data}
 
             # Total bias plot
@@ -144,8 +145,8 @@ def main():
                 fig, ax, netcdf = result
                 description = (
                         f"Spatial map of the total bias of the variable {var_name} from {startdate_data} to {enddate_data} "
-                        f"for the {model_data} model, experiment {exp_data} from the {catalog_data} catalog, with {model_obs} "
-                        f"(experiment {exp_obs}, catalog {catalog_obs}) used as reference data. "
+                        f"for the {model_data} model, experiment {exp_data} from the {reader.catalog} catalog, with {model_obs} "
+                        f"(experiment {exp_obs}, catalog {reader_obs.catalog}) used as reference data. "
                     )
                 metadata = {"Description": description}
                 if save_netcdf:
@@ -164,7 +165,7 @@ def main():
                     fig, ax, netcdf = result
                     description = (
                         f"Seasonal bias map of the variable {var_name} for the {model_data} model, experiment {exp_data} "
-                        f"from the {catalog_data} catalog, using {model_obs} (experiment {exp_obs}, catalog {catalog_obs}) as reference data. "
+                        f"from the {reader.catalog} catalog, using {model_obs} (experiment {exp_obs}, catalog {reader_obs.catalog}) as reference data. "
                         f"The bias is computed for each season over the period from {startdate_data} to {enddate_data}, "
                         f"providing insights into seasonal discrepancies between the model and the reference. "
                     )
@@ -188,8 +189,8 @@ def main():
                     fig, ax, netcdf = result
                     description = (
                         f"Vertical bias plot of the variable {var_name} across pressure levels, from {startdate_data} to {enddate_data} "
-                        f"for the {model_data} model, experiment {exp_data} from the {catalog_data} catalog, with {model_obs} "
-                        f"(experiment {exp_obs}, catalog {catalog_obs}) used as reference data. "
+                        f"for the {model_data} model, experiment {exp_data} from the {reader.catalog} catalog, with {model_obs} "
+                        f"(experiment {exp_obs}, catalog {reader_obs.catalog}) used as reference data. "
                         f"The vertical bias shows differences in the model's vertical representation compared to the reference, "
                         f"highlighting biases across different pressure levels to assess the accuracy of vertical structures."
                     )
