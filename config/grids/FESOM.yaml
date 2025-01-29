@@ -80,6 +80,21 @@ grids:
     space_coord: ["ncells"]
     vert_coord: ["level"]
   
+  # FESOM v3: These are grids for DestinE O-25.1 cycle.
+  # Interpolation to HealPix is now conservative and this
+  # produced a change in the land sea mask, so all the grids
+  # are different from the previous ones
+  fesom-CORE2-hpz5-nested-v3:
+    cdo_options: "--force"
+    space_coord: ["ncells"]
+    path: '{{ grids }}/FESOM/fesom-CORE2_hpz5_nested_oce_v3.nc'
+  fesom-CORE2-hpz5-nested-3d-v3:
+    cdo_options: "--force"
+    path:
+      level: '{{ grids }}/FESOM/fesom-CORE2_hpz5_nested_oce_level_v3.nc'
+    space_coord: ["ncells"]
+    vert_coord: ["level"]
+  
   #FESOM
   ng5-nodes-2d:
     path: '{{ grids }}/FESOM/AQUA_NG5_griddes_nodes_IFS.nc'
