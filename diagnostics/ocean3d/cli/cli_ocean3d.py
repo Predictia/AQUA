@@ -68,6 +68,7 @@ class Ocean3DCLI:
         self.config["outputdir"] = self.get_arg('outputdir', self.ocean3d_config_dict['outputdir'])
         self.config["outputdir"] = os.path.realpath(self.config['outputdir'])
         self.logger.info(f"output will be saved here: {self.config['outputdir']}")
+        self.config["variables"] = self.get_value_with_default(self.ocean3d_config_dict, "variables", None)
         self.config["custom_region"] = self.get_value_with_default(self.ocean3d_config_dict,
                                                                    "custom_region", None)
         self.config["ocean_drift"] = self.get_value_with_default(self.ocean3d_config_dict,
@@ -92,12 +93,17 @@ class Ocean3DCLI:
         reader = Reader(model=model, exp=exp, source=source,
                         fix=True, loglevel=self.loglevel)
         
-        
+        if self.config["variables"] == []:
+            self.config["variables"] = None
+        else: 
+            self.logger.info(f"retrieving {self.config['variables']}")
+
         if self.config["select_time"]:
-            self.data["catalog_data"] = reader.retrieve(startdate= str(self.config["start_year"]),
+            self.data["catalog_data"] = reader.retrieve(var= self.config["variables"],
+                                                        startdate= str(self.config["start_year"]),
                                                         enddate= str(self.config["end_year"]))
         else:
-            self.data["catalog_data"] = reader.retrieve()
+            self.data["catalog_data"] = reader.retrieve(var= self.config["variables"])
         self.logger.info(f"data retrieved for model={model}, exp={exp}, source={source}")
         self.logger.debug("model data: %s", self.data["catalog_data"])   
         self.data["catalog_data"] = check_variable_name(self.data["catalog_data"])

@@ -224,7 +224,7 @@ class TrendCalculator:
         Compute the trend values for temperature and salinity variables in a 3D dataset.
 
         Parameters:
-            data (xarray.Dataset): Input dataset containing temperature (avg_thetao) and salinity (avg_so) variables.
+            data (xarray.Dataset): Input dataset containing temperature (thetao) and salinity (so) variables.
             loglevel (str, optional): Log level for logging messages. Defaults to "WARNING".
 
         Returns:
@@ -298,8 +298,8 @@ class multilevel_trend:
         # print("exported_trend")
         for levs in range(len(self.levels)):
             subset_data = data.sel(lev=self.levels[levs])
-            subset_data["avg_thetao"].plot.contourf(cmap="coolwarm", ax=axs[levs, 0], levels=18)
-            subset_data["avg_so"].plot.contourf(cmap="coolwarm", ax=axs[levs, 1], levels=18)
+            subset_data["thetao"].plot.contourf(cmap="coolwarm", ax=axs[levs, 0], levels=18)
+            subset_data["so"].plot.contourf(cmap="coolwarm", ax=axs[levs, 1], levels=18)
             axs[levs, 0].set_facecolor('grey')
             axs[levs, 1].set_facecolor('grey')
         return
@@ -367,7 +367,7 @@ class zonal_mean_trend:
         fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
 
         # Plot temperature
-        data.avg_thetao.plot.contourf(levels=20, ax=axs[0])
+        data.thetao.plot.contourf(levels=20, ax=axs[0])
         axs[0].set_ylim((5500, 0))
         axs[0].set_title("Temperature", fontsize=14)
         axs[0].set_ylabel("Depth (in m)", fontsize=9)
@@ -375,7 +375,7 @@ class zonal_mean_trend:
         axs[0].set_facecolor('grey')
 
         # Plot salinity
-        data.avg_so.plot.contourf(levels=20, ax=axs[1])
+        data.so.plot.contourf(levels=20, ax=axs[1])
         axs[1].set_ylim((5500, 0))
         axs[1].set_title("Salinity", fontsize=14)
         axs[1].set_ylabel("Depth (in m)", fontsize=12)

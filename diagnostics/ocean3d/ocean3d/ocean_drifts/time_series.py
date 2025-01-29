@@ -45,7 +45,7 @@ class time_series(hovmoller_plot):
         key = i + 2
         plot_info = self.plot_info[key]
         data = plot_info['data']
-        avg_thetaolevs = plot_info['avg_thetaolevs']
+        thetaolevs = plot_info['thetaolevs']
         solevs = plot_info['solevs']
         cmap = plot_info['cmap']
         region_title = plot_info['region_title']
@@ -73,15 +73,15 @@ class time_series(hovmoller_plot):
                 data_level = data.isel(lev=0)
 
             # Plot the temperature time series
-            data_level.avg_thetao.plot.line(
+            data_level.thetao.plot.line(
                 ax=axs[i,0], label=f"{round(int(data_level.lev.data), -2)}")
 
             # Plot the salinity time series
-            data_level.avg_so.plot.line(
+            data_level.so.plot.line(
                 ax=axs[i,1], label=f"{round(int(data_level.lev.data), -2)}")
 
-        tunits = data_level.avg_thetao.attrs['units']
-        sunits = data_level.avg_so.attrs['units']
+        tunits = data_level.thetao.attrs['units']
+        sunits = data_level.so.attrs['units']
         axs[i,0].set_title('')
         axs[i,1].set_title('')
 

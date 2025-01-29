@@ -46,7 +46,7 @@ def check_variable_name(data, loglevel= "WARNING"):
     logger = log_configure(loglevel, 'Check Variables')
     vars = list(data.variables)
     required_vars= []
-    var_list= ["SO","avg_so","thetao","THETAO","avg_SO","avg_so","avg_thetao","avg_THETAO",
+    var_list= ["SO","so","thetao","THETAO","so","so","thetao","thetao",
                "toce_mean","soce_mean", "so"]
     for var in vars:
         if var in var_list:
@@ -56,20 +56,20 @@ def check_variable_name(data, loglevel= "WARNING"):
         data = data[required_vars]
         for var in required_vars:
             if 'so' in var.lower():
-                data = data.rename({var: "avg_so"})
-                logger.debug("renaming %s as avg_so", var)
-            if var.lower() in ['avg_thetao', 'toce', "thetao"]:
-                data = data.rename({var: "avg_thetao"})
-                logger.debug("renaming %s as avg_thetao", var)
+                data = data.rename({var: "so"})
+                logger.debug("renaming %s as so", var)
+            if var.lower() in ['thetao', 'toce', "thetao"]:
+                data = data.rename({var: "thetao"})
+                logger.debug("renaming %s as thetao", var)
     else:
-        raise ValueError("Required variable avg_so and avg_thetao is not available in the catalog")
+        raise ValueError("Required variable so and thetao is not available in the catalog")
     #HACK
     if "level" in data:
         if data['level'].attrs['units'] == 'NEMO model layers':
             data['level'].attrs['units'] = 'm'
     vertical_coord = find_vert_coord(data)[0]
     data = data.rename({vertical_coord: "lev"})
-    data = kelvin_to_celsius(data, "avg_thetao")
+    data = kelvin_to_celsius(data, "thetao")
     # if "thetao_uncertainty" in data:
     #     data = kelvin_to_celsius(data, "thetao_uncertainty")
     data = data.resample(time="MS").mean()
@@ -307,7 +307,7 @@ def load_obs_data(model='EN4', exp='en4', source='monthly', loglevel= "WARNING")
     # We standardise the name for the vertical dimension
     den4 = den4.rename({find_vert_coord(den4)[0]: "lev"}).resample(time="MS").mean()
     # den4 = check_variable_name(den4).resample(time="MS").mean()
-    # den4 = den4[["avg_thetao", "avg_so"]].resample(time="MS").mean()
+    # den4 = den4[["thetao", "so"]].resample(time="MS").mean()
     
     logger.debug("loaded %s data", model)
     return den4
