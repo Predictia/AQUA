@@ -423,17 +423,9 @@ class FixerMixin():
         src_datamodel = self.fixes_dictionary["defaults"].get("src_datamodel", None)
         self.logger.debug("Default input datamodel: %s", src_datamodel)
 
-        # Check and get deltat in metadata: default deltat is 1.0 from class init
-        self.deltat = self.esmcat.metadata.get('deltat', self.deltat)
-        if self.deltat != 1.0:
-            self.logger.debug('deltat = %s read from metadata', self.deltat)
-
-        # Override metadata/default if deltat is found in fixes
-        fix_deltat = self.fixes.get("deltat", self.deltat)
-        if fix_deltat and fix_deltat != self.deltat:
-                self.logger.debug('deltat = %s read from fixes', self.deltat)
-                self.deltat = fix_deltat
-
+        # set deltat
+        self.deltat  = self._define_deltat()
+       
         # Special case for monthly deltat
         if self.deltat == "monthly":
             self.logger.info('%s deltat found, we will estimate a correction based on number of days per month', self.deltat)
@@ -632,6 +624,28 @@ class FixerMixin():
         data = self._fix_coord(data)
 
         return data
+
+    def _define_deltat(self):
+        """
+        Define the deltat for the fixer. 
+        The priority is given to the metadata, then to the fixes and finally to the default value.
+        Return deltat in seconds.
+        """
+
+        # First case: get from metadata
+        metadata_deltat = self.esmcat.metadata.get('deltat')
+        if metadata_deltat:
+                self.logger.debug('deltat = %s read from metadata', self.deltat)
+                return metadata_deltat
+
+        # Second case if not available: get from fixes
+        fix_deltat = self.fixes.get("deltat")
+        if fix_deltat:
+            self.logger.debug('deltat = %s read from fixes', fix_deltat)
+            return fix_deltat
+        
+        # Third case: get from default
+        return self.deltat
 
     def _delete_variables(self, data):
         """
