@@ -20,7 +20,7 @@ def main():
     try: 
         # case when you have a catalog installed with grids defined for the machine
         mainpath = load_yaml(config.machine_file)[config.machine]['paths']['grids']
-    except ValueError:
+    except (KeyError, ValueError):
         # try to get it from climatedt catalog
         climatedt_file = config.base_available['climatedt-phase1']['reader']['machine']
         mainpath = load_yaml(climatedt_file)[config.machine]['paths']['grids']
@@ -34,7 +34,7 @@ def main():
     # Subcommand for verifying checksums
     parser_verify = subparsers.add_parser("verify", help="Verify files using a checksum file.")
     parser_verify.add_argument("-c", "--checksum", default=output_path, help="Checksum file to verify against.")
-    parser_verify.add_argument("-s", "--subdir", default=GRIDS_FOLDERS, help="Checksum file to verify against.")
+    parser_verify.add_argument("-s", "--subdir", default=GRIDS_FOLDERS, help="Grids subfolder where to verify checksums.")
    
     args = parser.parse_args()
 

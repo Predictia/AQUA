@@ -26,7 +26,7 @@ def main():
     # Subcommand for verifying checksums
     parser_verify = subparsers.add_parser("verify", help="Verify files using a checksum file.")
     parser_verify.add_argument("-c", "--checksum", default=output_path, help="Checksum file to verify against.")
-    parser_verify.add_argument("-s", "--subdir", default=OBS_FOLDERS, help="Checksum file to verify against.")
+    parser_verify.add_argument("-s", "--subdir", default=OBS_FOLDERS, help="Observations subfolder to verify against.")
    
     args = parser.parse_args()
 

@@ -55,7 +55,7 @@ def verify_checksums(folder, grids, checksum_file):
 
     try:
         with open(checksum_file, "r", encoding='utf8') as f:
-            print(f"Stating verification against {checksum_file}. It will take a while...")
+            print(f"Starting verification against {checksum_file}. It will take a while...")
             all_good = True
             for line in f:
                 if line.startswith("#") or not line.strip():
