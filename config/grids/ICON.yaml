@@ -79,11 +79,11 @@ grids:
     space_coord: ["cell"]
     vert_coord: ["level"]
 
-  icon-R02B09-hpz10-nested-v2: #ClimateDT cycle2, 3686446 missing values
+  icon-R02B09-hpz10-nested-v2: #ClimateDT cycle2, 3686446 missing values - same as v1
     cdo_options: '--force'
     path: '{{ grids }}/HealPix/icon-R02B09_hpz10_nested_oce_v2.nc'
     space_coord: ["cell"]
-  icon-R02B09-hpz10-nested-3d-v2: #ClimateDT cycle2, 72 levels starting at 1, 3686446 missing values
+  icon-R02B09-hpz10-nested-3d-v2: #ClimateDT cycle2, 72 levels starting at 1, 3686446 missing values - same as v1
     cdo_options: '--force'
     path: '{{ grids }}/HealPix/icon-R02B09_hpz10_nested_oce_level_full_v2.nc'
     space_coord: ["cell"]
