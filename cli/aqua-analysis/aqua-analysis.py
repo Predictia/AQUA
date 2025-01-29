@@ -90,6 +90,11 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False,
         aqua_path (str): AQUA path.
         cluster: Dask cluster scheduler address.
     """
+
+    script_dir = config.get('job', {}).get("script_path_base")  # we were not using this key
+    if not script_dir:
+        script_dir=os.path.join(aqua_path, "diagnostics")
+
     diagnostic_config = config.get('diagnostics', {}).get(diagnostic)
     if diagnostic_config is None:
         logger.error(f"Diagnostic '{diagnostic}' not found in the configuration.")
@@ -121,8 +126,7 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False,
 
     run_diagnostic(
         diagnostic=diagnostic,
-        script_path=os.path.join(aqua_path, "diagnostics",
-                                 diagnostic_config.get('script_path', f"{diagnostic}/cli/cli_{diagnostic}.py")),
+        script_path=os.path.join(script_dir, diagnostic_config.get('script_path', f"{diagnostic}/cli/cli_{diagnostic}.py")),
         extra_args=args,
         loglevel=loglevel,
         logger=logger,
