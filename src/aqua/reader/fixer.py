@@ -423,13 +423,16 @@ class FixerMixin():
         src_datamodel = self.fixes_dictionary["defaults"].get("src_datamodel", None)
         self.logger.debug("Default input datamodel: %s", src_datamodel)
 
-        # Check and get deltat in metadata
+        # Check and get deltat in metadata: default deltat is 1.0 from class init
         self.deltat = self.esmcat.metadata.get('deltat', self.deltat)
         if self.deltat != 1.0:
             self.logger.debug('deltat = %s read from metadata', self.deltat)
 
         # Override metadata/default if deltat is found in fixes
-        self.deltat = self.fixes.get("deltat", self.deltat)
+        fix_deltat = self.fixes.get("deltat", self.deltat)
+        if fix_deltat and fix_deltat != self.deltat:
+                self.logger.debug('deltat = %s read from fixes', self.deltat)
+                self.deltat = fix_deltat
 
         # Special case for monthly deltat
         if self.deltat == "monthly":
