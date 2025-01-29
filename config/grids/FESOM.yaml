@@ -87,11 +87,11 @@ grids:
   fesom-CORE2-hpz5-nested-v3:
     cdo_options: "--force"
     space_coord: ["ncells"]
-    path: '{{ grids }}/HealPix/fesom-CORE2_hpz5_nested_oce_v3.nc'
+    path: '{{ grids }}/FESOM/fesom-CORE2_hpz5_nested_oce_v3.nc'
   fesom-CORE2-hpz5-nested-3d-v3:
     cdo_options: "--force"
     path:
-      level: '{{ grids }}/HealPix/fesom-CORE2_hpz5_nested_oce_level_v3.nc'
+      level: '{{ grids }}/FESOM/fesom-CORE2_hpz5_nested_oce_level_v3.nc'
     space_coord: ["ncells"]
     vert_coord: ["level"]
   
