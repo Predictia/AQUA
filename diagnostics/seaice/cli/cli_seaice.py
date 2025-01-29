@@ -41,6 +41,7 @@ def parse_arguments(args):
                         help='Logging level (default: WARNING)')
 
     # These arguments override the configuration file if provided.
+    parser.add_argument('--catalog', type=str, help='Catalog name', required=False) # Not used yet
     parser.add_argument('--model', type=str, help='Model name')
     parser.add_argument('--exp', type=str, help='Experiment name')
     parser.add_argument('--source', type=str, help='Source name')
@@ -51,23 +52,6 @@ def parse_arguments(args):
 
     return parser.parse_args(args)
 
-def run_analyzer(analyzer):
-    """
-    Run the given analyzer.
-
-    :param analyzer: Analyzer object.
-    """
-    
-    try:
-        analyzer.run()
-    except NoDataError as e:
-        logger.debug(f"Error: {e}")
-        logger.error("No data found for the given configuration. Exiting...")
-
-    except Exception as e:
-        logger.error(f"An error occurred while running the analyzer: {e}")
-        logger.warning("Please report this error to the developers. Exiting...")
-    
 
 if __name__ == '__main__':
     # Add the directory containing the `seaice` module to the Python path.
@@ -147,7 +131,7 @@ if __name__ == '__main__':
         logger.debug(f"Final configuration: {config}")
         analyzer = SeaIceExtent(config=config, outputdir=outputdir,
                                 loglevel=loglevel)
-        run_analyzer(analyzer)
+        analyzer.run()
         logger.info("sea ice diagnostic Extent terminated!")
 
     if run_volume:
@@ -161,21 +145,21 @@ if __name__ == '__main__':
 
         analyzer = SeaIceVolume(config=config, outputdir=outputdir,
                                 loglevel=loglevel)
-        run_analyzer(analyzer)
+        analyzer.run()
         logger.info("sea ice diagnostic Volume has finished.")
 
     if run_concentration:
         logger.info("Running sea ice concentration diagnostic...")
         analyzer = SeaIceConcentration(config=config, outputdir=outputdir,
                                 loglevel=loglevel)
-        run_analyzer(analyzer)
+        analyzer.run()
         logger.info("sea ice diagnostic Concentration has finished.")
 
     if run_thickness:
         logger.info("Running sea ice thickness diagnostic...")
         analyzer = SeaIceThickness(config=config, outputdir=outputdir,
                                 loglevel=loglevel)
-        run_analyzer(analyzer)
+        analyzer.run()
         logger.info("sea ice diagnostic Thickness has finished.")
 
     if client:

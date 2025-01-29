@@ -7,15 +7,66 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+Deprecated:
+- `aqua-analysis.sh` script is deprecated and has been removed. Use `aqua-analysis.py` instead.
+- `cli_dummy.py` script is deprecated and will be removed in the next release. Use the `cli_checker.py` instead.
+ 
 AQUA core complete list:
 - More general checksum checker for grids and observations ( #1550)
-- Catalog generator various fixes (#1536)
-- Introduce general fixer for phase 2 (#1536)
+- Experiment and dashboard metadata are now created with the catalog generator (#1637)
+- Safety checks for dates according to frequency for HPC and bridge in intake GSV (#1636)
+- Experiment metadata for aqua-web and dashboard from catalog entry (#1633)
+- Automatic identification of ocean grid in the catalog generator (#1621)
+- `OutputSaver` can deduce the catalog name from the model, exp (#1627)
+- Pin zarr<3.0.0 to avoid breaking changes (#1625)
+- LRA generator integrates ``-rebuild`` option to regenerate areas and weights. The `--autosubmit` option is removed (#1623)
+- Units utility are now functions and not methods of FixerMixin (#1558)
+- New `cli_checker.py` tool to check the existance of the required model in the catalog and rebuild the area files (#1619)
+- Update the catalog generator to align with changes in the data portfolio (#1593)
+- Adding ICON phase2 hpx6 and hpz9 grids (#1596)
+- Push figures to LUMI-O for dashboard (#1582, #1607)
+- Bridge_start_date and expver switching (#1597)
+- Include all available figure metadata in content.json for dashboard/aqua-web (#1573)
+- Upgrade LUMI module to 24.03 and to eccodes 2.39.0
+
+AQUA diagnostics complete list:
+- Old AtmoGlobalMean and Radiation diagnostics removed (#1622)
+- `--catalog` is accepted by all the diagnostics altough it is not used by all of them yet (#1619)
+- Timeseries: enabled region selection in the CLI (#1564)
+- Ocean3d: Bugfix of values for Ocean trend function (#1583)
+- Biases and Radiation: Refactoring of Bias and Radiation Diagnostics (#1243)
+- Biases and Radiation: Fix Seasonal Bias Output in global_biases for NetCDF Saving Compatibility and other fixes (#1585, #1604, #1628)
+- Biases and Radiation: Adding `save_netcdf` flag and function (#1510)
+- Biases and Radiation: Integrating Updated OutputSaver (#1487)
+
+## [v0.13-beta]
+
+Main changes are:
+1. All the diagnostics are now compatible with the new fixes and eccodes version.
+2. Full compatibility with HealPix grids and the new CDO version.
+3. Major improvements in the Ocean3D diagnostic.
+
+AQUA core complete list:
+- Safety checks and error messages on FDB folders (#1512)
+- Refreshed internal `to_list` function (#1512)
+- Reorganizing and extending CI/CD catalog with 5 years of hpz3 data from ERA5 (atm) and FESOM (oce) (#1552)
+- Version info in a separate module (#1546) 
+- Corrected `tcc` units to % (#1551)
+- Fix pdf attributes (#1547)
+- Catgen fixes (#1536)
+- Introduced fixer for ClimateDT phase 2 (#1536)
 - `aqua_analysis.py` using a common central dask cluster (#1525)
 - Added the `cdo_options: "--force"` to the definitions of the oceanic HealPix grids (#1539)
 
 AQUA diagnostic complete list:
-- Minor fix to allow Ocean3D to read new variable names (#1540)
+- ECmean: Integrating the performance indices and global mean within the `aqua_diagnostics` module (#1556)
+- Teleconnections: The `teleconnections` diagnostic is now integrated in the `aqua_diagnostics` module (#1352)
+- Teleconnections: OutputSaver for the teleconnections diagnostic (#1567, #1570)
+- Ocean3d: Fix to improve memory usage and cli (#1490)
+- Seaice: Fix to read sithick as fallback instead of sivol (#1543)
+- Ocean3d: Minor fix to allow to read new variable names (#1540)
+- Timeseries: The `timeseries` diagnostic is now integrated in the `aqua_diagnostics` module (#1340)
+- Timeseries: Integrating Updated OutputSaver (#1492)
 
 ## [v0.13-alpha]
 
@@ -25,6 +76,7 @@ Main changes are:
 3. The FDB reader always rely on paramids, so that support for eccodes 2.39.0 and backward compatibility is ensured.
 
 AQUA core complete list:
+- push-analysis.sh maintenance (#1555)
 - Added the `cdo_options: "--force"` to the definitions of the HealPix grids (#1527)
 - Removing default fixes (#1519)
 - Support for eccodes=2.39.0 with full fixes refactoring (#1519)
@@ -47,8 +99,6 @@ AQUA core complete list:
 - Introduce `grids-checker.py` tool to verify presence and checksum of the grid files (#1486)
 
 AQUA diagnostic complete list:
-- Timeseries: The `timeseries` diagnostic is now integrated in the `aqua_diagnostics` module (#1340)
-- Integrating Updated OutputSaver into Timeseries (#1492)
 - Tropical Cyclones: Adaptation to IFS-FESOM and tool to compute orography from data (#1393)
 - Seaice: Hotfix for sea ice plots (#1432)
 
@@ -728,7 +778,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-alpha...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-beta...HEAD
+[v0.13-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-alpha...v0.13-beta
 [v0.13-alpha]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.12.2...v0.13-alpha
 [v0.12.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.12.1...v0.12.2
 [v0.12.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.12...v0.12.1

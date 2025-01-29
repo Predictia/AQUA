@@ -31,7 +31,7 @@ def load_and_prepare(tmp_path, model, kind, reso, num_of_realizations=1):
         'kind': kind, 
         'resolution': reso,
         'num_of_realizations': num_of_realizations
-    }
+    } 
     config = load_yaml(config_file, definitions)
     model_config = f'{tmp_path}/test.yaml'
     
@@ -52,7 +52,7 @@ def load_and_prepare(tmp_path, model, kind, reso, num_of_realizations=1):
         raise  # Re-raise the exception to allow for higher-level handling if necessary
     except Exception as e:
         # Catch other unforeseen exceptions
-        logging.error(f"Unexpected error: %", e)
+        logging.error("Unexpected error: %s", e)
         raise
 
     model = config['model']
@@ -106,9 +106,9 @@ def test_catgen_reduced(tmp_path, model, nsources, nocelevels):
     assert sources['sources'][f'monthly-{grid}-atm3d']['parameters']['realization']['allowed'] == [*range(1, ensemble+1)]
 
 @pytest.mark.parametrize(('model,nsources,nocelevels'),
-                        [('IFS-NEMO', 30, 75),
-                         ('IFS-FESOM', 34, 69),
-                         ('ICON', 17, 72)])
+                        [('IFS-NEMO', 28, 75),
+                         ('IFS-FESOM', 31, 69),
+                         ('ICON', 31, 72)])
 @pytest.mark.catgen
 def test_catgen_production(tmp_path, model, nsources, nocelevels):
     """test for production portfolio"""
