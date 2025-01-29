@@ -189,10 +189,10 @@ class GSVSource(base.DataSource):
                 self.logger.warning("A speedup of data retrieval could be achieved by specifying the levels keyword in metadata.")
         
         # getting bridge data
-        self.bridge_end_date = read_bridge_date(bridge_end_date)# Reads from file if possible
+        self.bridge_end_date = read_bridge_date(bridge_end_date)  # Reads from file if possible
         self.bridge_start_date = read_bridge_date(bridge_start_date)
 
-        # safety checks on the bridge
+        # set bridge bounds if not specified
         if self.bridge_start_date == 'complete' or self.bridge_end_date == 'complete':
             self.bridge_start_date = data_start_date
             self.bridge_end_date = data_end_date

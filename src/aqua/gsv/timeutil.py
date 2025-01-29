@@ -269,8 +269,6 @@ def floor_datetime(dt, freq, output_format="%Y%m%dT%H%M"):
 
     if not isinstance(dt, pd.Timestamp):
         dt = pd.Timestamp(str(dt))
-    elif not isinstance(dt, (pd.Timestamp, pd.DatetimeIndex, pd.Timestamp)):
-        raise TypeError("Input must be a datetime-like object or string.")
 
     if freq in ['M', 'MS']:  # Floor to the first of the month
         dt = pd.Timestamp(dt.year, dt.month, 1)
