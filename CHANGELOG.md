@@ -12,7 +12,7 @@ Deprecated:
 - `cli_dummy.py` script is deprecated and will be removed in the next release. Use the `cli_checker.py` instead.
  
 AQUA core complete list:
-
+- Safety checks for dates according to frequency for HPC and bridge in intake GSV (#1636)
 - Experiment metadata for aqua-web and dashboard from catalog entry (#1633)
 - Automatic identification of ocean grid in the catalog generator (#1621)
 - `OutputSaver` can deduce the catalog name from the model, exp (#1627)
