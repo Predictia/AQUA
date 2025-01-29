@@ -128,63 +128,69 @@ def main():
         var_attributes = config["biases_plot_params"]['bias_maps'].get(var_name, {})
         vmin, vmax = var_attributes.get('vmin'), var_attributes.get('vmax')
 
+        if 'plev' in data[var_name].dims and plev:
+            plev_list = [plev] if isinstance(plev, (int, float)) else plev
+        else:
+            plev_list = [] 
+
         try:
-            global_biases = GlobalBiases(data=data, data_ref=data_obs, var_name=var_name, plev=plev, loglevel=loglevel,
-                                         model=model_data, exp=exp_data, startdate_data=startdate_data,
-                                         enddate_data=enddate_data, model_obs=model_obs,
-                                         startdate_obs=startdate_obs, enddate_obs=enddate_obs)
+            for plev in plev_list:
+                global_biases = GlobalBiases(data=data, data_ref=data_obs, var_name=var_name, plev=plev, loglevel=loglevel,
+                                            model=model_data, exp=exp_data, startdate_data=startdate_data,
+                                            enddate_data=enddate_data, model_obs=model_obs,
+                                            startdate_obs=startdate_obs, enddate_obs=enddate_obs)
 
-            # Define common save arguments
-            common_save_args = {'var': var_name, 'dpi': dpi,
-                                'catalog_2': reader_obs.catalog, 'model_2': model_obs, 'exp_2': exp_obs,
-                                'time_start': startdate_data, 'time_end': enddate_data}
+                # Define common save arguments
+                common_save_args = {'var': var_name, 'dpi': dpi,
+                                    'catalog_2': reader_obs.catalog, 'model_2': model_obs, 'exp_2': exp_obs,
+                                    'time_start': startdate_data, 'time_end': enddate_data}
 
-            # Total bias plot
-            result = global_biases.plot_bias(vmin=vmin, vmax=vmax)
-            if result:
-                fig, ax, netcdf = result
-                description = (
-                        f"Spatial map of the total bias of the variable {var_name} from {startdate_data} to {enddate_data} "
-                        f"for the {model_data} model, experiment {exp_data} from the {reader.catalog} catalog, with {model_obs} "
-                        f"(experiment {exp_obs}, catalog {reader_obs.catalog}) used as reference data. "
-                    )
-                metadata = {"Description": description}
-                if save_netcdf:
-                    output_saver.save_netcdf(dataset=netcdf, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
-                if save_pdf:
-                    output_saver.save_pdf(fig=fig, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
-                if save_png:
-                    output_saver.save_png(fig=fig, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
-            else:
-                logger.warning(f"Total bias plot not generated for {var_name}.")
-
-            # Seasonal bias plot
-            if seasons_bool:
-                result = global_biases.plot_seasonal_bias(vmin=vmin, vmax=vmax)
+                # Total bias plot
+                result = global_biases.plot_bias(vmin=vmin, vmax=vmax)
                 if result:
                     fig, ax, netcdf = result
                     description = (
-                        f"Seasonal bias map of the variable {var_name} for the {model_data} model, experiment {exp_data} "
-                        f"from the {reader.catalog} catalog, using {model_obs} (experiment {exp_obs}, catalog {reader_obs.catalog}) as reference data. "
-                        f"The bias is computed for each season over the period from {startdate_data} to {enddate_data}, "
-                        f"providing insights into seasonal discrepancies between the model and the reference. "
-                    )
+                            f"Spatial map of the total bias of the variable {var_name} from {startdate_data} to {enddate_data} "
+                            f"for the {model_data} model, experiment {exp_data} from the {reader.catalog} catalog, with {model_obs} "
+                            f"(experiment {exp_obs}, catalog {reader_obs.catalog}) used as reference data. "
+                        )
                     metadata = {"Description": description}
                     if save_netcdf:
-                        output_saver.save_netcdf(dataset=netcdf, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
+                        output_saver.save_netcdf(dataset=netcdf, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
                     if save_pdf:
-                        output_saver.save_pdf(fig=fig, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
+                        output_saver.save_pdf(fig=fig, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
                     if save_png:
-                        output_saver.save_png(fig=fig, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
+                        output_saver.save_png(fig=fig, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
                 else:
-                    logger.warning(f"Seasonal bias plot not generated for {var_name}.")
+                    logger.warning(f"Total bias plot not generated for {var_name}.")
+
+                # Seasonal bias plot
+                if seasons_bool:
+                    result = global_biases.plot_seasonal_bias(vmin=vmin, vmax=vmax)
+                    if result:
+                        fig, ax, netcdf = result
+                        description = (
+                            f"Seasonal bias map of the variable {var_name} for the {model_data} model, experiment {exp_data} "
+                            f"from the {reader.catalog} catalog, using {model_obs} (experiment {exp_obs}, catalog {reader_obs.catalog}) as reference data. "
+                            f"The bias is computed for each season over the period from {startdate_data} to {enddate_data}, "
+                            f"providing insights into seasonal discrepancies between the model and the reference. "
+                        )
+                        metadata = {"Description": description}
+                        if save_netcdf:
+                            output_saver.save_netcdf(dataset=netcdf, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
+                        if save_pdf:
+                            output_saver.save_pdf(fig=fig, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
+                        if save_png:
+                            output_saver.save_png(fig=fig, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
+                    else:
+                        logger.warning(f"Seasonal bias plot not generated for {var_name}.")
 
             # Vertical bias plot
             if vertical and 'plev' in data[var_name].dims:
                 var_attributes_vert = config["biases_plot_params"]['vertical_plev'].get(var_name, {})
                 vmin, vmax = var_attributes_vert.get('vmin'), var_attributes_vert.get('vmax')
 
-                result = global_biases.plot_vertical_bias(var_name=var_name, vmin=vmin, vmax=vmax)
+                result = global_biases.plot_vertical_bias(data=data, data_ref=data_obs, var_name=var_name, vmin=vmin, vmax=vmax)
                 if result:
                     fig, ax, netcdf = result
                     description = (
@@ -203,10 +209,8 @@ def main():
                         output_saver.save_png(fig=fig, diagnostic_product='vertical_bias', metadata=metadata, **common_save_args)
                 else:
                     logger.warning(f"Vertical bias plot not generated for {var_name}.")
-
         except Exception as e:
             logger.error(f"Error processing {var_name}: {e}")
-
     if client:
         client.close()
         logger.debug("Dask client closed.")
