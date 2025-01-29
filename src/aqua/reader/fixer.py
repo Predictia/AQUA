@@ -635,7 +635,7 @@ class FixerMixin():
         # First case: get from metadata
         metadata_deltat = self.esmcat.metadata.get('deltat')
         if metadata_deltat:
-                self.logger.debug('deltat = %s read from metadata', self.deltat)
+                self.logger.debug('deltat = %s read from metadata', metadata_deltat)
                 return metadata_deltat
 
         # Second case if not available: get from fixes
@@ -645,6 +645,7 @@ class FixerMixin():
             return fix_deltat
         
         # Third case: get from default
+        self.logger.debug('deltat = %s defined as Reader() default', self.deltat)
         return self.deltat
 
     def _delete_variables(self, data):
