@@ -77,7 +77,7 @@ if __name__ == '__main__':
     models[0]['source'] = get_arg(args, 'source', models[0]['source'])
 
     logger.debug("Analyzing models:")
-    models_list, exp_list, datasets = [], [], []
+    catalog_list, models_list, exp_list, datasets = [], [], [], []
     variables = config['diagnostic_attributes'].get('variables', ['-tnlwrf', 'tnswrf'])
 
     for model in models:
@@ -89,6 +89,7 @@ if __name__ == '__main__':
             logger.critical("Radiation diagnostic is terminated.")
             sys.exit(0)
         datasets.append(dataset)
+        catalog_list.append(reader.catalog)
         models_list.append(model['model'])
         exp_list.append(model['exp'])
 
@@ -109,11 +110,10 @@ if __name__ == '__main__':
     result = radiation.boxplot(datasets=datasets, model_names=models_list, variables=variables)
 
     description = (
-        f"Boxplot of radiation variables ({', '.join(variables)}) for the period defined in the configuration file. "
-        f"The analysis includes the {models_list[0]} model (experiment {exp_list[0]}) from the provided catalog, "
-        f"alongside other models defined in the configuration ({', '.join(models_list[1:])} if applicable). "
-        f"This boxplot provides a comparison of radiation fluxes across the models, allowing an evaluation of "
-        f"the variability and bias among different datasets. "
+        f"Boxplot of radiation variables ({', '.join(variables)}) "
+        f"The analysis includes the {models_list[0]} model (experiment {exp_list[0]}) from {catalog_list[0]}, "
+        f"along with additional models {', '.join(models_list[1:])}. "
+        f"This boxplot compares radiation fluxes across different models, highlighting variability and potential biases. "
     )
     metadata = {"Description": description}
     if result:
