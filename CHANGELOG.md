@@ -13,6 +13,7 @@ Deprecated:
  
 AQUA core complete list:
 
+- Output dir including catalogue for aqua-analysis.py (#1640)
 - Experiment metadata for aqua-web and dashboard from catalog entry (#1633)
 - Automatic identification of ocean grid in the catalog generator (#1621)
 - `OutputSaver` can deduce the catalog name from the model, exp (#1627)
