@@ -12,6 +12,7 @@ Deprecated:
 - `cli_dummy.py` script is deprecated and will be removed in the next release. Use the `cli_checker.py` instead.
  
 AQUA core complete list:
+- Experiment and dashboard metadata are now created with the catalog generator (#1637)
 - Automatic identification of ocean grid in the catalog generator (#1621)
 - `OutputSaver` can deduce the catalog name from the model, exp (#1627)
 - Pin zarr<3.0.0 to avoid breaking changes (#1625)
