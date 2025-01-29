@@ -406,7 +406,7 @@ class Timeseries():
                 output_saver.save_netcdf(self.data_annual[i], frequency='annual', **common_save_args)
 
         if self.plot_ref:
-            output_saver_ref = self._get_output_saver(model=self.plot_ref_kw['model'], exp=self.plot_ref_kw['exp'])
+            output_saver_ref = self._get_output_saver(catalog=self.plot_ref_kw['catalog'], model=self.plot_ref_kw['model'], exp=self.plot_ref_kw['exp'])
             common_save_args = self._get_common_save_args()
             common_save_args.pop('dpi', None)
 
@@ -474,7 +474,7 @@ class Timeseries():
         if self.plot_ref:
             description += f" with {ref_label} as reference,"
             if self.std_startdate is not None and self.std_enddate is not None:
-                description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}" # noqa
+                description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}." # noqa
             else:
                 description += " std evaluated from the full time range."
         if self.extending_ref_range:

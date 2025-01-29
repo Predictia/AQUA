@@ -9,14 +9,15 @@ data:
 
 obs: 
   catalog: null
-  model: 'ERA5'
-  exp: 'era5'
+  model: 'CERES'
+  exp: 'ebaf-toa41'
   source: 'monthly'
 
 output:
   outputdir: "./"
   rebuild: true
-  filename_keys: null # or, for example,  ['diagnostic', 'catalog', 'model', 'diagnostic_product', 'var']
+  filename_keys: ['diagnostic', 'diagnostic_product', 'catalog', 'model', 'exp',
+                  'var', 'model_2', 'exp_2', 'catalog_2', 'area', 'time_precision'] # null or, for example,  ['diagnostic', 'catalog', 'model', 'diagnostic_product', 'var']
   save_netcdf: true
   save_pdf: true
   save_png: true
@@ -28,9 +29,9 @@ diagnostic_attributes:
   seasons: False
   seasons_stat: 'mean'
   vertical: False
-  startdate_data: "1990-01-01"
-  enddate_data: "1998-11-01"
-  startdate_obs: "1990-01-01" 
+  startdate_data: null
+  enddate_data: null
+  startdate_obs: "2000-01-01" 
   enddate_obs: "2020-12-31"
 
 # Here you can specify the colorbar limits for each variable

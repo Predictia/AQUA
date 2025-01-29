@@ -13,11 +13,12 @@ def test_class_gregory():
     """
     Test that the GregoryPlot class works
     """
+    catalogs = ['ci']
     models = ['ERA5']
     exps = ['era5-hpz3']
     sources = ['monthly']
 
-    gp = GregoryPlot(models=models, exps=exps, sources=sources,
+    gp = GregoryPlot(catalogs=catalogs, models=models, exps=exps, sources=sources,
                      loglevel=loglevel, ref=False)
 
     assert gp.ts_name == '2t'

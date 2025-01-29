@@ -8,12 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 Deprecated:
-- `aqua-analysis.sh` script is deprecated and will be removed in the next release. Use the `aqua-analysis.py` instead.
+- `aqua-analysis.sh` script is deprecated and has been removed. Use `aqua-analysis.py` instead.
 - `cli_dummy.py` script is deprecated and will be removed in the next release. Use the `cli_checker.py` instead.
  
 AQUA core complete list:
 - `deltat` for fixer can now be specified in source metadata and not only in fixes (#1626)
 - LRA generator integrates ``--rebuild`` flag to regenerate areas and weights. The `--autosubmit` option is removed (#1623)
+- Safety checks for dates according to frequency for HPC and bridge in intake GSV (#1636)
+- Experiment metadata for aqua-web and dashboard from catalog entry (#1633)
+- Automatic identification of ocean grid in the catalog generator (#1621)
+- `OutputSaver` can deduce the catalog name from the model, exp (#1627)
+- Pin zarr<3.0.0 to avoid breaking changes (#1625)
+- LRA generator integrates ``-rebuild`` option to regenerate areas and weights. The `--autosubmit` option is removed (#1623)
 - Units utility are now functions and not methods of FixerMixin (#1558)
 - New `cli_checker.py` tool to check the existance of the required model in the catalog and rebuild the area files (#1619)
 - Update the catalog generator to align with changes in the data portfolio (#1593)
@@ -24,11 +30,12 @@ AQUA core complete list:
 - Upgrade LUMI module to 24.03 and to eccodes 2.39.0
 
 AQUA diagnostics complete list:
+- Old AtmoGlobalMean and Radiation diagnostics removed (#1622)
 - `--catalog` is accepted by all the diagnostics altough it is not used by all of them yet (#1619)
 - Timeseries: enabled region selection in the CLI (#1564)
 - Ocean3d: Bugfix of values for Ocean trend function (#1583)
 - Biases and Radiation: Refactoring of Bias and Radiation Diagnostics (#1243)
-- Biases and Radiation: Fix Seasonal Bias Output in global_biases for NetCDF Saving Compatibility and other fixes (#1585, #1604)
+- Biases and Radiation: Fix Seasonal Bias Output in global_biases for NetCDF Saving Compatibility and other fixes (#1585, #1604, #1628)
 - Biases and Radiation: Adding `save_netcdf` flag and function (#1510)
 - Biases and Radiation: Integrating Updated OutputSaver (#1487)
 

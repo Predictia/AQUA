@@ -1,11 +1,4 @@
 diagnostic_config = {
-    'atmglobalmean': [
-        {
-            'config_file': 'atm_mean_bias_config.yaml',
-            'source_path': 'diagnostics/atmglobalmean/cli/config',
-            'target_path': 'diagnostics/atmglobalmean/cli'
-        },
-    ],
     'global_biases': [
         {
             'config_file': 'config_global_biases.yaml',
@@ -90,11 +83,6 @@ diagnostic_config = {
         }
     ],
     'radiation': [
-        {
-            'config_file': 'radiation_config.yml',
-            'source_path': 'diagnostics/radiation/cli/config',
-            'target_path': 'diagnostics/radiation/cli'
-        },
         {
             'config_file': 'config_radiation-boxplots.yaml',
             'source_path': 'config/diagnostics/radiation',
