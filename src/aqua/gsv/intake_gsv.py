@@ -10,7 +10,7 @@ from ruamel.yaml import YAML
 from aqua.util.eccodes import get_eccodes_attr
 from aqua.util import to_list
 from intake.source import base
-from .timeutil import check_dates, shift_time_dataset, todatetime, read_bridge_date
+from .timeutil import check_dates, shift_time_dataset, floor_datetime, read_bridge_date
 from .timeutil import split_date, make_timeaxis, date2str, date2yyyymm, add_offset
 from aqua.logger import log_configure, _check_loglevel
 
@@ -187,22 +187,34 @@ class GSVSource(base.DataSource):
                     self.onelevel = True  # If yes we can afford to read only one level
             else:
                 self.logger.warning("A speedup of data retrieval could be achieved by specifying the levels keyword in metadata.")
-
-        self.data_start_date = data_start_date
-        self.data_end_date = data_end_date
-        self.startdate = startdate
-        self.enddate = enddate
-
+        
+        # getting bridge data
         self.bridge_end_date = read_bridge_date(bridge_end_date)  # Reads from file if possible
         self.bridge_start_date = read_bridge_date(bridge_start_date)
 
+        # set bridge bounds if not specified
         if self.bridge_start_date == 'complete' or self.bridge_end_date == 'complete':
-            self.bridge_start_date = self.data_start_date
-            self.bridge_end_date = self.data_end_date
+            self.bridge_start_date = data_start_date
+            self.bridge_end_date = data_end_date
         if not self.bridge_start_date and self.bridge_end_date:
             self.bridge_start_date = data_start_date
         if not self.bridge_end_date and self.bridge_start_date:
             self.bridge_end_date = data_end_date
+
+        # flooring to the frequency the time to ensure that hourly, daily and monthly data
+        # are read at the right time frequency
+        self.data_start_date = floor_datetime(data_start_date, savefreq)
+        self.data_end_date = floor_datetime(data_end_date, savefreq)
+        self.bridge_end_date = floor_datetime(self.bridge_end_date, savefreq)
+        self.bridge_start_date = floor_datetime(self.bridge_start_date, savefreq)
+
+        # starting dates
+        self.startdate = startdate
+        self.enddate = enddate
+
+        self.logger.debug('Data frequency (i.e. savefreq): %s', savefreq)
+        self.logger.debug('Start_date: %s, End_date: %s, Bridge_start_date: %s, Bridge_end_date: %s',
+            self.data_start_date, self.data_end_date, self.bridge_start_date, self.bridge_end_date)
 
         timeaxis = make_timeaxis(self.data_start_date, self.startdate, self.enddate,
                             shiftmonth=self.timeshift, timestep=timestep,
