@@ -322,7 +322,7 @@ class AquaFDBGenerator:
                 'dashboard': {
                     'menu': self.config['menu'] if 'menu' in self.config and self.config['menu'] else self.config['exp'],
                     'resolution_id': resolution_id,
-                    'note': self.config['note']
+                    'note': self.config.get('note')
                 }
             },
             'driver': 'yaml_file_cat',
