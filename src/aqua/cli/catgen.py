@@ -53,6 +53,7 @@ class AquaFDBGenerator:
         #self.portfolio = self.config["portfolio"]
         self.resolution = self.config["resolution"]
         self.ocean_grid = self.config.get("ocean_grid") 
+        self.atm_grid = self.config.get("atm_grid")
         self.num_of_realizations = int(self.config.get("num_of_realizations", 1))
 
         #sefaty check
@@ -157,6 +158,17 @@ class AquaFDBGenerator:
         }
         return freq2time[frequency]
 
+    @staticmethod
+    def get_value_from_map(value, value_map, value_type):
+        """
+        Get the value from the map based on the value type.
+        """
+        result = value_map.get(value)
+        if not result:
+            raise ValueError(f"Unexpected {value_type}: {value}")
+        return result
+
+
     def load_jinja_template(self, template_file):
         """
         Load a Jinja2 template.
@@ -208,6 +220,11 @@ class AquaFDBGenerator:
             self.ocean_grid = self.matching_grids['ocean_grid'][self.model][self.resolution]
             if self.ocean_grid is None:
                 raise ValueError(f"No ocean grid available for: {self.model} {self.resolution}")
+
+        if not self.atm_grid:
+            self.atm_grid = self.matching_grids['atm_grid'][self.model][self.resolution]
+            if self.atm_grid is None:
+                raise ValueError(f"No atmospheric grid available for: {self.model} {self.resolution}")
                 
         grid_mappings = self.matching_grids['grid_mappings']
         levtype = profile["levtype"]
@@ -265,13 +282,49 @@ class AquaFDBGenerator:
         dump_yaml(output_path, all_content)
         self.logger.info("File %s has been created in %s", output_filename, output_dir)
 
+        # Update main.yaml
         main_yaml_path = os.path.join(output_dir, 'main.yaml')
         if not os.path.exists(main_yaml_path):
             main_yaml = {'sources': {}}
         else:
             main_yaml = load_yaml(main_yaml_path)
+
+        resolution_map = {
+            'production': 'HR',
+            'develop': 'SR',
+            'lowres': 'LR',
+            'intermediate': 'MR'
+        }
+        
+        resolution_id = self.get_value_from_map(self.config['resolution'], resolution_map, 'resolution')
+
+        forcing_map = {
+            'hist': 'historical',
+            'cont': 'control',
+            'SSP3-7.0': 'ssp370'
+        }
+
+        forcing = self.config.get('forcing') or self.get_value_from_map(self.config['experiment'], forcing_map, 'experiment')
+
         main_yaml['sources'][self.config['exp']] = {
-            'description': self.config['description'],
+            'description': (
+                self.config['description']
+                if 'description' in self.config and self.config['description']
+                else f"{self.model} {self.config['exp']}, {self.config['data_start_date'][:4]}, "
+                     f"grids: {self.atm_grid} {self.ocean_grid}"
+            ),
+            'metadata': {
+                'expid': self.config['expver'],
+                'resolution_atm': self.atm_grid,
+                'resolution_oce': self.ocean_grid,
+                'forcing': forcing,
+                'start': self.config['data_start_date'][:4], #year only
+                'dashboard': {
+                    'menu': self.config['menu'] if 'menu' in self.config and self.config['menu'] else self.config['exp'],
+                    'resolution_id': resolution_id,
+                    'note': self.config['note']
+                }
+            },
             'driver': 'yaml_file_cat',
             'args': {
                 'path': f"{{{{CATALOG_DIR}}}}/{self.config['exp']}.yaml"
@@ -280,6 +333,26 @@ class AquaFDBGenerator:
         dump_yaml(main_yaml_path, main_yaml)
         self.logger.info("%s entry in 'main.yaml' has been updated in %s", self.config['exp'], output_dir)
 
+        # Update catalog.yaml if a new model is added
+        catalog_yaml_path = os.path.join(self.catalog_dir_path, 'catalogs',  self.config['catalog_dir'], 'catalog.yaml')
+        catalog_yaml = load_yaml(catalog_yaml_path)
+
+        if catalog_yaml.get('sources') is None:
+            catalog_yaml['sources'] = {}
+
+        if self.model not in catalog_yaml.get('sources', {}):  
+            catalog_yaml.setdefault('sources', {}) 
+            catalog_yaml['sources'][self.model.upper()] = {
+                'description': f"{self.model.upper()} model",
+                'driver': 'yaml_file_cat',
+                'args': {
+                    'path': f"{{{{CATALOG_DIR}}}}/catalog/{self.model.upper()}/main.yaml"
+                }
+            }
+            dump_yaml(catalog_yaml_path, catalog_yaml)
+            self.logger.info("%s entry in 'catalog.yaml' has been created at %s", self.model, catalog_yaml_path)
+
+
     def generate_catalog(self):
         """
         Generate the entire catalog by processing profiles and resolutions.
@@ -287,9 +360,9 @@ class AquaFDBGenerator:
         all_content = {'sources': {}}
 
         # Retrieve available resolutions for the current model
-        grid_resolutions = self.get_available_resolutions(self.local_grids, self.model)
+        self.grid_resolutions = self.get_available_resolutions(self.local_grids, self.model)
         
-        if not grid_resolutions:
+        if not self.grid_resolutions:
             self.logger.error('No resolutions found, generating an empty file!')
             return
 
@@ -297,7 +370,7 @@ class AquaFDBGenerator:
 
             # Filter out omitted resolutions, if any
             current_resolutions = [
-                res for res in grid_resolutions 
+                res for res in self.grid_resolutions 
                 if 'omit-resolutions' not in profile or res not in profile['omit-resolutions']
             ]
 
