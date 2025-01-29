@@ -23,7 +23,7 @@ class TrendCalculator:
         logger.debug("Creating Array representing time indices")
         
         # Create time indices as a Dask array
-        time_indices = da.from_array(np.arange(1, len(data["time"]) + 1), chunks=len(data["time"]))
+        time_indices = da.arange(1, len(data["time"]) + 1, chunks=len(data["time"]))
         
         time_indices = xr.DataArray(
             time_indices,
@@ -161,24 +161,6 @@ class TrendCalculator:
         trend = xr.where(n >= 3, trend, np.nan)
         return trend
     
-    def chunking_trend(data, loglevel="WARNING"):
-        lon_chunks = [
-            slice(0, 60), slice(60, 120), slice(120, 180), slice(180, 240), slice(240, 300), slice(300, 360)
-            ]
-
-        # Define finer latitude chunks (every 45 degrees)
-        lat_chunks = [
-            slice(0, 45), slice(45, 90), slice(90, 135), slice(135, 180)
-            ]
-
-        for lon in lon_chunks:
-            for lat in lat_chunks:
-                subset = data.isel(lon=lon, lat=lat)
-                print(f"exporing file: subset_{lon.start}_{lat.start}.nc")
-                subset.to_netcdf(f"subset_{lon.start}_{lat.start}.nc")
-
-        data = xr.open_mfdataset("subset_*.nc", combine="by_coords")
-        return data
 
     def trend_from_polyfit(data, loglevel="WARNING"):
         """
@@ -204,8 +186,7 @@ class TrendCalculator:
             # Perform the polyfit to calculate the trend (slope)
             poly_coeffs = data.polyfit(dim="time", deg=1)
             
-            # Extract the trend (degree=0) for the variable
-            trend_dict[var] = poly_coeffs[f"{var}_polyfit_coefficients"].sel(degree=0)
+            trend_dict[var] = poly_coeffs[f"{var}_polyfit_coefficients"].sel(degree=1)
             trend_dict[var].attrs = data[var].attrs
             # Apply necessary adjustments for time frequency if needed (optional)
             trend_dict[var] = TrendCalculator.adjust_trend_for_time_frequency(trend_dict[var], data[var], loglevel=loglevel)
@@ -237,9 +218,7 @@ class TrendCalculator:
         TS_3dtrend_data = TrendCalculator.lintrend_3D(data, loglevel= loglevel)
         # TS_3dtrend_data = TrendCalculator.trend_from_polyfit(data, loglevel= loglevel)
         TS_3dtrend_data.attrs = data.attrs
-        # TS_3dtrend_data = TrendCalculator.chunking_trend(TS_3dtrend_data, loglevel= loglevel)
         logger.debug("Trend value calculated")
-        # TS_3dtrend_data = TS_3dtrend_data.coarsen(lat=2, lon=2, boundary="trim").mean()
         return TS_3dtrend_data
 
 
@@ -260,11 +239,13 @@ class multilevel_trend:
         """
         self._define_levels()
         fig, axs = self._create_subplot_fig(len(self.levels))
+        data = data.interp(lev=self.levels).compute()
         self._plot_contourf(data, axs)
         self._format_plot_axes(axs)
         self._add_plot_title()
         if self.output:
             self._save_plot_data(data)
+        plt.close()
         return
 
     def _define_levels(self):
@@ -292,10 +273,6 @@ class multilevel_trend:
         """
         Plots contourf for temperature and salinity at different levels.
         """
-        data = data.interp(lev=self.levels).persist()
-        # print("export_trend")
-        # data.to_zarr("test.zarr", consolidated=True)
-        # print("exported_trend")
         for levs in range(len(self.levels)):
             subset_data = data.sel(lev=self.levels[levs])
             subset_data["thetao"].plot.contourf(cmap="coolwarm", ax=axs[levs, 0], levels=18)
@@ -324,7 +301,7 @@ class multilevel_trend:
         Adds title to the plot.
         """
         region_title = custom_region(region=self.region, lat_s=self.lat_s, lat_n=self.lat_n, lon_w=self.lon_w, lon_e=self.lon_e)
-        self.title = f'Linear Trends of T,S at different depths in the {region_title}'
+        self.title = f'Linear Trends of T,S at different depths in the {region_title} ({self.data.time.dt.year[0].values}-{self.data.time.dt.year[-1].values})'
         plt.suptitle(self.title, fontsize=24)
         return
 
@@ -385,7 +362,7 @@ class zonal_mean_trend:
         # Set the title
         region_title = custom_region(region=self.region, lat_s=self.lat_s, lat_n=self.lat_n,
                                      lon_w=self.lon_w, lon_e=self.lon_e)
-        title = f"Zonally-averaged long-term trends in the {region_title}"
+        title = f"Zonally-averaged long-term trends in the {region_title} ({self.data.time.dt.year[0].values}-{self.data.time.dt.year[-1].values})"
         fig.suptitle(title, fontsize=20)
         plt.subplots_adjust(top=0.85)
 
@@ -395,5 +372,5 @@ class zonal_mean_trend:
                                    plot_name=f"{self.model}-{self.exp}-{self.source}_zonal_mean_trend")
             write_data(self.output_dir, filename, data)
             export_fig(self.output_dir, filename, "pdf", metadata_value=title, loglevel=self.loglevel)
-
+        plt.close()
         return
