@@ -27,7 +27,7 @@ job:
     outputdir: "${AQUA}/cli/aqua-analysis/output" 
 
     # Default values, overriden from command line arguments
-    catalog: "climatedt-phase1"  # The catalog to use for the analysis
+    catalog: null  # The catalog to use for the analysis
     model: "IFS-NEMO"
     exp: "historical-1990"
     source: "lra-r100-monthly"
