@@ -31,10 +31,14 @@ are specified in the configuration file ``config.aqua-analysis.yaml`` in the sam
 Additional options
 ------------------
 
-Some options are available to launch the script without having to modify the script itself,
-so that the script can be used in a batch job or in a workflow.
+Some options are available to launch the script without having to modify the config file,
+so that the script can be used in a batch job or in a workflow. These override corresponding options in the config file.
 
-.. option:: -m <model>
+.. option:: -c <catalog>, --catalog <catalog>
+
+    The catalog to use.
+
+.. option:: -m <model>, --model <model>
 
     The  model to use.
 
@@ -46,20 +50,13 @@ so that the script can be used in a batch job or in a workflow.
 
     The source to use.
 
-.. option:: -c <catalog>, --catalog <catalog>
-
-    The catalog to use.
-    Default is using the catalog currently defined by the AQUA console.
-
 .. option:: -f <config>, --config <source>
 
     The config file to use.
 
 .. option:: -d <dir>, --outputdir <dir>
 
-    The output directory to use.
-    Default is ``$AQUA/cli/aqua-analysis/output``.
-    Prefer to use an absolute path.
+    The output directory to use. Better to use an absolute path.
 
 .. option:: -l <loglevel>, --loglevel <loglevel>
 
@@ -84,7 +81,7 @@ so that the script can be used in a batch job or in a workflow.
 .. note ::
 
     By default the script will run all the state-of-the-art diagnostics available in AQUA.
-    It is possible to run only a subset of the diagnostics by modifying the script itself.
+    It is possible to run only a subset of the diagnostics by modifying the ``run`` key in the configuration file.
 
 Configuration file
 ------------------
@@ -111,11 +108,11 @@ The job section contains the following keys:
 - ``model``: the model to use. Default is ``IFS-NEMO``
 - ``exp``: the experiment to use. Default is ``historical-1990``
 - ``source``: the source to use. Default is ``lra-r100-monthly``
-- ``script_base_path``: the path to the diagnostic scripts. Default is ``${AQUA}/cli/aqua-analysis/output``, but it is going to be updated.
+- ``script_path_base``: the base path for the diagnostic scripts. Default is ``${AQUA}/diagnostics``, but it is going to be updated.
 
 .. note::
 
-    The ``model``, ``exp`` and ``source`` keys are used only if the corresponding command line arguments are not provided.
+    The ``catalog``, ``model``, ``exp`` and ``source`` keys are used only if the corresponding command line arguments are not provided.
 
 Cluster
 ^^^^^^^
@@ -139,6 +136,7 @@ A ``run`` list contains the diagnostics to run. By default, all the diagnostics 
 The diagnostics are specified as a dictionary with the following keys:
 
 - ``nworkers``: the number of workers to use for this diagnostic.
-- ``script_path``: the path to the diagnostic script with respect to the ``script_base_path``.
+- ``script_path``: the relative path to the diagnostic script with respect to ``script_path_base``. 
+- ``config``: the configuration file for the diagnostic.
 - ``extra``: a string with extra arguments to pass to the diagnostic script.
 - ``outname``: the name of the output folder if different from the diagnostic name.
