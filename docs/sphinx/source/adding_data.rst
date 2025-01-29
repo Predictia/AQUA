@@ -108,6 +108,7 @@ Finally, the ``metadata`` entry contains optional additional information useful 
 
     - ``source_grid_name``: the grid name defined in ``aqua-grids.yaml`` to be used for areas and regridding
     - ``fixer_name``: the name of the fixer defined in the fixes folder
+    - ``deltat`` (optional): the cumulation window of fluxes in the dataset. This is a fixer option. If not present, the default is 1 second.
 
 You can add fixes to your dataset by following examples in the ``config/fixes/`` directory (see :ref:`fixer`).
 
@@ -304,12 +305,13 @@ Some of the parameters are here described:
     - ``fdb_path``: the path of the FDB configuration file (deprecated, use only if config.yaml is in a not standard place)
     - ``fdb_home_bridge``: FDB_HOME for bridge access
     - ``fdb_path_bridge``: the path of the FDB configuration file for bridge access (deprecated, use only if needed)
-    - ``eccodes_path``: the path of the eccodes version used for the encoding/decoding of the FDB
+    - ``eccodes_path``: the path of the eccodes version used for the encoding/decoding of the FDB. Deprecated since v0.13
     - ``variables``: a list of variables available in the fdb.
     - ``source_grid_name``: the grid name defined in aqua-grids.yaml to be used for areas and regridding
     - ``fixer_name``: the name of the fixer defined in the fixes folder
     - ``levels``: for 3D FDB data with a `levelist` in the request, this is the list of physical levels 
                   (e.g. [0.5, 10, 100, ...] meters while levelist contains [1, 2, 3, ...]).
+    - ``deltat`` (optional): the cumulation window of fluxes in the dataset. This is a fixer option. If not present, the default is 1 second.
 
     If the ``levels`` key is defined, then retrieving 3D data is greatly accelerated, since only one level 
     of each variable will actually have to be retrieved in order to define the Dataset.
