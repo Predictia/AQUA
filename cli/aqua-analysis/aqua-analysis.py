@@ -8,7 +8,7 @@ import argparse
 import logging
 from dask.distributed import LocalCluster
 from aqua.logger import log_configure
-from aqua.util import load_yaml, create_folder
+from aqua.util import load_yaml, create_folder, ConfigPath
 
 
 def run_command(cmd: str, log_file: str = None, logger=None) -> int:
@@ -200,10 +200,19 @@ def main():
     loglevel = args.loglevel or config.get('job', {}).get('loglevel', "info")
     logger = log_configure(loglevel.lower(), 'AQUA Analysis')
 
-    catalog = args.catalog or config.get('job', {}).get('catalog')
     model = args.model or config.get('job', {}).get('model')
     exp = args.exp or config.get('job', {}).get('exp')
     source = args.source or config.get('job', {}).get('source', 'lra-r100-monthly')
+
+    if not all([model, exp, source]):
+        logger.error("Model, experiment, and source must be specified either in config or as command-line arguments.")
+        sys.exit(1)
+    else:
+        logger.info(f"Inputs are: Model = {model}, Experiment = {exp}, Source = {source}.")
+
+    catalog = args.catalog or config.get('job', {}).get('catalog')
+    if not catalog:
+        catalog, _ = ConfigPath().browse_catalogs(model, exp, source)[0]
 
     outputdir = os.path.expandvars(args.outputdir or config.get('job', {}).get('outputdir', './output'))
     max_threads = args.threads
@@ -215,12 +224,6 @@ def main():
     if not diagnostics:
         logger.error("No diagnostics found in configuration.")
         sys.exit(1)
-
-    if not all([catalog, model, exp, source]):
-        logger.error("Catalog, model, experiment, and source must be specified either in config or as command-line arguments.")
-        sys.exit(1)
-    else:
-        logger.info(f"Successfully validated inputs: Catalog = {catalog}, Model = {model}, Experiment = {exp}, Source = {source}.")
 
     output_dir = f"{outputdir}/{catalog}/{model}/{exp}"
     output_dir = os.path.expandvars(output_dir)
