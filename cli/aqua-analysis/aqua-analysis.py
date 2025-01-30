@@ -208,11 +208,19 @@ def main():
         logger.error("Model, experiment, and source must be specified either in config or as command-line arguments.")
         sys.exit(1)
     else:
-        logger.info(f"Inputs are: Model = {model}, Experiment = {exp}, Source = {source}.")
+        logger.info(f"Requested experiment: Model = {model}, Experiment = {exp}, Source = {source}.")
 
     catalog = args.catalog or config.get('job', {}).get('catalog')
-    if not catalog:
-        catalog, _ = ConfigPath().browse_catalogs(model, exp, source)[0]
+    if catalog:
+        logger.info(f"Requested catalog: {catalog}")
+    else:
+        cat, _ = ConfigPath().browse_catalogs(model, exp, source)
+        if cat:
+            catalog = cat[0]
+            logger.info(f"Automatically determined catalog: {catalog}")
+        else:
+            logger.error("Model, experiment, and source triplet not found in any installed catalog.")
+            sys.exit(1)
 
     outputdir = os.path.expandvars(args.outputdir or config.get('job', {}).get('outputdir', './output'))
     max_threads = args.threads
