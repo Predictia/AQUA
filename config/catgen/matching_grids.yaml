@@ -53,7 +53,7 @@ grid_mappings:
     ifs-fesom: "fesom-{ocean_grid}-{aqua_grid}-nested-v3"
     icon: "icon-{ocean_grid}-{aqua_grid}-nested-v3"
   o3d:
-    ifs-nemo: "nemo-{ocean_grid}-{aqua_grid}-nested-3d" 
+    ifs-nemo: "nemo-{ocean_grid}-{aqua_grid}-nested-3d-v3"
     ifs-fesom: "fesom-{ocean_grid}-{aqua_grid}-nested-3d-v3"
     icon: "icon-{ocean_grid}-{aqua_grid}-nested-3d-v3"
   default: "{aqua_grid}"
