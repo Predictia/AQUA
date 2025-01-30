@@ -203,9 +203,7 @@ def main():
                         f"Vertical bias plot of the variable {var_name} across pressure levels, from {startdate_data} to {enddate_data} "
                         f"for the {model_data} model, experiment {exp_data} from the {reader.catalog} catalog, with {model_obs} "
                         f"(experiment {exp_obs}, catalog {reader_obs.catalog}) used as reference data. "
-                        f"The vertical bias shows differences in the model's vertical representation compared to the reference, "
-                        f"highlighting biases across different pressure levels to assess the accuracy of vertical structures."
-                    )
+                        )
                     metadata = {"Description": description}
                     if save_netcdf:
                         output_saver.save_netcdf(dataset=netcdf, diagnostic_product='vertical_bias', metadata=metadata, **common_save_args)

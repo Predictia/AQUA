@@ -114,10 +114,10 @@ if __name__ == '__main__':
     result = radiation.boxplot(datasets=datasets, model_names=models_list, variables=variables)
 
     description = (
-        f"Boxplot of radiation variables ({', '.join(variables)}) "
-        f"The analysis includes the {models_list[0]} model (experiment {exp_list[0]}, {startdate_list[0]}/{enddate_list[0]}), from {catalog_list[0]}, "
-        + ", ".join(
-            f"{model} (experiment {exp}, {start}/{end}), from {catalog}"
+        f"Boxplot of radiation variables ({', '.join(variables)}). "
+        f"The analysis includes the {models_list[0]} model (experiment {exp_list[0]} from {startdate_list[0]} to {enddate_list[0]}) from {catalog_list[0]}, "
+        + ", compared with ".join(
+            f"{model} (experiment {exp} from {start} to {end}) from {catalog}"
             for model, exp, start, end, catalog in zip(
                 models_list[1:], exp_list[1:], startdate_list[1:], enddate_list[1:], catalog_list[1:]
             )
