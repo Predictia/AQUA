@@ -134,8 +134,8 @@ def main():
             plev_list = [] 
 
         try:
-            for plev in plev_list:
-                global_biases = GlobalBiases(data=data, data_ref=data_obs, var_name=var_name, plev=plev, loglevel=loglevel,
+            for plev_value in plev_list:
+                global_biases = GlobalBiases(data=data, data_ref=data_obs, var_name=var_name, plev=plev_value, loglevel=loglevel,
                                             model=model_data, exp=exp_data, startdate_data=startdate_data,
                                             enddate_data=enddate_data, model_obs=model_obs,
                                             startdate_obs=startdate_obs, enddate_obs=enddate_obs)
@@ -152,9 +152,15 @@ def main():
                     description = (
                             f"Spatial map of the total bias of the variable {var_name} from {startdate_data} to {enddate_data} "
                             f"for the {model_data} model, experiment {exp_data} from the {reader.catalog} catalog, with {model_obs} "
-                            f"(experiment {exp_obs}, catalog {reader_obs.catalog}) used as reference data. "
+                            f"(eperiment {exp_obs}, catalog {reader_obs.catalog}) used as reference data. "
                         )
                     metadata = {"Description": description}
+                    
+                    if plev_value:
+                        if 'plev' not in output_saver.filename_keys:
+                            output_saver.filename_keys.append('plev')
+                        common_save_args['plev'] = str(plev_value)
+
                     if save_netcdf:
                         output_saver.save_netcdf(dataset=netcdf, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
                     if save_pdf:
