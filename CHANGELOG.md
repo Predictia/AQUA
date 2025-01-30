@@ -12,6 +12,8 @@ Deprecated:
 - `cli_dummy.py` script is deprecated and will be removed in the next release. Use the `cli_checker.py` instead.
  
 AQUA core complete list:
+- `deltat` for fixer can now be specified in source metadata and not only in fixes (#1626)
+- LRA generator integrates ``--rebuild`` flag to regenerate areas and weights. The `--autosubmit` option is removed (#1623)
 - Hotfix for catgen tests (#1648)
 - Experiment and dashboard metadata are now created with the catalog generator (#1637)
 - Safety checks for dates according to frequency for HPC and bridge in intake GSV (#1636)
