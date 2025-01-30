@@ -8,10 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 Deprecated:
-- `aqua-analysis.sh` script is deprecated and will be removed in the next release. Use the `aqua-analysis.py` instead.
+- `aqua-analysis.sh` script is deprecated and has been removed. Use `aqua-analysis.py` instead.
 - `cli_dummy.py` script is deprecated and will be removed in the next release. Use the `cli_checker.py` instead.
  
 AQUA core complete list:
+- `deltat` for fixer can now be specified in source metadata and not only in fixes (#1626)
+- LRA generator integrates ``--rebuild`` flag to regenerate areas and weights. The `--autosubmit` option is removed (#1623)
+- Hotfix for catgen tests (#1648)
+- Experiment and dashboard metadata are now created with the catalog generator (#1637)
+- Safety checks for dates according to frequency for HPC and bridge in intake GSV (#1636)
+- Experiment metadata for aqua-web and dashboard from catalog entry (#1633)
 - Automatic identification of ocean grid in the catalog generator (#1621)
 - `OutputSaver` can deduce the catalog name from the model, exp (#1627)
 - Pin zarr<3.0.0 to avoid breaking changes (#1625)
