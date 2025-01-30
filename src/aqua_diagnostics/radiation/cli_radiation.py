@@ -2,6 +2,7 @@
 import argparse
 import os
 import sys
+import pandas as pd
 
 from dask.distributed import Client, LocalCluster
 
@@ -77,12 +78,13 @@ if __name__ == '__main__':
     models[0]['source'] = get_arg(args, 'source', models[0]['source'])
 
     logger.debug("Analyzing models:")
-    catalog_list, models_list, exp_list, datasets = [], [], [], []
+    catalog_list, models_list, exp_list, startdate_list, enddate_list, datasets = [], [], [], [], [], []
     variables = config['diagnostic_attributes'].get('variables', ['-tnlwrf', 'tnswrf'])
 
     for model in models:
         try:
-            reader = Reader(catalog=model['catalog'], model=model['model'], exp=model['exp'], source=model['source'])
+            reader = Reader(catalog=model['catalog'], model=model['model'], exp=model['exp'], source=model['source'],
+                            startdate=model['startdate'], enddate=model['enddate'])
             dataset = reader.retrieve()
         except Exception as e:
             logger.error(f"No model data found: {e}")
@@ -92,6 +94,8 @@ if __name__ == '__main__':
         catalog_list.append(reader.catalog)
         models_list.append(model['model'])
         exp_list.append(model['exp'])
+        startdate_list.append(model.get('startdate') or pd.to_datetime(dataset.time[0].values).strftime('%Y-%m-%d'))
+        enddate_list.append(model.get('enddate') or pd.to_datetime(dataset.time[-1].values).strftime('%Y-%m-%d'))
 
     # Create output directory
     outputdir = get_arg(args, "outputdir", config['output'].get("outputdir"))
@@ -111,8 +115,13 @@ if __name__ == '__main__':
 
     description = (
         f"Boxplot of radiation variables ({', '.join(variables)}) "
-        f"The analysis includes the {models_list[0]} model (experiment {exp_list[0]}) from {catalog_list[0]}, "
-        f"along with additional models {', '.join(models_list[1:])}. "
+        f"The analysis includes the {models_list[0]} model (experiment {exp_list[0]}, {startdate_list[0]}/{enddate_list[0]}), from {catalog_list[0]}, "
+        + ", ".join(
+            f"{model} (experiment {exp}, {start}/{end}), from {catalog}"
+            for model, exp, start, end, catalog in zip(
+                models_list[1:], exp_list[1:], startdate_list[1:], enddate_list[1:], catalog_list[1:]
+            )
+        ) + "."
         f"This boxplot compares radiation fluxes across different models, highlighting variability and potential biases. "
     )
     metadata = {"Description": description}
