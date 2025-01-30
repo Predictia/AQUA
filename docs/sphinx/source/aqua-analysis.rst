@@ -36,7 +36,8 @@ so that the script can be used in a batch job or in a workflow. These override c
 
 .. option:: -c <catalog>, --catalog <catalog>
 
-    The catalog to use.
+    The catalog to use. If a default is not specified in the configuration file, 
+    then the default first catalog installed is used.
 
 .. option:: -m <model>, --model <model>
 
