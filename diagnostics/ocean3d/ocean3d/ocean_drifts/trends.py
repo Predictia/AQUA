@@ -179,6 +179,20 @@ class TrendCalculator:
         logger.debug("Starting trend calculation")
 
         trend_dict = {}
+        
+        time_frequency = data["time"].to_index().inferred_freq
+
+        if time_frequency is not None:
+            # Define the conversion factor
+            if time_frequency.startswith("D"):
+                factor = 1e9 * 60 * 60 * 24  # Convert ns⁻¹ to days⁻¹
+            elif time_frequency.startswith("M"):
+                factor = 1e9 * 60 * 60 * 24 * 30.4375  # Convert ns⁻¹ to months⁻¹
+            elif time_frequency.startswith("A") or time_frequency.startswith("Y"):  
+                factor = 1e9 * 60 * 60 * 24 * 365.25  # Convert ns⁻¹ to years⁻¹
+            else:
+                factor = 1
+                logger.warning (f"Unsupported time frequency: {time_frequency}. It will result wrong values in trend. To fix it please report of look at the unit of time in the dataset")
 
         # Iterate over variables in the input dataset
         for var in data.data_vars:
@@ -186,7 +200,7 @@ class TrendCalculator:
             # Perform the polyfit to calculate the trend (slope)
             poly_coeffs = data.polyfit(dim="time", deg=1)
             
-            trend_dict[var] = poly_coeffs[f"{var}_polyfit_coefficients"].sel(degree=1)
+            trend_dict[var] = poly_coeffs[f"{var}_polyfit_coefficients"].sel(degree=1)* factor
             trend_dict[var].attrs = data[var].attrs
             # Apply necessary adjustments for time frequency if needed (optional)
             trend_dict[var] = TrendCalculator.adjust_trend_for_time_frequency(trend_dict[var], data[var], loglevel=loglevel)
@@ -215,8 +229,8 @@ class TrendCalculator:
         # logger.warning("decreasing the resolution of data to bypass the memory error issue for big data")
 
         logger.debug("Calculating linear trend")
-        TS_3dtrend_data = TrendCalculator.lintrend_3D(data, loglevel= loglevel)
-        # TS_3dtrend_data = TrendCalculator.trend_from_polyfit(data, loglevel= loglevel)
+        # TS_3dtrend_data = TrendCalculator.lintrend_3D(data, loglevel= loglevel)
+        TS_3dtrend_data = TrendCalculator.trend_from_polyfit(data, loglevel= loglevel)
         TS_3dtrend_data.attrs = data.attrs
         logger.debug("Trend value calculated")
         return TS_3dtrend_data
@@ -228,7 +242,9 @@ class multilevel_trend:
 
     def plot(self):
         
+        self._define_levels()
         self.data = area_selection(self.data, self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
+        self.data = self.data.interp(lev=self.levels)
         TS_trend_data = TrendCalculator.TS_3dtrend(self.data, loglevel=self.loglevel)
         self._plot_multilevel_trend(TS_trend_data)
         return
@@ -237,14 +253,14 @@ class multilevel_trend:
         """
         Plots the multilevel trend for temperature and salinity.
         """
-        self._define_levels()
         fig, axs = self._create_subplot_fig(len(self.levels))
-        data = data.interp(lev=self.levels).compute()
+        self.filename = file_naming(self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e, plot_name=f"{self.model}-{self.exp}-{self.source}_multilevel_t_s_trend")
+        self._add_plot_title()
         self._plot_contourf(data, axs)
         self._format_plot_axes(axs)
-        self._add_plot_title()
         if self.output:
-            self._save_plot_data(data)
+            export_fig(self.output_dir, self.filename, "pdf", metadata_value=self.title, loglevel=self.loglevel)
+            # self._save_plot_data(data)
         plt.close()
         return
 
@@ -273,12 +289,15 @@ class multilevel_trend:
         """
         Plots contourf for temperature and salinity at different levels.
         """
-        for levs in range(len(self.levels)):
-            subset_data = data.sel(lev=self.levels[levs])
-            subset_data["thetao"].plot.contourf(cmap="coolwarm", ax=axs[levs, 0], levels=18)
-            subset_data["so"].plot.contourf(cmap="coolwarm", ax=axs[levs, 1], levels=18)
-            axs[levs, 0].set_facecolor('grey')
-            axs[levs, 1].set_facecolor('grey')
+        for num, lev in enumerate(self.levels):
+            subset_data = data.sel(lev=lev).compute()
+            subset_data["thetao"].plot.contourf(cmap="coolwarm", ax=axs[num, 0], levels=18)
+            subset_data["so"].plot.contourf(cmap="coolwarm", ax=axs[num, 1], levels=18)
+            axs[num, 0].set_facecolor('grey')
+            axs[num, 1].set_facecolor('grey')
+            if self.output:
+                write_data(self.output_dir, f"{self.filename}_{lev}", subset_data)
+            
         return
 
     def _format_plot_axes(self, axs):
@@ -309,9 +328,7 @@ class multilevel_trend:
         """
         Saves plot data.
         """
-        filename = file_naming(self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e, plot_name=f"{self.model}-{self.exp}-{self.source}_multilevel_t_s_trend")
-        write_data(self.output_dir, filename, data.interp(lev=self.levels[-1]))
-        export_fig(self.output_dir, filename, "pdf", metadata_value=self.title, loglevel=self.loglevel)
+        write_data(self.output_dir, self.filename, data.interp(lev=self.levels[-1]))
         return
 
 class zonal_mean_trend:

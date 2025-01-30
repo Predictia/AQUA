@@ -230,6 +230,6 @@ class hovmoller_plot:
         if self.output:
             export_fig(self.output_dir, self.filename , "pdf", metadata_value = title)
         logger.debug("Hovmoller plot completed")
-
+        plt.close()
         return
     

@@ -132,6 +132,6 @@ class stratification:
 
         if self.output:
             export_fig(self.output_dir, filename , "pdf", metadata_value = title, loglevel= self.loglevel)
-
+        plt.close()
         return
 

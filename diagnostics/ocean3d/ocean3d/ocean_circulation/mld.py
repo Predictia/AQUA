@@ -143,5 +143,5 @@ def plot_spatial_mld_clim(o3d_request,
             write_data(output_dir,f"{filename}_obs_clim", obs_clim)
         export_fig(output_dir, filename , "pdf", metadata_value = title, loglevel= loglevel)
 
-    plt.show()
+    plt.close()
     return

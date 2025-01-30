@@ -158,7 +158,7 @@ class time_series(hovmoller_plot):
         if self.output:
             export_fig(self.output_dir, self.filename , "pdf",
                         metadata_value = title)
-        
+        plt.close()
         logger.debug("Time series plot completed")
         return
 
