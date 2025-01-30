@@ -131,7 +131,7 @@ def main():
         if 'plev' in data[var_name].dims and plev:
             plev_list = [plev] if isinstance(plev, (int, float)) else plev
         else:
-            plev_list = [] 
+            plev_list = [None] 
 
         try:
             for plev_value in plev_list:
