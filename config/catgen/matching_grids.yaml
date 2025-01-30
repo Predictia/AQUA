@@ -37,8 +37,8 @@ ocean_grid:
     lowres: CORE2
     intermediate: D3
   icon:
-    production: R2B9
-    develop: R2B8
+    production: R02B09
+    develop: R02B08
     lowres: null
     intermediate: null
 
