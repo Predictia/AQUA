@@ -202,9 +202,13 @@ def main():
                     description = (
                         f"Vertical bias plot of the variable {var_name} across pressure levels, from {startdate_data} to {enddate_data} "
                         f"for the {model_data} model, experiment {exp_data} from the {reader.catalog} catalog, with {model_obs} "
-                        f"(experiment {exp_obs}, catalog {reader_obs.catalog}) used as reference data. "
+                        f"(experiment {exp_obs}, catalog {reader_obs.catalog}) used as reference data. "                   
                         )
                     metadata = {"Description": description}
+
+                    if 'plev' in common_save_args:
+                        common_save_args.pop('plev', None)
+
                     if save_netcdf:
                         output_saver.save_netcdf(dataset=netcdf, diagnostic_product='vertical_bias', metadata=metadata, **common_save_args)
                     if save_pdf:
