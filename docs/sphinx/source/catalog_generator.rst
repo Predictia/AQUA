@@ -58,8 +58,13 @@ Info on the experiment:
 - ``data_start_date``: data start date (format: 'YYYYMMDD')
 - ``data_end_date``: data end date (format: 'YYYYMMDD')
 - ``bridge_end_date``: if a transfer between the HPC and the data bridge is ongoing, this field should specify the last date when data was saved on the bridge. The default value is ``Null``, but it can be ``complete`` or a date.
+- ``atm_grid``: the native atmospheric grid. This field is not mandatory. If not specified, the atm_grid will be automatically set according to what is set in ``config/catgen/matching_grids.yaml``.
 - ``ocean_grid``: the ocean grid to use. This field is not mandatory. If not specified, the ocean_grid will be automatically set according to what is set in ``config/catgen/matching_grids.yaml``.
-- ``description``: a description of the experiment.
+- ``description``: a description of the experiment. This field is not mandatory. If not specified, it will be automatically generated.
+
+Info for the dashboard:
+- ``menu``: the name that will appear in the dashboard. This field is not mandatory. If not specified, the ``exp`` will be used.
+- ``note``: a note to complement experiment description, if needed. This field is not mandatory. 
 
 Paths:
 - ``fdb_home``: the path to the FDB home
