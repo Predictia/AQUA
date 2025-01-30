@@ -25,7 +25,6 @@ class TestChecksumModule:
 
     def test_full_checksums(self, tmp_path, capsys):
         """Test checksum generation."""
-        tmp_path = Path('/pfs/lustrep3/scratch/project_465000454/padavini/checksum')
         file1 = tmp_path / "file1.txt"
         file2 = tmp_path / "file2.txt"
         file1.write_text("Sample content 1")
