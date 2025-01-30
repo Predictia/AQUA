@@ -12,6 +12,7 @@ Deprecated:
 - `cli_dummy.py` script is deprecated and will be removed in the next release. Use the `cli_checker.py` instead.
  
 AQUA core complete list:
+- Grids for O-25.1 cycle are added in the grids folder (they are v3) (#1647)
 - `deltat` for fixer can now be specified in source metadata and not only in fixes (#1626)
 - LRA generator integrates ``--rebuild`` flag to regenerate areas and weights. The `--autosubmit` option is removed (#1623)
 - Hotfix for catgen tests (#1648)
