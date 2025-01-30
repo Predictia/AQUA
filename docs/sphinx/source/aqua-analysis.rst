@@ -56,7 +56,9 @@ so that the script can be used in a batch job or in a workflow. These override c
 
 .. option:: -d <dir>, --outputdir <dir>
 
-    The output directory to use. Better to use an absolute path.
+    The output directory to use. 
+    The default in the config file is ``$AQUA/cli/aqua-analysis/output``.
+    Better to use an absolute path.
 
 .. option:: -l <loglevel>, --loglevel <loglevel>
 
