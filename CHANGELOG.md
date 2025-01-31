@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+## [v0.13.0]
+
+Main changes are:
+1. Grids updated to work with operational O-25.1
+2. Compliance of the catalog generator to the O-25.1 data portfolio
+3. New 'Biases and Radiation' diagnostics replace the old 'AtmGlobalMean and Radiation'
+4. Push of figures to LUMI-O and improvements for aqua-web
+
 Deprecated:
 - `aqua-analysis.sh` script is deprecated and has been removed. Use `aqua-analysis.py` instead.
 - `cli_dummy.py` script is deprecated and will be removed in the next release. Use the `cli_checker.py` instead.
@@ -24,7 +32,6 @@ AQUA core complete list:
 - Automatic identification of ocean grid in the catalog generator (#1621)
 - `OutputSaver` can deduce the catalog name from the model, exp (#1627)
 - Pin zarr<3.0.0 to avoid breaking changes (#1625)
-- LRA generator integrates ``-rebuild`` option to regenerate areas and weights. The `--autosubmit` option is removed (#1623)
 - Units utility are now functions and not methods of FixerMixin (#1558)
 - New `cli_checker.py` tool to check the existance of the required model in the catalog and rebuild the area files (#1619)
 - Update the catalog generator to align with changes in the data portfolio (#1593)
@@ -783,7 +790,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-beta...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.0...HEAD
+[v0.13.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-beta...v0.13.0
 [v0.13-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-alpha...v0.13-beta
 [v0.13-alpha]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.12.2...v0.13-alpha
 [v0.12.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.12.1...v0.12.2
