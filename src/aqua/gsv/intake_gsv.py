@@ -203,18 +203,19 @@ class GSVSource(base.DataSource):
 
         # flooring to the frequency the time to ensure that hourly, daily and monthly data
         # are read at the right time frequency
+        # setting hpc and bridge availability dates
         self.data_start_date = floor_datetime(data_start_date, savefreq)
         self.data_end_date = floor_datetime(data_end_date, savefreq)
         self.bridge_end_date = floor_datetime(self.bridge_end_date, savefreq)
         self.bridge_start_date = floor_datetime(self.bridge_start_date, savefreq)
-
-        # starting dates
-        self.startdate = startdate
-        self.enddate = enddate
+        # setting starting and end dates of the request
+        self.startdate = floor_datetime(startdate, savefreq)
+        self.enddate = floor_datetime(enddate, savefreq)
 
         self.logger.debug('Data frequency (i.e. savefreq): %s', savefreq)
-        self.logger.debug('Start_date: %s, End_date: %s, Bridge_start_date: %s, Bridge_end_date: %s',
+        self.logger.debug('Data_start_date: %s, Data_end_date: %s, Bridge_start_date: %s, Bridge_end_date: %s',
             self.data_start_date, self.data_end_date, self.bridge_start_date, self.bridge_end_date)
+        self.logger.debug('Request startdate: %s, Request enddate: %s', self.startdate, self.enddate)
 
         timeaxis = make_timeaxis(self.data_start_date, self.startdate, self.enddate,
                             shiftmonth=self.timeshift, timestep=timestep,
