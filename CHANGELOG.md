@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+AQUA core complete list:
+- Fix in the catgen now correctly generating an automatic description if not provided (#1662)
+
 AQUA diagnostics complete list:
 - Tropical Rainfall: Update of the precomputed histograms paths for lumi and MN5 (#1661)
 
