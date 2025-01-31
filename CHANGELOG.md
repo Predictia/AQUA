@@ -12,6 +12,7 @@ Deprecated:
 - `cli_dummy.py` script is deprecated and will be removed in the next release. Use the `cli_checker.py` instead.
  
 AQUA core complete list:
+- More general checksum checker for grids and observations ( #1550)
 - Output dir including catalogue for aqua-analysis.py (#1640)
 - Grids for O-25.1 cycle are added in the grids folder (they are v3) (#1647)
 - `deltat` for fixer can now be specified in source metadata and not only in fixes (#1626)
