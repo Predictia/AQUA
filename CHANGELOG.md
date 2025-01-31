@@ -13,9 +13,13 @@ Deprecated:
  
 AQUA core complete list:
 - More general checksum checker for grids and observations ( #1550)
+- Output dir including catalogue for aqua-analysis.py (#1640)
+- Grids for O-25.1 cycle are added in the grids folder (they are v3) (#1647)
+- `deltat` for fixer can now be specified in source metadata and not only in fixes (#1626)
+- LRA generator integrates ``--rebuild`` flag to regenerate areas and weights. The `--autosubmit` option is removed (#1623)
 - Hotfix for catgen tests (#1648)
 - Experiment and dashboard metadata are now created with the catalog generator (#1637)
-- Safety checks for dates according to frequency for HPC and bridge in intake GSV (#1636)
+- Safety checks according to data frequency for HPC, bridge and request start/end dates in intake GSV (#1636, #1655)
 - Experiment metadata for aqua-web and dashboard from catalog entry (#1633)
 - Automatic identification of ocean grid in the catalog generator (#1621)
 - `OutputSaver` can deduce the catalog name from the model, exp (#1627)
