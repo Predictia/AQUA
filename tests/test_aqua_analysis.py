@@ -1,7 +1,9 @@
+import pytest
 import subprocess
 import yaml
 import os
 
+@pytest.mark.aqua
 def test_run_aqua_analysis():
 
     yaml_data = {
@@ -11,8 +13,6 @@ def test_run_aqua_analysis():
         'diagnostics': {
             'run': ["dummy"],
             'dummy': {
-                # Corrected script_path assuming cli_dummy.py is accessible 
-                # You might need to adjust this based on your project structure
                 'script_path': "../src/aqua_diagnostics/dummy/cli_dummy.py"
             }
         }
@@ -38,7 +38,7 @@ def test_run_aqua_analysis():
 
     print("Stdout:\n", result.stdout)
     print("Stderr:\n", result.stderr)
-    assert " Diagnostic dummy completed successfully" in result.stderr, "Expected output not found in stdout"
+    assert " Diagnostic dummy completed successfully" in result.stderr, "Expected output not found in stderr"
 
     assert os.path.exists("./output/ci/IFS/test-tco79/experiment.yaml"), "experiment.yaml not found"
     assert os.path.exists("./output/ci/IFS/test-tco79/dummy.log"), "dummy.log not found"
