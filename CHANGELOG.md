@@ -11,6 +11,7 @@ AQUA core complete list:
 - Fix in the catgen now correctly generating an automatic description if not provided (#1662)
 
 AQUA diagnostics complete list:
+- Test for aqua-analysis.py (#1664)
 - Tropical Rainfall: Update of the precomputed histograms paths for lumi and MN5 (#1661)
 
 ## [v0.13.0]
