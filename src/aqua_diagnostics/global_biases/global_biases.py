@@ -139,7 +139,7 @@ class GlobalBiases:
             self.logger.warning('Plotting single dataset map since no reference dataset is provided.')
 
             title = (f"{self.var_name} map {self.model} {self.exp} {self.startdate_data}/{self.enddate_data}" 
-                    + (f" at {self.plev} hPa" if self.plev else ""))
+                    + (f" at {int(self.plev / 100)} hPa" if self.plev else ""))
 
             fig, ax = plot_single_map(self.data[self.var_name].mean(dim='time'), 
                                       return_fig=True, 
@@ -157,7 +157,7 @@ class GlobalBiases:
 
             title = (f"{self.var_name} global bias of {self.model} {self.exp} {self.startdate_data}/{self.enddate_data}\n"
                     f"relative to {self.model_obs} climatology {self.startdate_obs}/{self.enddate_obs}"
-                    + (f" at {self.plev} hPa" if self.plev else ""))
+                    + (f" at {int(self.plev / 100)} hPa" if self.plev else ""))
 
             fig, ax = plot_single_map_diff(data=self.data[self.var_name].mean(dim='time'), 
                                            data_ref=self.data_ref[self.var_name].mean(dim='time'),
