@@ -159,7 +159,7 @@ def main():
                     if plev_value:
                         if 'plev' not in output_saver.filename_keys:
                             output_saver.filename_keys.append('plev')
-                        common_save_args['plev'] = str(plev_value)
+                        common_save_args['plev'] = 'plev'+str(plev_value)
 
                     if save_netcdf:
                         output_saver.save_netcdf(dataset=netcdf, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
