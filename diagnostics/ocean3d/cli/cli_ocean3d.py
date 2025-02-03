@@ -51,17 +51,33 @@ class Ocean3DCLI:
         except KeyError:
             return default_value
 
-    def ocean3d_config_process(self, file):
-        self.ocean3d_config_dict = load_yaml(file)
+    def dask_cluster(self, nworkers= None, cluster= None, private_cluster= False):
+        if nworkers or cluster:
+            if not cluster:
+                self.cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+                self.logger.info(f"Initializing private cluster {self.cluster.scheduler_address} with {nworkers} workers.")
+                self.private_cluster = True
+            else:
+                self.logger.info(f"Connecting to cluster {cluster}.")
+            self.client = Client(cluster)
+            self.logger.info(self.client.dashboard_link)
+        else:
+            self.client = None
+        return
 
+    def ocean3d_config_process(self, file):
+        self.logger.info('Reading configuration yaml file..')
+        self.ocean3d_config_dict = load_yaml(file)
         self.logger.debug(f"Configuration file: {self.ocean3d_config_dict}")
-        if self.ocean3d_config_dict["loglevel"]:
-            if not getattr(self.args, "loglevel") and self.ocean3d_config_dict["loglevel"]:
-                self.logger.debug("Changing loglevel from the config, This will not overwrite incase provided in the CLI")
-                self.loglevel = self.get_arg('loglevel', self.ocean3d_config_dict["loglevel"])
-                self.logger = log_configure(log_name='Ocean3D CLI', log_level=self.loglevel)
-                
-            
+        
+        self.loglevel = getattr(self.args, "loglevel") or self.get_value_with_default(self.ocean3d_config_dict, 'loglevel', 'warning')
+        self.logger = log_configure(log_name='Ocean3D CLI', log_level=self.loglevel)
+        
+        self.nworkers = getattr(self.args, "nworkers") or self.get_value_with_default(self.ocean3d_config_dict, 'nworkers', None)
+        self.cluster = getattr(self.args, "cluster") or self.get_value_with_default(self.ocean3d_config_dict, 'cluster', None)
+        self.private_cluster = self.get_value_with_default(self.ocean3d_config_dict, 'private_cluster', False)
+
+        
         self.config["model"] = self.get_arg('model', self.ocean3d_config_dict['model'])
         self.config["exp"] = self.get_arg('exp', self.ocean3d_config_dict['exp'])
         self.config["source"] = self.get_arg('source', self.ocean3d_config_dict['source'])
@@ -112,24 +128,13 @@ class Ocean3DCLI:
             if self.config["ocean_circulation"]["compare_model_with_obs"]== True:
                 self.logger.info("Loading Observation data")
                 obs_data = Reader("EN4", "en4", "monthly")
-                # self.data["obs_data"] = obs_data.retrieve(startdate= self.data["catalog_data"].time[0],
-                #                                         enddate= self.data["catalog_data"].time[-1])
                 self.data["obs_data"] = obs_data.retrieve()
-                # self.data["obs_data"] = load_obs_data(model='EN4', exp='en4', source='monthly')
                 self.data["obs_data"] = check_variable_name(self.data["obs_data"])
                 self.logger.info("Loaded Observation data")
 
-                # adjusted_chunk_sizes = {
-                #     'time': 4,
-                #     'lev': 14,  # Adjust lev dimension
-                #     'lat': 60,  # Adjust lat dimension
-                #     'lon': 120   # Adjust lon dimension
-                # }
-                # self.data["obs_data"] = self.data["obs_data"].chunk(adjusted_chunk_sizes)
                 self.data["obs_data"] = self.data["obs_data"].astype('float64')
                 self.data["obs_data"].coords["lev"] = self.data["obs_data"].coords["lev"].astype('float64')
                 self.logger.debug("obs_data: %s", self.data["obs_data"])
-        # self.data["catalog_data"] = self.data["catalog_data"].chunk({'time': 1, 'lev': 1, 'lat': 45, 'lon': 90})
         return
 
     def make_request(self, kwargs):
@@ -238,18 +243,7 @@ class Ocean3DCLI:
         # Dask distributed cluster
         nworkers = get_arg(args, 'nworkers', None)
         cluster = get_arg(args, 'cluster', None)
-        private_cluster = False
-        if nworkers or cluster:
-            if not cluster:
-                cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
-                self.logger.info(f"Initializing private cluster {cluster.scheduler_address} with {nworkers} workers.")
-                private_cluster = True
-            else:
-                self.logger.info(f"Connecting to cluster {cluster}.")
-            client = Client(cluster)
-            self.logger.info(client.dashboard_link)
-        else:
-            client = None
+
 
         # Change the current directory to the one of the CLI so that relative paths work
         abspath = os.path.abspath(__file__)
@@ -262,22 +256,23 @@ class Ocean3DCLI:
 
         # Read configuration file
         file = self.get_arg('config', 'config.yaml')
-        self.logger.info('Reading configuration yaml file..')
 
         self.ocean3d_config_process(file)
 
+        self.dask_cluster(nworkers= self.nworkers, cluster= self.cluster, private_cluster= self.private_cluster)
+        
         self.data_retrieve()
         if self.config["ocean_drift"]:
             self.ocean_drifts_diags()
         if self.config["ocean_circulation"]:
             self.ocean_circulation_diags()
 
-        if client:
-            client.close()
+        if self.client:
+            self.client.close()
             self.logger.debug("Dask client closed.")
 
-        if private_cluster:
-            cluster.close()
+        if self.private_cluster:
+            self.cluster.close()
             self.logger.debug("Dask cluster closed.")
 
         self.logger.warning("Ocean3D diagnostic has finished.")

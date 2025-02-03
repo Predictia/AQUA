@@ -5,6 +5,8 @@ Calculating Trends
 from .tools import *
 from ocean3d import split_ocean3d_req
 import pandas as pd
+from dask.diagnostics import ProgressBar
+import IPython
 
 class TrendCalculator:
     @staticmethod
@@ -239,12 +241,14 @@ class TrendCalculator:
 class multilevel_trend:
     def __init__(self, o3d_request):
         split_ocean3d_req(self, o3d_request)
+        self.logger = log_configure(self.loglevel, 'Multilevel Linear Trend')
 
     def plot(self):
         
         self._define_levels()
         self.data = area_selection(self.data, self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
         self.data = self.data.interp(lev=self.levels)
+        self.logger.debug("Interpolating data for required depths")
         TS_trend_data = TrendCalculator.TS_3dtrend(self.data, loglevel=self.loglevel)
         self._plot_multilevel_trend(TS_trend_data)
         return
@@ -253,6 +257,7 @@ class multilevel_trend:
         """
         Plots the multilevel trend for temperature and salinity.
         """
+        self.logger.debug("Plotting started")
         fig, axs = self._create_subplot_fig(len(self.levels))
         self.filename = file_naming(self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e, plot_name=f"{self.model}-{self.exp}-{self.source}_multilevel_t_s_trend")
         self._add_plot_title()
@@ -261,7 +266,8 @@ class multilevel_trend:
         if self.output:
             export_fig(self.output_dir, self.filename, "pdf", metadata_value=self.title, loglevel=self.loglevel)
             # self._save_plot_data(data)
-        plt.close()
+        if not IPython.get_ipython():  
+            plt.close() 
         return
 
     def _define_levels(self):
@@ -290,13 +296,21 @@ class multilevel_trend:
         Plots contourf for temperature and salinity at different levels.
         """
         for num, lev in enumerate(self.levels):
-            subset_data = data.sel(lev=lev).compute()
+            self.logger.debug(f"Loading the data in the memory for {lev} depth")
+            if self.loglevel == "DEBUG":
+                with ProgressBar():
+                    subset_data = data.sel(lev=lev).compute()
+            else:
+                subset_data = data.sel(lev=lev).compute()
+                
             subset_data["thetao"].plot.contourf(cmap="coolwarm", ax=axs[num, 0], levels=18)
             subset_data["so"].plot.contourf(cmap="coolwarm", ax=axs[num, 1], levels=18)
             axs[num, 0].set_facecolor('grey')
             axs[num, 1].set_facecolor('grey')
+            self.logger.debug(f"Plotted {lev} depth")
             if self.output:
-                write_data(self.output_dir, f"{self.filename}_{lev}", subset_data)
+                write_data(self.output_dir, f"{self.filename}_{lev}", subset_data, loglevel=self.loglevel)
+                self.logger.debug(f"Saved the data for {lev} depth")
             
         return
 
@@ -313,6 +327,7 @@ class multilevel_trend:
             if levs != (len(self.levels)-1):
                 axs[levs, 0].set_xticklabels([])
                 axs[levs, 1].set_xticklabels([])
+        self.logger.debug(f"Added the plot axes")
         return
 
     def _add_plot_title(self):
@@ -328,7 +343,7 @@ class multilevel_trend:
         """
         Saves plot data.
         """
-        write_data(self.output_dir, self.filename, data.interp(lev=self.levels[-1]))
+        write_data(self.output_dir, self.filename, data.interp(lev=self.levels[-1]),loglevel=self.loglevel)
         return
 
 class zonal_mean_trend:
@@ -387,7 +402,8 @@ class zonal_mean_trend:
         if self.output:
             filename = file_naming(self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e,
                                    plot_name=f"{self.model}-{self.exp}-{self.source}_zonal_mean_trend")
-            write_data(self.output_dir, filename, data)
+            write_data(self.output_dir, filename, data, loglevel=self.loglevel)
             export_fig(self.output_dir, filename, "pdf", metadata_value=title, loglevel=self.loglevel)
-        plt.close()
+        if not IPython.get_ipython():  
+            plt.close() 
         return

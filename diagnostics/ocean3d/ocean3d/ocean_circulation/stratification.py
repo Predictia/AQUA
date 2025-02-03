@@ -1,5 +1,6 @@
 from .ocean_circulation import *
 from ocean3d import split_ocean3d_req
+import IPython
 
 class stratification:
     def __init__(self, o3d_request):
@@ -132,6 +133,7 @@ class stratification:
 
         if self.output:
             export_fig(self.output_dir, filename , "pdf", metadata_value = title, loglevel= self.loglevel)
-        plt.close()
+        if not IPython.get_ipython():  
+            plt.close() 
         return
 

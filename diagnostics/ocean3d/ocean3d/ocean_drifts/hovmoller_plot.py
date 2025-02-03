@@ -5,7 +5,7 @@ from ocean3d import split_ocean3d_req
 import matplotlib.pyplot as plt
 from aqua.logger import log_configure
 from dask.diagnostics import ProgressBar
-
+import IPython
 
 class hovmoller_plot:
     """
@@ -230,6 +230,7 @@ class hovmoller_plot:
         if self.output:
             export_fig(self.output_dir, self.filename , "pdf", metadata_value = title)
         logger.debug("Hovmoller plot completed")
-        plt.close()
+        if not IPython.get_ipython():  
+            plt.close() 
         return
     

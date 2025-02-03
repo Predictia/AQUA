@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from .hovmoller_plot import hovmoller_plot
 from aqua.logger import log_configure
 from dask.diagnostics import ProgressBar
-
+import IPython
 
 
 
@@ -158,7 +158,8 @@ class time_series(hovmoller_plot):
         if self.output:
             export_fig(self.output_dir, self.filename , "pdf",
                         metadata_value = title)
-        plt.close()
+        if not IPython.get_ipython():  
+            plt.close() 
         logger.debug("Time series plot completed")
         return
 

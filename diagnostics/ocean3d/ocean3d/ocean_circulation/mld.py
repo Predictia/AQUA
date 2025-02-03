@@ -1,4 +1,5 @@
 from .ocean_circulation import *
+import IPython
 
 def plot_spatial_mld_clim(o3d_request,
                           overlap=True, loglevel= "WARNING"):
@@ -143,5 +144,6 @@ def plot_spatial_mld_clim(o3d_request,
             write_data(output_dir,f"{filename}_obs_clim", obs_clim)
         export_fig(output_dir, filename , "pdf", metadata_value = title, loglevel= loglevel)
 
-    plt.close()
+        if not IPython.get_ipython():  
+            plt.close() 
     return
