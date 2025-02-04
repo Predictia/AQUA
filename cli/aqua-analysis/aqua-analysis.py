@@ -8,7 +8,7 @@ import argparse
 import logging
 from dask.distributed import LocalCluster
 from aqua.logger import log_configure
-from aqua.util import load_yaml, create_folder
+from aqua.util import load_yaml, create_folder, ConfigPath
 
 
 def run_command(cmd: str, log_file: str = None, logger=None) -> int:
@@ -90,6 +90,11 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False,
         aqua_path (str): AQUA path.
         cluster: Dask cluster scheduler address.
     """
+
+    script_dir = config.get('job', {}).get("script_path_base")  # we were not using this key
+    if not script_dir:
+        script_dir=os.path.join(aqua_path, "diagnostics")
+
     diagnostic_config = config.get('diagnostics', {}).get(diagnostic)
     if diagnostic_config is None:
         logger.error(f"Diagnostic '{diagnostic}' not found in the configuration.")
@@ -99,7 +104,11 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False,
     create_folder(output_dir)
 
     logfile = f"{output_dir}/{diagnostic}.log"
+
     extra_args = diagnostic_config.get('extra', "")
+    cfg = diagnostic_config.get('config')
+    if cfg:
+        extra_args += f" --config {cfg}"
 
     if parallel:
         nworkers = diagnostic_config.get('nworkers')
@@ -117,8 +126,7 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False,
 
     run_diagnostic(
         diagnostic=diagnostic,
-        script_path=os.path.join(aqua_path, "diagnostics",
-                                 diagnostic_config.get('script_path', f"{diagnostic}/cli/cli_{diagnostic}.py")),
+        script_path=os.path.join(script_dir, diagnostic_config.get('script_path', f"{diagnostic}/cli/cli_{diagnostic}.py")),
         extra_args=args,
         loglevel=loglevel,
         logger=logger,
@@ -192,30 +200,37 @@ def main():
     loglevel = args.loglevel or config.get('job', {}).get('loglevel', "info")
     logger = log_configure(loglevel.lower(), 'AQUA Analysis')
 
-    catalog = args.catalog or config.get('job', {}).get('catalog', None)
     model = args.model or config.get('job', {}).get('model')
     exp = args.exp or config.get('job', {}).get('exp')
     source = args.source or config.get('job', {}).get('source', 'lra-r100-monthly')
-    outputdir = os.path.expandvars(args.outputdir or config.get('job', {}).get('outputdir', './output'))
-    max_threads = args.threads
-
-    logger.debug(f"outputdir: {outputdir}")
-    logger.debug(f"max_threads: {max_threads}")
-    logger.debug(f"catalog: {catalog}")
-
-    diagnostics = config.get('diagnostics', {}).get('run')
-    if not diagnostics:
-        logger.error("No diagnostics found in configuration.")
-        sys.exit(1)
 
     if not all([model, exp, source]):
         logger.error("Model, experiment, and source must be specified either in config or as command-line arguments.")
         sys.exit(1)
     else:
-        logger.info(f"Successfully validated inputs: Model = {model}, Experiment = {exp}, Source = {source}.")
+        logger.info(f"Requested experiment: Model = {model}, Experiment = {exp}, Source = {source}.")
 
-    output_dir = f"{outputdir}/{model}/{exp}"
+    catalog = args.catalog or config.get('job', {}).get('catalog')
+    if catalog:
+        logger.info(f"Requested catalog: {catalog}")
+    else:
+        cat, _ = ConfigPath().browse_catalogs(model, exp, source)
+        if cat:
+            catalog = cat[0]
+            logger.info(f"Automatically determined catalog: {catalog}")
+        else:
+            logger.error("Model, experiment, and source triplet not found in any installed catalog.")
+            sys.exit(1)
+
+    outputdir = os.path.expandvars(args.outputdir or config.get('job', {}).get('outputdir', './output'))
+    max_threads = args.threads
+
+    logger.debug(f"outputdir: {outputdir}")
+    logger.debug(f"max_threads: {max_threads}")
+
+    output_dir = f"{outputdir}/{catalog}/{model}/{exp}"
     output_dir = os.path.expandvars(output_dir)
+
     os.environ["OUTPUT"] = output_dir
     os.environ["AQUA"] = aqua_path
     create_folder(output_dir)
@@ -238,6 +253,11 @@ def main():
             logger.info("Setup checker completed successfully.")
         else:
             logger.error(f"Setup checker returned exit code {result}, check the logs for more information.")
+
+    diagnostics = config.get('diagnostics', {}).get('run')
+    if not diagnostics:
+        logger.error("No diagnostics found in configuration.")
+        sys.exit(1)
 
     if args.parallel:
         if args.local_clusters:
