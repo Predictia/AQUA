@@ -10,6 +10,7 @@ from aqua.exceptions import NoObservationError
 from aqua.util import find_vert_coord, load_yaml, add_pdf_metadata
 import matplotlib.pyplot as plt
 from aqua.logger import log_configure
+import math
 
 def kelvin_to_celsius(data, variable_name, loglevel= "WARNING"):
     """
@@ -553,8 +554,15 @@ def split_ocean3d_req(self, o3d_request, loglevel= "WARNING"):
     self.lon_e = o3d_request.get('lon_e', None)
     self.customise_level = o3d_request.get('customise_level', None)
     self.levels = o3d_request.get('levels', None)
-    self.overlap = o3d_request.get('overlap', None)
     self.output = o3d_request.get('output')
     self.output_dir = o3d_request.get('output_dir', None)
     self.loglevel= o3d_request.get('loglevel',"WARNING")
     return self
+
+def round_up(value):
+    if value % 100 == 0:
+        return value  # Already a multiple of 100
+    elif value % 100 <= 50:
+        return math.ceil(value / 50) * 50  # Round up to next 50
+    else:
+        return math.ceil(value / 100) * 100  # Round up to next 100
