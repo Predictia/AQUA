@@ -5,9 +5,9 @@ from ocean3d import split_ocean3d_req
 import matplotlib.pyplot as plt
 from .hovmoller_plot import hovmoller_plot
 from aqua.logger import log_configure
-from dask.diagnostics import ProgressBar
 import IPython
 
+from ocean3d import compute_data
 
 
 class time_series(hovmoller_plot):
@@ -53,10 +53,8 @@ class time_series(hovmoller_plot):
         customise_level = False
         
         logger.debug("Plotting started for %s", type)
+        data = compute_data(data, loglevel= self.loglevel)
 
-        with ProgressBar():
-            data = data.compute()
-            logger.debug(f"Loaded data ({type}) into memory before plotting")
         if customise_level:
             if levels is None:
                 raise ValueError(

@@ -2,6 +2,7 @@ from .tools import *
 from ocean3d import write_data
 from ocean3d import export_fig
 from ocean3d import split_ocean3d_req
+from ocean3d import compute_data
 import matplotlib.pyplot as plt
 from aqua.logger import log_configure
 from dask.diagnostics import ProgressBar
@@ -25,6 +26,7 @@ class hovmoller_plot:
             o3d_request: Request object containing necessary data for plot generation.
         """
         split_ocean3d_req(self,o3d_request)
+        self.logger = log_configure(self.loglevel, 'data_for_hovmoller_lev_time_plot')
         
     def define_lev_values(self, data_proc):
         """
@@ -36,7 +38,6 @@ class hovmoller_plot:
         Returns:
             Tuple: A tuple containing arrays of temperature levels and salinity levels.
         """
-        logger = log_configure(self.loglevel, 'define_lev_values')
         # data_proc = args[1]["data_proc"]
         # To center the colorscale around zero when we plot temperature anomalies
         thetaomin = round(np.nanmin(data_proc.thetao.values), 2)
@@ -77,7 +78,6 @@ class hovmoller_plot:
         Returns:
             None
         """
-        logger = log_configure(self.loglevel, 'data_for_hovmoller_lev_time_plot')
         data = self.data
         region = self.region
         lat_s = self.lat_s
@@ -125,7 +125,6 @@ class hovmoller_plot:
             fig: Figure object for plotting.
             axs: Axes object for plotting.
         """
-        logger = log_configure(self.loglevel, 'loop_details')
         
         key = i + 2
         plot_info = self.plot_info[key]
@@ -136,11 +135,9 @@ class hovmoller_plot:
         region_title = plot_info['region_title']
         type = plot_info['type']
 
-        logger.debug("Plotting started for %s", type)
+        self.logger.debug("Plotting started for %s", type)
         
-        with ProgressBar():
-            data = data.compute()
-            logger.debug(f"Loaded the data ({type}) into memory before plotting")
+        data = compute_data(data, loglevel= self.loglevel)
             
         if type != "Full values":
             abs_max_thetao = max(abs(np.nanmax(data.thetao)), abs(np.nanmin(data.thetao)))
@@ -196,7 +193,7 @@ class hovmoller_plot:
         #     type = type.replace(" ","_").lower()
         #     filename =  f"{self.filename}_{type}"
         #     write_data(self.output_dir, filename, data)
-        logger.debug("Plotting completed for %s", type)
+        self.logger.debug("Plotting completed for %s", type)
     
 
 
@@ -207,8 +204,7 @@ class hovmoller_plot:
         Returns:
             None
         """
-        logger = log_configure(self.loglevel, 'single_plot')
-        logger.debug("Hovmoller plot started")
+        self.logger.debug("Hovmoller plot started")
         
         self.data_for_hovmoller_lev_time_plot()
         
@@ -229,7 +225,7 @@ class hovmoller_plot:
 
         if self.output:
             export_fig(self.output_dir, self.filename , "pdf", metadata_value = title)
-        logger.debug("Hovmoller plot completed")
+        self.logger.debug("Hovmoller plot completed")
         if not IPython.get_ipython():  
             plt.close() 
         return

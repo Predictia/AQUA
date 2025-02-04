@@ -11,6 +11,9 @@ from aqua.util import find_vert_coord, load_yaml, add_pdf_metadata
 import matplotlib.pyplot as plt
 from aqua.logger import log_configure
 import math
+from dask.diagnostics import ProgressBar
+import psutil
+
 
 def kelvin_to_celsius(data, variable_name, loglevel= "WARNING"):
     """
@@ -566,3 +569,22 @@ def round_up(value):
         return math.ceil(value / 50) * 50  # Round up to next 50
     else:
         return math.ceil(value / 100) * 100  # Round up to next 100
+
+def compute_data(data, loglevel="debug"):
+    logger = log_configure(loglevel, 'compute data')
+    logger.debug(f"Loading the data in the memory")
+    if loglevel == "DEBUG":
+        total_memory = psutil.virtual_memory().total / 1e9  # GB
+        available_memory = psutil.virtual_memory().available / 1e9  # GB
+        estimated_size = data.nbytes / 1e9  # GB
+
+        logger.debug(f"Estimated Data Size: {estimated_size:.2f} GB")
+        logger.debug(f"Available Memory Before Load: {available_memory:.2f} GB")
+
+        with ProgressBar():
+            data = data.compute()
+    else:
+        data = data.compute()
+    logger.debug(f"Loaded the data in the memory")
+    return data
+    

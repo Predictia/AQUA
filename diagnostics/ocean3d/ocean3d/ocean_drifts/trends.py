@@ -4,8 +4,8 @@ Calculating Trends
 
 from .tools import *
 from ocean3d import split_ocean3d_req
+from ocean3d import compute_data
 import pandas as pd
-from dask.diagnostics import ProgressBar
 import IPython
 
 class TrendCalculator:
@@ -249,11 +249,11 @@ class multilevel_trend:
         self.data = area_selection(self.data, self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
         self.data = self.data.interp(lev=self.levels)
         self.logger.debug("Interpolating data for required depths")
-        TS_trend_data = TrendCalculator.TS_3dtrend(self.data, loglevel=self.loglevel)
-        self._plot_multilevel_trend(TS_trend_data)
+        self.trend_data = TrendCalculator.TS_3dtrend(self.data, loglevel=self.loglevel)
+        self._plot_multilevel_trend()
         return
 
-    def _plot_multilevel_trend(self, data):
+    def _plot_multilevel_trend(self):
         """
         Plots the multilevel trend for temperature and salinity.
         """
@@ -261,11 +261,12 @@ class multilevel_trend:
         fig, axs = self._create_subplot_fig(len(self.levels))
         self.filename = file_naming(self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e, plot_name=f"{self.model}-{self.exp}-{self.source}_multilevel_t_s_trend")
         self._add_plot_title()
-        self._plot_contourf(data, axs)
+        self._plot_contourf(axs)
         self._format_plot_axes(axs)
         if self.output:
             export_fig(self.output_dir, self.filename, "pdf", metadata_value=self.title, loglevel=self.loglevel)
-            # self._save_plot_data(data)
+            write_data(self.output_dir, f"{self.filename}", self.trend_data, loglevel=self.loglevel)
+            self.logger.debug(f"Saved the data")
         if not IPython.get_ipython():  
             plt.close() 
         return
@@ -291,26 +292,20 @@ class multilevel_trend:
         fig.subplots_adjust(hspace=0.18, wspace=0.15, top=0.95)
         return fig, axs
 
-    def _plot_contourf(self, data, axs):
+    def _plot_contourf(self, axs):
         """
         Plots contourf for temperature and salinity at different levels.
         """
+        self.trend_data = compute_data(self.trend_data, loglevel = self.loglevel)
+
         for num, lev in enumerate(self.levels):
-            self.logger.debug(f"Loading the data in the memory for {lev} depth")
-            if self.loglevel == "DEBUG":
-                with ProgressBar():
-                    subset_data = data.sel(lev=lev).compute()
-            else:
-                subset_data = data.sel(lev=lev).compute()
-                
+            subset_data = self.trend_data.sel(lev=lev)
             subset_data["thetao"].plot.contourf(cmap="coolwarm", ax=axs[num, 0], levels=18)
             subset_data["so"].plot.contourf(cmap="coolwarm", ax=axs[num, 1], levels=18)
             axs[num, 0].set_facecolor('grey')
             axs[num, 1].set_facecolor('grey')
             self.logger.debug(f"Plotted {lev} depth")
-            if self.output:
-                write_data(self.output_dir, f"{self.filename}_{lev}", subset_data, loglevel=self.loglevel)
-                self.logger.debug(f"Saved the data for {lev} depth")
+
             
         return
 
@@ -371,7 +366,8 @@ class zonal_mean_trend:
 
         # Compute the weighted zonal mean
         data = weighted_zonal_mean(data, self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
-        data = data.compute()
+        data = compute_data(data, loglevel = self.loglevel)
+
         # Create the plot
         fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
 
