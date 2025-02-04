@@ -5,7 +5,7 @@ source: lra-r100-monthly
 loglevel: DEBUG
 outputdir: ./output
 
-# nworkers: 2
+nworkers: 2
 
 variables: ["thetao", "so"]
 
@@ -38,5 +38,7 @@ ocean_circulation: #specify region and climatology time
     Weddell Sea : JJA
     Gin Sea : DJF
   plots:
-    [stratification,
-    MLD]
+    [
+      stratification,
+      MLD
+    ]
