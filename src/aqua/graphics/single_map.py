@@ -268,6 +268,10 @@ def plot_single_map_diff(data: xr.DataArray,
     # Plot the difference
     diff_map = data - data_ref
 
+    if np.allclose(diff_map, 0):
+        logger.warning("The difference map is zero or constant, skipping contour plot.")
+        contour = False  # Disable contour
+        
     return_main_fig = kwargs.get('return_fig', False)
     
     for key in ['return_fig', 'contour']:
