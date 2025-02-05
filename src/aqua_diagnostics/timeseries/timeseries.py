@@ -406,7 +406,8 @@ class Timeseries():
                 output_saver.save_netcdf(self.data_annual[i], frequency='annual', **common_save_args)
 
         if self.plot_ref:
-            output_saver_ref = self._get_output_saver(catalog=self.plot_ref_kw['catalog'], model=self.plot_ref_kw['model'], exp=self.plot_ref_kw['exp'])
+            output_saver_ref = self._get_output_saver(catalog=self.plot_ref_kw['catalog'],
+                                                      model=self.plot_ref_kw['model'], exp=self.plot_ref_kw['exp'])
             common_save_args = self._get_common_save_args()
             common_save_args.pop('dpi', None)
 
@@ -510,9 +511,9 @@ class Timeseries():
                 if startdate > self.startdate:
                     self.logger.debug("Adding a seasonal cycle to the start of the reference data")
                     ref_mon_loop = loop_seasonalcycle(data=self.ref_mon,
-                                                       startdate=self.startdate,
-                                                       enddate=startdate,
-                                                       freq='MS')
+                                                      startdate=self.startdate,
+                                                      enddate=startdate,
+                                                      freq='MS')
                     self.ref_mon = xr.concat([ref_mon_loop, self.ref_mon], dim='time')
 
                 if enddate < self.enddate:
@@ -541,9 +542,9 @@ class Timeseries():
                 if startdate > self.startdate:
                     self.logger.debug("Adding a band to the start of the reference data")
                     ref_ann_loop = loop_seasonalcycle(data=self.ref_ann,
-                                                       startdate=self.startdate,
-                                                       enddate=startdate,
-                                                       freq='YS')
+                                                      startdate=self.startdate,
+                                                      enddate=startdate,
+                                                      freq='YS')
                     self.ref_ann = xr.concat([ref_ann_loop, self.ref_ann], dim='time')
 
                 if enddate < self.enddate:

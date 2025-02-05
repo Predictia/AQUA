@@ -1,5 +1,4 @@
 """Gregory plot module."""
-import os
 import gc
 
 import matplotlib.pyplot as plt
@@ -361,9 +360,11 @@ class GregoryPlot():
             common_save_args = {'diagnostic_product': self.diagnostic_product}
 
             if self.monthly:
-                self._save_frequency_data(output_saver, frequency='monthly', data_ts=self.data_ts_mon[i], data_toa=self.data_toa_mon[i], **common_save_args)
+                self._save_frequency_data(output_saver, frequency='monthly', data_ts=self.data_ts_mon[i],
+                                          data_toa=self.data_toa_mon[i], **common_save_args)
             if self.annual:
-                self._save_frequency_data(output_saver, frequency='annual', data_ts=self.data_ts_annual[i], data_toa=self.data_toa_annual[i], **common_save_args)
+                self._save_frequency_data(output_saver, frequency='annual', data_ts=self.data_ts_annual[i],
+                                          data_toa=self.data_toa_annual[i], **common_save_args)
 
         # Save the reference data if required
         if self.ref:
@@ -421,7 +422,7 @@ class GregoryPlot():
 
     def _save_frequency_data(self, output_saver, frequency, data_ts, data_toa, **common_save_args):
         """Helper function to save data for a specific frequency.
-        
+
         Args:
             output_saver (OutputSaver): OutputSaver instance.
             frequency (str): Frequency of the data (e.g., 'monthly', 'annual').
