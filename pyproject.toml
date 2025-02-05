@@ -34,6 +34,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython"
 ]
 dependencies = [
+    "boto3",
     "cartopy",
     "cfgrib",
     "dask",
@@ -62,6 +63,7 @@ dependencies = [
     "fastparquet",
     "pyfdb==0.1.1",
     "gsv-interface==2.9.0"
+    "ECmean4>=0.1.12",
 ]
 
 [project.optional-dependencies]
@@ -80,14 +82,10 @@ tests = [
     "pandoc",
     "pycobertura"
 ]
-diagnostics = [
-    "ECmean4"
-]
 all = [
     "aqua[docs]",
     "aqua[notebooks]",
-    "aqua[tests]",
-    "aqua[diagnostics]"
+    "aqua[tests]"
 ]
 
 [project.scripts]
@@ -124,7 +122,8 @@ markers = [
     "dummy: mark test for dummy diagnostic",
     "teleconnections: mark test for teleconnections diagnostic",
     "tropical_rainfall: mark test for tropical_rainfall diagnostic",
-    "catgen: mark test for catalog generator"
+    "catgen: mark test for catalog generator",
+    "ecmean: mark for ecmean performance indices and global mean"
 ]
 
 # This appears to be the correct configuration, but for some reason
