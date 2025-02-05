@@ -85,13 +85,14 @@ def main():
     seasons_bool = config['diagnostic_attributes'].get('seasons', False)
     seasons_stat = config['diagnostic_attributes'].get('seasons_stat', 'mean')
     vertical = config['diagnostic_attributes'].get('vertical', False)
+    regrid = config['diagnostic_attributes'].get('regrid', 'r100')
 
 
     # Retrieve data and handle potential errors
     try:
         reader = Reader(catalog=catalog_data, model=model_data, exp=exp_data, source=source_data,
-                        startdate=startdate_data, enddate=enddate_data)
-        data = reader.retrieve()
+                        startdate=startdate_data, enddate=enddate_data, regrid=regrid, loglevel=loglevel)
+        data = reader.retrieve().aqua.regrid()
 
         # Calculate 'tnr' if applicable
         if 'tnr' in variables:
@@ -103,8 +104,8 @@ def main():
 
     try:
         reader_obs = Reader(catalog=catalog_obs, model=model_obs, exp=exp_obs, source=source_obs,
-                            startdate=startdate_obs, enddate=enddate_obs, loglevel=loglevel)
-        data_obs = reader_obs.retrieve()
+                            startdate=startdate_obs, enddate=enddate_obs, regrid=regrid, loglevel=loglevel)
+        data_obs = reader_obs.retrieve().aqua.regrid()
 
         # Calculate 'tnr' for observations if applicable
         if 'tnr' in variables:
