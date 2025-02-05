@@ -367,7 +367,9 @@ class GregoryPlot():
 
         # Save the reference data if required
         if self.ref:
-            output_saver_ref = self._get_output_saver(model='ERA5', exp='CERES')
+            # HACK: The output saver will look for a catalog, model, exp and source match, which
+            # is not the case for this reference data. This will be solved in future output saver updates.
+            output_saver_ref = self._get_output_saver(catalog='obs', model='ERA5', exp='CERES')
             ref_dataset = xr.Dataset({'ts_mean': self.ref_ts_mean, 'ts_std': self.ref_ts_std,
                                       'toa_mean': self.ref_toa_mean, 'toa_std': self.ref_toa_std})
             output_saver_ref.save_netcdf(ref_dataset, diagnostic_product=self.diagnostic_product)
