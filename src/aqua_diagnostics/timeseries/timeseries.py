@@ -617,7 +617,7 @@ class Timeseries():
             cat, _ = ConfigPath().browse_catalogs(model=plot_ref_kw['model'],
                                                   exp=plot_ref_kw['exp'],
                                                   source=plot_ref_kw['source'])
-            plot_ref_kw['catalog'] = cat
+            plot_ref_kw['catalog'] = cat[0]
         return plot_ref_kw
 
     def cleanup(self):
