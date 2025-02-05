@@ -184,12 +184,16 @@ class Ocean3DCLI:
             self.logger.warning("Time series plot completed")
 
         if "multilevel_trend" in self.config["ocean_drift"]["plots"]:
+            if self.client:
+                self.client.restart()
             self.logger.info("Evaluating multilevel trend")
             trend = multilevel_trend(o3d_request)
             trend.plot()
             self.logger.warning("Multi-level trend plot completed")
-
+            
         if "zonal_trend" in self.config["ocean_drift"]["plots"]:
+            if self.client:
+                self.client.restart()
             self.logger.info("Evaluating zonal mean trend")
             zonal_trend = zonal_mean_trend(o3d_request)
             zonal_trend.plot()

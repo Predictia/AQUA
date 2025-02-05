@@ -570,7 +570,7 @@ def round_up(value):
     else:
         return math.ceil(value / 100) * 100  # Round up to next 100
 
-def compute_data(data, loglevel="debug"):
+def compute_data(data, loglevel="WARNING"):
     logger = log_configure(loglevel, 'compute data')
     logger.debug(f"Loading the data in the memory")
     if loglevel == "DEBUG":
