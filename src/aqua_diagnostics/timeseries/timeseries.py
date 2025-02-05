@@ -113,7 +113,7 @@ class Timeseries():
         self.ref_mon_std = None
         self.ref_ann = None
         self.ref_ann_std = None
-        self.plot_ref_kw = plot_ref_kw
+        self.plot_ref_kw = self._plot_ref_kw(plot_ref_kw)
         self.monthly_std = monthly_std if monthly else False
         self.annual_std = annual_std if annual else False
         self.std_startdate = std_startdate
@@ -597,6 +597,27 @@ class Timeseries():
             self.catalogs = [None] * len(self.models)
         else:
             self.catalogs = catalogs
+
+    def _plot_ref_kw(self, plot_ref_kw):
+        """
+        Fill in the missing keys in plot_ref_kw.
+        Raise an error if model, exp or source are missing.
+        Find the catalog if not provided.
+
+        Args:
+            plot_ref_kw (dict): Dictionary with keys model, exp, source and (optional) catalog.
+
+        Returns:
+            plot_ref_kw (dict): Dictionary with keys model, exp, source, catalog.
+        """
+        if 'model' not in plot_ref_kw or 'exp' not in plot_ref_kw or 'source' not in plot_ref_kw:
+            raise ValueError("Missing model, exp or source in plot_ref_kw")
+        if 'catalog' not in plot_ref_kw:
+            cat, _ = ConfigPath().browse_catalogs(model=plot_ref_kw['model'],
+                                                  exp=plot_ref_kw['exp'],
+                                                  source=plot_ref_kw['source'])
+            plot_ref_kw['catalog'] = cat
+        return plot_ref_kw
 
     def cleanup(self):
         """Clean up"""
