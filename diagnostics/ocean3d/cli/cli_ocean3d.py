@@ -94,7 +94,8 @@ class Ocean3DCLI:
         if self.config["select_time"]:
             self.config["start_year"] = self.get_value_with_default(self.config["select_time"], "start_year", [])
             self.config["end_year"] = self.get_value_with_default(self.config["select_time"], "end_year", [])
-        self.config["compare_model"] = self.get_value_with_default(self.config["ocean_circulation"], "compare_model_with_obs", None)
+        if self.config["ocean_circulation"]:
+            self.config["compare_model"] = self.get_value_with_default(self.config["ocean_circulation"], "compare_model_with_obs", None)
 
         # if self.ocean3d_config_dict['custom_region'] :
         #     self.config["custom_region"] = self.get_value_with_default(self.ocean3d_config_dict,"custom_region", [])

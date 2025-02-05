@@ -360,19 +360,18 @@ class zonal_mean_trend:
         """
         self.data = area_selection(self.data, self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
         # Compute the trend data
-        TS_trend_data = TrendCalculator.TS_3dtrend(self.data, loglevel=self.loglevel)
-        TS_trend_data.attrs = self.data.attrs
-        data = TS_trend_data
+        self.trend_data = TrendCalculator.TS_3dtrend(self.data, loglevel=self.loglevel)
+        self.trend_data.attrs = self.data.attrs
 
         # Compute the weighted zonal mean
-        data = weighted_zonal_mean(data, self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
-        data = compute_data(data, loglevel = self.loglevel)
+        self.trend_data = weighted_zonal_mean(self.trend_data, self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
+        self.trend_data = compute_data(self.trend_data, loglevel = self.loglevel)
 
         # Create the plot
         fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
 
         # Plot temperature
-        data.thetao.plot.contourf(levels=20, ax=axs[0])
+        self.trend_data.thetao.plot.contourf(levels=20, ax=axs[0])
         axs[0].set_ylim((5500, 0))
         axs[0].set_title("Temperature", fontsize=14)
         axs[0].set_ylabel("Depth (in m)", fontsize=9)
@@ -380,7 +379,7 @@ class zonal_mean_trend:
         axs[0].set_facecolor('grey')
 
         # Plot salinity
-        data.so.plot.contourf(levels=20, ax=axs[1])
+        self.trend_data.so.plot.contourf(levels=20, ax=axs[1])
         axs[1].set_ylim((5500, 0))
         axs[1].set_title("Salinity", fontsize=14)
         axs[1].set_ylabel("Depth (in m)", fontsize=12)
@@ -398,7 +397,7 @@ class zonal_mean_trend:
         if self.output:
             filename = file_naming(self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e,
                                    plot_name=f"{self.model}-{self.exp}-{self.source}_zonal_mean_trend")
-            write_data(self.output_dir, filename, data, loglevel=self.loglevel)
+            write_data(self.output_dir, filename, self.trend_data, loglevel=self.loglevel)
             export_fig(self.output_dir, filename, "pdf", metadata_value=title, loglevel=self.loglevel)
         if not IPython.get_ipython():  
             plt.close() 
