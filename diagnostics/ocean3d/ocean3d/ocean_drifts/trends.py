@@ -359,12 +359,13 @@ class zonal_mean_trend:
             None
         """
         self.data = area_selection(self.data, self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
+        # Compute the weighted zonal mean
+        self.data = weighted_zonal_mean(self.data, self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
         # Compute the trend data
         self.trend_data = TrendCalculator.TS_3dtrend(self.data, loglevel=self.loglevel)
         self.trend_data.attrs = self.data.attrs
 
-        # Compute the weighted zonal mean
-        self.trend_data = weighted_zonal_mean(self.trend_data, self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
+
         self.trend_data = compute_data(self.trend_data, loglevel = self.loglevel)
 
         # Create the plot
