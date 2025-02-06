@@ -276,7 +276,7 @@ class Ocean3DCLI:
             self.client.close()
             self.logger.debug("Dask client closed.")
 
-        if self.private_cluster:
+        if getattr(self, 'private_cluster', None):
             self.cluster.close()
             self.logger.debug("Dask cluster closed.")
 
