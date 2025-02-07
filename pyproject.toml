@@ -39,7 +39,7 @@ dependencies = [
     "cfgrib",
     "dask",
     "dask_jobqueue",
-    "eccodes==2.39.0",
+    "eccodes==2.39.2",
     "docker",
     "gcsfs", # Google Cloud Storage File System
     "gribscan",
