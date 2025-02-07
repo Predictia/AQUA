@@ -85,7 +85,7 @@ def main():
     seasons_bool = config['diagnostic_attributes'].get('seasons', False)
     seasons_stat = config['diagnostic_attributes'].get('seasons_stat', 'mean')
     vertical = config['diagnostic_attributes'].get('vertical', False)
-    regrid = config['diagnostic_attributes'].get('regrid', 'r100')
+    regrid = config['diagnostic_attributes'].get('regrid', None)
 
 
     # Retrieve data and handle potential errors

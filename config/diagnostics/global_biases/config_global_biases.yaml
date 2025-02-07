@@ -29,7 +29,7 @@ diagnostic_attributes:
   seasons: True
   seasons_stat: 'mean'
   vertical: True
-  regrid: 'r100'
+  regrid: null
   startdate_data: null
   enddate_data: null
   startdate_obs: "1990-01-01" 
