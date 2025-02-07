@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Hotfix to Global Biases Diagnostic (#1670)
 - Fix in the catgen now correctly generating an automatic description if not provided (#1662)
 
 AQUA diagnostics complete list:
