@@ -245,8 +245,8 @@ class AquaFDBGenerator:
         self.logger.debug('Number of realizations %s', self.num_of_realizations)
 
         self.description = (
-            self.config.get('description')
-            or f'"{self.model} {self.config['exp']} {self.config['data_start_date'][:4]}, '
+            self.config.get("description")
+            or f'"{self.model} {self.config["exp"]} {self.config["data_start_date"][:4]}, '
             f'grids: {self.atm_grid} {self.ocean_grid}"' )
 
         kwargs = {

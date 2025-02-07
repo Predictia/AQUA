@@ -9,10 +9,14 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Hotfix to Global Biases Diagnostic (#1670)
+- Ansi color 8-bit fix for logger (#1671)
+- Hotfix for unmatched string in catgen (#1672)
+- Test for aqua-analysis.py (#1664)
 - Fix in the catgen now correctly generating an automatic description if not provided (#1662)
 
 AQUA diagnostics complete list:
-- Test for aqua-analysis.py (#1664)
+- Diagnostic core: added a Diagnostic class to be inherited by all diagnostics (#1681)
+- Timeseries: hotfix of problems with the catalog usage in output saving (#1669)
 - Tropical Rainfall: Update of the precomputed histograms paths for lumi and MN5 (#1661)
 
 ## [v0.13.0]
