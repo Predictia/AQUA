@@ -8,10 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Test for aqua-analysis.py (#1664)
 - Fix in the catgen now correctly generating an automatic description if not provided (#1662)
 
 AQUA diagnostics complete list:
-- Test for aqua-analysis.py (#1664)
+- Timeseries: hotfix of problems with the catalog usage in output saving (#1669)
 - Tropical Rainfall: Update of the precomputed histograms paths for lumi and MN5 (#1661)
 
 ## [v0.13.0]
