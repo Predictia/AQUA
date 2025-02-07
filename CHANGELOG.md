@@ -12,6 +12,7 @@ AQUA core complete list:
 - Fix in the catgen now correctly generating an automatic description if not provided (#1662)
 
 AQUA diagnostics complete list:
+- Diagnostic core: added a Diagnostic class to be inherited by all diagnostics (#1681)
 - Timeseries: hotfix of problems with the catalog usage in output saving (#1669)
 - Tropical Rainfall: Update of the precomputed histograms paths for lumi and MN5 (#1661)
 
