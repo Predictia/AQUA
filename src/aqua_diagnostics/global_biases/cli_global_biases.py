@@ -92,8 +92,14 @@ def main():
     try:
         reader = Reader(catalog=catalog_data, model=model_data, exp=exp_data, source=source_data,
                         startdate=startdate_data, enddate=enddate_data, regrid=regrid, loglevel=loglevel)
-        data = reader.retrieve().aqua.regrid()
-
+        data = reader.retrieve() 
+        if regrid:
+            data = reader.regrid(data)
+        else:
+            logger.warning(
+            "No regridding applied. Data is in native grid, "
+            "this could lead to errors in the bias calculation if the data is not in the same grid as the reference data."
+            )
         # Calculate 'tnr' if applicable
         if 'tnr' in variables:
             data['tnr'] = data['tnlwrf'] + data['tnswrf']
@@ -105,7 +111,14 @@ def main():
     try:
         reader_obs = Reader(catalog=catalog_obs, model=model_obs, exp=exp_obs, source=source_obs,
                             startdate=startdate_obs, enddate=enddate_obs, regrid=regrid, loglevel=loglevel)
-        data_obs = reader_obs.retrieve().aqua.regrid()
+        data_obs = reader_obs.retrieve()
+        if regrid:
+            data_obs = reader_obs.regrid(data)
+        else:
+            logger.warning(
+            "No regridding applied. Data is in native grid, "
+            "this could lead to errors in the bias calculation if the data is not in the same grid as the reference data."
+            )
 
         # Calculate 'tnr' for observations if applicable
         if 'tnr' in variables:
