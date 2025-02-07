@@ -628,7 +628,6 @@ class GSVSource(base.DataSource):
         file_mask = f"{req['class']}:{req['dataset']}:{req['activity']}:{req['experiment']}:{req['generation']}:{req['model']}:{req['realization']}:{expver}:{req['stream']}:*"
         
         file_mask = file_mask.lower()
-        #file_list = glob.glob(os.path.join(root, file_mask))
         file_list = [
             f for f in os.listdir(root) if fnmatch.fnmatch(f.lower(), file_mask)
         ]
