@@ -88,4 +88,4 @@ class Diagnostic():
                                   default_path=default_path, rebuild=rebuild, catalog=self.catalog,
                                   model=self.model, exp=self.exp, loglevel=self.logger.level)
 
-        outputsaver.save_netcdf(data=data, **kwargs)
+        outputsaver.save_netcdf(dataset=data, **kwargs)
