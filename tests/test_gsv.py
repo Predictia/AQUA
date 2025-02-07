@@ -5,6 +5,7 @@ import xarray as xr
 from dask.distributed import LocalCluster, Client
 
 from aqua.gsv.intake_gsv import GSVSource, gsv_available
+from aqua.util import ConfigPath
 from aqua import Reader
 
 if not gsv_available:
@@ -35,8 +36,10 @@ DEFAULT_GSV_PARAMS = {
 
 loglevel = 'DEBUG'
 FDB_HOME = '/app'
-# to be enabled for local testing on Lumi
-#FDB_HOME = '/pfs/lustrep3/projappl/project_465000454/padavini/FDB-TEST'
+# to enable for local testing on Lumi
+if ConfigPath().machine == 'lumi':
+    FDB_HOME = '/pfs/lustrep3/projappl/project_465000454/padavini/FDB-TEST'
+
 
 @pytest.fixture()
 def gsv(request) -> GSVSource:
