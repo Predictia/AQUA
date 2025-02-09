@@ -113,7 +113,7 @@ def main():
                             startdate=startdate_obs, enddate=enddate_obs, regrid=regrid, loglevel=loglevel)
         data_obs = reader_obs.retrieve()
         if regrid:
-            data_obs = reader_obs.regrid(data)
+            data_obs = reader_obs.regrid(data_obs)
         else:
             logger.warning(
             "No regridding applied. Data is in native grid, "
