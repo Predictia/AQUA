@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Fixer delete option accepts non-lists (#1687)
 - Ansi color 8-bit fix for logger (#1671)
 - Hotfix for unmatched string in catgen (#1672)
 - Test for aqua-analysis.py (#1664)
