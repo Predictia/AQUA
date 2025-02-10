@@ -174,7 +174,7 @@ def make_content(catalog, model, exp, diagnostics, config_experiments, force):
             file.write(content_json)
 
 
-def main(force=False, experiment=None):
+def main(force=False, experiment=None, configfile="config.yaml"):
     """
     Main function to create content.yaml and content.json files for each experiment in the content/png directory.
 
@@ -182,7 +182,7 @@ def main(force=False, experiment=None):
         force (bool): Create content.yaml and content.json even if they exist already
     """
         
-    with open("config.yaml", "r") as file:
+    with open(configfile, "r") as file:
         config = yaml.safe_load(file)
 
     os.chdir("content/png")
@@ -211,6 +211,8 @@ def parse_arguments(arguments):
                         help='create content.yaml and content.json even if they exist already')
     parser.add_argument('-e', '--experiment', type=str,
                         help='specific experiment for which to create content')
+    parser.add_argument('-c', '--config', type=str, default="config.yaml",
+                        help='alternate confg file')
     
     return parser.parse_args(arguments)
     
@@ -219,4 +221,5 @@ if __name__ == "__main__":
     args = parse_arguments(sys.argv[1:])
     force = args.force
     experiment = args.experiment
-    main(force=force, experiment=experiment)
+    config = args.config
+    main(force=force, experiment=experiment, configfile=config)
