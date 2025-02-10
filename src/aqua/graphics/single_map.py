@@ -174,6 +174,7 @@ def plot_single_map(data: xr.DataArray,
         logger.debug("Setting colorbar ticks rounding to %s", cbar_ticks_rounding)
         cbar_ticks = ticks_round(cbar_ticks, cbar_ticks_rounding)
     cbar.set_ticks(cbar_ticks)
+    cbar.ax.ticklabel_format(style='sci', axis='x', scilimits=(-3, 3))
 
     # Set x-y labels
     ax.set_xlabel('Longitude [deg]')
