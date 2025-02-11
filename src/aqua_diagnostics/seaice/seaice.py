@@ -43,8 +43,7 @@ class SeaIce(Diagnostic):
                 raise ValueError('Invalid region name. Please check the region file.')
             self.regions = regions
 
-        # create an empty dictionary to store the extent of each region
-        self.extent = {region: None for region in self.regions}
+        self.extent = None
 
     def show_regions(self):
         """Show the regions available in the region file."""
@@ -64,6 +63,7 @@ class SeaIce(Diagnostic):
         # get info on grid area
         areacello = self.reader.grid_area
 
+        extent = []
         for region in self.regions:
             self.logger.info(f'Computing sea ice extent for {region}')
             box = self.regions_definition[region]
@@ -76,11 +76,13 @@ class SeaIce(Diagnostic):
             
             # add/fix attributes
             seaice_extent.attrs["units"] = "million km^2"
-            seaice_extent.attrs["long_name"] = "Sea ice extent"
-            seaice_extent.attrs["standard_name"] = "extent"
+            seaice_extent.attrs["long_name"] = f"Sea ice extent integrated over {region} region"
+            seaice_extent.attrs["standard_name"] = f"{region} sea ice extent"
             seaice_extent.attrs["region"] = region
-            seaice_extent.name = "sea_ice_extent"
+            seaice_extent.name = f"sea_ice_extent_{region.lower()}"
 
-            self.extent[region] = seaice_extent
+            extent.append(seaice_extent)
+
+        self.extent = xr.merge(extent, combine_attrs='drop_conflicts')
        
         return self.extent
