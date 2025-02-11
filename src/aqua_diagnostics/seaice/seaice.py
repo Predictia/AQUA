@@ -31,7 +31,7 @@ class SeaIce(Diagnostic):
         # region file is the fullpath to the region file
         if regions_file is None:
             folderpath = ConfigPath().get_config_dir()
-            regions_file = os.path.join(folderpath, 'diagnostics', 'seaice', 'region_file.yaml')
+            regions_file = os.path.join(folderpath, 'diagnostics', 'seaice', 'config', 'regions_definition.yaml')
         
         self.regions_definition = load_yaml(infile=regions_file)
 
