@@ -45,6 +45,11 @@ class SeaIce(Diagnostic):
 
         # create an empty dictionary to store the extent of each region
         self.extent = {region: None for region in self.regions}
+
+    def show_regions(self):
+        """Show the regions available in the region file."""
+
+        return dict(self.regions_definition)
             
     def compute_extent(self, threshold=0.15, var='siconc'):
         """Compute sea ice extent."""
