@@ -5,7 +5,6 @@ import xarray as xr
 from aqua.diagnostics.core import Diagnostic
 from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure
-from aqua.reader import Reader, inspect_catalog
 from aqua.util import ConfigPath, OutputSaver
 from aqua.util import load_yaml, area_selection
 
@@ -56,13 +55,21 @@ class SeaIce(Diagnostic):
         # get the sea ice concentration mask
         ci_mask = self.data[var].where((self.data[var] > threshold) &
                                           (self.data[var] < 1.0))
+        
+        # get info on grid area
         areacello = self.reader.grid_area
 
         for region in self.regions:
             self.logger.info(f'Computing sea ice extent for {region}')
             box = self.regions_definition[region]
+
+            # regional selection
             areacello = area_selection(areacello, lat=[box["latS"], box["latN"]], lon=[box["lonW"], box["lonE"]])
+
+            # compute sea ice extent: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to million km^2
             seaice_extent = areacello.where(ci_mask.notnull()).sum(skipna = True, min_count = 1, dim=self.reader.space_coord) / 1e12
+            
+            # add/fix attributes
             seaice_extent.attrs["units"] = "million km^2"
             seaice_extent.attrs["long_name"] = "Sea ice extent"
             seaice_extent.attrs["standard_name"] = "extent"
