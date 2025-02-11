@@ -99,9 +99,8 @@ print_help() {
     echo "  -l, --loglevel LEVEL   set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2."
     echo "  -n, --no-convert       do not convert PDFs to PNGs"  
     echo "  -r, --repository       remote aqua-web repository (default 'DestinE-Climate-DT/aqua-web'). If it starts with 'local:' a local directory is used."
-    echo "  -c, --config FILE      alternate config file for make_contents (default is 'config.yaml')"
+    echo "  -c, --config FILE      alternate config file for make_contents"
     echo "  --branch BRANCH        push to the specified branch (defaults to 'main')"
-    echo "  --no-update            do not update github repository" 
     echo "  --rsync URL            remote rsync target (takes priority over s3 bucket if specified)"
 }
 
@@ -154,6 +153,7 @@ while [[ $# -gt 2 ]]; do
         ;;
     --rsync)
         rsync="$2"
+        update=0  # if rsync is used, we will not update aqua-web
         shift 2
         ;;
     -r|--repository)
