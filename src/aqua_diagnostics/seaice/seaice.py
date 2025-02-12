@@ -33,6 +33,7 @@ class SeaIce(Diagnostic):
             folderpath = ConfigPath().get_config_dir()
             regions_file = os.path.join(folderpath, 'diagnostics', 'seaice', 'config', 'regions_definition.yaml')
         
+        # load the region file
         self.regions_definition = load_yaml(infile=regions_file)
 
         if regions is None:
@@ -42,17 +43,17 @@ class SeaIce(Diagnostic):
             if not all(reg in self.regions_definition.keys() for reg in regions):
                 raise ValueError('Invalid region name. Please check the region file.')
             self.regions = regions
-
+        
         self.extent = None
 
     def show_regions(self):
         """Show the regions available in the region file."""
 
         return dict(self.regions_definition)
-            
+
     def compute_extent(self, threshold=0.15, var='siconc'):
         """Compute sea ice extent."""
-        
+
         # retrieve data with Diagnostic method
         super().retrieve(var=var)
 
@@ -84,7 +85,7 @@ class SeaIce(Diagnostic):
 
             extent.append(seaice_extent)
         
-        # combine the volume DataArrays into a single Dataset and keep as global attributes 
+        # combine the extent DataArrays into a single Dataset and keep as global attributes 
         # only the attrs that are shared across all DataArrays
         self.extent = xr.merge(extent, combine_attrs='drop_conflicts')
        
@@ -133,3 +134,34 @@ class SeaIce(Diagnostic):
         self.volume = xr.merge(volume, combine_attrs='drop_conflicts')
        
         return volume
+
+    def compute_seaice(self, var: str = None, method: str = 'extent', threshold: float = 0.15):
+        """
+        Execute the seaice diagnostic based on the specified method.
+
+        Parameters:
+        var (str): The variable to be used for computation. Default is None.
+        method (str): The method to compute sea ice metrics. Options are 'extent' or 'volume'. Default is 'extent'.
+        threshold (float): The threshold value for computing sea ice extent. Default is 0.15.
+
+        Returns:
+        xr.DataArray or xr.Dataset: The computed sea ice metric. A Dataset is returned if multiple regions are requested.
+        
+        Raises:
+        ValueError: If an invalid method is specified.
+        """
+
+        # create a dictionary with the available methods associated with the corresponding function
+        # lambda does not take arguments
+        methods = {
+            'extent': lambda: self.compute_extent(var=var, threshold=threshold),
+            'volume': lambda: self.compute_volume(var=var),
+            }
+
+        # check if the method is valid and call the corresponding function if so
+        if method not in methods:
+                valid_methods = ', '.join(f"'{key}'" for key in methods.keys())
+                raise ValueError(f"Invalid method '{method}'. Please choose from: [ {valid_methods} ]")
+        else:
+            # call the function associated with the method
+            return methods[method]()
