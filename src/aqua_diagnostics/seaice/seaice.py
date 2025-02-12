@@ -11,7 +11,7 @@ from aqua.util import load_yaml, area_selection
 xr.set_options(keep_attrs=True)
 
 class SeaIce(Diagnostic):
-    """Class for teleconnection objects."""
+    """Class for seaice objects."""
 
     def __init__(self, model: str, exp: str, source: str,        
                  catalog=None,
@@ -58,11 +58,12 @@ class SeaIce(Diagnostic):
 
         # get the sea ice concentration mask
         ci_mask = self.data[var].where((self.data[var] > threshold) &
-                                          (self.data[var] < 1.0))
+                                       (self.data[var] < 1.0))
         
         # get info on grid area
         areacello = self.reader.grid_area
 
+        # make a list to store the extent DataArrays for each region
         extent = []
         for region in self.regions:
             self.logger.info(f'Computing sea ice extent for {region}')
@@ -82,7 +83,53 @@ class SeaIce(Diagnostic):
             seaice_extent.name = f"sea_ice_extent_{region.lower()}"
 
             extent.append(seaice_extent)
-
+        
+        # combine the volume DataArrays into a single Dataset and keep as global attributes 
+        # only the attrs that are shared across all DataArrays
         self.extent = xr.merge(extent, combine_attrs='drop_conflicts')
        
         return self.extent
+
+    def compute_volume(self, var='sithick'):
+        """Compute sea ice volume."""
+
+        # retrieve data with Diagnostic method
+        super().retrieve(var=var)
+
+        if self.data is None:
+            self.logger.error(f"Variable {var} not found in dataset {self.model}, {self.exp}, {self.source}")
+            raise NoDataError("Variable not found in dataset")
+
+        # get the sea ice volume
+        sivol_mask = self.data[var].where((self.data[var] > 0) &
+                                          (self.data[var] < 99.0))
+
+        # get info on grid area
+        areacello = self.reader.grid_area
+
+        # make a list to store the volume DataArrays for each region
+        volume = []
+        for region in self.regions:
+            self.logger.info(f'Computing sea ice volume for {region}')
+            box = self.regions_definition[region]
+
+            # regional selection
+            areacello = area_selection(areacello, lat=[box["latS"], box["latN"]], lon=[box["lonW"], box["lonE"]])
+
+            # compute sea ice volume: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to km^3
+            seaice_volume = (sivol_mask * areacello.where(sivol_mask.notnull())).sum(skipna = True, min_count = 1, 
+                                                                                     dim=self.reader.space_coord) / 1e12
+            # add/fix attributes
+            seaice_volume.attrs["units"] = "km^3"
+            seaice_volume.attrs["long_name"] = f"Sea ice volume integrated over {region} region"
+            seaice_volume.attrs["standard_name"] = f"{region} sea ice volume"
+            seaice_volume.attrs["region"] = region
+            seaice_volume.name = f"sea_ice_volume_{region.lower()}"
+
+            volume.append(seaice_volume)
+
+        # combine the volume DataArrays into a single Dataset and keep as global attributes 
+        # only the attrs that are shared across all DataArrays
+        self.volume = xr.merge(volume, combine_attrs='drop_conflicts')
+       
+        return volume
