@@ -152,7 +152,6 @@ class SeaIce(Diagnostic):
         """
 
         # create a dictionary with the available methods associated with the corresponding function
-        # lambda does not take arguments
         methods = {
             'extent': self._compute_extent,
             'volume': self._compute_volume,
