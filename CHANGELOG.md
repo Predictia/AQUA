@@ -7,9 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+## [v0.13.1]
+
+Main changes are:
+1. Ocean3d major refactoring
+
 AQUA core complete list:
 - Fixer delete option accepts non-lists (#1687)
-- Hotfix to Global Biases Diagnostic (#1670)
 - Ansi color 8-bit fix for logger (#1671)
 - Hotfix for unmatched string in catgen (#1672)
 - Test for aqua-analysis.py (#1664)
@@ -20,6 +24,7 @@ AQUA diagnostics complete list:
 - Timeseries: hotfix of problems with the catalog usage in output saving (#1669)
 - Tropical Rainfall: Update of the precomputed histograms paths for lumi and MN5 (#1661)
 - Ocean3d: Trend is calculating using polyfit. Restructed the mixed layer depth function. (#1651)
+- Global bias: hotfix for regrid option (#1670)
 
 ## [v0.13.0]
 
@@ -804,7 +809,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.0...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.1...HEAD
+[v0.13.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.0...v0.13.1
 [v0.13.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-beta...v0.13.0
 [v0.13-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-alpha...v0.13-beta
 [v0.13-alpha]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.12.2...v0.13-alpha
