@@ -51,7 +51,7 @@ class SeaIce(Diagnostic):
 
         return dict(self.regions_definition)
 
-    def compute_extent(self, threshold=0.15, var='siconc'):
+    def _compute_extent(self, threshold=0.15, var='siconc'):
         """Compute sea ice extent."""
 
         # retrieve data with Diagnostic method
@@ -91,7 +91,7 @@ class SeaIce(Diagnostic):
        
         return self.extent
 
-    def compute_volume(self, var='sithick'):
+    def _compute_volume(self, var='sithick'):
         """Compute sea ice volume."""
 
         # retrieve data with Diagnostic method
@@ -135,7 +135,7 @@ class SeaIce(Diagnostic):
        
         return volume
 
-    def compute_seaice(self, var: str = None, method: str = 'extent', threshold: float = 0.15):
+    def compute_seaice(self, method, *args, **kwargs):
         """
         Execute the seaice diagnostic based on the specified method.
 
@@ -154,8 +154,8 @@ class SeaIce(Diagnostic):
         # create a dictionary with the available methods associated with the corresponding function
         # lambda does not take arguments
         methods = {
-            'extent': lambda: self.compute_extent(var=var, threshold=threshold),
-            'volume': lambda: self.compute_volume(var=var),
+            'extent': self._compute_extent,
+            'volume': self._compute_volume,
             }
 
         # check if the method is valid and call the corresponding function if so
@@ -164,4 +164,4 @@ class SeaIce(Diagnostic):
                 raise ValueError(f"Invalid method '{method}'. Please choose from: [ {valid_methods} ]")
         else:
             # call the function associated with the method
-            return methods[method]()
+            return methods[method](*args, **kwargs)
