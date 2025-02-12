@@ -18,6 +18,7 @@ AQUA diagnostics complete list:
 - Diagnostic core: added a Diagnostic class to be inherited by all diagnostics (#1681)
 - Timeseries: hotfix of problems with the catalog usage in output saving (#1669)
 - Tropical Rainfall: Update of the precomputed histograms paths for lumi and MN5 (#1661)
+- Ocean3d: Trend is calculating using polyfit. Restructed the mixed layer depth function. (#1651)
 
 ## [v0.13.0]
 
