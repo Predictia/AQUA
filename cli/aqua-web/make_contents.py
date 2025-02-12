@@ -180,6 +180,8 @@ def main(force=False, experiment=None, configfile="config.yaml"):
 
     Args:
         force (bool): Create content.yaml and content.json even if they exist already
+        experiment (str): Specific experiment for which to create content (in format "$catalog/$model/$experiment")
+        configfile (str): Alternate confg file path (default "config.yaml" - used by aqua-web)
     """
         
     with open(configfile, "r") as file:
@@ -210,7 +212,7 @@ def parse_arguments(arguments):
     parser.add_argument('-f', '--force', action="store_true",
                         help='create content.yaml and content.json even if they exist already')
     parser.add_argument('-e', '--experiment', type=str,
-                        help='specific experiment for which to create content')
+                        help='specific experiment for which to create content in format $catalog/$model/$experiment')
     parser.add_argument('-c', '--config', type=str, default="config.yaml",
                         help='alternate confg file')
     
