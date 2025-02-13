@@ -123,7 +123,9 @@ markers = [
     "teleconnections: mark test for teleconnections diagnostic",
     "tropical_rainfall: mark test for tropical_rainfall diagnostic",
     "catgen: mark test for catalog generator",
-    "ecmean: mark for ecmean performance indices and global mean"
+    "ecmean: mark for ecmean performance indices and global mean",
+    "seaice: mark for sea ice diagnostics"
+
 ]
 
 # This appears to be the correct configuration, but for some reason

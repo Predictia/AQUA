@@ -6,7 +6,7 @@ from aqua.diagnostics.core import Diagnostic
 from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure
 from aqua.util import ConfigPath, OutputSaver
-from aqua.util import load_yaml, area_selection
+from aqua.util import load_yaml, area_selection, to_list
 
 xr.set_options(keep_attrs=True)
 
@@ -42,7 +42,7 @@ class SeaIce(Diagnostic):
         else:
             if not all(reg in self.regions_definition.keys() for reg in regions):
                 raise ValueError('Invalid region name. Please check the region file.')
-            self.regions = regions
+            self.regions = to_list(regions)
         
         self.extent = None
 
@@ -83,7 +83,7 @@ class SeaIce(Diagnostic):
             seaice_extent.attrs["long_name"] = f"Sea ice extent integrated over {region} region"
             seaice_extent.attrs["standard_name"] = f"{region} sea ice extent"
             seaice_extent.attrs["region"] = region
-            seaice_extent.name = f"sea_ice_extent_{region.lower()}"
+            seaice_extent.name = f"sea_ice_extent_{region.replace(' ', '_').lower()}"
 
             extent.append(seaice_extent)
         
