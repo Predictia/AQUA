@@ -52,7 +52,9 @@ class SeaIce(Diagnostic):
         return dict(self.regions_definition)
 
     def _compute_extent(self, threshold=0.15, var='siconc'):
-        """Compute sea ice extent."""
+        """Compute sea ice extent.
+        threshold (float): The threshold value for which sea ice fraction is considered . Default is 0.15.
+        """
 
         # retrieve data with Diagnostic method
         super().retrieve(var=var)
@@ -136,14 +138,14 @@ class SeaIce(Diagnostic):
         return volume
 
     def compute_seaice(self, method, *args, **kwargs):
-        """
-        Execute the seaice diagnostic based on the specified method.
+        """ Execute the seaice diagnostic based on the specified method.
 
         Parameters:
         var (str): The variable to be used for computation. Default is None.
         method (str): The method to compute sea ice metrics. Options are 'extent' or 'volume'. Default is 'extent'.
-        threshold (float): The threshold value for computing sea ice extent. Default is 0.15.
-
+        Kwargs:
+            - threshold (float): The threshold value for which sea ice fraction is considered. Default is 0.15.
+            - var (str): The variable to be used for computation. Default is 'sithick'.
         Returns:
         xr.DataArray or xr.Dataset: The computed sea ice metric. A Dataset is returned if multiple regions are requested.
         
