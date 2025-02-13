@@ -10,6 +10,7 @@ import os
 import argparse
 import yaml
 
+
 def parse_arguments(args):
     """Parse command line arguments"""
 
@@ -28,7 +29,7 @@ def parse_arguments(args):
     parser.add_argument("--yaml", type=str,
                         required=False, help="write an experiment.yaml file to a given directory")
     parser.add_argument("--no-read", action="store_false",
-                        required=False, help="do not attempt to read data (used with --yaml to speed up when creating only yaml)")
+                        required=False, help="do not attempt to read data (used with --yaml to speed up when creating only yaml)") # noqa
     parser.add_argument("--no-rebuild", action="store_false",
                         required=False, help="by default rebuild of areas is forced, this prevents it")
     return parser.parse_args(args)
