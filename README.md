@@ -14,12 +14,12 @@ The Application for QUality Assessment (AQUA) is a model evaluation framework de
 
 AQUA requires python>=3.9. Recommended installation should be done through any package manager for conda-forge.
 
-### Create conda environment and install packages
+### Create conda/mamba environment and install packages
 ```
 git clone git@github.com:DestinE-Climate-DT/AQUA.git
 cd AQUA
-conda env create -f environment.yml
-conda activate aqua
+mamba env create -f environment.yml
+mamba activate aqua
 ```
 
 This installation will provide both the AQUA framework and the AQUA diagnostics, which can be found in the `diagnostics` folder.
