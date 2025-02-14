@@ -10,7 +10,7 @@ import os
 import argparse
 import yaml
 
-from .util import template_parse_arguments
+from aqua.diagnostics.cli import template_parse_arguments
 
 
 def parse_arguments(args):
