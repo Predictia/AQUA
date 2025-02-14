@@ -11,7 +11,6 @@ Date: Feb 2024
 import cartopy.crs as ccrs
 import cartopy.mpl.ticker as cticker
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
 import numpy as np
 import xarray as xr
 
@@ -133,7 +132,6 @@ def plot_single_map(data: xr.DataArray,
                          transform=proj, levels=levels,
                          extend='both',
                          transform_first=transform_first)
-
     else:
         cs = ax.pcolormesh(data[lon_name], data[lat_name], data, cmap=cmap,
                            transform=proj, vmin=vmin, vmax=vmax)
@@ -144,7 +142,6 @@ def plot_single_map(data: xr.DataArray,
     if gridlines:
         logger.debug("Adding gridlines")
         ax.gridlines()
-
 
     # Longitude labels
     # Evaluate the longitude ticks
