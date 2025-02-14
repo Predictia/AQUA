@@ -13,6 +13,9 @@ AQUA core complete list:
 - Rsync option for push_analysis.sh (#1689)
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
 
+AQUA diagnostics complete list:
+- A common parser and fuctions to open/close the dask cluster are provided (#1703)
+
 ## [v0.13.1]
 
 Main changes are:
