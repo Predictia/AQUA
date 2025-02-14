@@ -35,7 +35,7 @@ First, clone the AQUA repository from GitHub:
 
 .. code-block:: bash
 
-    git clone https://github.com/DestinE-Climate-DT/AQUA.git
+    git clone git@github.com:DestinE-Climate-DT/AQUA.git
 
 Then, navigate to the AQUA directory:
 
@@ -60,6 +60,11 @@ Finally, activate the environment:
 
 At this point, you should have successfully installed the AQUA package and its dependencies 
 in the newly created aqua environment.
+
+.. warning ::
+    If you are installing AQUA on a Mac, please be aware that the ``tempest-extremes`` package is not available for the Mac platform.
+    You will need to remove the ``tempest-extremes`` package from the environment file before creating the environment.
+    This means that at the current stage, the Tropical Cyclone diagnostics will not be available on Mac.
 
 .. note ::
     Together with the environment file, a ``pyproject.toml`` file is provided in the repository.
@@ -220,7 +225,7 @@ To use the FDB5 binary library on MN5, set the following environment variable:
 
 .. code-block:: bash
 
-    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/gpfs/projects/ehpc01/sbeyer/models/DE_CY48R1.0_climateDT_tco399_fesom2.6/build/lib"
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/gpfs/projects/ehpc01/sbeyer/models/DE_CY48R1.0_climateDT_tco399_aerosol_runoff/build/lib"
 
 Installation and use of the AQUA container
 ------------------------------------------

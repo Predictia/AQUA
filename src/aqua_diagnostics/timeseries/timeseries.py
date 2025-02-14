@@ -1,12 +1,12 @@
+import gc  # Garbage collector
 import os
-import gc
 
 import xarray as xr
 from aqua import Reader
 from aqua.logger import log_configure
 from aqua.exceptions import NoObservationError, NoDataError
-from aqua.util import eval_formula, create_folder
-from aqua.util import add_pdf_metadata, time_to_string
+from aqua.util import ConfigPath, OutputSaver
+from aqua.util import eval_formula, time_to_string, load_yaml
 from aqua.graphics import plot_timeseries
 
 from .reference_data import get_reference_timeseries
@@ -39,11 +39,13 @@ class Timeseries():
                  std_startdate=None, std_enddate=None,
                  plot_kw={'ylim': {}}, longname=None,
                  units=None, extend=True,
+                 region=None,
                  lon_limits=None, lat_limits=None,
                  save=True,
                  outdir='./',
-                 outfile=None,
-                 loglevel='WARNING'):
+                 loglevel='WARNING',
+                 rebuild=None, filename_keys=None,
+                 save_pdf=True, save_png=True, dpi=300):
         """
         Args:
             var (str): Variable name.
@@ -71,8 +73,13 @@ class Timeseries():
             lat_limits (list): Latitude limits of the area to evaluate. Default is None.
             save (bool): Save the figure. Default is True.
             outdir (str): Output directory. Default is "./".
-            outfile (str): Output file name. Default is None.
             loglevel (str): Log level. Default is "WARNING".
+            rebuild (bool, optional): If True, overwrite the existing files. If False, do not overwrite. Default is True.
+            filename_keys (list, optional): List of keys to keep in the filename.
+                                            Default is None, which includes all keys (see OutputNamer class).
+            save_pdf (bool): If True, save the figure as a PDF. Default is True.
+            save_png (bool): If True, save the figure as a PNG. Default is True.
+            dpi (int, optional): Dots per inch (DPI) for saving figures. Default is 300.
         """
         self.loglevel = loglevel
         self.logger = log_configure(log_level=self.loglevel, log_name='Timeseries')
@@ -106,7 +113,7 @@ class Timeseries():
         self.ref_mon_std = None
         self.ref_ann = None
         self.ref_ann_std = None
-        self.plot_ref_kw = plot_ref_kw
+        self.plot_ref_kw = self._plot_ref_kw(plot_ref_kw)
         self.monthly_std = monthly_std if monthly else False
         self.annual_std = annual_std if annual else False
         self.std_startdate = std_startdate
@@ -122,12 +129,36 @@ class Timeseries():
         self.units = units
         self.lon_limits = lon_limits
         self.lat_limits = lat_limits
+        self.region = region
+        if self.region is not None:
+            region_file = ConfigPath().get_config_dir()
+            region_file = os.path.join(region_file, 'diagnostics',
+                                       'timeseries', 'interface', 'regions.yaml')
+            if os.path.exists(region_file):
+                region_file = load_yaml(region_file)
+                if self.region in region_file['regions']:
+                    self.lon_limits = region_file['regions'][self.region].get('lon_limits', None)
+                    self.lat_limits = region_file['regions'][self.region].get('lat_limits', None)
+                    self.region_longname = region_file['regions'][self.region].get('longname', None)
+                    self.logger.info(f"Region {self.region_longname} found, selecting lon: {self.lon_limits}, lat: {self.lat_limits}") # noqa
+                else:
+                    self.logger.error(f"Available regions: {list(region_file['regions'].keys())}")
+                    raise KeyError(f"Region {self.region} not found in {region_file}")
+            else:
+                raise FileNotFoundError(f"Region file not found: {region_file}")
 
         self.save = save
         if self.save is False:
-            self.logger.info("Figure will not be saved")
+            self.logger.info("Figures will not be saved")
         self.outdir = outdir
-        self.outfile = outfile
+
+        self.diagnostic_product = 'timeseries'
+        self.diagnostic = 'timeseries'
+        self.rebuild = rebuild
+        self.filename_keys = filename_keys
+        self.save_pdf = save_pdf
+        self.save_png = save_png
+        self.dpi = dpi
 
     def run(self):
         """Retrieve ref, retrieve data and plot"""
@@ -228,6 +259,10 @@ class Timeseries():
                 else:
                     enddate = max(enddate, data.time[-1].values)
 
+            if self.regrid is not None:
+                self.logger.info(f"Regridding data to {self.regrid}")
+                data = reader.regrid(data)
+
             if self.monthly:
                 if 'monthly' in self.sources[i] or 'mon' in self.sources[i]:
                     self.logger.debug(f"No monthly resample needed for {self.catalogs[i]} {model} {self.exps[i]} {self.sources[i]}") # noqa
@@ -309,7 +344,9 @@ class Timeseries():
         except KeyError:
             title = f'{self.var} timeseries'
 
-        if self.lon_limits is not None or self.lat_limits is not None:
+        if self.region is not None:
+            title += f' for {self.region_longname}'
+        elif self.lon_limits is not None or self.lat_limits is not None:
             title += ' for region'
             if self.lon_limits is not None:
                 title += f' lon: {self.lon_limits}'
@@ -327,37 +364,104 @@ class Timeseries():
                                  title=title)
 
         if self.save:
-            self.save_pdf(fig, ref_label)
+            self.save_image(fig, ref_label)
 
-    def save_pdf(self, fig, ref_label):
+    def save_image(self, fig, ref_label):
         """
-        Save the figure to a pdf file
-
+        Save the figure to image files (PDF/PNG).
         Args:
-            fig (matplotlib.figure.Figure): Figure to save
-            ref_label (str): Label for the reference data
+            fig (matplotlib.figure.Figure): Figure to save.
+            ref_label (str): Label for the reference data.
         """
-        self.logger.info("Saving figure to pdf")
+        output_saver = self._get_output_saver(catalog=self.catalogs[0], model=self.models[0], exp=self.exps[0])
 
-        outfig = os.path.join(self.outdir, 'pdf')
-        self.logger.debug(f"Saving figure to {outfig}")
-        create_folder(outfig, self.loglevel)
-        if self.outfile is None:
-            self.outfile = f'global_time_series_timeseries_{self.var}'
-            for i, model in enumerate(self.models):
-                if self.catalogs[i] is not None:
-                    self.outfile += f'_{self.catalogs[i]}'
-                self.outfile += f'_{model}_{self.exps[i]}'
-            if self.plot_ref:
-                self.outfile += f'_{ref_label}'
-            if self.lon_limits is not None:
-                self.outfile += f'_lon{self.lon_limits[0]}-{self.lon_limits[1]}'
-            if self.lat_limits is not None:
-                self.outfile += f'_lat{self.lat_limits[0]}-{self.lat_limits[1]}'
-            self.outfile += '.pdf'
-        self.logger.debug(f"Outfile: {self.outfile}")
-        fig.savefig(os.path.join(outfig, self.outfile))
+        # Get common save arguments
+        common_save_args = self._get_common_save_args()
 
+        description = self._construct_description(ref_label)
+        self.logger.debug(f"Description: {description}")
+
+        metadata = {"Description": description}
+
+        if self.save_pdf:
+            output_saver.save_pdf(fig, metadata=metadata, **common_save_args)
+        if self.save_png:
+            output_saver.save_png(fig, metadata=metadata, **common_save_args)
+
+    def save_netcdf(self):
+        """
+        Save the data to a netcdf file.
+        Every model-exp-source combination is saved in a separate file.
+        Reference data is saved in a separate file.
+        Std data is saved in a separate file.
+        """
+        for i, model in enumerate(self.models):
+            output_saver = self._get_output_saver(catalog=self.catalogs[i], model=model, exp=self.exps[i])
+            common_save_args = self._get_common_save_args()
+            common_save_args.pop('dpi', None)
+
+            if self.monthly:
+                output_saver.save_netcdf(self.data_mon[i], frequency='monthly', **common_save_args)
+            if self.annual:
+                output_saver.save_netcdf(self.data_annual[i], frequency='annual', **common_save_args)
+
+        if self.plot_ref:
+            output_saver_ref = self._get_output_saver(catalog=self.plot_ref_kw['catalog'],
+                                                      model=self.plot_ref_kw['model'], exp=self.plot_ref_kw['exp'])
+            common_save_args = self._get_common_save_args()
+            common_save_args.pop('dpi', None)
+
+            # Save reference data
+            if self.monthly:
+                output_saver_ref.save_netcdf(self.ref_mon, frequency='monthly', **common_save_args)
+            if self.annual:
+                output_saver_ref.save_netcdf(self.ref_ann, frequency='annual', **common_save_args)
+
+            # Save standard deviation data
+            common_save_args.update({'stat': 'std'})
+            if self.monthly_std:
+                output_saver_ref.save_netcdf(self.ref_mon_std, frequency='monthly', **common_save_args)
+            if self.annual_std:
+                output_saver_ref.save_netcdf(self.ref_ann_std, frequency='annual', **common_save_args)
+
+    # Helper functions
+    def _get_output_saver(self, catalog=None, model=None, exp=None):
+        """
+        Create and return an OutputSaver instance.
+        Args:
+            catalog (str): Catalog to use.
+            model (str): Model identifier.
+            exp (str): Experiment identifier.
+        Returns:
+            OutputSaver: An instance of the OutputSaver class.
+        """
+        return OutputSaver(diagnostic=self.diagnostic, catalog=catalog, model=model, exp=exp,
+                           loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild,
+                           filename_keys=self.filename_keys)
+
+    def _get_common_save_args(self):
+        """
+        Create and return a dictionary of common arguments for saving files.
+        Returns:
+            dict: Common arguments for saving files.
+        """
+        common_save_args = {'diagnostic_product': self.diagnostic_product, 'var': self.var, 'dpi': self.dpi}
+        if self.lon_limits is not None:
+            lon_limits = f'_lon{self.lon_limits[0]}_{self.lon_limits[1]}'
+            common_save_args.update({'lon_limits': lon_limits})
+        if self.lat_limits is not None:
+            lat_limits = f'_lat{self.lat_limits[0]}_{self.lat_limits[1]}'
+            common_save_args.update({'lat_limits': lat_limits})
+        return common_save_args
+
+    def _construct_description(self, ref_label):
+        """
+        Construct the description for the metadata.
+        Args:
+            ref_label (str): Label for the reference data.
+        Returns:
+            str: A description string.
+        """
         description = "Time series of the global mean of"
         if self.monthly:
             description += f" {self.data_annual[0].attrs['long_name']}"
@@ -371,10 +475,9 @@ class Timeseries():
         if self.plot_ref:
             description += f" with {ref_label} as reference,"
             if self.std_startdate is not None and self.std_enddate is not None:
-                description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}" # noqa
+                description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}." # noqa
             else:
                 description += " std evaluated from the full time range."
-        description += "."
         if self.extending_ref_range:
             description += " The reference range has been extended with a seasonal cycle or a band to match the model data."
         if self.lon_limits is not None or self.lat_limits is not None:
@@ -384,75 +487,7 @@ class Timeseries():
             if self.lat_limits is not None:
                 description += f" latitude limits {self.lat_limits}"
             description += "."
-        self.logger.debug(f"Description: {description}")
-        add_pdf_metadata(filename=os.path.join(outfig, self.outfile),
-                         metadata_value=description)
-
-    def save_netcdf(self):
-        """
-        Save the data to a netcdf file.
-        Every model-exp-source combination is saved in a separate file.
-        Reference data is saved in a separate file.
-        Std data is saved in a separate file.
-        """
-        outdir = os.path.join(self.outdir, 'netcdf')
-        create_folder(outdir, self.loglevel)
-
-        for i, model in enumerate(self.models):
-            outfile = f'global_time_series_timeseries_{self.var}'
-            if self.catalogs[i] is not None:
-                outfile += f'_{self.catalogs[i]}'
-            outfile += f'_{model}_{self.exps[i]}'
-            if self.lon_limits is not None:
-                outfile += f'_lon{self.lon_limits[0]}_{self.lon_limits[1]}'
-            if self.lat_limits is not None:
-                outfile += f'_lat{self.lat_limits[0]}_{self.lat_limits[1]}'
-            try:
-                if self.monthly is True:
-                    outmon = outfile + '_mon.nc'
-                    self.logger.debug(f"Saving monthly data to {outdir}/{outmon}")
-                    self.data_mon[i].to_netcdf(os.path.join(outdir, outmon))
-                if self.annual is True:
-                    outann = outfile + '_ann.nc'
-                    self.logger.debug(f"Saving annual data to {outdir}/{outann}")
-                    self.data_annual[i].to_netcdf(os.path.join(outdir, outann))
-            except Exception as e:
-                self.logger.error(f"Error while saving netcdf {outdir}/{outfile}: {e}")
-
-        if self.plot_ref:
-            outfile = f'global_time_series_timeseries_{self.var}_{self.plot_ref_kw["model"]}_{self.plot_ref_kw["exp"]}'
-            if self.lon_limits is not None:
-                outfile += f'_lon{self.lon_limits[0]}_{self.lon_limits[1]}'
-            if self.lat_limits is not None:
-                outfile += f'_lat{self.lat_limits[0]}_{self.lat_limits[1]}'
-            try:
-                if self.monthly:
-                    outmon = outfile + '_mon.nc'
-                    self.logger.debug(f"Saving monthly data to {outdir}/{outmon}")
-                    self.ref_mon.to_netcdf(os.path.join(outdir, outmon))
-                if self.annual:
-                    outann = outfile + '_ann.nc'
-                    self.logger.debug(f"Saving annual data to {outdir}/{outann}")
-                    self.ref_ann.to_netcdf(os.path.join(outdir, outann))
-            except Exception as e:
-                self.logger.error(f"Error while saving netcdf {outdir}/{outfile}: {e}")
-
-            outfile = f'global_time_series_timeseries_{self.var}_{self.plot_ref_kw["model"]}_{self.plot_ref_kw["exp"]}_std'
-            if self.lon_limits is not None:
-                outfile += f'_lon{self.lon_limits[0]}_{self.lon_limits[1]}'
-            if self.lat_limits is not None:
-                outfile += f'_lat{self.lat_limits[0]}_{self.lat_limits[1]}'
-            try:
-                if self.monthly_std:
-                    outmon = outfile + '_mon.nc'
-                    self.logger.debug(f"Saving monthly std to {outdir}/{outmon}")
-                    self.ref_mon_std.to_netcdf(os.path.join(outdir, outmon))
-                if self.annual_std:
-                    outann = outfile + '_ann.nc'
-                    self.logger.debug(f"Saving annual std to {outdir}/{outann}")
-                    self.ref_ann_std.to_netcdf(os.path.join(outdir, outann))
-            except Exception as e:
-                self.logger.error(f"Error while saving netcdf {outdir}/{outfile}: {e}")
+        return description
 
     def check_ref_range(self):
         """
@@ -473,13 +508,13 @@ class Timeseries():
                 self.extending_ref_range = True
 
                 # TODO: startdate has to be rounded to the first of the month
-                # if startdate > self.startdate:
-                #     self.logger.debug("Adding a seasonal cycle to the start of the reference data")
-                #     ref_mon_loop = loop_seasonalcycle(data=self.ref_mon,
-                #                                       startdate=self.startdate,
-                #                                       enddate=startdate,
-                #                                       freq='MS')
-                #     self.ref_mon = xr.concat([ref_mon_loop, self.ref_mon], dim='time')
+                if startdate > self.startdate:
+                    self.logger.debug("Adding a seasonal cycle to the start of the reference data")
+                    ref_mon_loop = loop_seasonalcycle(data=self.ref_mon,
+                                                      startdate=self.startdate,
+                                                      enddate=startdate,
+                                                      freq='MS')
+                    self.ref_mon = xr.concat([ref_mon_loop, self.ref_mon], dim='time')
 
                 if enddate < self.enddate:
                     self.logger.debug("Adding a seasonal cycle to the end of the reference data")
@@ -504,13 +539,13 @@ class Timeseries():
                 self.extending_ref_range = True
 
                 # TODO: startdate has to be rounded to the center of the year (month=7)
-                # if startdate > self.startdate:
-                #     self.logger.debug("Adding a band to the start of the reference data")
-                #     ref_ann_loop = loop_seasonalcycle(data=self.ref_ann,
-                #                                       startdate=self.startdate,
-                #                                       enddate=startdate,
-                #                                       freq='YS')
-                #     self.ref_ann = xr.concat([ref_ann_loop, self.ref_ann], dim='time')
+                if startdate > self.startdate:
+                    self.logger.debug("Adding a band to the start of the reference data")
+                    ref_ann_loop = loop_seasonalcycle(data=self.ref_ann,
+                                                      startdate=self.startdate,
+                                                      enddate=startdate,
+                                                      freq='YS')
+                    self.ref_ann = xr.concat([ref_ann_loop, self.ref_ann], dim='time')
 
                 if enddate < self.enddate:
                     self.logger.debug("Adding a band to the end of the reference data")
@@ -563,6 +598,27 @@ class Timeseries():
             self.catalogs = [None] * len(self.models)
         else:
             self.catalogs = catalogs
+
+    def _plot_ref_kw(self, plot_ref_kw):
+        """
+        Fill in the missing keys in plot_ref_kw.
+        Raise an error if model, exp or source are missing.
+        Find the catalog if not provided.
+
+        Args:
+            plot_ref_kw (dict): Dictionary with keys model, exp, source and (optional) catalog.
+
+        Returns:
+            plot_ref_kw (dict): Dictionary with keys model, exp, source, catalog.
+        """
+        if 'model' not in plot_ref_kw or 'exp' not in plot_ref_kw or 'source' not in plot_ref_kw:
+            raise ValueError("Missing model, exp or source in plot_ref_kw")
+        if 'catalog' not in plot_ref_kw:
+            cat, _ = ConfigPath().browse_catalogs(model=plot_ref_kw['model'],
+                                                  exp=plot_ref_kw['exp'],
+                                                  source=plot_ref_kw['source'])
+            plot_ref_kw['catalog'] = cat[0]
+        return plot_ref_kw
 
     def cleanup(self):
         """Clean up"""

@@ -51,6 +51,10 @@ Such an approach has two main advantages:
     On the other hand, if you use a personal machine, you may want to follow the :ref:`new-machine-regrid` guide.
 
 .. note::
+    CDO requires the ``--force`` flag in order to be able to regrid to HealPix grids since version 2.4.0.
+    This has been added to the HealPix grids definitions in the ``config/grids`` files.
+
+.. note::
     In the long term, it will be possible to support also pre-computed weights from other interpolation software,
     such as `ESMF <https://earthsystemmodeling.org/>`_ or `MIR <https://github.com/ecmwf/mir>`_.
 
@@ -92,6 +96,48 @@ The list is available in the ``config/grids/default.yaml`` file.
     Inside the ``config/grids`` directory, it is possible to define custom grids that can be used in the regridding process.
     We are planning to be able to support also irregular grids as target grids in the future (e.g. allowing to regrid everything to
     HealPix grids).
+
+Oceanic grid files naming scheme
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The oceanic grid naming scheme is quite complex and here is reported for internal usage and future memory. 
+Unfortunately, every small change in land sea mask requires a new oceanic grids since interpolation relies on pre-computed weights.
+
+Elements Description
+====================
+- **model**: The model used, e.g., `fesom`, `icon`, `nemo`.
+- **resolution**: The horizontal resolution or specific configuration of the model, e.g., `D3`, `NG5`, `R02B08`, `eORCA025`.
+- **configuration**: Specific configuration details such as HealPix level or grid type, e.g., `hpz7`, `hpz10`.
+- **grid_type**: Type of grid or nested grid structure, e.g., `nested`, `ring`.
+- **domain**: The variable or data type in the file, e.g., `oce` (for 2d) or `oce_{vertical_coordinate}` for 3d data.
+- **version**: The version of the file, indicated by `v1`, `v2`, etc. Missing version is used for single version files
+
+Examples
+========
+1. `fesom-D3_hpz7_nested_oce.nc`
+    - **Model**: FESOM
+    - **Resolution**: D3
+    - **Configuration**: hpz7
+    - **Grid Type**: Nested
+    - **Variable**: Ocean data
+    - **Version**: Not specified
+
+2. `icon-R02B08_hpz6_nested_oce_depth_full_v1.nc`
+    - **Model**: ICON
+    - **Resolution**: R02B08
+    - **Configuration**: hpz6
+    - **Grid Type**: Nested
+    - **Variable**: 3d ocean data with depth as vertical coordinate and full levels
+    - **Version**: v1
+
+3. `nemo-eORCA12_hpz10_nested_oce_level.nc`
+    - **Model**: NEMO
+    - **Resolution**: eORCA12
+    - **Configuration**: hpz10
+    - **Grid Type**: Nested
+    - **Variable**: 3d ocean data with level as vertical coordinate
+    - **Version**: Not specified
+
 
 Vertical interpolation
 ^^^^^^^^^^^^^^^^^^^^^^

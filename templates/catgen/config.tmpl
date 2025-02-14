@@ -11,7 +11,7 @@ catalog_dir: lumi-phase2  #the folder in Climate-DT-catalog where the catalog en
 # AQUA definitions
 model: IFS-NEMO
 exp: to10
-fixer_name: ifs-destine-v1
+fixer_name: climatedt-phase2-production #climatedt-phase2-reduced for reduced portfolio
 
 # Request/experiment definitions
 activity: highresmip
@@ -24,10 +24,14 @@ num_of_realizations: 1
 data_start_date: '19900101'
 data_end_date: '19901231'
 bridge_end_date: Null   # this can be 'Null' or 'complete' or a date
-ocean_grid: eORCA1
-description: 'FDB IFS/NEMO test run' 
+# ocean_grid: eORCA1  # not mandatory 
+# atm_grid: tco2559  #not mandatory
+description: 'FDB IFS/NEMO test run'  #not mandatory
+
+# dashboard
+menu: 'story 2017 hist' #not mandatory
+note: Null #not mandatory
 
 # paths
 fdb_home: /gpfs/scratch/ehpc01/experiments/t01o/fdb/HEALPIX_grids
 fdb_home_bridge: Null  # this can be 'Null' or a path
-eccodes_path: /gpfs/projects/ehpc01/models/ifs-nemo/DE_CY48R1.0_climateDT_20240523/make/marenostrum5-intel/source/eccodes/definitions

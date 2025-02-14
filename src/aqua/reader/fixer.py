@@ -11,7 +11,8 @@ import numpy as np
 import pandas as pd
 from metpy.units import units
 
-from aqua.util import eval_formula, get_eccodes_attr, find_lat_dir, check_direction, to_list
+from aqua.util import eval_formula, get_eccodes_attr, find_lat_dir
+from aqua.util import check_direction, to_list, normalize_units, convert_units
 from aqua.logger import log_history
 from aqua.data_models import translate_coords
 
@@ -251,16 +252,21 @@ class FixerMixin():
                     else:
                         self.logger.error("Parent fix %s defined but not available in the fixes file.", fixes['parent'])
 
+            return fixes
+
+        # if not fixes found, return fixes None
+        return None
+
         # check the default in alternative
-        else:
-            default_fixer_name = self.model + '-default'
-            self.logger.warning('No specific fix found, will call the default fix %s, this is deprecated and will be removed', default_fixer_name)
-            fixes = self.fixes_dictionary["fixer_name"].get(default_fixer_name)
-            if fixes is None:
-                self.logger.warning("The requested default fixer name %s does not exist in fixes files", default_fixer_name)
-                return None
-            else:
-                self.logger.warning("Fix names %s found in fixes files. This is a default fixer_name and will be deprecated", default_fixer_name)
+        #else:
+        #    default_fixer_name = self.model + '-default'
+        #    self.logger.warning('No specific fix found, will call the default fix %s, this is deprecated and will be removed', default_fixer_name)
+        #    fixes = self.fixes_dictionary["fixer_name"].get(default_fixer_name)
+        #    if fixes is None:
+        #        self.logger.warning("The requested default fixer name %s does not exist in fixes files", default_fixer_name)
+        #        return None
+        #    else:
+        #        self.logger.warning("Fix names %s found in fixes files. This is a default fixer_name and will be deprecated", default_fixer_name)
 
         # # if found, proceed as expected
         # if fixes is not None:
@@ -275,8 +281,6 @@ class FixerMixin():
         #             self.logger.error("Parent fix %s defined but not available in the fixes file.", fixes['parent'])
         # else:
         #     return None
-
-        return fixes
 
     def _merge_fixes(self, base, specific):
         """
@@ -419,7 +423,10 @@ class FixerMixin():
         src_datamodel = self.fixes_dictionary["defaults"].get("src_datamodel", None)
         self.logger.debug("Default input datamodel: %s", src_datamodel)
 
-        self.deltat = self.fixes.get("deltat", 1.0)
+        # set deltat
+        self.deltat  = self._define_deltat()
+       
+        # Special case for monthly deltat
         if self.deltat == "monthly":
             self.logger.info('%s deltat found, we will estimate a correction based on number of days per month', self.deltat)
             self.deltat = 3600*24
@@ -474,7 +481,7 @@ class FixerMixin():
                 # 1. source case. We want to be able to work with a list of sources to scan
                 source = to_list(varfix.get("source", None))
                 # We want to process a list of sources
-                if isinstance(source, list):
+                if source:
                     match = list(set(source) & set(data.variables))
                     if match:
                         # Having more than a match should be a problem for a dataset, we do not raise an error
@@ -562,14 +569,15 @@ class FixerMixin():
                     self.logger.info("%s: converting units %s --> %s", var, data[source].units, tgt_units)
                     if data[source].units != tgt_units:
                         log_history(data[source], f"Converting units of {var}: from {data[source].units} to {tgt_units}")
-                    conversion_dictionary = self.convert_units(data[source].units, tgt_units, var)
+                    conversion_dictionary = convert_units(data[source].units, tgt_units, deltat=self.deltat,
+                                                          var=var, loglevel=self.loglevel)
 
                     # if some unit conversion is defined, modify the attributes and history for later usage
                     if conversion_dictionary:
                         data[source].attrs.update({"tgt_units": tgt_units})
                         for key, value in conversion_dictionary.items():
                             data[source].attrs.update({key: value})
-                            self.logger.debug("Fixing %s to %s. Unit fix: %s=%f", source, var, key, value)
+                            self.logger.debug("Fixing %s to %s. Unit fix: %s=%f", source, var, key, float(value))
                             log_history(data[source], f"Fixing {source} to {var}. Unit fix: {key}={value}")
 
                 # Set to NaN before a certain date
@@ -617,13 +625,36 @@ class FixerMixin():
 
         return data
 
+    def _define_deltat(self):
+        """
+        Define the deltat for the fixer. 
+        The priority is given to the metadata, then to the fixes and finally to the default value.
+        Return deltat in seconds.
+        """
+
+        # First case: get from metadata
+        metadata_deltat = self.esmcat.metadata.get('deltat')
+        if metadata_deltat:
+                self.logger.debug('deltat = %s read from metadata', metadata_deltat)
+                return metadata_deltat
+
+        # Second case if not available: get from fixes
+        fix_deltat = self.fixes.get("deltat")
+        if fix_deltat:
+            self.logger.debug('deltat = %s read from fixes', fix_deltat)
+            return fix_deltat
+        
+        # Third case: get from default
+        self.logger.debug('deltat = %s defined as Reader() default', self.deltat)
+        return self.deltat
+
     def _delete_variables(self, data):
         """
         Remove variables which are set to be deleted in the fixer
         """
 
         # remove variables which should be deleted
-        dellist = [x for x in self.fixes.get("delete", []) if x in data.variables]
+        dellist = [x for x in to_list(self.fixes.get("delete", [])) if x in data.variables]
         if dellist:
             data = data.drop_vars(dellist)
 
@@ -1089,71 +1120,6 @@ class FixerMixin():
         check_direction(data, lat_coord, lat_dir)  # set 'flipped' attribute if lat direction has changed
         return data
 
-    def convert_units(self, src, dst, var="input var"):
-        """
-        Converts source to destination units using metpy.
-
-        Arguments:
-            src (str):  source units
-            dst (str):  destination units
-            var (str):  variable name (optional, used only for diagnostic output)
-
-        Returns:
-            conversion (dict): a dictionary which includes factor, offset and possible extra 
-                                            flags to be stored as attributes in the data array and 
-                                            used for later conversion (as time_conversion_flag)
-        """
-
-        src = self.normalize_units(src)
-        dst = self.normalize_units(dst)
-        factor = units(src).to_base_units() / units(dst).to_base_units()
-
-        # dictionary for storing all the unit conversion flags: basic are offset and factor
-        conversion = {}
-
-        # flag to convert from cumulated to average a variable which has a time 
-        # dependency in the unit factor conversion
-        if "second" in str(factor.units):
-            conversion['time_conversion_flag'] = 1
-
-        if factor.units == units('dimensionless'):
-            offset = (0 * units(src)).to(units(dst)) - (0 * units(dst))
-        else:
-            if factor.units == "meter ** 3 / kilogram":
-                # Density of water was missing
-                factor = factor * 1000 * units("kg m-3")
-                self.logger.debug("%s: corrected multiplying by density of water 1000 kg m-3",
-                                  var)
-            elif factor.units == "meter ** 3 * second / kilogram":
-                # Density of water and accumulation time were missing
-                factor = factor * 1000 * units("kg m-3") / (self.deltat * units("s"))
-                self.logger.debug("%s: corrected multiplying by density of water 1000 kg m-3",
-                                  var)
-                self.logger.info("%s: corrected dividing by accumulation time %s s",
-                                 var, self.deltat)
-            elif factor.units == "second":
-                # Accumulation time was missing
-                factor = factor / (self.deltat * units("s"))
-                self.logger.debug("%s: corrected dividing by accumulation time %s s",
-                                  var, self.deltat)
-            elif factor.units == "kilogram / meter ** 3":
-                # Density of water was missing
-                factor = factor / (1000 * units("kg m-3"))
-                self.logger.debug("%s: corrected dividing by density of water 1000 kg m-3", var)
-            else:
-                self.logger.debug("%s: incommensurate units converting %s to %s --> %s",
-                                  var, src, dst, factor.units)
-            offset = 0 * units(dst)
-        
-        # store only offset and factor when they are different from the default
-        # pay attention that offset and factor should be applied together
-        if offset.magnitude != 0:
-            conversion['offset'] = offset.magnitude
-        elif factor.magnitude != 1:
-            conversion['factor'] = factor.magnitude
-
-        return conversion
-
     def apply_unit_fix(self, data):
         """
         Applies unit fixes stored in variable attributes (target_units, factor and offset)
@@ -1172,7 +1138,7 @@ class FixerMixin():
 
             # define an old units
             data.attrs.update({"src_units": org_units, "units_fixed": 1})
-            data.attrs["units"] = self.normalize_units(tgt_units)
+            data.attrs["units"] = normalize_units(tgt_units)
             factor = data.attrs.get("factor", 1)
             offset = data.attrs.get("offset", 0)
             time_conversion_flag = data.attrs.get("time_conversion_flag", 0)
@@ -1185,24 +1151,6 @@ class FixerMixin():
                 data += offset
             log_history(data, f"Units changed to {tgt_units} by fixer")
             data.attrs.pop('tgt_units', None)
-
-    def normalize_units(self, src):
-        """
-        Get rid of crazy grib units based on the default.yaml fix file
-
-        Arguments:
-            src (str): input unit to be fixed
-        """
-        src = str(src)
-        fix_units = self.fixes_dictionary['defaults']['units']['fix']
-        for key in fix_units:
-            if key == src:
-                # return fixed
-                self.logger.info('Replacing non-metpy unit %s with %s', key, fix_units[key])
-                return src.replace(key, fix_units[key])
-
-        # return not fixed
-        return src
 
 
 def units_extra_definition():

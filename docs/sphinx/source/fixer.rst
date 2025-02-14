@@ -174,7 +174,8 @@ different sections of the fixer file.
       (i.e. that present a time unit mismatch from the source to target units) will be divided
       by ``deltat``. This is done automatically based on the values of target and source units.
       ``deltat`` can be an integer in seconds, or alternatively a string with ``monthly``: in this case
-      each flux variable will be divided by the number of seconds of each month.
+      each flux variable will be divided by the number of seconds of each month. Please notice that from v0.13
+      it is possible to specify the ``deltat`` in the metadata of the source. This will have the priority over the fixer definition.
     - If additionally ``decumulate: true`` is specified for a specific variable,
       a time derivative of the variable will be computed.
       This is tipically done for cumulated fluxes for the IFS model, that are cumulated on a period longer
@@ -187,6 +188,17 @@ different sections of the fixer file.
   time axis will be affected, the Dataset will maintain all its properties. 
 - **vars**: this is the main fixer block, described in detail on the following section :ref:`metadata-fix`.
 - **delete**: a list of variable or coordinates that the users want to remove from the output Dataset
+
+.. _aqua-convention:
+
+AQUA variables convention
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Based on the convention file described in :ref:`convention-structure`, we have defined a convention for the AQUA variables.
+This means that all the experiments maintained by the AQUA project will have the same target variable names if the fixer is activated.
+
+The convention file is named ``convention-eccodes.yaml`` and is placed in the ``config/fixes`` folder or available at `this link <https://github.com/DestinE-Climate-DT/AQUA/blob/main/config/fixes/convention-eccodes.yaml>`_.
+Since v0.13 all the diagnostics are supposed to work with the AQUA convention, so that any other experiment following the AQUA convention will be compatible with the diagnostics.
 
 .. _metadata-fix:
 

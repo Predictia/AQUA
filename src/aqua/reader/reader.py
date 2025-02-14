@@ -8,8 +8,7 @@ import shutil
 import intake_esm
 import intake_xarray
 import xarray as xr
-import numpy as np
-import smmregrid as rg
+from smmregrid import Regridder
 
 from aqua.util import load_multi_yaml, files_exist, to_list
 from aqua.util import ConfigPath, area_selection
@@ -159,6 +158,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
 
         # load the catalog
         self.esmcat = self.cat(**intake_vars)[self.model][self.exp][self.source](**kwargs)
+        self.expcat = self.cat(**intake_vars)[self.model][self.exp]  # the top-level experiment entry
 
         # Manual safety check for netcdf sources (see #943), we output a more meaningful error message
         if isinstance(self.esmcat, intake_xarray.netcdf.NetCDFSource):
@@ -316,7 +316,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
 
             self.weights.update({vc: xr.open_mfdataset(self.weightsfile[vc])})
             vc2 = None if vc == "2d" or vc == "2dm" else vc
-            self.regridder.update({vc: rg.Regridder(weights=self.weights[vc],
+            self.regridder.update({vc: Regridder(weights=self.weights[vc],
                                                     vert_coord=vc2,
                                                     space_dims=default_space_dims)})
 
@@ -1129,7 +1129,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
                         var_match.append(element)
                 elif isinstance(element, list):
                     if self.fix is False:
-                        raise ValueError("Var %s is a list and fix is False, this is not allowed", element)
+                        raise ValueError(f"Var {element} is a list and fix is False, this is not allowed")
                     match = list(set(fdb_var) & set(element))
                     if match and len(match) == 1:
                         var_match.append(match[0])
