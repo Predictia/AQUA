@@ -69,17 +69,18 @@ class SeaIce(Diagnostic):
         ci_mask = self.data[var].where((self.data[var] > threshold) &
                                        (self.data[var] < 1.0))
         
-        # get info on grid area
-        areacello = self.reader.grid_area
-
         # make a list to store the extent DataArrays for each region
         extent = []
         for region in self.regions:
             self.logger.info(f'Computing sea ice extent for {region}')
             box = self.regions_definition[region]
 
+            # get info on grid area that must be reinitialised for each region
+            areacello = self.reader.grid_area
+
             # regional selection
-            areacello = area_selection(areacello, lat=[box["latS"], box["latN"]], lon=[box["lonW"], box["lonE"]])
+            areacello = area_selection(areacello, lat=[box["latS"], box["latN"]], lon=[box["lonW"], box["lonE"]],
+                                       loglevel=self.loglevel)
 
             # compute sea ice extent: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to million km^2
             seaice_extent = areacello.where(ci_mask.notnull()).sum(skipna = True, min_count = 1, dim=self.reader.space_coord) / 1e12
@@ -113,17 +114,19 @@ class SeaIce(Diagnostic):
         sivol_mask = self.data[var].where((self.data[var] > 0) &
                                           (self.data[var] < 99.0))
 
-        # get info on grid area
-        areacello = self.reader.grid_area
-
         # make a list to store the volume DataArrays for each region
         volume = []
         for region in self.regions:
+
+            # get info on grid area that must be reinitialised for each region
+            areacello = self.reader.grid_area
+
             self.logger.info(f'Computing sea ice volume for {region}')
             box = self.regions_definition[region]
 
             # regional selection
-            areacello = area_selection(areacello, lat=[box["latS"], box["latN"]], lon=[box["lonW"], box["lonE"]])
+            areacello = area_selection(areacello, lat=[box["latS"], box["latN"]], lon=[box["lonW"], box["lonE"]], 
+                                       loglevel=self.loglevel)
 
             # compute sea ice volume: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to km^3
             seaice_volume = (sivol_mask * areacello.where(sivol_mask.notnull())).sum(skipna = True, min_count = 1, 
@@ -133,7 +136,7 @@ class SeaIce(Diagnostic):
             seaice_volume.attrs["long_name"] = f"Sea ice volume integrated over {region} region"
             seaice_volume.attrs["standard_name"] = f"{region} sea ice volume"
             seaice_volume.attrs["region"] = region
-            seaice_volume.name = f"sea_ice_volume_{region.lower()}"
+            seaice_volume.name = f"sea_ice_volume_{region.replace(' ', '_').lower()}"
 
             volume.append(seaice_volume)
 
