@@ -11,6 +11,7 @@ Date: Feb 2024
 import cartopy.crs as ccrs
 import cartopy.mpl.ticker as cticker
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import numpy as np
 import xarray as xr
 
@@ -86,6 +87,13 @@ def plot_single_map(data: xr.DataArray,
     logger.info("Loading data in memory")
     data = data.load(keep_attrs=True)
 
+    plt.rcParams.update({
+    'axes.labelsize': 13,  # X and Y axis labels
+    'xtick.labelsize': 12,  # X-axis tick labels
+    'ytick.labelsize': 12,  # Y-axis tick labels
+    'axes.titlesize': 14,   # Title size
+    })
+
     cycling = kwargs.get('cyclic_lon', True)
     if cycling:
         logger.info("Adding cyclic longitude")
@@ -125,6 +133,7 @@ def plot_single_map(data: xr.DataArray,
                          transform=proj, levels=levels,
                          extend='both',
                          transform_first=transform_first)
+
     else:
         cs = ax.pcolormesh(data[lon_name], data[lat_name], data, cmap=cmap,
                            transform=proj, vmin=vmin, vmax=vmax)
@@ -135,6 +144,7 @@ def plot_single_map(data: xr.DataArray,
     if gridlines:
         logger.debug("Adding gridlines")
         ax.gridlines()
+
 
     # Longitude labels
     # Evaluate the longitude ticks
