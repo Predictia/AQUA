@@ -32,7 +32,7 @@ class SeaIce(Diagnostic):
         if regions_file is None:
             folderpath = ConfigPath().get_config_dir()
             regions_file = os.path.join(folderpath, 'diagnostics', 'seaice', 'config', 'regions_definition.yaml')
-        
+
         # load the region file
         self.regions_definition = load_yaml(infile=regions_file)
 
@@ -40,8 +40,14 @@ class SeaIce(Diagnostic):
             self.logger.warning('No regions defined. Using all available regions.')
             self.regions = list(self.regions_definition.keys())
         else:
-            if not all(reg in self.regions_definition.keys() for reg in regions):
-                raise ValueError('Invalid region name. Please check the region file.')
+            # if only one region is given as a string, it is converted to a list of strings with only one element
+            # to avoid characters splitting. If the region is not in the regions_definition file, it will be added to the invalid_regions list.
+            invalid_regions = [reg for reg in to_list(regions) if reg not in self.regions_definition.keys()]
+
+            # If invalid regions are found, raise an error and list them
+            if invalid_regions:
+                raise ValueError(f"Invalid region name(s): [{', '.join(f'{i}' for i in invalid_regions)}]. Please check the region file at: f'{regions_file}'.")
+            
             self.regions = to_list(regions)
         
         self.extent = None
