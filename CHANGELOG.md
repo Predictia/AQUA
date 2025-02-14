@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
-
+- Added tests for the Hovmoller plot routine (#1532)
 - push_s3 compatibility with boto3>=1.36.0 (#1704)
 - Rsync option for push_analysis.sh (#1689)
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
