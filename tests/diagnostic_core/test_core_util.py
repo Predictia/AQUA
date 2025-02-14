@@ -19,6 +19,7 @@ def test_template_parse_arguments():
     assert args.source is None
     assert args.config is None
 
+
 @pytest.mark.aqua
 def test_cluster():
     """Test the cluster functions"""
