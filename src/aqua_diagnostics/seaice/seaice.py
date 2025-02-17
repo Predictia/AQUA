@@ -57,13 +57,45 @@ class SeaIce(Diagnostic):
 
         return dict(self.regions_definition)
 
-    def _compute_extent(self, threshold=0.15, var='siconc'):
+    def get_regions_file_path(self):
+        """Get and show the .yaml file path location, 
+        as a new user may not know where the file is located."""
+        pathloc = f"Regions file location path: {self.regions_definition}"
+        print(pathloc)
+
+        return self.regions_definition
+
+    @staticmethod
+    def set_seaice_update_attrs(seaice_computed, method: str, region: str):
+        """Set attributes for seaice_computed."""
+
+        # set attributes: 'method','unit'   
+        units_dict = {"extent": "million km^2", 
+                      "volume": "million km^3"}
+
+        if method not in units_dict:
+            raise NoDataError("Variable not found in dataset")
+        else:
+            seaice_computed.attrs["units"] = units_dict.get(method)
+
+        seaice_computed.attrs["long_name"] = f"Sea ice {method} integrated over {region} region"
+        seaice_computed.attrs["standard_name"] = f"{region} sea ice {method}"
+        seaice_computed.attrs["region"] = region
+        seaice_computed.name = f"sea_ice_{method}_{region.replace(' ', '_').lower()}"
+
+        return seaice_computed
+
+    def _compute_extent(self, threshold: float = 0.15, var: str = 'siconc'):
         """Compute sea ice extent.
         threshold (float): The threshold value for which sea ice fraction is considered . Default is 0.15.
         """
 
         # retrieve data with Diagnostic method
         super().retrieve(var=var)
+
+        if self.data is None:
+            self.logger.error(f"Variable {var} not found in dataset {self.model}, {self.exp}, {self.source}")
+            raise NoDataError("Variable not found in dataset")
 
         # get the sea ice concentration mask
         ci_mask = self.data[var].where((self.data[var] > threshold) &
@@ -72,7 +104,7 @@ class SeaIce(Diagnostic):
         # make a list to store the extent DataArrays for each region
         extent = []
         for region in self.regions:
-            self.logger.info(f'Computing sea ice extent for {region}')
+            self.logger.info(f"Computing sea ice extent for {region}")
             box = self.regions_definition[region]
 
             # get info on grid area that must be reinitialised for each region
@@ -83,14 +115,10 @@ class SeaIce(Diagnostic):
                                        loglevel=self.loglevel)
 
             # compute sea ice extent: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to million km^2
-            seaice_extent = areacello.where(ci_mask.notnull()).sum(skipna = True, min_count = 1, dim=self.reader.space_coord) / 1e12
-            
-            # add/fix attributes
-            seaice_extent.attrs["units"] = "million km^2"
-            seaice_extent.attrs["long_name"] = f"Sea ice extent integrated over {region} region"
-            seaice_extent.attrs["standard_name"] = f"{region} sea ice extent"
-            seaice_extent.attrs["region"] = region
-            seaice_extent.name = f"sea_ice_extent_{region.replace(' ', '_').lower()}"
+            seaice_extent = areacello.where(ci_mask.notnull()).sum(skipna = True, min_count = 1, 
+                                                                   dim=self.reader.space_coord) / 1e12
+            # add attributes
+            self.set_seaice_update_attrs(seaice_extent, 'extent', region)
 
             extent.append(seaice_extent)
         
@@ -100,7 +128,7 @@ class SeaIce(Diagnostic):
        
         return self.extent
 
-    def _compute_volume(self, var='sithick'):
+    def _compute_volume(self, var: str = 'sithick'):
         """Compute sea ice volume."""
 
         # retrieve data with Diagnostic method
@@ -131,12 +159,8 @@ class SeaIce(Diagnostic):
             # compute sea ice volume: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to km^3
             seaice_volume = (sivol_mask * areacello.where(sivol_mask.notnull())).sum(skipna = True, min_count = 1, 
                                                                                      dim=self.reader.space_coord) / 1e12
-            # add/fix attributes
-            seaice_volume.attrs["units"] = "km^3"
-            seaice_volume.attrs["long_name"] = f"Sea ice volume integrated over {region} region"
-            seaice_volume.attrs["standard_name"] = f"{region} sea ice volume"
-            seaice_volume.attrs["region"] = region
-            seaice_volume.name = f"sea_ice_volume_{region.replace(' ', '_').lower()}"
+            # add attributes
+            self.set_seaice_update_attrs(seaice_volume, 'volume', region)
 
             volume.append(seaice_volume)
 
@@ -146,12 +170,12 @@ class SeaIce(Diagnostic):
        
         return volume
 
-    def compute_seaice(self, method, *args, **kwargs):
+    def compute_seaice(self, method: str, *args, **kwargs):
         """ Execute the seaice diagnostic based on the specified method.
 
         Parameters:
-        var (str): The variable to be used for computation. Default is None.
-        method (str): The method to compute sea ice metrics. Options are 'extent' or 'volume'. Default is 'extent'.
+        var (str): The variable to be used for computation.
+        method (str): The method to compute sea ice metrics. Options are 'extent' or 'volume'.
         Kwargs:
             - threshold (float): The threshold value for which sea ice fraction is considered. Default is 0.15.
             - var (str): The variable to be used for computation. Default is 'sithick'.
