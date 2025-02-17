@@ -164,9 +164,6 @@ class OutputSaver:
         parts.extend(additional_parts)
         parts.append(suffix)
 
-        self.logger.debug(f'oooo {ordered_keys}')
-        self.logger.debug(f'oooo {parts}')
-
         filename = '.'.join(parts)
         # Replace problematic characters in filenames
         filename = filename.replace('*', '_').replace('!', '_').replace('?', '_').replace(':', '_')
