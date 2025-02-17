@@ -325,7 +325,7 @@ def plot_single_map_diff(data: xr.DataArray,
                                linewidths=0.5,
                                vmin=vmin_contour, vmax=vmax_contour)
 
-        fmt = "%1.1e" if max(ds.levels) > 1000 or min(ds.levels) < 0.01 else "%1.1f"
+        fmt = {level: f"{level:.1e}" if (abs(level) < 0.1 or abs(level) > 1000) else f"{level:.1f}" for level in ds.levels}
         ax.clabel(ds, fmt=fmt, fontsize=6, inline=True)
 
     if title:
