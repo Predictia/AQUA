@@ -5,7 +5,7 @@ import argparse
 from dask.distributed import Client, LocalCluster
 import pandas as pd
 
-from aqua.util import load_yaml, get_arg, OutputSaver, ConfigPath
+from aqua.util import load_yaml, get_arg, OutputSaver, ConfigPath, to_list
 from aqua import Reader
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.logger import log_configure
@@ -143,7 +143,7 @@ def main():
         vmin, vmax = var_attributes.get('vmin'), var_attributes.get('vmax')
 
         if 'plev' in data[var_name].dims and plev:
-            plev_list = [plev] if isinstance(plev, (int, float)) else plev
+            plev_list = to_list(plev)
         else:
             plev_list = [None] 
 
