@@ -1,5 +1,4 @@
 import pytest 
-import os
 import xarray as xr
 from aqua.diagnostics import SeaIce
 
@@ -36,12 +35,12 @@ class TestSeaIce():
         var_name = f'sea_ice_{method}_{regionlower}'
 
         # Assertions
-        assert isinstance(result, xr.core.dataset.Dataset)  # Check if result is an xarray dataset
+        assert isinstance(result, xr.Dataset)               # Check if result is an xarray dataset
         assert list(result.coords) == ['time']              # Check time dimension
         assert list(result.data_vars) == [var_name]         # Check variable name
         assert result.attrs['units'] == expected_units      # Check units for extent/volume
         assert result[var_name][5].values == pytest.approx(value, rel=approx_rel)
-    
+
 @pytest.mark.seaice
 def test_seaice_regions():
     with pytest.raises(ValueError):
