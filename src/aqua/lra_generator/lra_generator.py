@@ -152,12 +152,13 @@ class LRAgenerator():
         if region is not None:
             self.logger.info('Region to be processed: %s', region)
             self.region = region
-            if self.region['lon'] is None:
-                raise KeyError('Please specify lon in region.')
-            if self.region['lat'] is None:
-                raise KeyError('Please specify lat in region.')
             if self.region['name'] is None:
                 raise KeyError('Please specify name in region.')
+            if self.region['lon'] is None and self.region['lat'] is None:
+                raise KeyError(f'Please specify at least one between lat and lon for {region['name']}.')
+
+        else:
+            self.region = None
 
         self.kwargs = kwargs
 
@@ -232,7 +233,7 @@ class LRAgenerator():
             self.logger.info('I am going to produce LRA at %s resolution...',
                              self.resolution)
         
-        if self.region['name']:
+        if self.region:
             self.logger.info('Regional selection active! region: %s, lon: %s and lat: %s...',
                              self.region['name'], self.region['lon'], self.region['lat'])
 
@@ -277,18 +278,18 @@ class LRAgenerator():
         """
 
         entry_name = f'lra-{self.resolution}-{self.frequency}'
-        if self.region['name']:
+        if self.region:
             entry_name = f'{entry_name}-{self.region["name"]}'
         self.logger.info('Creating catalog entry %s %s %s', self.model, self.exp, entry_name)
 
         # modify filename if realization is there
         if 'realization' in self.kwargs:
-            if self.region['name']:
+            if self.region:
                 urlpath = os.path.join(self.outdir, f"*{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_{self.region['name']}_*.nc")
             else:
                 urlpath = os.path.join(self.outdir, f"*{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_*.nc")
         else:
-            if self.region['name']:
+            if self.region:
                 urlpath = os.path.join(self.outdir, f"*{self.exp}_{self.resolution}_{self.frequency}_{self.region['name']}_*.nc")
             else:
                 urlpath = os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_*.nc')
@@ -339,7 +340,7 @@ class LRAgenerator():
             verify: open the LRA source and verify it can be read by the reader
         """
 
-        if self.region['name']:
+        if self.region:
             entry_name = f'lra-{self.resolution}-{self.frequency}-{self.region["name"]}-zarr'
         else:
             entry_name = f'lra-{self.resolution}-{self.frequency}-zarr'
@@ -485,12 +486,12 @@ class LRAgenerator():
 
         # modify filename if realization is in the kwargs
         if 'realization' in self.kwargs:
-            if self.region['name']:
+            if self.region:
                 filestring = f"{var}_{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_{self.region['name']}_*.nc"
             else:
                 filestring = f"{var}_{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_*.nc"
         else:
-            if self.region['name']:
+            if self.region:
                 filestring = f"{var}_{self.exp}_{self.resolution}_{self.frequency}_{self.region['name']}_*.nc"
             else:
                 filestring = f"{var}_{self.exp}_{self.resolution}_{self.frequency}_*.nc"
@@ -615,9 +616,6 @@ class LRAgenerator():
         self.logger.info('Processing variable %s...', var)
         temp_data = self.data[var]
 
-        if self.region:
-            temp_data = area_selection(temp_data, lon = self.region['lon'], lat = self.region['lat'])
-
         if self.frequency:
             temp_data = self.reader.timmean(temp_data, freq=self.frequency,
                                             exclude_incomplete=self.exclude_incomplete)
@@ -625,6 +623,9 @@ class LRAgenerator():
         # regrid
         temp_data = self.reader.regrid(temp_data)
         temp_data = self._remove_regridded(temp_data)
+
+        if self.region:
+            temp_data = area_selection(temp_data, lon = self.region['lon'], lat = self.region['lat'])
 
         # Splitting data into yearly files
         years = sorted(set(temp_data.time.dt.year.values))
