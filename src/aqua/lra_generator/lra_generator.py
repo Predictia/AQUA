@@ -231,6 +231,10 @@ class LRAgenerator():
         else:
             self.logger.info('I am going to produce LRA at %s resolution...',
                              self.resolution)
+        
+        if self.region['name']:
+            self.logger.info('Regional selection active! region: %s, lon: %s and lat: %s...',
+                             self.region['name'], self.region['lon'], self.region['lat'])
 
         if self.catalog is None:
             self.logger.info('Assuming catalog from the reader so that is %s', self.reader.catalog)
@@ -273,17 +277,19 @@ class LRAgenerator():
         """
 
         entry_name = f'lra-{self.resolution}-{self.frequency}'
+        if self.region['name']:
+            entry_name = f'{entry_name}-{self.region["name"]}'
         self.logger.info('Creating catalog entry %s %s %s', self.model, self.exp, entry_name)
 
         # modify filename if realization is there
         if 'realization' in self.kwargs:
             if self.region['name']:
-                urlpath = os.path.join(self.outdir, f"*{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_{self.region['name']}*.nc")
+                urlpath = os.path.join(self.outdir, f"*{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_{self.region['name']}_*.nc")
             else:
                 urlpath = os.path.join(self.outdir, f"*{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_*.nc")
         else:
             if self.region['name']:
-                urlpath = os.path.join(self.outdir, f"*{self.exp}_{self.resolution}_{self.frequency}_{self.region['name']}*.nc")
+                urlpath = os.path.join(self.outdir, f"*{self.exp}_{self.resolution}_{self.frequency}_{self.region['name']}_*.nc")
             else:
                 urlpath = os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_*.nc')
 
@@ -480,12 +486,12 @@ class LRAgenerator():
         # modify filename if realization is in the kwargs
         if 'realization' in self.kwargs:
             if self.region['name']:
-                filestring = f"{var}_{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_{self.region['name']}*.nc"
+                filestring = f"{var}_{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_{self.region['name']}_*.nc"
             else:
                 filestring = f"{var}_{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_*.nc"
         else:
             if self.region['name']:
-                filestring = f"{var}_{self.exp}_{self.resolution}_{self.frequency}_{self.region['name']}*.nc"
+                filestring = f"{var}_{self.exp}_{self.resolution}_{self.frequency}_{self.region['name']}_*.nc"
             else:
                 filestring = f"{var}_{self.exp}_{self.resolution}_{self.frequency}_*.nc"
         if tmp:
