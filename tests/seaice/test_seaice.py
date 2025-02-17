@@ -1,4 +1,5 @@
 import pytest 
+import os
 import xarray as xr
 from aqua.diagnostics import SeaIce
 
@@ -19,11 +20,10 @@ class TestSeaIce():
             ('volume', 'Antarctic', 0.00749497, 'million km^3')
         ]
     )
-    def test_seaice_concentration(self, method, region, value, expected_units):
+    def test_seaice_compute(self, method, region, value, expected_units):
 
         seaice = SeaIce(model='ERA5', exp='era5-hpz3', source='monthly', regions=region, 
-                        regrid='r100',
-                        loglevel=loglevel)
+                        regrid='r100', loglevel=loglevel)
         
         # Only pass threshold if method is 'extent'
         if method == 'extent':
@@ -41,3 +41,9 @@ class TestSeaIce():
         assert list(result.data_vars) == [var_name]         # Check variable name
         assert result.attrs['units'] == expected_units      # Check units for extent/volume
         assert result[var_name][5].values == pytest.approx(value, rel=approx_rel)
+    
+@pytest.mark.seaice
+def test_seaice_regions():
+    with pytest.raises(ValueError):
+        seaice = SeaIce(model='ERA5', exp='era5-hpz3', source='monthly', regions='topolinia', 
+                        regrid='r100', loglevel=loglevel)
