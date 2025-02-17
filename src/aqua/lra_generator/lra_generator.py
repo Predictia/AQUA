@@ -20,6 +20,7 @@ from aqua.util import create_folder, generate_random_string
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath, file_is_complete
 from aqua.util import create_zarr_reference
+from aqua.util import area_selection
 from aqua.lra_generator.lra_util import move_tmp_files, list_lra_files_complete, replace_intake_vars
 
 
@@ -38,7 +39,9 @@ class LRAgenerator():
                  var=None, configdir=None,
                  resolution=None, frequency=None, fix=True,
                  outdir=None, tmpdir=None, nproc=1,
-                 loglevel=None, overwrite=False, definitive=False,
+                 loglevel=None,
+                 region=None,
+                 overwrite=False, definitive=False,
                  performance_reporting=False,
                  rebuild=False,
                  exclude_incomplete=False, **kwargs):
@@ -65,6 +68,8 @@ class LRAgenerator():
                                      are found
             nproc (int, opt):        Number of processors to use. default is 1
             loglevel (string, opt):  Logging level
+            region (dict, opt):    Region to be processed, default is None, 
+                                     meaning the full globe
             overwrite (bool, opt):   True to overwrite existing files in LRA,
                                      default is False
             definitive (bool, opt):  True to create the output file,
@@ -144,6 +149,16 @@ class LRAgenerator():
             raise KeyError('Please specify resolution.')
         self.logger.info('Variable(s) to be processed: %s', self.var)
 
+        if region is not None:
+            self.logger.info('Region to be processed: %s', region)
+            self.region = region
+            if self.region['lon'] is None:
+                raise KeyError('Please specify lon in region.')
+            if self.region['lat'] is None:
+                raise KeyError('Please specify lat in region.')
+            if self.region['name'] is None:
+                raise KeyError('Please specify name in region.')
+
         self.kwargs = kwargs
 
         Configurer = ConfigPath(configdir=configdir)
@@ -151,7 +166,7 @@ class LRAgenerator():
 
         self.frequency = frequency
         if not self.frequency:
-            self.logger.info('Frequency not specified, no time averagin will be performed.')
+            self.logger.info('Frequency not specified, no time averaging will be performed.')
 
         # option for encoding, defined once for all
         self.time_encoding = {
@@ -262,9 +277,15 @@ class LRAgenerator():
 
         # modify filename if realization is there
         if 'realization' in self.kwargs:
-            urlpath = os.path.join(self.outdir, f"*{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_*.nc")
-        else:      
-            urlpath = os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_*.nc')
+            if self.region['name']:
+                urlpath = os.path.join(self.outdir, f"*{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_{self.region['name']}*.nc")
+            else:
+                urlpath = os.path.join(self.outdir, f"*{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_*.nc")
+        else:
+            if self.region['name']:
+                urlpath = os.path.join(self.outdir, f"*{self.exp}_{self.resolution}_{self.frequency}_{self.region['name']}*.nc")
+            else:
+                urlpath = os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_*.nc')
 
         self.logger.info('Fully expanded urlpath %s', urlpath)
         urlpath = replace_intake_vars(catalog=self.catalog, path=urlpath)
@@ -312,7 +333,10 @@ class LRAgenerator():
             verify: open the LRA source and verify it can be read by the reader
         """
 
-        entry_name = f'lra-{self.resolution}-{self.frequency}-zarr'
+        if self.region['name']:
+            entry_name = f'lra-{self.resolution}-{self.frequency}-{self.region["name"]}-zarr'
+        else:
+            entry_name = f'lra-{self.resolution}-{self.frequency}-zarr'
         full_dict, partial_dict = list_lra_files_complete(self.outdir)
         # full_dict, partial_dict = list_lra_files_vars(self.outdir)
         self.logger.info('Creating zarr files for %s %s %s', self.model, self.exp, entry_name)
@@ -382,7 +406,7 @@ class LRAgenerator():
         if verify:
             self.logger.info('Verifying that zarr entry can be loaded...')
             try:
-                reader = Reader(model=self.model, exp=self.exp, source='lra-r100-monthly-zarr')
+                reader = Reader(model=self.model, exp=self.exp, source=entry_name)
                 data = reader.retrieve()
                 self.logger.info('Zarr entry successfully created!!!')
             except (KeyError, ValueError) as e:
@@ -455,9 +479,15 @@ class LRAgenerator():
 
         # modify filename if realization is in the kwargs
         if 'realization' in self.kwargs:
-            filestring = f"{var}_{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_*.nc"
+            if self.region['name']:
+                filestring = f"{var}_{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_{self.region['name']}*.nc"
+            else:
+                filestring = f"{var}_{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_*.nc"
         else:
-            filestring = f"{var}_{self.exp}_{self.resolution}_{self.frequency}_*.nc"
+            if self.region['name']:
+                filestring = f"{var}_{self.exp}_{self.resolution}_{self.frequency}_{self.region['name']}*.nc"
+            else:
+                filestring = f"{var}_{self.exp}_{self.resolution}_{self.frequency}_*.nc"
         if tmp:
             filename = os.path.join(self.tmpdir, filestring)
         else:
@@ -493,12 +523,11 @@ class LRAgenerator():
 
         if isinstance(self.data, types.GeneratorType):
             raise ValueError('Generator no longer supported by AQUA LRA.')
-        else:
-            #if not self.check:
-            self._write_var_catalog(var)
+
+        self._write_var_catalog(var)
 
         t_end = time()
-        self.logger.info('Process took {:.4f} seconds'.format(t_end - t_beg))
+        self.logger.info('Process took %.4f seconds', t_end - t_beg)
 
     def _remove_regridded(self, data):
 
@@ -579,6 +608,9 @@ class LRAgenerator():
 
         self.logger.info('Processing variable %s...', var)
         temp_data = self.data[var]
+
+        if self.region:
+            temp_data = area_selection(temp_data, lon = self.region['lon'], lat = self.region['lat'])
 
         if self.frequency:
             temp_data = self.reader.timmean(temp_data, freq=self.frequency,
