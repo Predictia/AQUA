@@ -168,7 +168,7 @@ class SeaIce(Diagnostic):
         # only the attrs that are shared across all DataArrays
         self.volume = xr.merge(volume, combine_attrs='drop_conflicts')
        
-        return volume
+        return self.volume
 
     def compute_seaice(self, method: str, *args, **kwargs):
         """ Execute the seaice diagnostic based on the specified method.
