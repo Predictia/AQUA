@@ -10,8 +10,15 @@ Unreleased in the current development version (target v0.14):
 AQUA core complete list:
 
 - Enable publication of documentation on ReadTheDocs (#1699)
+- Adapt Catgen test to the new number of sources for ICON (#1708)
+- Added tests for the Hovmoller plot routine (#1532)
+- push_s3 compatibility with boto3>=1.36.0 (#1704)
 - Rsync option for push_analysis.sh (#1689)
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
+
+AQUA diagnostics complete list:
+- Ecmean: Fix net surface radiative flux and wind stresses in ecmean (#1696)
+- Diagnostic core: A common parser and fuctions to open/close the dask cluster are provided (#1703)
 
 ## [v0.13.1]
 
