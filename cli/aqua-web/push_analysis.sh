@@ -94,13 +94,13 @@ print_help() {
     echo
     echo "Options:"
     echo "  -b, --bucket BUCKET    push to the specified bucket (defaults to 'aqua-web')"
-    echo "  -c, --config FILE      alternate config file for make_contents (defaults to config.aqua-web.yaml)"
+    echo "  -c, --config FILE      alternate config file to determine diagnostic groupings for make_contents (defaults to config.grouping.yaml)"
+    echo "  -d, --no-update        do not update the remote github repository"  
     echo "  -h, --help             display this help and exit"
     echo "  -l, --loglevel LEVEL   set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2."
-    echo "  -n, --no-convert       do not convert PDFs to PNGs (use only if PNGs are already available)"  
+    echo "  -n, --no-convert       do not convert PDFs to PNGs (use only if all PNGs are already available)"  
     echo "  -r, --repository       remote aqua-web repository (default 'DestinE-Climate-DT/aqua-web'). If it starts with 'local:' a local directory is used."
-    echo "  --no-update            do not update the remote github repository"  
-    echo "  --rsync URL            remote rsync target (takes priority over s3 bucket if specified)"
+    echo "  -s, --rsync URL        remote rsync target (takes priority over s3 bucket if specified)"
 }
 
 if [ -z "$1" ] || [ -z "$2" ]; then
@@ -147,7 +147,7 @@ while [[ $# -gt 2 ]]; do
         bucket="$2"
         shift 2
         ;;
-    --rsync)
+    -s|--rsync)
         rsync="$2"
         update=0  # if rsync is used, we will not update aqua-web
         shift 2
