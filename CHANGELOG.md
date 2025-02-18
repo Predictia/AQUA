@@ -9,7 +9,7 @@ Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
 
-- Enable publication of documentation on ReadTheDocs (#1699)
+- Enable publication of documentation on ReadTheDocs (#1699, #1716)
 - Adapt Catgen test to the new number of sources for ICON (#1708)
 - Added tests for the Hovmoller plot routine (#1532)
 - push_s3 compatibility with boto3>=1.36.0 (#1704)
