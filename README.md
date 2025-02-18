@@ -1,5 +1,5 @@
 ![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
-[![Documentation Status](https://readthedocs.org/projects/aqua/badge/?version=latest)](https://ecmean4.readthedocs.io/en/aqua/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/aqua/badge/?version=latest)](https://aqua.readthedocs.io/en/latest/)
 
 # AQUA
 
