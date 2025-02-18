@@ -81,6 +81,7 @@ class SeaIce(Diagnostic):
         seaice_computed.attrs["long_name"] = f"Sea ice {method} integrated over {region} region"
         seaice_computed.attrs["standard_name"] = f"{region} sea ice {method}"
         seaice_computed.attrs["region"] = region
+        seaice_computed.attrs["computing_method"] = method
         seaice_computed.name = f"sea_ice_{method}_{region.replace(' ', '_').lower()}"
 
         return seaice_computed
@@ -199,3 +200,29 @@ class SeaIce(Diagnostic):
         else:
             # call the function associated with the method
             return methods[method](*args, **kwargs)
+    
+    def save_netcdf(self, seaice_computed, diagnostic: str, diagnostic_product: str = None,
+                    default_path: str = '.', rebuild: bool = True, output_file: str = None,
+                    output_dir: str = None, **kwargs):
+        """ Save the computed sea ice data to a NetCDF file.
+
+        Args:
+            seaice_computed (xr.DataArray or xr.Dataset): The computed sea ice metric data.
+            diagnostic (str): The diagnostic name. It is expected 'SeaIce' for this class.
+            diagnostic_product (str, optional): The diagnostic product. Can be used for namig the file more freely.
+            default_path (str, optional): The default path for saving. Default is '.'.
+            rebuild (bool, optional): If True, rebuild (overwrite) the NetCDF file. Default is True.
+            output_file (str, optional): The output file name.
+            output_dir (str, optional): The output directory.
+            **kwargs: Additional keyword arguments for saving the data.
+
+        Returns:
+            None
+        """
+
+        # Use parent method to handle saving, including metadata
+        super().save_netcdf(seaice_computed, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
+                            default_path=default_path, rebuild=rebuild, **kwargs)
+
+        return None
+        
