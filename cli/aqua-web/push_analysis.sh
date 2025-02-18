@@ -97,7 +97,7 @@ print_help() {
     echo "  -c, --config FILE      alternate config file for make_contents (defaults to config.aqua-web.yaml)"
     echo "  -h, --help             display this help and exit"
     echo "  -l, --loglevel LEVEL   set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2."
-    echo "  -n, --no-convert       do not convert PDFs to PNGs"  
+    echo "  -n, --no-convert       do not convert PDFs to PNGs (use only if PNGs are already available)"  
     echo "  -r, --repository       remote aqua-web repository (default 'DestinE-Climate-DT/aqua-web'). If it starts with 'local:' a local directory is used."
     echo "  --no-update            do not update the remote github repository"  
     echo "  --rsync URL            remote rsync target (takes priority over s3 bucket if specified)"
