@@ -16,14 +16,7 @@ def start_end_dates(startdate=None, enddate=None,
     Returns:
         tuple: start and end dates for the data retrieve
     """
-    try:
-        start_retrieve = min(startdate, start_std)
-    except TypeError:
-        start_retrieve = None
-
-    try:
-        end_retrieve = max(enddate, end_std)
-    except TypeError:
-        end_retrieve = None
+    start_retrieve = min(filter(None, [startdate, start_std])) if any([startdate, start_std]) else None
+    end_retrieve = max(filter(None, [enddate, end_std])) if any([enddate, end_std]) else None
 
     return start_retrieve, end_retrieve
