@@ -119,7 +119,7 @@ bucket="aqua-web"
 repository="DestinE-Climate-DT/aqua-web"
 update=1
 rsync=""
-config="$SCRIPT_DIR/config.aqua-web.yaml"
+config="$SCRIPT_DIR/config.grouping.yaml"
 
 while [[ $# -gt 2 ]]; do
   case "$1" in
@@ -255,7 +255,7 @@ if [ $update -eq 1 ]; then
     git commit -m "update figures"
 
     git push
-    log_message INFO "Updated repository $repo"
+    log_message INFO "Updated repository $repository"
 fi
 
 cd ..
