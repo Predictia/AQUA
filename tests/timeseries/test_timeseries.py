@@ -9,91 +9,75 @@ loglevel = 'DEBUG'
 
 
 @pytest.mark.timeseries
-def test_class_timeseries():
+class TestTimeseries:
     """
     Test that the timeseries class works
     """
-    catalogs = ['ci']
-    models = ['IFS']
-    exps = ['test-tco79']
-    sources = ['teleconnections']
-    var = 'msl'
-    lon_limits = [-100, 100]
-    lat_limits = [-30, 30]
-    plot_ref_kw = {'catalog': 'ci', 'model': 'IFS', 'exp': 'test-tco79', 'source': 'teleconnections'}
 
-    ts = Timeseries(var=var, models=models, exps=exps, sources=sources, catalogs=catalogs,
-                    loglevel=loglevel, plot_ref_kw=plot_ref_kw,
-                    lon_limits=lon_limits, lat_limits=lat_limits)
+    def setup_method(self):
+        """Initialize variables before each test."""
+        self.catalog = 'ci'
+        self.model = 'ERA5'
+        self.exp = 'era5-hpz3'
+        self.source = 'monthly'
+        self.var = 'tcc'
+        self.region = 'tropics'
+        self.regrid = 'r100'
 
-    assert ts.var == var
+    def test_no_region(self):
+        ts = Timeseries(catalog=self.catalog, model=self.model, exp=self.exp, source=self.source,
+                        region=None, loglevel=loglevel, regrid=self.regrid)
 
-    ts.retrieve_data()
+        assert ts.lon_limits is None
+        assert ts.lat_limits is None
 
-    assert ts.data_annual is not None
-    assert ts.data_mon is not None
+    def test_wrong_region(self):
+        with pytest.raises(ValueError):
+            Timeseries(catalog=self.catalog, model=self.model, exp=self.exp, source=self.source,
+                       region='topolinia', loglevel=loglevel, regrid=self.regrid)
 
-    ts.retrieve_ref(extend=True)
+    def test_monthly_annual_with_region(self, tmp_path):
+        ts = Timeseries(catalog=self.catalog, model=self.model, exp=self.exp, source=self.source,
+                        region=self.region, loglevel=loglevel, startdate='19900101', enddate='19900102',
+                        regrid=self.regrid)
 
-    assert ts.ref_ann is not None
-    assert ts.ref_mon is not None
+        assert ts.lon_limits == [-180, 180]
+        assert ts.lat_limits == [-15, 15]
 
-    ts.plot()
+        ts.retrieve(var=self.var)
+        assert isinstance(ts.data, xr.DataArray)
 
-    # We want to assert the plot is created
-    pdf_file = './pdf/timeseries.timeseries.ci.IFS.test-tco79.msl.lat_limits__lat-30_30.lon_limits__lon-100_100.pdf'
-    png_file = './png/timeseries.timeseries.ci.IFS.test-tco79.msl.lat_limits__lat-30_30.lon_limits__lon-100_100.png'
+        ts.compute(freq='monthly')
+        assert ts.monthly.values[0] == pytest.approx(60.145472982004186, rel=approx_rel)
 
-    assert os.path.exists(pdf_file) is True
-    assert os.path.exists(png_file) is True
+        ts.save_netcdf(freq='monthly', outputdir=tmp_path)
+        file = os.path.join(tmp_path, 'netcdf', 'timeseries.tcc.ci.ERA5.era5-hpz3.nc')
+        assert os.path.exists(file)
 
-    ts.save_netcdf()
+        ts.compute(freq='annual')
+        assert ts.annual.values[0] == pytest.approx(60.145472982004186, rel=approx_rel)
 
-    # We want to assert the netcdf file is created
-    assert os.path.exists('./netcdf/timeseries.timeseries.ci.IFS.test-tco79.msl.frequency_annual.lat_limits__lat-30_30.lon_limits__lon-100_100.nc') is True
-    assert os.path.exists('./netcdf/timeseries.timeseries.ci.IFS.test-tco79.msl.frequency_monthly.lat_limits__lat-30_30.lon_limits__lon-100_100.nc') is True
+        ts.save_netcdf(freq='annual', outputdir=tmp_path)
 
-    # Data and reference are the same so the difference should be zero.
-    # I check opening the netcdf file
-    data_annual = xr.open_dataset('./netcdf/timeseries.timeseries.ci.IFS.test-tco79.msl.frequency_annual.lat_limits__lat-30_30.lon_limits__lon-100_100.nc')
-    data_ref_annual = xr.open_dataset('./netcdf/timeseries.timeseries.ci.IFS.test-tco79.msl.frequency_annual.lat_limits__lat-30_30.lon_limits__lon-100_100.nc')
-    diff = data_annual - data_ref_annual
-    assert pytest.approx(diff[ts.var].isel(time=0).values, rel=approx_rel) == 0
+    def test_hourly_daily_with_region(self):
+        ts = Timeseries(catalog=self.catalog, model=self.model, exp=self.exp, source=self.source,
+                        region=self.region, loglevel=loglevel, startdate='19900101', enddate='19900102',
+                        regrid=self.regrid)
 
-    ts.cleanup()
+        ts.retrieve(var=self.var)
 
-    # data.annual and data.mon have been deleted
-    with pytest.raises(AttributeError):
-        assert ts.data_annual is None
-        assert ts.data_mon is None
+        ts.compute(freq='hourly')
+        assert ts.hourly.values[0] == pytest.approx(60.145472982004186, rel=approx_rel)
 
+        ts.compute(freq='daily')
+        assert ts.daily.values[0] == pytest.approx(60.145472982004186, rel=approx_rel)
 
-@pytest.mark.timeseries
-def test_timeseries_regions():
+    def test_formula(self):
+        ts = Timeseries(catalog=self.catalog, model=self.model, exp=self.exp, source=self.source,
+                        region=self.region, loglevel=loglevel, startdate='19900101', enddate='19900102',
+                        regrid=self.regrid)
 
-    catalogs = ['ci']
-    models = ['ERA5']
-    exps = ['era5-hpz3']
-    sources = ['monthly']
-    var = '86400*tprate'
-    region = 'nh'
+        ts.retrieve(var='2*tcc', formula=True, standard_name='2tcc', long_name='2*Total Cloud Cover', units='%')
 
-    ts = Timeseries(var=var, models=models, exps=exps, sources=sources, catalogs=catalogs,
-                    loglevel=loglevel, region=region, formula=True,
-                    save=False, regrid='r100',
-                    longname='Total precipitation rate',
-                    units='mm/day')
-
-    assert ts.lon_limits == [-180, 180]
-    assert ts.lat_limits == [30, 90]
-
-    ts.retrieve_data()
-    # we have no reference data
-    ts.retrieve_ref(extend=False)
-    ts.plot()
-
-    assert ts.data_annual[0].isel(time=4).values == pytest.approx(2.21320749, rel=approx_rel)
-
-    with pytest.raises(KeyError):
-        ts = Timeseries(var=var, models=models, exps=exps, sources=sources,
-                        loglevel=loglevel, region='topolinia', formula=True)
+        ts.compute(freq='monthly')
+        assert ts.monthly.values[0] ==  pytest.approx(2*60.145472982004186, rel=approx_rel)
