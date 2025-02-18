@@ -4,13 +4,13 @@ import xarray as xr
 from aqua.exceptions import NoDataError
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
-from aqua.util import convert_units, eval_formula, load_yaml
+from aqua.util import convert_units, eval_formula, load_yaml, frequency_string_to_pandas
 from aqua.diagnostics.core import Diagnostic, start_end_dates
 
 xr.set_options(keep_attrs=True)
 
 
-class TimeSeries(Diagnostic):
+class Timeseries(Diagnostic):
     """Timeseries class for retrieve and netcdf saving of a single experiment"""
 
     def __init__(self, catalog: str = None, model: str = None,
@@ -20,7 +20,7 @@ class TimeSeries(Diagnostic):
                  region: str = None, lon_limits: list = None, lat_limits: list = None,
                  loglevel: str = 'WARNING'):
         """
-        Initialize the TimeSeries class.
+        Initialize the Timeseries class.
 
         Args:
             catalog (str): The catalog to be used. If None, the catalog will be determined by the Reader.
@@ -94,6 +94,7 @@ class TimeSeries(Diagnostic):
             self.data.attrs['long_name'] = long_name
         if standard_name is not None:
             self.data.attrs['standard_name'] = standard_name
+            self.data.name = standard_name
 
     def _check_data(self, var: str, units: str):
         """
@@ -119,22 +120,75 @@ class TimeSeries(Diagnostic):
             data.attrs['units'] = final_units
             self.data = data
 
-    def compute_monthly(self, compute: bool = True,
-                        exclude_incomplete: bool = True):
+    def compute(self, freq: str, exclude_incomplete: bool = True, compute: bool = True,
+                box_brd: bool = True):
         """
-        Compute the monthly mean of the data.
+        Compute the mean of the data. Support for hourly, daily, monthly and annual means.
 
         Args:
-            compute (bool): If True, compute the monthly mean.
-            exclude_incomplete (bool): If True, exclude incomplete months.
+            freq (str): The frequency to be used for the resampling.
+            exclude_incomplete (bool): If True, exclude incomplete periods.
+            compute (bool): If True, compute the mean.
+            box_brd (bool,opt): choose if coordinates are comprised or not in area selection.
+                                Default is True
         """
-        if 'monthly' in self.source or 'mon' in self.source or compute is False:
-            self.logger.debug('No monthly resampling needed')
-            self.monthly = self.data
+        if freq is None:
+            self.logger.error('Frequency not provided')
+            raise ValueError('Frequency not provided')
+
+        freq = frequency_string_to_pandas(freq)
+
+        data = self.reader.fldmean(self.data, box_brd=box_brd,
+                                   lon_limits=self.lon_limits, lat_limits=self.lat_limits)
+        
+        str_freq = self._str_freq(freq)
+        
+        if str_freq in self.source or compute is False or ('mon' in self.source if str_freq == 'monthly' else False):
+            self.logger.debug('No %s resampling needed', str_freq)
         else:
-            self.logger.debug('Computing monthly mean')
-            self.monthly = self.reader.timmean(self.data, freq='MS',
-                                               exclude_incomplete=exclude_incomplete)
+            self.logger.info('Computing %s mean', str_freq)
+            data = self.reader.timmean(data, freq=freq, exclude_incomplete=exclude_incomplete)
+
+        if str_freq == 'hourly':
+            self.hourly = data
+        elif str_freq == 'daily':
+            self.daily = data
+        elif str_freq == 'monthly':
+            self.monthly = data
+        elif str_freq == 'annual':
+            self.annual = data
+    
+    def save_netcdf(self, freq: str, outputdir: str = './', rebuild: bool = True,
+                    **kwargs):
+        """
+        Save the data to a netcdf file.
+        
+        Args:
+            freq (str): The frequency of the data.
+            outputdir (str): The directory to save the data.
+            rebuild (bool): If True, rebuild the data from the original files.
+
+        Keyword Args:
+            **kwargs: Additional keyword arguments to be passed to the OutputSaver.save_netcdf method.
+        """
+        if freq is None:
+            self.logger.error('Frequency not provided')
+            raise ValueError('Frequency not provided')
+        else:
+            str_freq = self._str_freq(freq)
+
+        if str_freq == 'hourly':
+            data = self.hourly if self.hourly is not None else self.logger.error('No hourly data available')
+        elif str_freq == 'daily':
+            data = self.daily if self.daily is not None else self.logger.error('No daily data available')
+        elif str_freq == 'monthly':
+            data = self.monthly if self.monthly is not None else self.logger.error('No monthly data available')
+        elif str_freq == 'annual':
+            data = self.annual if self.annual is not None else self.logger.error('No annual data available')
+
+        diagnostic_product = data.name
+        super().save_netcdf(data=data, diagnostic='timeseries', diagnostic_product=diagnostic_product,
+                            default_path=outputdir, rebuild=rebuild, **kwargs)
 
     def _set_region(self, region: str = None, lon_limits: list = None, lat_limits: list = None):
         """
@@ -149,7 +203,7 @@ class TimeSeries(Diagnostic):
             region_file = ConfigPath().get_config_dir()
             region_file = os.path.join(region_file, 'diagnostics',
                                        'timeseries', 'interface', 'regions.yaml')
-            if os.path.existis(region_file):
+            if os.path.exists(region_file):
                 regions = load_yaml(region_file)
                 if region in regions['regions']:
                     self.lon_limits = regions['regions'][region].get('lon_limits', None)
@@ -166,3 +220,25 @@ class TimeSeries(Diagnostic):
             self.lon_limits = lon_limits
             self.lat_limits = lat_limits
             self.region = None
+
+    def _str_freq(self, freq: str):
+        """
+        Args:
+            freq (str): The frequency to be used.
+        
+        Returns:
+            str_freq (str): The frequency as a string.
+        """
+        if freq in ['h', 'hourly']:
+            str_freq = 'hourly'
+        elif freq in ['D', 'daily']:
+            str_freq = 'daily'
+        elif freq in ['MS', 'ME', 'M', 'mon', 'monthly']:
+            str_freq = 'monthly'
+        elif freq in ['YS', 'YE', 'Y', 'annual']:
+            str_freq = 'annual'
+        else:
+            self.logger.error('Frequency %s not recognized', freq)
+            raise ValueError('Frequency %s not recognized' % freq)
+        
+        return str_freq
