@@ -1,13 +1,15 @@
 import os
 
+import pandas as pd
 import xarray as xr
 from aqua.exceptions import NoDataError
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
-from aqua.util import convert_units, eval_formula, load_yaml, frequency_string_to_pandas
+from aqua.util import convert_units, eval_formula, load_yaml
+from aqua.util import  frequency_string_to_pandas, time_to_string
 from aqua.diagnostics.core import Diagnostic, start_end_dates
 
-from .util import loop_seasonalcycle
+from .util import loop_seasonalcycle, center_time_str
 
 xr.set_options(keep_attrs=True)
 
@@ -64,11 +66,10 @@ class Timeseries(Diagnostic):
         self.monthly = None
         self.annual = None
         self.std = std
-        if self.std:
-            self.std_hourly = None
-            self.std_daily = None
-            self.std_monthly = None
-            self.std_annual = None
+        self.std_hourly = None
+        self.std_daily = None
+        self.std_monthly = None
+        self.std_annual = None
 
     def retrieve(self, var: str, formula: bool = False, long_name: str = None,
                  units: str = None, standard_name: str = None):
@@ -108,7 +109,7 @@ class Timeseries(Diagnostic):
             self.data.attrs['standard_name'] = standard_name
             self.data.name = standard_name
 
-    def compute(self, freq: str, exclude_incomplete: bool = True,
+    def compute(self, freq: str, extend: bool = True, exclude_incomplete: bool = True,
                 center_time: bool = True, box_brd: bool = True):
         """
         Compute the mean of the data. Support for hourly, daily, monthly and annual means.
@@ -127,11 +128,17 @@ class Timeseries(Diagnostic):
         freq = frequency_string_to_pandas(freq)
         str_freq = self._str_freq(freq)
 
+        self.logger.info('Computing %s mean', str_freq)
+        data = self.data
+
         # Field and time average
-        data = self.reader.fldmean(self.data, box_brd=box_brd,
+        data = self.reader.fldmean(data, box_brd=box_brd,
                                    lon_limits=self.lon_limits, lat_limits=self.lat_limits)
         data = self.reader.timmean(data, freq=freq, exclude_incomplete=exclude_incomplete,
                                    center_time=center_time)
+        
+        if extend:
+            data = self._extend_data(data=data, freq=str_freq, center_time=center_time)
 
         if str_freq == 'hourly':
             self.hourly = data
@@ -160,6 +167,8 @@ class Timeseries(Diagnostic):
 
         freq = frequency_string_to_pandas(freq)
         str_freq = self._str_freq(freq)
+
+        self.logger.info('Computing %s standard deviation', str_freq)
         
         std_stardate = self.startdate if self.std_startdate is None else self.std_startdate
         std_enddate = self.enddate if self.std_enddate is None else self.std_enddate
@@ -213,10 +222,12 @@ class Timeseries(Diagnostic):
             data_std = self.std_annual if self.std_annual is not None else None
 
         diagnostic_product = data.name
+        self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
         super().save_netcdf(data=data, diagnostic='timeseries', diagnostic_product=diagnostic_product,
                             default_path=outputdir, rebuild=rebuild, **kwargs)
         if self.std:
             diagnostic_product = f'{diagnostic_product}_std'
+            self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
             super().save_netcdf(data=data_std, diagnostic='timeseries', diagnostic_product=diagnostic_product,
                                 default_path=outputdir, rebuild=rebuild, **kwargs)
 
@@ -296,3 +307,51 @@ class Timeseries(Diagnostic):
             raise ValueError('Frequency %s not recognized' % freq)
         
         return str_freq
+
+    def _extend_data(self, data: xr.DataArray,
+                    freq: str = None, center_time: bool = True):
+            """
+            Extend the data with a loop if needed.
+            This works only for monthly and annual frequencies.
+
+            Args:
+                data (xr.DataArray): The data to be extended.
+                freq (str): The frequency of the data.
+                center_time (bool): If True, the time will be centered.
+            """
+            if freq == 'monthly' or freq == 'annual':
+                class_startdate = time_to_string(self.startdate, format='%Y%m%d')
+                class_enddate = time_to_string(self.enddate, format='%Y%m%d')
+
+                start_date = time_to_string(self.data.time[0].values, format='%Y%m%d')
+                end_date = time_to_string(self.data.time[-1].values, format='%Y%m%d')
+
+                # Extend the data if needed
+                if  class_startdate < start_date:
+                    # if the center_time is True, we need to center the time of the start_date and end_date
+                    # to be able to compare them with the class_startdate and class_enddate
+                    if center_time:
+                        start_date = center_time_str(time=start_date, freq=freq)
+                    self.logger.info('Extending back the start date from %s to %s', start_date, class_startdate)
+                    loop = loop_seasonalcycle(data=data, startdate=class_startdate, enddate=start_date,
+                                              freq=freq, center_time=center_time, loglevel=self.loglevel)
+                    data = xr.concat([loop, data], dim='time')
+                    data = data.sortby('time')
+                else:
+                    self.logger.debug(f'No extension needed for the start date: {start_date} <= {class_startdate}')
+
+                if class_enddate > end_date:
+                    if center_time:
+                        end_date = center_time_str(time=end_date, freq=freq)
+                    self.logger.info('Extending the end date from %s to %s', end_date, class_enddate)
+                    loop = loop_seasonalcycle(data=data, startdate=end_date, enddate=class_enddate,
+                                            freq=freq, center_time=center_time, loglevel=self.loglevel)
+                    data = xr.concat([data, loop], dim='time')
+                    data = data.sortby('time')
+                else:
+                    self.logger.debug(f'No extension needed for the end date: {class_enddate} >= {end_date}')
+
+                return data
+            else:
+                self.logger.warning(f"The frequency {freq} does not support extension")
+                return data
