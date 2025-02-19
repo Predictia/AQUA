@@ -57,7 +57,8 @@ class Diagnostic():
         """
 
         self.reader = Reader(catalog=self.catalog, model=self.model, exp=self.exp, source=self.source,
-                             regrid=self.regrid, startdate=self.startdate, enddate=self.enddate)
+                             regrid=self.regrid, startdate=self.startdate, enddate=self.enddate,
+                             loglevel=self.loglevel)
 
         if self.catalog is None:
             self.catalog = self.reader.catalog
