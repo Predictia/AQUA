@@ -443,7 +443,8 @@ class LRAgenerator():
             # clean older file
             if os.path.exists(outfile):
                 os.remove(outfile)
-            xfield.to_netcdf(outfile)
+            xfield.to_netcdf(outfile, 
+                             encoding={'time': self.time_encoding, xfield.name: self.var_encoding})
 
             # clean of monthly files
             for infile in glob.glob(infiles):
