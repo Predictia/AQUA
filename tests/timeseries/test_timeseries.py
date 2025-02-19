@@ -38,7 +38,7 @@ class TestTimeseries:
 
     def test_monthly_annual_with_region(self, tmp_path):
         ts = Timeseries(catalog=self.catalog, model=self.model, exp=self.exp, source=self.source,
-                        region=self.region, loglevel=loglevel, startdate='19900101', enddate='19900102',
+                        region=self.region, loglevel=loglevel, startdate='19900101', enddate='19911231',
                         regrid=self.regrid)
 
         assert ts.lon_limits == [-180, 180]
@@ -55,7 +55,7 @@ class TestTimeseries:
         assert os.path.exists(file)
 
         ts.compute(freq='annual')
-        assert ts.annual.values[0] == pytest.approx(60.145472982004186, rel=approx_rel)
+        assert ts.annual.values[0] == pytest.approx(60.31101797654943, rel=approx_rel)
 
         ts.save_netcdf(freq='annual', outputdir=tmp_path)
 
@@ -74,10 +74,11 @@ class TestTimeseries:
 
     def test_formula(self):
         ts = Timeseries(catalog=self.catalog, model=self.model, exp=self.exp, source=self.source,
-                        region=self.region, loglevel=loglevel, startdate='19900101', enddate='19900102',
+                        region=self.region, loglevel=loglevel, startdate='19940101', enddate='19950101',
                         regrid=self.regrid)
 
         ts.retrieve(var='2*tcc', formula=True, standard_name='2tcc', long_name='2*Total Cloud Cover', units='%')
 
         ts.compute(freq='monthly')
-        assert ts.monthly.values[0] ==  pytest.approx(2*60.145472982004186, rel=approx_rel)
+        assert ts.monthly.values[0] ==  pytest.approx(120.29094596400837, rel=approx_rel)
+        assert ts.monthly.values[-1] == pytest.approx(120.29094596400837, rel=approx_rel)
