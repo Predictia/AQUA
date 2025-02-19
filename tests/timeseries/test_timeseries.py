@@ -80,5 +80,6 @@ class TestTimeseries:
         ts.retrieve(var='2*tcc', formula=True, standard_name='2tcc', long_name='2*Total Cloud Cover', units='%')
 
         ts.compute(freq='monthly')
-        assert ts.monthly.values[0] ==  pytest.approx(120.29094596400837, rel=approx_rel)
-        assert ts.monthly.values[-1] == pytest.approx(120.29094596400837, rel=approx_rel)
+        assert ts.monthly.values[0] ==  pytest.approx(117.40372092960037, rel=approx_rel)
+        # The extra month added should be the same as the first one since there is only one year
+        assert ts.monthly.values[-1] == pytest.approx(117.40372092960037, rel=approx_rel)
