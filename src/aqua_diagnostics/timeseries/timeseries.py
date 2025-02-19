@@ -227,11 +227,13 @@ class Timeseries(Diagnostic):
             data_std = self.std_annual if self.std_annual is not None else None
 
         diagnostic_product = data.name
+        diagnostic_product += f'.{str_freq}'
+        diagnostic_product += f'.{self.region}' if self.region is not None else ''
         self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
         super().save_netcdf(data=data, diagnostic='timeseries', diagnostic_product=diagnostic_product,
                             default_path=outputdir, rebuild=rebuild, **kwargs)
         if data_std is not None:
-            diagnostic_product = f'{diagnostic_product}_std'
+            diagnostic_product = f'{diagnostic_product}.std'
             self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
             super().save_netcdf(data=data_std, diagnostic='timeseries', diagnostic_product=diagnostic_product,
                                 default_path=outputdir, rebuild=rebuild, **kwargs)
