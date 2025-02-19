@@ -7,6 +7,7 @@ from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure
 from aqua.util import ConfigPath, OutputSaver
 from aqua.util import load_yaml, area_selection, to_list
+from aqua.logger import log_history
 
 xr.set_options(keep_attrs=True)
 
@@ -80,9 +81,10 @@ class SeaIce(Diagnostic):
 
         seaice_computed.attrs["long_name"] = f"Sea ice {method} integrated over {region} region"
         seaice_computed.attrs["standard_name"] = f"{region} sea ice {method}"
-        seaice_computed.attrs["region"] = region
-        seaice_computed.attrs["computing_method"] = method
         seaice_computed.name = f"sea_ice_{method}_{region.replace(' ', '_').lower()}"
+
+        log_history(seaice_computed, f"Method used for seaice computation: {method}")
+        log_history(seaice_computed, f"Region selected for seaice computation: {region}")
 
         return seaice_computed
 
