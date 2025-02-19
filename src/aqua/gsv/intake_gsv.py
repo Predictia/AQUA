@@ -481,10 +481,12 @@ class GSVSource(base.DataSource):
 
         # this is needed here and not in init because each worker spawns a new environment
         gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
-        gsv = GSVRetriever(logging_level=gsv_log_level)
+        
+        if not hasattr(GSVSource, 'gsv') or not GSVSource.gsv:
+            GSVSource.gsv = GSVRetriever(logging_level=gsv_log_level)
 
         self.logger.debug('Request %s', request)
-        dataset = gsv.request_data(request, use_stream_iterator=fstream_iterator, 
+        dataset = GSVSource.gsv.request_data(request, use_stream_iterator=fstream_iterator, 
                                    process_derived_variables=False) #following 2.9.2 we avoid derived variables
 
         if self.timeshift:  # shift time by one month (special case)
