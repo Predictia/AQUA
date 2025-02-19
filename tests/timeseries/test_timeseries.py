@@ -51,13 +51,21 @@ class TestTimeseries:
         assert ts.monthly.values[0] == pytest.approx(60.145472982004186, rel=approx_rel)
 
         ts.save_netcdf(freq='monthly', outputdir=tmp_path)
-        file = os.path.join(tmp_path, 'netcdf', 'timeseries.tcc.ci.ERA5.era5-hpz3.nc')
+        file = os.path.join(tmp_path, 'netcdf', 'timeseries.tcc.monthly.tropics.ci.ERA5.era5-hpz3.nc')
         assert os.path.exists(file)
 
         ts.compute(freq='annual')
         assert ts.annual.values[0] == pytest.approx(60.31101797654943, rel=approx_rel)
 
+        ts.compute_std(freq='annual')
+        assert ts.std_annual.values[0] == pytest.approx(0.0, rel=approx_rel)
+
         ts.save_netcdf(freq='annual', outputdir=tmp_path)
+        file = os.path.join(tmp_path, 'netcdf', 'timeseries.tcc.annual.tropics.ci.ERA5.era5-hpz3.nc')
+        assert os.path.exists(file)
+
+        file = os.path.join(tmp_path, 'netcdf', 'timeseries.tcc.annual.tropics.std.ci.ERA5.era5-hpz3.nc')
+        assert os.path.exists(file)
 
     def test_hourly_daily_with_region(self):
         ts = Timeseries(catalog=self.catalog, model=self.model, exp=self.exp, source=self.source,
