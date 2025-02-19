@@ -8,7 +8,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
-
 - Enable publication of documentation on ReadTheDocs (#1699, #1716)
 - Adapt Catgen test to the new number of sources for ICON (#1708)
 - Added tests for the Hovmoller plot routine (#1532)
@@ -17,6 +16,7 @@ AQUA core complete list:
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
 
 AQUA diagnostics complete list:
+- Global bias: Handling plev and using scientific notation in contour plots (#1649)
 - Ecmean: Fix net surface radiative flux and wind stresses in ecmean (#1696)
 - Diagnostic core: A common parser and fuctions to open/close the dask cluster are provided (#1703)
 
