@@ -19,7 +19,7 @@ class Timeseries(Diagnostic):
 
     def __init__(self, catalog: str = None, model: str = None,
                  exp: str = None, source: str = None,
-                 regrid: str = None, std: bool = False,
+                 regrid: str = None,
                  startdate: str = None, enddate: str = None,
                  std_startdate: str = None, std_enddate: str = None,
                  region: str = None, lon_limits: list = None, lat_limits: list = None,
@@ -33,7 +33,6 @@ class Timeseries(Diagnostic):
             exp (str): The experiment to be used.
             source (str): The source to be used.
             regrid (str): The target grid to be used for regridding. If None, no regridding will be done.
-            std (bool): If True, a ribbon for standard deviation will be computed. Default is False.
             startdate (str): The start date of the data to be retrieved.
                              If None, all available data will be retrieved.
             enddate (str): The end date of the data to be retrieved.
@@ -51,11 +50,10 @@ class Timeseries(Diagnostic):
         self.logger = log_configure(log_level=loglevel, log_name='TimeSeries')
 
         # We want to make sure we retrieve the required amount of data with a single Reader instance
-        # However, if no standard deviation, we can ignore std_startdate and std_enddate
-        std_startdate = std_startdate if std else None
-        std_enddate = std_enddate if std else None
         self.startdate, self.enddate = start_end_dates(startdate=startdate, enddate=enddate,
                                                        start_std=std_startdate, end_std=std_enddate)
+        self.std_startdate = self.startdate if std_startdate is None else std_startdate
+        self.std_enddate = self.enddate if std_enddate is None else std_enddate
 
         # Set the region based on the region name or the lon and lat limits
         self._set_region(region=region, lon_limits=lon_limits, lat_limits=lat_limits)
@@ -65,7 +63,6 @@ class Timeseries(Diagnostic):
         self.daily = None
         self.monthly = None
         self.annual = None
-        self.std = std
         self.std_hourly = None
         self.std_daily = None
         self.std_monthly = None
@@ -167,19 +164,27 @@ class Timeseries(Diagnostic):
 
         freq = frequency_string_to_pandas(freq)
         str_freq = self._str_freq(freq)
-
         self.logger.info('Computing %s standard deviation', str_freq)
-        
-        std_stardate = self.startdate if self.std_startdate is None else self.std_startdate
-        std_enddate = self.enddate if self.std_enddate is None else self.std_enddate
 
-        data = self.data.isel(time=slice(std_stardate, std_enddate))
-        data = self.reader.fldmean(data, box_brd=box_brd,
-                                   lon_limits=self.lon_limits, lat_limits=self.lat_limits)
+        freq_dict = {'hourly': {'data': self.hourly, 'groupdby': 'time.hour'},
+                     'daily': {'data': self.daily, 'groupdby': 'time.dayofyear'},
+                     'monthly': {'data': self.monthly, 'groupdby': 'time.month'},
+                     'annual': {'data': self.annual, 'groupdby': 'time.year'}}
 
-        data = self.reader.timstd(data, freq=freq, exclude_incomplete=exclude_incomplete,
-                                  center_time=center_time)
-        
+        # If possible we use the data already computed
+        if isinstance(freq_dict[str_freq]['data'], xr.DataArray):
+            self.logger.debug('Using already computed %s data', str_freq)
+            data = freq_dict[str_freq]['data']
+        else:
+            data = self.data
+            data = self.reader.fldmean(data, box_brd=box_brd,
+                                    lon_limits=self.lon_limits, lat_limits=self.lat_limits)
+            data = self.reader.timmean(data, freq=freq, exclude_incomplete=exclude_incomplete,
+                                       center_time=center_time)
+        data = data.sel(time=slice(self.std_startdate, self.std_enddate))
+        data = data.groupby(freq_dict[str_freq]['groupdby']).std('time')
+
+        # Assign the data to the correct attribute based on frequency
         if str_freq == 'hourly':
             self.std_hourly = data
         elif str_freq == 'daily':
@@ -225,7 +230,7 @@ class Timeseries(Diagnostic):
         self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
         super().save_netcdf(data=data, diagnostic='timeseries', diagnostic_product=diagnostic_product,
                             default_path=outputdir, rebuild=rebuild, **kwargs)
-        if self.std:
+        if data_std is not None:
             diagnostic_product = f'{diagnostic_product}_std'
             self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
             super().save_netcdf(data=data_std, diagnostic='timeseries', diagnostic_product=diagnostic_product,
