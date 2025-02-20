@@ -461,6 +461,8 @@ class GSVSource(base.DataSource):
 
         # Select based on type of FDB
         fstream_iterator = False
+        current_fdb_home = os.environ.get("FDB_HOME", None)
+        current_fdb_path = os.environ.get("FDB5_CONFIG_FILE", None)
         if self.chk_type[i]:
             # Bridge FDB type
             if self.fdbhome_bridge:
@@ -477,16 +479,25 @@ class GSVSource(base.DataSource):
             if self.hpc_expver:
                 request["expver"] = self.hpc_expver
 
+        # A rebuild of the GSV is needed if the FDB_HOME or FDB5_CONFIG_FILE has changed
+        rebuild_gsv = False
+        if current_fdb_home != os.environ.get("FDB_HOME", None):
+            self.logger.info("FDB_HOME has been changed to from %s to %s", current_fdb_home, os.environ.get("FDB_HOME", None))
+            rebuild_gsv = True
+        if current_fdb_path != os.environ.get("FDB5_CONFIG_FILE", None):
+            self.logger.info("FDB5_CONFIG_FILE has been changed to from %s to %s", current_fdb_path, os.environ.get("FDB5_CONFIG_FILE", None))
+            rebuild_gsv = True
+
         self._switch_eccodes()
 
         # this is needed here and not in init because each worker spawns a new environment
         gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
-        
-        if not hasattr(GSVSource, 'gsv') or not GSVSource.gsv:
+
+        if not hasattr(GSVSource, 'gsv') or not GSVSource.gsv or rebuild_gsv:
             GSVSource.gsv = GSVRetriever(logging_level=gsv_log_level)
 
         self.logger.debug('Request %s', request)
-        dataset = GSVSource.gsv.request_data(request, use_stream_iterator=fstream_iterator, 
+        dataset = GSVSource.gsv.request_data(request, use_stream_iterator=fstream_iterator,
                                    process_derived_variables=False) #following 2.9.2 we avoid derived variables
 
         if self.timeshift:  # shift time by one month (special case)
