@@ -8,6 +8,7 @@ from aqua.logger import log_configure
 from aqua.util import ConfigPath, OutputSaver
 from aqua.util import load_yaml, area_selection, to_list
 from aqua.logger import log_history
+from aqua.diagnostics.timeseries import Timeseries
 
 xr.set_options(keep_attrs=True)
 
@@ -53,6 +54,10 @@ class SeaIce(Diagnostic):
         
         self.extent = None
 
+    def seaice_timeseries(self):
+        """Call the seaice_timeseries method from the Timeseries instance."""
+        return self.timeseries.seaice_timeseries()
+
     def show_regions(self):
         """Show the regions available in the region file."""
 
@@ -61,7 +66,7 @@ class SeaIce(Diagnostic):
     def get_regions_file_path(self):
         """Get and show the .yaml file path location, 
         as a new user may not know where the file is located."""
-        pathloc = f"Regions file location path: {self.regions_definition}"
+        pathloc = f"Regions file location path: {ConfigPath().get_config_dir()}"
         print(pathloc)
 
         return self.regions_definition
@@ -88,6 +93,45 @@ class SeaIce(Diagnostic):
 
         return seaice_computed
 
+    def integrate_seaice_masked_data(self, masked_data, method: str, region: str):
+        """Integrate the masked data over the spatial dimension to compute sea ice metrics.
+
+        Args:
+        masked_data (xr.DataArray): The masked data to be integrated.
+        method (str): The method to compute sea ice metrics. Options are 'extent' or 'volume'.
+        region (str): The region for which the sea ice metric is computed.
+
+        Returns:
+        xr.DataArray: The computed sea ice metric.
+        """
+
+        self.logger.debug(f'Calculate cell areas for {region}')
+
+        # get info on grid area that must be reinitialised for each region
+        areacello = self.reader.grid_area
+
+        # get the region box from the region definition file
+        box = self.regions_definition[region]
+
+        # log the computation
+        self.logger.info(f'Computing sea ice {method} for {region}')
+
+        # regional selection
+        areacello = area_selection(areacello, lat=[box["latS"], box["latN"]], lon=[box["lonW"], box["lonE"]], 
+                                   loglevel=self.loglevel)
+        if method == 'extent':
+            # compute sea ice extent: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to million km^2
+            seaice_metric = areacello.where(masked_data.notnull()).sum(skipna = True, min_count = 1, 
+                                                                       dim=self.reader.space_coord) / 1e12
+        elif method == 'volume':
+            # compute sea ice metric: exclude areas with no sea ice and sum over the spatial dimension
+            seaice_metric = (masked_data * areacello.where(masked_data.notnull())).sum(skipna = True, min_count = 1, 
+                                                                                       dim=self.reader.space_coord)
+        # add attributes
+        self.set_seaice_update_attrs(seaice_metric, method, region)
+
+        return seaice_metric
+
     def _compute_extent(self, threshold: float = 0.15, var: str = 'siconc'):
         """Compute sea ice extent.
         threshold (float): The threshold value for which sea ice fraction is considered . Default is 0.15.
@@ -105,29 +149,20 @@ class SeaIce(Diagnostic):
                                        (self.data[var] < 1.0))
         
         # make a list to store the extent DataArrays for each region
-        extent = []
+        regional_extents = []
         for region in self.regions:
-            self.logger.info(f"Computing sea ice extent for {region}")
-            box = self.regions_definition[region]
+            
+            # integrate the seaice masked data ci_mask over the regional spatial dimension to compute sea ice extent
+            seaice_extent = self.integrate_seaice_masked_data(ci_mask, 'extent', region)
 
-            # get info on grid area that must be reinitialised for each region
-            areacello = self.reader.grid_area
-
-            # regional selection
-            areacello = area_selection(areacello, lat=[box["latS"], box["latN"]], lon=[box["lonW"], box["lonE"]],
-                                       loglevel=self.loglevel)
-
-            # compute sea ice extent: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to million km^2
-            seaice_extent = areacello.where(ci_mask.notnull()).sum(skipna = True, min_count = 1, 
-                                                                   dim=self.reader.space_coord) / 1e12
             # add attributes
             self.set_seaice_update_attrs(seaice_extent, 'extent', region)
 
-            extent.append(seaice_extent)
+            regional_extents.append(seaice_extent)
         
         # combine the extent DataArrays into a single Dataset and keep as global attributes 
         # only the attrs that are shared across all DataArrays
-        self.extent = xr.merge(extent, combine_attrs='drop_conflicts')
+        self.extent = xr.merge(regional_extents, combine_attrs='drop_conflicts')
        
         return self.extent
 
@@ -146,30 +181,20 @@ class SeaIce(Diagnostic):
                                           (self.data[var] < 99.0))
 
         # make a list to store the volume DataArrays for each region
-        volume = []
+        regional_volumes = []
         for region in self.regions:
+            
+            # integrate the seaice masked data sivol_mask over the regional spatial dimension to compute sea ice volume
+            seaice_volume = self.integrate_seaice_masked_data(sivol_mask, 'volume', region)
 
-            # get info on grid area that must be reinitialised for each region
-            areacello = self.reader.grid_area
-
-            self.logger.info(f'Computing sea ice volume for {region}')
-            box = self.regions_definition[region]
-
-            # regional selection
-            areacello = area_selection(areacello, lat=[box["latS"], box["latN"]], lon=[box["lonW"], box["lonE"]], 
-                                       loglevel=self.loglevel)
-
-            # compute sea ice volume: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to km^3
-            seaice_volume = (sivol_mask * areacello.where(sivol_mask.notnull())).sum(skipna = True, min_count = 1, 
-                                                                                     dim=self.reader.space_coord) / 1e12
             # add attributes
             self.set_seaice_update_attrs(seaice_volume, 'volume', region)
 
-            volume.append(seaice_volume)
+            regional_volumes.append(seaice_volume)
 
         # combine the volume DataArrays into a single Dataset and keep as global attributes 
         # only the attrs that are shared across all DataArrays
-        self.volume = xr.merge(volume, combine_attrs='drop_conflicts')
+        self.volume = xr.merge(regional_volumes, combine_attrs='drop_conflicts')
        
         return self.volume
 
@@ -227,4 +252,3 @@ class SeaIce(Diagnostic):
                             default_path=default_path, rebuild=rebuild, **kwargs)
 
         return None
-        
