@@ -4,6 +4,7 @@ both with monthly and annual aggregation options
 """
 import xarray as xr
 import matplotlib.pyplot as plt
+from matplotlib import rcParams
 from aqua.logger import log_configure
 
 
@@ -41,6 +42,10 @@ def plot_timeseries(monthly_data=None,
         fig, ax (tuple): tuple containing the figure and axis objects
     """
     logger = log_configure(loglevel, 'PlotTimeseries')
+
+    rcParams['font.sans-serif'] = "Luxi Sans"
+    rcParams['font.family'] = "sans-serif"
+
     fig_size = kwargs.get('figsize', (10, 5))
     fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
@@ -91,6 +96,7 @@ def plot_timeseries(monthly_data=None,
                                 ref_monthly_data - 2.*std_monthly_data.sel(month=ref_monthly_data["time.month"]),
                                 ref_monthly_data + 2.*std_monthly_data.sel(month=ref_monthly_data["time.month"]),
                                 facecolor='grey', alpha=0.25)
+                ax.set(xlim=(ref_monthly_data.time[0], ref_monthly_data.time[-1]))
         except Exception as e:
             logger.debug(f"Error plotting monthly std data: {e}")
 
@@ -111,13 +117,11 @@ def plot_timeseries(monthly_data=None,
             logger.debug(f"Error plotting annual std data: {e}")
 
     ax.legend(fontsize='small')
-    ax.grid(axis="x", color="k")
-    ax.spines["right"].set_visible(False)
-    ax.spines["top"].set_visible(False)
+    ax.grid(axis="both", color="dimgrey", linestyle="--", alpha=0.8)
 
     title = kwargs.get('title', None)
     if title:
-        ax.set_title(title)
+        ax.set_title(title, fontsize=13, fontweight='bold')
 
     return fig, ax
 
@@ -149,6 +153,10 @@ def plot_seasonalcycle(data=None,
     Returns:
         fig, ax (tuple): tuple containing the figure and axis objects
     """
+
+    rcParams['font.sans-serif'] = "Luxi Sans"
+    rcParams['font.family'] = "sans-serif"
+
     logger = log_configure(loglevel, 'PlotSeasonalCycle')
     fig_size = kwargs.get('figsize', (6, 4))
     fig, ax = plt.subplots(1, 1, figsize=fig_size)
@@ -172,6 +180,7 @@ def plot_seasonalcycle(data=None,
             try:
                 mon_data = _extend_cycle(data[i], loglevel)
                 mon_data.plot(ax=ax, label=label, color=color, lw=3)
+                ax.set(xlim=(data.time[0], data.time[-1]))
             except Exception as e:
                 logger.debug(f"Error plotting data: {e}")
 
@@ -196,11 +205,11 @@ def plot_seasonalcycle(data=None,
     ax.set_axisbelow(True)
 
     if grid:
-        ax.grid()
+        ax.grid(axis="both", color="dimgrey", linestyle="--", alpha=0.8)
 
     title = kwargs.get('title', None)
     if title is not None:
-        ax.set_title(title)
+        ax.set_title(title, fontsize=13, fontweight='bold')
 
     return fig, ax
 
