@@ -177,8 +177,6 @@ def get_aqua_paths(*, args, logger):
     aqua_configdir = os.path.join(ConfigPath().configdir, "diagnostics")
     logger.info(f"AQUA config dir: {aqua_configdir}")
 
-    os.path.join(aqua_path, "cli/aqua-analysis")
-
     aqua_analysis_config_path = os.path.expandvars(args.config) if args.config and args.config.strip() else os.path.join(aqua_path, "cli/aqua-analysis/config.aqua-analysis.yaml")
     if not os.path.exists(aqua_analysis_config_path):
         logger.error(f"Config file {aqua_analysis_config_path} not found.")
@@ -193,7 +191,7 @@ def main():
     Main entry point for running the diagnostics.
     """
     args = get_args()
-    logger = log_configure('debug', 'AQUA Analysis')
+    logger = log_configure('warning', 'AQUA Analysis')
 
     aqua_path, aqua_configdir, aqua_config_path = get_aqua_paths(args=args, logger=logger)
 
