@@ -373,7 +373,9 @@ class GSVSource(base.DataSource):
 
     def _switch_eccodes(self):
         """
-        Internal method to switch ECCODES version if needed
+        Internal method to switch ECCODES version if needed.
+
+        Returns a boolean indicating if the switch was done.
         """
         if self.eccodes_path:  # if needed switch eccodes path
             # unless we have already switched
@@ -498,6 +500,7 @@ class GSVSource(base.DataSource):
         # this is needed here and not in init because each worker spawns a new environment
         gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
 
+        # The following is done to recycle the gsv instance: it has to be changed only if FDB_HOME or ECCODES changed
         if flag_eccodes_switch or not hasattr(GSVSource, 'gsv') or not GSVSource.gsv or rebuild_gsv:
             GSVSource.gsv = GSVRetriever(logging_level=gsv_log_level)
 
