@@ -513,7 +513,7 @@ class GSVSource(base.DataSource):
             request["param"] = self._var
 
         # Select based on type of FDB
-        fstream_iterator = False
+        fstream_iterator = False  # We set it False, but it works also with True
         current_fdb_home = os.environ.get("FDB_HOME", None)
         current_fdb_path = os.environ.get("FDB5_CONFIG_FILE", None)
         if self.chk_type[i]:
@@ -535,10 +535,12 @@ class GSVSource(base.DataSource):
         # A rebuild of the GSV is needed if the FDB_HOME or FDB5_CONFIG_FILE has changed
         rebuild_gsv = False
         if current_fdb_home != os.environ.get("FDB_HOME", None):
-            self.logger.debug("FDB_HOME has been changed to from %s to %s", current_fdb_home, os.environ.get("FDB_HOME", None))
+            self.logger.debug("FDB_HOME has been changed to from %s to %s",
+                              current_fdb_home, os.environ.get("FDB_HOME", None))
             rebuild_gsv = True
         if current_fdb_path != os.environ.get("FDB5_CONFIG_FILE", None):
-            self.logger.debug("FDB5_CONFIG_FILE has been changed to from %s to %s", current_fdb_path, os.environ.get("FDB5_CONFIG_FILE", None))
+            self.logger.debug("FDB5_CONFIG_FILE has been changed to from %s to %s",
+                              current_fdb_path, os.environ.get("FDB5_CONFIG_FILE", None))
             rebuild_gsv = True
 
         flag_eccodes_switch = self._switch_eccodes()
@@ -546,13 +548,14 @@ class GSVSource(base.DataSource):
         # this is needed here and not in init because each worker spawns a new environment
         gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
 
-        # The following is done to recycle the gsv instance: it has to be changed only if FDB_HOME or ECCODES changed
+        # The following is done to recycle the GSVRetriever instance: it has to be changed only if FDB_HOME or ECCODES changed
+        # Notice that this is done with a class variable, so it is shared among all instances of GSVSource
         if flag_eccodes_switch or not hasattr(GSVSource, 'gsv') or not GSVSource.gsv or rebuild_gsv:
             GSVSource.gsv = GSVRetriever(logging_level=gsv_log_level)
 
         self.logger.debug('Request %s', request)
         dataset = GSVSource.gsv.request_data(request, use_stream_iterator=fstream_iterator,
-                                             process_derived_variables=False) #following 2.9.2 we avoid derived variables
+                                             process_derived_variables=False)  # following 2.9.2 we avoid derived variables
 
         if self.timeshift:  # shift time by one month (special case)
             dataset = shift_time_dataset(dataset)
