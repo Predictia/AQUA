@@ -77,7 +77,7 @@ class SeaIce(Diagnostic):
 
         # set attributes: 'method','unit'   
         units_dict = {"extent": "million km^2", 
-                      "volume": "million km^3"}
+                      "volume": "thousands km^3"}
 
         if method not in units_dict:
             raise NoDataError("Variable not found in dataset")
@@ -126,7 +126,7 @@ class SeaIce(Diagnostic):
         elif method == 'volume':
             # compute sea ice metric: exclude areas with no sea ice and sum over the spatial dimension
             seaice_metric = (masked_data * areacello.where(masked_data.notnull())).sum(skipna = True, min_count = 1, 
-                                                                                       dim=self.reader.space_coord)
+                                                                                       dim=self.reader.space_coord) /1e12
         # add attributes
         self.set_seaice_update_attrs(seaice_metric, method, region)
 
