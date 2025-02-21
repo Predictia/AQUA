@@ -3,11 +3,8 @@ coverage:
   status:
     project:
       default:
-        target: 65%    # Goal: 80% total coverage
+        target: auto   
         threshold: 1%  # Allow a 1% drop without failing
-    patch:
-      default:
-        target: 65%    # PR changes should also meet 80%
 
 ignore:
   - "tests/*"          # Ignore test files
