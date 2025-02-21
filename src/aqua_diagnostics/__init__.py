@@ -10,4 +10,4 @@ __all__ = ["Teleconnection",
            "GlobalBiases",
            "Radiation", 
            "EnsembleTimeseries", "EnsembleLatLon", "EnsembleZonal",
-           "GlobalMean", "PerformanceIndices", "SeaIce"]
+           "GlobalMean", "PerformanceIndices", "SeaIce", "PlotSeaIce"]

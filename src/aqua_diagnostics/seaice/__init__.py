@@ -1,4 +1,5 @@
 """SeaIce module"""
 from .seaice import SeaIce
 
-__all__ = ['SeaIce']
+__all__ = ['SeaIce', 
+           'PlotSeaIce']
