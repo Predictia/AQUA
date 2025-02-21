@@ -132,7 +132,7 @@ class GSVSource(base.DataSource):
                 self._var[i] = int(get_eccodes_attr(v)['paramId'])
 
         self.logger.debug("List of paramid to retrieve %s", self._var)
-                
+
         self._kwargs = kwargs
         self.hpc_expver = hpc_expver
 
@@ -150,7 +150,7 @@ class GSVSource(base.DataSource):
 
         self.logger.debug('Data frequency (i.e. savefreq): %s', savefreq)
         self.logger.debug('Data_start_date: %s, Data_end_date: %s, Bridge_start_date: %s, Bridge_end_date: %s',
-                           self.data_start_date, self.data_end_date, self.bridge_start_date, self.bridge_end_date)
+                          self.data_start_date, self.data_end_date, self.bridge_start_date, self.bridge_end_date)
         self.logger.debug('Request startdate: %s, Request enddate: %s', self.startdate, self.enddate)
 
         if self.timestyle != "yearmonth":
@@ -194,11 +194,11 @@ class GSVSource(base.DataSource):
                     self.onelevel = True  # If yes we can afford to read only one level
             else:
                 self.logger.warning("A speedup of data retrieval could be achieved by specifying the levels keyword in metadata.")
-    
+
         timeaxis = make_timeaxis(self.data_start_date, self.startdate, self.enddate,
-                            shiftmonth=self.timeshift, timestep=timestep,
-                            savefreq=savefreq, chunkfreq=chunking_time,
-                            bridge_start_date=self.bridge_start_date, bridge_end_date=self.bridge_end_date)
+                                 shiftmonth=self.timeshift, timestep=timestep,
+                                 savefreq=savefreq, chunkfreq=chunking_time,
+                                 bridge_start_date=self.bridge_start_date, bridge_end_date=self.bridge_end_date)
 
         self.timeaxis = timeaxis["timeaxis"]
         self.chk_start_idx = timeaxis["start_idx"]
@@ -259,9 +259,9 @@ class GSVSource(base.DataSource):
 
         # data block: if fdb_info is complete, set the data start/enddates from the file itself
         if self.fdb_info_file and fdb_info:
-                self.data_start_date = fdb_info['data']['data_start_date']
-                self.data_end_date = fdb_info['data']['data_end_date']
-                self.hpc_expver = fdb_info['data']['expver']
+            self.data_start_date = fdb_info['data']['data_start_date']
+            self.data_end_date = fdb_info['data']['data_end_date']
+            self.hpc_expver = fdb_info['data']['expver']
         else:
             # automatic guessing
             if data_start_date == 'auto' or data_end_date == 'auto':
@@ -272,17 +272,17 @@ class GSVSource(base.DataSource):
             else:
                 self.data_start_date = data_start_date
                 self.data_end_date = data_end_date
-        
+
         # bridge block: if fdb_info is complete, set the bridge start/enddates from the file itself
         if self.fdb_info_file and fdb_info['bridge']:
-                self.bridge_start_date = fdb_info['bridge']['bridge_start_date']
-                self.bridge_end_date = fdb_info['bridge']['bridge_end_date']
-                self._request['expver'] = fdb_info['bridge']['expver']
-        else:     
+            self.bridge_start_date = fdb_info['bridge']['bridge_start_date']
+            self.bridge_end_date = fdb_info['bridge']['bridge_end_date']
+            self._request['expver'] = fdb_info['bridge']['expver']
+        else:
             # deprecated method that guess from text file and fall back
             self.bridge_start_date = read_bridge_date(bridge_start_date)
             self.bridge_end_date = read_bridge_date(bridge_end_date)
-            
+
             # set bridge bounds if not specified
             if self.bridge_start_date == 'complete' or self.bridge_end_date == 'complete':
                 self.bridge_start_date = self.data_start_date
@@ -444,11 +444,13 @@ class GSVSource(base.DataSource):
     def _get_partition(self, ii, var=None, first=False, onelevel=False):
         """
         Standard internal method reading i-th data partition from FDB
+
         Args:
             ii (int): partition number
             var (string, optional): single variable to retrieve. Defaults to using those set at init
             first (bool, optional): read only the first step (used for schema retrieval)
             onelevel (bool, optional): read only one level. Defaults to False.
+
         Returns:
             An xarray.DataSet
         """
@@ -550,7 +552,7 @@ class GSVSource(base.DataSource):
 
         self.logger.debug('Request %s', request)
         dataset = GSVSource.gsv.request_data(request, use_stream_iterator=fstream_iterator,
-                                   process_derived_variables=False) #following 2.9.2 we avoid derived variables
+                                             process_derived_variables=False) #following 2.9.2 we avoid derived variables
 
         if self.timeshift:  # shift time by one month (special case)
             dataset = shift_time_dataset(dataset)
@@ -608,7 +610,7 @@ class GSVSource(base.DataSource):
         coords['time'] = self.timeaxis
 
         ds = xr.Dataset()
-        
+
         # Now works only with the variables which have been read (the fixer may change names later)
         # Notice that the mismatch between shortnames in different versions of eccodes is handled here
         # We consider stable between versions the paramId, not the shortName. This means that we read
@@ -665,12 +667,13 @@ class GSVSource(base.DataSource):
     def get_fdb_definitions_from_file(self, fdb_info_file):
         """
         Get the FDB definitions from a file
+
         Args:
             file (str): path to the file
+
         Returns:
             dict: definitions
         """
-        
         if not os.path.exists(fdb_info_file):
             self.logger.error("FDB info file %s does not exist", fdb_info_file)
             return None
@@ -688,7 +691,7 @@ class GSVSource(base.DataSource):
             self.logger.error("FDB info file %s does not contain expected sections ('data' and 'bridge')", fdb_info_file)
             return None
 
-        try: 
+        try:
             fdb_info['data']['data_start_date'] = self._validate_info_date(fdb_info, 'data', 'start')
             fdb_info['data']['data_end_date'] = self._validate_info_date(fdb_info, 'data', 'end')
         except KeyError:
@@ -705,24 +708,30 @@ class GSVSource(base.DataSource):
             fdb_info['bridge'] = None
 
         return fdb_info
-    
+
     @staticmethod
     def _validate_info_date(fdb_info_file, location='data', kind='start'):
-    
+
         if location not in ['data', 'bridge']:
             raise ValueError(f'location {location} should be either data or local')
-        
+
         if kind not in ['start', 'end']:
             raise ValueError(f'kind {kind} should be either start or end')
 
         return todatetime(fdb_info_file[location][f'{location}_{kind}_date']).strftime('%Y%m%dT%H%M')
 
-
     def parse_fdb(self, start_date, end_date):
-        """Parse the FDB config file and return the start and end dates of the data.
-           This works only with the DE GSV schema.
         """
+        Parse the FDB config file and return the start and end dates of the data.
+        This works only with the DE GSV schema.
 
+        Args:
+            start_date (str): if 'auto' the start date is found automatically. Else it is the start date.
+            end_date (str): if 'auto' the end date is found automatically. Else it is the end date.
+
+        Returns:
+            tuple: start and end dates
+        """
         if not self.fdbhome and not self.fdbpath:
             raise ValueError('Automatic dates requested but no FDB home or FDB path specified in catalog.')
 
@@ -747,7 +756,7 @@ class GSVSource(base.DataSource):
             expver = self.hpc_expver
 
         file_mask = f"{req['class']}:{req['dataset']}:{req['activity']}:{req['experiment']}:{req['generation']}:{req['model']}:{req['realization']}:{expver}:{req['stream']}:*"
-        
+
         file_mask = file_mask.lower()
         file_list = [
             f for f in os.listdir(root) if fnmatch.fnmatch(f.lower(), file_mask)
