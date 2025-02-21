@@ -372,11 +372,16 @@ class GSVSource(base.DataSource):
         return schema
 
     def _switch_eccodes(self):
+        """
+        Internal method to switch ECCODES version if needed
+        """
         if self.eccodes_path:  # if needed switch eccodes path
             # unless we have already switched
             if self.eccodes_path and (self.eccodes_path != eccodes.codes_definition_path()):
                 eccodes.codes_context_delete()  # flush old definitions in cache
                 eccodes.codes_set_definitions_path(self.eccodes_path)
+                return True
+        return False
 
     def _index_to_timelevel(self, ii):
         """
@@ -482,18 +487,18 @@ class GSVSource(base.DataSource):
         # A rebuild of the GSV is needed if the FDB_HOME or FDB5_CONFIG_FILE has changed
         rebuild_gsv = False
         if current_fdb_home != os.environ.get("FDB_HOME", None):
-            self.logger.info("FDB_HOME has been changed to from %s to %s", current_fdb_home, os.environ.get("FDB_HOME", None))
+            self.logger.debug("FDB_HOME has been changed to from %s to %s", current_fdb_home, os.environ.get("FDB_HOME", None))
             rebuild_gsv = True
         if current_fdb_path != os.environ.get("FDB5_CONFIG_FILE", None):
-            self.logger.info("FDB5_CONFIG_FILE has been changed to from %s to %s", current_fdb_path, os.environ.get("FDB5_CONFIG_FILE", None))
+            self.logger.debug("FDB5_CONFIG_FILE has been changed to from %s to %s", current_fdb_path, os.environ.get("FDB5_CONFIG_FILE", None))
             rebuild_gsv = True
 
-        self._switch_eccodes()
+        flag_eccodes_switch = self._switch_eccodes()
 
         # this is needed here and not in init because each worker spawns a new environment
         gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
 
-        if not hasattr(GSVSource, 'gsv') or not GSVSource.gsv or rebuild_gsv:
+        if flag_eccodes_switch or not hasattr(GSVSource, 'gsv') or not GSVSource.gsv or rebuild_gsv:
             GSVSource.gsv = GSVRetriever(logging_level=gsv_log_level)
 
         self.logger.debug('Request %s', request)
