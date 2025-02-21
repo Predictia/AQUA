@@ -9,10 +9,6 @@ coverage:
       default:
         target: 65%    # PR changes should also meet 80%
 
-    #range: "50...80"         # Color range: red under 50%, green over 80%
-    precision: 2             # Decimal places shown
-    round: down 
-
 ignore:
   - "tests/*"          # Ignore test files
   - "diagnostics/*"     # Ignore diagnostics
