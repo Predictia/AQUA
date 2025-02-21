@@ -1,6 +1,7 @@
 import os
 import shutil
 import pytest
+from datetime import datetime
 import xarray as xr
 from aqua import LRAgenerator, Reader
 
@@ -137,13 +138,19 @@ class TestLRA():
         for month in range(1, 13):
             mm = f'{month:02d}'
             filename =  test.get_filename(var, year, month = mm)
-            with xr.Dataset() as ds:
-                ds[var] = xr.DataArray([0], dims=['time'], coords={'time': [f'{year}-{month:02d}-01']})
-                ds.to_netcdf(filename)
+            timestr = f'{year}-{mm}-01'
+            timeobj = datetime.strptime(timestr, "%Y-%m-%d")
+            ds = xr.Dataset({
+                var: xr.DataArray([0], dims=['time'], coords={'time': [timeobj]})
+            })
+            ds.to_netcdf(filename)
 
         test._concat_var_year(var, year)
         outfile = test.get_filename(var, year)
 
         # Check if a single file is created for the year
         assert os.path.exists(outfile)
+
+        # cleaning 
         os.remove(outfile)
+        shutil.rmtree(outdir)

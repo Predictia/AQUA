@@ -8,7 +8,8 @@ import argparse
 import logging
 from dask.distributed import LocalCluster
 from aqua.logger import log_configure
-from aqua.util import load_yaml, create_folder
+from aqua.util import load_yaml, create_folder, ConfigPath
+from aqua import __path__ as pypath
 
 
 def run_command(cmd: str, log_file: str = None, logger=None) -> int:
@@ -90,6 +91,11 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False,
         aqua_path (str): AQUA path.
         cluster: Dask cluster scheduler address.
     """
+
+    script_dir = config.get('job', {}).get("script_path_base")  # we were not using this key
+    if not script_dir:
+        script_dir=os.path.join(aqua_path, "diagnostics")
+
     diagnostic_config = config.get('diagnostics', {}).get(diagnostic)
     if diagnostic_config is None:
         logger.error(f"Diagnostic '{diagnostic}' not found in the configuration.")
@@ -99,7 +105,11 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False,
     create_folder(output_dir)
 
     logfile = f"{output_dir}/{diagnostic}.log"
+
     extra_args = diagnostic_config.get('extra', "")
+    cfg = diagnostic_config.get('config')
+    if cfg:
+        extra_args += f" --config {cfg}"
 
     if parallel:
         nworkers = diagnostic_config.get('nworkers')
@@ -117,8 +127,7 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False,
 
     run_diagnostic(
         diagnostic=diagnostic,
-        script_path=os.path.join(aqua_path, "diagnostics",
-                                 diagnostic_config.get('script_path', f"{diagnostic}/cli/cli_{diagnostic}.py")),
+        script_path=os.path.join(script_dir, diagnostic_config.get('script_path', f"{diagnostic}/cli/cli_{diagnostic}.py")),
         extra_args=args,
         loglevel=loglevel,
         logger=logger,
@@ -152,7 +161,7 @@ def get_args():
 
 def get_aqua_paths(*, args, logger):
     """
-    Get both the AQUA path and the AQUA config path.
+    Get both the AQUA path and the AQUA-analysis config path.
 
     Args:
         args: Command-line arguments.
@@ -161,23 +170,20 @@ def get_aqua_paths(*, args, logger):
     Returns:
         tuple: AQUA path and configuration path.
     """
-    try:
-        aqua_path = subprocess.run(["aqua", "--path"], stdout=subprocess.PIPE, text=True).stdout.strip()
-        if not aqua_path:
-            raise ValueError("AQUA path is empty.")
-        aqua_path = os.path.abspath(os.path.join(aqua_path, "..", ".."))
-        logger.info(f"AQUA path: {aqua_path}")
 
-        aqua_config_path = os.path.expandvars(args.config) if args.config and args.config.strip() else os.path.join(aqua_path, "cli/aqua-analysis/config.aqua-analysis.yaml")
-        if not os.path.exists(aqua_config_path):
-            logger.error(f"Config file {aqua_config_path} not found.")
-            sys.exit(1)
+    aqua_path = os.path.abspath(os.path.join(pypath[0], "..", ".."))
+    logger.info(f"AQUA path: {aqua_path}")
 
-        logger.info(f"AQUA config path: {aqua_config_path}")
-        return aqua_path, aqua_config_path
-    except Exception as e:
-        logger.error(f"Error getting AQUA path or config: {e}")
+    aqua_configdir = os.path.join(ConfigPath().configdir, "diagnostics")
+    logger.info(f"AQUA config dir: {aqua_configdir}")
+
+    aqua_analysis_config_path = os.path.expandvars(args.config) if args.config and args.config.strip() else os.path.join(aqua_path, "cli/aqua-analysis/config.aqua-analysis.yaml")
+    if not os.path.exists(aqua_analysis_config_path):
+        logger.error(f"Config file {aqua_analysis_config_path} not found.")
         sys.exit(1)
+    logger.info(f"AQUA analysis config path: {aqua_analysis_config_path}")
+
+    return aqua_path, aqua_configdir, aqua_analysis_config_path
 
 
 def main():
@@ -187,37 +193,46 @@ def main():
     args = get_args()
     logger = log_configure('warning', 'AQUA Analysis')
 
-    aqua_path, aqua_config_path = get_aqua_paths(args=args, logger=logger)
+    aqua_path, aqua_configdir, aqua_config_path = get_aqua_paths(args=args, logger=logger)
+
     config = load_yaml(aqua_config_path)
     loglevel = args.loglevel or config.get('job', {}).get('loglevel', "info")
     logger = log_configure(loglevel.lower(), 'AQUA Analysis')
 
-    catalog = args.catalog or config.get('job', {}).get('catalog', None)
     model = args.model or config.get('job', {}).get('model')
     exp = args.exp or config.get('job', {}).get('exp')
     source = args.source or config.get('job', {}).get('source', 'lra-r100-monthly')
-    outputdir = os.path.expandvars(args.outputdir or config.get('job', {}).get('outputdir', './output'))
-    max_threads = args.threads
-
-    logger.debug(f"outputdir: {outputdir}")
-    logger.debug(f"max_threads: {max_threads}")
-    logger.debug(f"catalog: {catalog}")
-
-    diagnostics = config.get('diagnostics', {}).get('run')
-    if not diagnostics:
-        logger.error("No diagnostics found in configuration.")
-        sys.exit(1)
 
     if not all([model, exp, source]):
         logger.error("Model, experiment, and source must be specified either in config or as command-line arguments.")
         sys.exit(1)
     else:
-        logger.info(f"Successfully validated inputs: Model = {model}, Experiment = {exp}, Source = {source}.")
+        logger.info(f"Requested experiment: Model = {model}, Experiment = {exp}, Source = {source}.")
 
-    output_dir = f"{outputdir}/{model}/{exp}"
+    catalog = args.catalog or config.get('job', {}).get('catalog')
+    if catalog:
+        logger.info(f"Requested catalog: {catalog}")
+    else:
+        cat, _ = ConfigPath().browse_catalogs(model, exp, source)
+        if cat:
+            catalog = cat[0]
+            logger.info(f"Automatically determined catalog: {catalog}")
+        else:
+            logger.error("Model, experiment, and source triplet not found in any installed catalog.")
+            sys.exit(1)
+
+    outputdir = os.path.expandvars(args.outputdir or config.get('job', {}).get('outputdir', './output'))
+    max_threads = args.threads
+
+    logger.debug(f"outputdir: {outputdir}")
+    logger.debug(f"max_threads: {max_threads}")
+
+    output_dir = f"{outputdir}/{catalog}/{model}/{exp}"
     output_dir = os.path.expandvars(output_dir)
+
     os.environ["OUTPUT"] = output_dir
     os.environ["AQUA"] = aqua_path
+    os.environ["AQUA_CONFIG"] = aqua_configdir
     create_folder(output_dir)
 
     run_checker = config.get('job', {}).get('run_checker', False)
@@ -238,6 +253,11 @@ def main():
             logger.info("Setup checker completed successfully.")
         else:
             logger.error(f"Setup checker returned exit code {result}, check the logs for more information.")
+
+    diagnostics = config.get('diagnostics', {}).get('run')
+    if not diagnostics:
+        logger.error("No diagnostics found in configuration.")
+        sys.exit(1)
 
     if args.parallel:
         if args.local_clusters:
