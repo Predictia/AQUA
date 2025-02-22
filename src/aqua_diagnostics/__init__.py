@@ -4,7 +4,9 @@ from .global_biases import GlobalBiases
 from .radiation import Radiation
 from .ensemble import EnsembleTimeseries, EnsembleLatLon, EnsembleZonal
 from .ecmean import PerformanceIndices, GlobalMean
-from .seaice import SeaIce, PlotSeaIce
+from .seaice import SeaIce
+from .plot_seaice import PlotSeaIce
+
 __all__ = ["Teleconnection",
            "GregoryPlot", "SeasonalCycle", "Timeseries", 
            "GlobalBiases",
