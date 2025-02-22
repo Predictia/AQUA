@@ -237,6 +237,8 @@ class GSVSource(base.DataSource):
         else:
             self.chunking_vertical = None  # no vertical chunking
 
+        self.gsv = None
+
         self._switch_eccodes()
 
         super(GSVSource, self).__init__(metadata=metadata)
@@ -549,13 +551,14 @@ class GSVSource(base.DataSource):
         gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
 
         # The following is done to recycle the GSVRetriever instance: it has to be changed only if FDB_HOME or ECCODES changed
-        # Notice that this is done with a class variable, so it is shared among all instances of GSVSource
-        if flag_eccodes_switch or not hasattr(GSVSource, 'gsv') or not GSVSource.gsv or rebuild_gsv:
-            GSVSource.gsv = GSVRetriever(logging_level=gsv_log_level)
-
+        if flag_eccodes_switch or rebuild_gsv or not hasattr(self, 'gsv') or not self.gsv:
+            self.logger.debug("Rebuilding GSVRetrieve")
+            self.gsv = GSVRetriever(logging_level=gsv_log_level)
+            
+        gsv = GSVRetriever(logging_level=gsv_log_level)
         self.logger.debug('Request %s', request)
-        dataset = GSVSource.gsv.request_data(request, use_stream_iterator=fstream_iterator,
-                                             process_derived_variables=False)  # following 2.9.2 we avoid derived variables
+        dataset = gsv.request_data(request, use_stream_iterator=fstream_iterator,
+                                   process_derived_variables=False)  # following 2.9.2 we avoid derived variables
 
         if self.timeshift:  # shift time by one month (special case)
             dataset = shift_time_dataset(dataset)
