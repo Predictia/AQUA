@@ -104,7 +104,7 @@ class PlotSeaIce:
         print(data_labels)
         print(ref_label)
 
-        fig.savefig(os.path.join('./', "seaice_extent.png"), format="png", dpi=self.dpi)
+        fig.savefig(os.path.join(self.outdir, "seaice_plot.png"), format="png", dpi=self.dpi)
 
         # Returning the figure and axis for further modifications if needed
         return fig, ax
