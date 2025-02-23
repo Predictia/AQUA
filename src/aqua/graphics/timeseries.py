@@ -56,6 +56,11 @@ def plot_timeseries(monthly_data=None,
             color = color_list[i]
             try:
                 mon_data = monthly_data[i]
+                
+                # Convert single string to a list to avoid splitting chars
+                if isinstance(data_labels, str):
+                    data_labels = [data_labels]
+
                 if data_labels:
                     label = data_labels[i]
                     label += ' monthly'
