@@ -49,8 +49,9 @@ def to_list(arg):
         return list(arg)
     if isinstance(arg, dict):  # Convert dictionary keys to a list
         return list(arg.keys())
+    if isinstance(arg, xr.Dataset): # Convert a xarray Dataset into a list of DataArray 
+        return list(arg.data_vars.values())
     return [arg]
-
 
 
 def files_exist(path):
