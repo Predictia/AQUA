@@ -12,153 +12,99 @@ xr.set_options(keep_attrs=True)
 
 class PlotSeaIce:
     """ PlotSeaIce class """
-    
+
     def __init__(self, 
-                 monthly_models=None, annual_models =None,
+                 monthly_models=None, annual_models=None,
                  monthly_ref=None, annual_ref=None,
-                 plot_std=None, # 'ref', 'all', ('model', int) [the int give the list index for the model to use]
-                 plot_anom=None, # 'ref', ('model', int) [the int give the list index for the model to use]                
-                 harmonise_time=None, # 'common', 'to_ref' (only if ref is given), tuple: ('to_model', int) [the int give the list index for the time to use]
-                 fillna=None, # 'zero', 'nan', 'interpolate', 'value'
-                 plot_kw={'ylimits': {}, 'xlimits': {}, 
-                          'title': None, 'xlabel': None, 'ylabel': None, 'grid': None, 'figsize': None},
-                 twinx=None, # {'ts_left': int, 'ts_right': int} NB: the int is the index of the model to use in the list monthly or annual_models
-                 longname=None, # longname (str): Long name of the variable. Default is None and logname attribute is used.
+                 monthly_std_ref: str = None, annual_std_ref: str = None,
+                 harmonise_time:  str = None, # 'common', 'to_ref' (only if ref is given), tuple: ('to_model', int) [the int give the list index for the time to use]
+                 fillna: str = None, # 'zero', 'nan', 'interpolate', 'value'
+                 plot_kw=None,
                  unit=None, # This might involve some function to get the unit of the variable or to convert the unit [from timeseries.py 
                             # Units of the variable. Default is None and units attribute is used.]
-                 save=True,
                  outdir='./',
-                 loglevel='WARNING',
                  rebuild=None, 
                  filename_keys=None,  # List of keys to keep in the filename. Default is None, which includes all keys.
-                 save_pdf=True, save_png=True, dpi=300):
+                 save_pdf=True, 
+                 save_png=True, dpi=300,
+                 loglevel='WARNING'):
         
+        # Logging setup
         self.loglevel = loglevel
         self.logger = log_configure(log_level=self.loglevel, log_name='PlotSeaIce')
-
         # self.logger = log_history()
-
-        self.monthly_models = monthly_models
+        
+        # Data attributes
+        self.monthly_models = monthly_models  
         self.annual_models = annual_models
         self.monthly_ref = monthly_ref
         self.annual_ref = annual_ref
-        self.plot_std = plot_std
-        self.plot_anom = plot_anom
+        self.monthly_std_ref = monthly_std_ref
+        self.annual_std_ref  = annual_std_ref
+
+        # Processing options
         self.harmonise_time = harmonise_time
         self.fillna = fillna
-        self.plot_kw = plot_kw
-        self.twinx = twinx
-        self.longname = longname
+
+        # Plot configuration
+        self.plot_kw = plot_kw or { 'ylimits': {},  'xlimits': {},  'title': None, 
+                                    'xlabel':  None,'ylabel': None, 'grid': None, 
+                                    'figsize': None}
         self.unit = unit
-        self.save = save
-        self.outdir = outdir
 
-    def plot_seaice(self, #data: xr.Dataset,
-                    monthly_data=None,
-                    annual_data=None,
-                    ref_monthly_data=None,
-                    ref_annual_data=None,
-                    std_monthly_data=None,
-                    std_annual_data=None,
-                    data_labels: list = None,
-                    ref_label: str = None,
-                    loglevel: str = 'WARNING',
-                    **kwargs):
+        # Output & saving settings
+        self.outdir  = outdir
+        self.rebuild = rebuild
+        self.filename_keys = filename_keys
+        self.save_pdf = save_pdf
+        self.save_png = save_png
+        self.dpi = dpi
 
-        """ Plot data """
-        '''
-        if data is None:
-            raise NoDataError("No data to plot")
+    def get_labels(self, input_xrarray):
+        """Extracts standard_name attributes from xr.DataArray or a list of xr.DataArrays."""
+        if input_xrarray is None:
+            return None
 
-        if len(data.time) < 2:
-            raise NotEnoughDataError("Not enough data to plot")
-        '''
-
-        fig, ax = plt.subplots()
-        data.seaice_extent.plot(ax=ax)
-        fig.savefig(os.path.join(self.output.path, "seaice_extent.png"))
-        plt.close(fig)
-        self.logger.info("Seaice extent plot saved")
-
-        if unit is None:
-            unit = index.units
-        '''
-        def plot_timeseries(monthly_data=None,
-                annual_data=None,
-                ref_monthly_data=None,
-                ref_annual_data=None,
-                std_monthly_data=None,
-                std_annual_data=None,
-                data_labels: list = None,
-                ref_label: str = None,
-                loglevel: str = 'WARNING',
-                **kwargs):
-        '''
-    def plot_diff():
-        """ Plot difference """
-        pass
-
-    def time_harmonisation(self, monthly_array_list, annual_array_list, monthly_ref, annual_ref, harmonise_time):
-        """ Harmonise time """
-        if harmonise_time is not None:
-            if harmonise_time == "common":
-                # Harmonise time to common period
-                common_time = xr.concat([monthly_ref.time, annual_ref.time], dim="time").time
-                monthly_array_list = [array.sel(time=common_time) for array in monthly_array_list]
-                annual_array_list = [array.sel(time=common_time) for array in annual_array_list]
-            elif harmonise_time == "to_ref":
-                # Harmonise time to reference
-                monthly_array_list = [array.sel(time=monthly_ref.time) for array in monthly_array_list]
-                annual_array_list = [array.sel(time=annual_ref.time) for array in annual_array_list]
-            elif isinstance(harmonise_time, tuple):
-                # Harmonise time to specific time
-
-                if harmonise_time[0] == "to_model":
-                    targ_time_index = int(harmonise_time[1])
-                    monthly_array_list = [array.sel(time=monthly_ref.time[targ_time_index]) for array in monthly_array_list]
-                    annual_array_list = [array.sel(time=annual_ref.time[targ_time_index]) for array in annual_array_list]
-                # elif if the tuple entries are time strings such as ['2020-01-01', '2020-12-31']
-                elif harmonise_time[0] == 'TODO':
-                    pass
-
-                    time_index = int(harmonise_time[1])
-                    monthly_array_list = [array.sel(time=monthly_ref.time[time_index]) for array in monthly_array_list]
-                    annual_array_list = [array.sel(time=annual_ref.time[time_index]) for array in annual_array_list]
-            else:
-                self.logger.error(' ADDD LOGGER.')
-                raise ValueError("Invalid harmonise_time value")
-
-        if isinstance(var, str):
-            print(f"String detected: {var.upper()}")
-        elif isinstance(var, (int, float)):  # Handles numbers
-            print(f"Number detected: {var * 2}")
-        else:
-            print("Unsupported type!") 
-    
-        """ Other thing to include might be the twinx() method to plot two different y-axis on the same plot
-        the user must choose between the two model (if multiples given) to plot on the first and the second y-axis 
-        """
-
-        """ ANOMLAY
-        If comparing two datasets with different reliability (e.g., observations vs. model), you can weight based on uncertainty:
-
-        ~~~ Weight by Confidence/Uncertainty
-        # Assume lower standard deviation means more reliable data
-        uncertainty = ds["uncertainty"]  # Standard deviation or confidence metric
-        weights = 1 / uncertainty  # Higher weight for lower uncertainty
-        weights /= weights.max()  # Normalize
-
-        # Compute weighted anomaly
-        anomaly = (time_series1 - time_series2) * weights
+        # If a single DataArray is passed, return a string (do not convert to list!)
+        if isinstance(input_xrarray, xr.DataArray):
+            return input_xrarray.attrs.get("standard_name", input_xrarray.name)
         
-        ~~~ Weighted Anomaly Using External Weights
-        If you have predefined weights (e.g., from external datasets or expert judgment):
-        external_weights = xr.open_dataarray("weights.nc")  # Precomputed weights
-        anomaly = (time_series1 - time_series2) * external_weights
-        """
+        # If a list of DataArray is passed, return a list of strings
+        if isinstance(input_xrarray, list) and all(isinstance(da, xr.DataArray) for da in input_xrarray):
+            return [da.attrs.get("standard_name", da.name) for da in input_xrarray]
 
-        """_notes_summary_
-        * Imagine I put data with different time limits, one thing I might want is to huniform the data I gave
-        *
-        *
-        """
+        error_msg = "Error input data: must be a list of xr.DataArray or a single xr.DataArray"
+        logger.debug(error_msg)
+
+        raise TypeError(error_msg)
+
+    def plot_seaice(self, **kwargs):
+        """ Plot data """
+        # Assign default values only if the data were not provided
+        data_labels = self.get_labels(self.monthly_models) if self.monthly_models is not None else (
+                      self.get_labels(self.annual_models)  if self.annual_models  is not None else None )
+        ref_label = self.get_labels(self.monthly_ref) if self.monthly_ref is not None else (
+                    self.get_labels(self.annual_ref) if self.annual_ref is not None else None)
+        std_label = self.get_labels(self.monthly_std_ref) if self.monthly_std_ref is not None else (
+                    self.get_labels(self.annual_std_ref) if self.annual_std_ref is not None else None)
+                    
+        self.logger.info("Plotting sea ice data...")
+        
+        fig, ax = plot_timeseries(monthly_data=self.monthly_models, 
+                                  annual_data=self.annual_models,
+                                  ref_monthly_data=self.monthly_ref, 
+                                  ref_annual_data=self.annual_ref,
+                                  std_monthly_data=self.monthly_std_ref, 
+                                  std_annual_data=self.annual_std_ref,
+                                  data_labels=data_labels,
+                                  ref_label=ref_label,
+                                  std_label=std_label,
+                                  **kwargs)
+        
+        print(data_labels)
+        print(ref_label)
+
+        fig.savefig(os.path.join('./', "seaice_extent.png"), format="png", dpi=self.dpi)
+
+        # Returning the figure and axis for further modifications if needed
+        return fig, ax
