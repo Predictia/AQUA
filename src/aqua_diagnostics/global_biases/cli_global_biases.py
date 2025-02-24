@@ -5,7 +5,7 @@ import argparse
 from dask.distributed import Client, LocalCluster
 import pandas as pd
 
-from aqua.util import load_yaml, get_arg, OutputSaver, ConfigPath
+from aqua.util import load_yaml, get_arg, OutputSaver, ConfigPath, to_list
 from aqua import Reader
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.logger import log_configure
@@ -85,14 +85,21 @@ def main():
     seasons_bool = config['diagnostic_attributes'].get('seasons', False)
     seasons_stat = config['diagnostic_attributes'].get('seasons_stat', 'mean')
     vertical = config['diagnostic_attributes'].get('vertical', False)
+    regrid = config['diagnostic_attributes'].get('regrid', None)
 
 
     # Retrieve data and handle potential errors
     try:
         reader = Reader(catalog=catalog_data, model=model_data, exp=exp_data, source=source_data,
-                        startdate=startdate_data, enddate=enddate_data)
-        data = reader.retrieve()
-
+                        startdate=startdate_data, enddate=enddate_data, regrid=regrid, loglevel=loglevel)
+        data = reader.retrieve() 
+        if regrid:
+            data = reader.regrid(data)
+        else:
+            logger.warning(
+            "No regridding applied. Data is in native grid, "
+            "this could lead to errors in the bias calculation if the data is not in the same grid as the reference data."
+            )
         # Calculate 'tnr' if applicable
         if 'tnr' in variables:
             data['tnr'] = data['tnlwrf'] + data['tnswrf']
@@ -103,8 +110,15 @@ def main():
 
     try:
         reader_obs = Reader(catalog=catalog_obs, model=model_obs, exp=exp_obs, source=source_obs,
-                            startdate=startdate_obs, enddate=enddate_obs, loglevel=loglevel)
+                            startdate=startdate_obs, enddate=enddate_obs, regrid=regrid, loglevel=loglevel)
         data_obs = reader_obs.retrieve()
+        if regrid:
+            data_obs = reader_obs.regrid(data_obs)
+        else:
+            logger.warning(
+            "No regridding applied. Data is in native grid, "
+            "this could lead to errors in the bias calculation if the data is not in the same grid as the reference data."
+            )
 
         # Calculate 'tnr' for observations if applicable
         if 'tnr' in variables:
@@ -128,73 +142,87 @@ def main():
         var_attributes = config["biases_plot_params"]['bias_maps'].get(var_name, {})
         vmin, vmax = var_attributes.get('vmin'), var_attributes.get('vmax')
 
+        if 'plev' in data[var_name].dims and plev:
+            plev_list = to_list(plev)
+        else:
+            plev_list = [None] 
+
         try:
-            global_biases = GlobalBiases(data=data, data_ref=data_obs, var_name=var_name, plev=plev, loglevel=loglevel,
-                                         model=model_data, exp=exp_data, startdate_data=startdate_data,
-                                         enddate_data=enddate_data, model_obs=model_obs,
-                                         startdate_obs=startdate_obs, enddate_obs=enddate_obs)
+            for plev_value in plev_list:
+                global_biases = GlobalBiases(data=data, data_ref=data_obs, var_name=var_name, plev=plev_value, loglevel=loglevel,
+                                            model=model_data, exp=exp_data, startdate_data=startdate_data,
+                                            enddate_data=enddate_data, model_obs=model_obs,
+                                            startdate_obs=startdate_obs, enddate_obs=enddate_obs)
 
-            # Define common save arguments
-            common_save_args = {'var': var_name, 'dpi': dpi,
-                                'catalog_2': reader_obs.catalog, 'model_2': model_obs, 'exp_2': exp_obs,
-                                'time_start': startdate_data, 'time_end': enddate_data}
+                # Define common save arguments
+                common_save_args = {'var': var_name, 'dpi': dpi,
+                                    'catalog_2': reader_obs.catalog, 'model_2': model_obs, 'exp_2': exp_obs,
+                                    'time_start': startdate_data, 'time_end': enddate_data}
 
-            # Total bias plot
-            result = global_biases.plot_bias(vmin=vmin, vmax=vmax)
-            if result:
-                fig, ax, netcdf = result
-                description = (
-                        f"Spatial map of the total bias of the variable {var_name} from {startdate_data} to {enddate_data} "
-                        f"for the {model_data} model, experiment {exp_data} from the {reader.catalog} catalog, with {model_obs} "
-                        f"(experiment {exp_obs}, catalog {reader_obs.catalog}) used as reference data. "
-                    )
-                metadata = {"Description": description}
-                if save_netcdf:
-                    output_saver.save_netcdf(dataset=netcdf, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
-                if save_pdf:
-                    output_saver.save_pdf(fig=fig, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
-                if save_png:
-                    output_saver.save_png(fig=fig, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
-            else:
-                logger.warning(f"Total bias plot not generated for {var_name}.")
-
-            # Seasonal bias plot
-            if seasons_bool:
-                result = global_biases.plot_seasonal_bias(vmin=vmin, vmax=vmax)
+                # Total bias plot
+                result = global_biases.plot_bias(vmin=vmin, vmax=vmax)
                 if result:
                     fig, ax, netcdf = result
                     description = (
-                        f"Seasonal bias map of the variable {var_name} for the {model_data} model, experiment {exp_data} "
-                        f"from the {reader.catalog} catalog, using {model_obs} (experiment {exp_obs}, catalog {reader_obs.catalog}) as reference data. "
-                        f"The bias is computed for each season over the period from {startdate_data} to {enddate_data}, "
-                        f"providing insights into seasonal discrepancies between the model and the reference. "
-                    )
+                            f"Spatial map of the total bias of the variable {var_name} from {startdate_data} to {enddate_data} "
+                            f"for the {model_data} model, experiment {exp_data} from the {reader.catalog} catalog, with {model_obs} "
+                            f"(eperiment {exp_obs}, catalog {reader_obs.catalog}) used as reference data. "
+                        )
                     metadata = {"Description": description}
+                    
+                    if plev_value:
+                        if 'plev' not in output_saver.filename_keys:
+                            output_saver.filename_keys.append('plev')
+                        common_save_args['plev'] = 'plev'+str(plev_value)
+
                     if save_netcdf:
-                        output_saver.save_netcdf(dataset=netcdf, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
+                        output_saver.save_netcdf(dataset=netcdf, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
                     if save_pdf:
-                        output_saver.save_pdf(fig=fig, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
+                        output_saver.save_pdf(fig=fig, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
                     if save_png:
-                        output_saver.save_png(fig=fig, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
+                        output_saver.save_png(fig=fig, diagnostic_product='total_bias_map', metadata=metadata, **common_save_args)
                 else:
-                    logger.warning(f"Seasonal bias plot not generated for {var_name}.")
+                    logger.warning(f"Total bias plot not generated for {var_name}.")
+
+                # Seasonal bias plot
+                if seasons_bool:
+                    result = global_biases.plot_seasonal_bias(vmin=vmin, vmax=vmax)
+                    if result:
+                        fig, ax, netcdf = result
+                        description = (
+                            f"Seasonal bias map of the variable {var_name} for the {model_data} model, experiment {exp_data} "
+                            f"from the {reader.catalog} catalog, using {model_obs} (experiment {exp_obs}, catalog {reader_obs.catalog}) as reference data. "
+                            f"The bias is computed for each season over the period from {startdate_data} to {enddate_data}, "
+                            f"providing insights into seasonal discrepancies between the model and the reference. "
+                        )
+                        metadata = {"Description": description}
+                        if save_netcdf:
+                            output_saver.save_netcdf(dataset=netcdf, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
+                        if save_pdf:
+                            output_saver.save_pdf(fig=fig, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
+                        if save_png:
+                            output_saver.save_png(fig=fig, diagnostic_product='seasonal_bias_map', metadata=metadata, **common_save_args)
+                    else:
+                        logger.warning(f"Seasonal bias plot not generated for {var_name}.")
 
             # Vertical bias plot
             if vertical and 'plev' in data[var_name].dims:
                 var_attributes_vert = config["biases_plot_params"]['vertical_plev'].get(var_name, {})
                 vmin, vmax = var_attributes_vert.get('vmin'), var_attributes_vert.get('vmax')
 
-                result = global_biases.plot_vertical_bias(var_name=var_name, vmin=vmin, vmax=vmax)
+                result = global_biases.plot_vertical_bias(data=data, data_ref=data_obs, var_name=var_name, vmin=vmin, vmax=vmax)
                 if result:
                     fig, ax, netcdf = result
                     description = (
                         f"Vertical bias plot of the variable {var_name} across pressure levels, from {startdate_data} to {enddate_data} "
                         f"for the {model_data} model, experiment {exp_data} from the {reader.catalog} catalog, with {model_obs} "
-                        f"(experiment {exp_obs}, catalog {reader_obs.catalog}) used as reference data. "
-                        f"The vertical bias shows differences in the model's vertical representation compared to the reference, "
-                        f"highlighting biases across different pressure levels to assess the accuracy of vertical structures."
-                    )
+                        f"(experiment {exp_obs}, catalog {reader_obs.catalog}) used as reference data. "                   
+                        )
                     metadata = {"Description": description}
+
+                    if 'plev' in common_save_args:
+                        common_save_args.pop('plev', None)
+
                     if save_netcdf:
                         output_saver.save_netcdf(dataset=netcdf, diagnostic_product='vertical_bias', metadata=metadata, **common_save_args)
                     if save_pdf:
@@ -203,10 +231,8 @@ def main():
                         output_saver.save_png(fig=fig, diagnostic_product='vertical_bias', metadata=metadata, **common_save_args)
                 else:
                     logger.warning(f"Vertical bias plot not generated for {var_name}.")
-
         except Exception as e:
             logger.error(f"Error processing {var_name}: {e}")
-
     if client:
         client.close()
         logger.debug("Dask client closed.")

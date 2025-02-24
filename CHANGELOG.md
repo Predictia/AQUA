@@ -5,15 +5,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-Unreleased in the current development version:
+Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
+- Integrate codecov to monitor coverage and remove old bot (#1736, #1737)
+- Reinitialize GSVReader instance only when needed (#1733)
+- Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732, #1743)
+- Fix push_analysis options and aqua_analysis config paths (#1723)
+- Enable zip compression for LRA yearly files (#1726)
+- Enable publication of documentation on ReadTheDocs (#1699, #1716)
+- Adapt Catgen test to the new number of sources for ICON (#1708)
+- Added tests for the Hovmoller plot routine (#1532)
+- push_s3 compatibility with boto3>=1.36.0 (#1704)
+- Rsync option for push_analysis.sh (#1689)
+- Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
+
+AQUA diagnostics complete list:
+- Global bias: Handling plev and using scientific notation in contour plots (#1649)
+- Ecmean: Fix net surface radiative flux and wind stresses in ecmean (#1696)
+- Diagnostic core: A common parser and fuctions to open/close the dask cluster are provided (#1703)
+
+## [v0.13.1]
+
+Main changes are:
+1. Ocean3d major refactoring
+
+AQUA core complete list:
+- Fixer delete option accepts non-lists (#1687)
+- Ansi color 8-bit fix for logger (#1671)
+- Hotfix for unmatched string in catgen (#1672)
 - Test for aqua-analysis.py (#1664)
 - Fix in the catgen now correctly generating an automatic description if not provided (#1662)
 
 AQUA diagnostics complete list:
+- Diagnostic core: added a Diagnostic class to be inherited by all diagnostics (#1681)
 - Timeseries: hotfix of problems with the catalog usage in output saving (#1669)
 - Tropical Rainfall: Update of the precomputed histograms paths for lumi and MN5 (#1661)
+- Ocean3d: Trend is calculating using polyfit. Restructed the mixed layer depth function. (#1651)
+- Global bias: hotfix for regrid option (#1670)
 
 ## [v0.13.0]
 
@@ -798,7 +827,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.0...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.1...HEAD
+[v0.13.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.0...v0.13.1
 [v0.13.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-beta...v0.13.0
 [v0.13-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-alpha...v0.13-beta
 [v0.13-alpha]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.12.2...v0.13-alpha
