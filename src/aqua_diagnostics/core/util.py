@@ -2,8 +2,10 @@
 Utility functions for the CLI
 """
 import argparse
+import os
 from dask.distributed import Client, LocalCluster
 from aqua.logger import log_configure
+from aqua.util import load_yaml, ConfigPath
 
 
 def template_parse_arguments(parser: argparse.ArgumentParser):
@@ -91,3 +93,24 @@ def close_cluster(client, cluster, private_cluster, loglevel: str = 'WARNING'):
     if private_cluster:
         cluster.close()
         logger.debug("Dask cluster closed.")
+
+
+def load_diagnostic_config(diagnostic: str, args: argparse.Namespace,
+                           default_config: str = "config.yaml",
+                           loglevel: str = 'WARNING'):
+    """
+    Load the diagnostic configuration file and return the configuration dictionary.
+
+    Args:
+        diagnostic (str): diagnostic name
+        args (argparse.Namespace): arguments of the CLI. "config" argument can modify the default configuration file.
+        default_config (str): default name configuration file (yaml format)
+        loglevel (str): logging level. Default is 'WARNING'.
+    """
+    if args.config:
+        filename = args.config
+    else:
+        configdir = ConfigPath(loglevel=loglevel).configdir
+        filename = os.path.join(configdir, "diagnostics", diagnostic, default_config)
+
+    return load_yaml(filename)
