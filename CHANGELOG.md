@@ -9,6 +9,7 @@ Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
 - Integrate codecov to monitor coverage and remove old bot (#1736, #1737)
+- Reinitialize GSVReader instance only when needed (#1733)
 - Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732)
 - Fix push_analysis options and aqua_analysis config paths (#1723)
 - Enable zip compression for LRA yearly files (#1726)
