@@ -5,7 +5,8 @@ import argparse
 import os
 from dask.distributed import Client, LocalCluster
 from aqua.logger import log_configure
-from aqua.util import load_yaml, ConfigPath
+from aqua.util import load_yaml, get_arg
+from aqua.util import ConfigPath
 
 
 def template_parse_arguments(parser: argparse.ArgumentParser):
@@ -117,3 +118,27 @@ def load_diagnostic_config(diagnostic: str, args: argparse.Namespace,
         filename = os.path.join(configdir, "diagnostics", diagnostic, default_config)
 
     return load_yaml(filename)
+
+
+def merge_config_args(config: dict, args: argparse.Namespace):
+    """
+    Merge the configuration dictionary with the arguments of the CLI.
+
+    Args:
+        config (dict): configuration dictionary
+        args (argparse.Namespace): arguments of the CLI
+
+    Returns:
+        dict: merged configuration dictionary
+    """
+    datasets = config['datasets']
+
+    # Override the first dataset in the config file if provided in the command line
+    datasets[0]['catalog'] = get_arg(args, 'catalog', datasets[0]['catalog'])
+    datasets[0]['model'] = get_arg(args, 'model', datasets[0]['model'])
+    datasets[0]['exp'] = get_arg(args, 'exp', datasets[0]['exp'])
+    datasets[0]['source'] = get_arg(args, 'source', datasets[0]['source'])
+
+    config['output']['outputdir'] = get_arg(args, 'outputdir', config['output']['outputdir'])
+
+    return config
