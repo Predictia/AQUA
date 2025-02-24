@@ -237,8 +237,6 @@ class GSVSource(base.DataSource):
         else:
             self.chunking_vertical = None  # no vertical chunking
 
-        self.gsv = None
-
         self._switch_eccodes()
 
         super(GSVSource, self).__init__(metadata=metadata)
@@ -550,7 +548,10 @@ class GSVSource(base.DataSource):
         # this is needed here and not in init because each worker spawns a new environment
         gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
 
-        # The following is done to recycle the GSVRetriever instance: it has to be changed only if FDB_HOME or ECCODES changed
+        # The following is a hack around a pyfdb/fdb5 bug which requires a double initialization when switching from bridge to hpc and back
+        # See https://github.com/DestinE-Climate-DT/AQUA/issues/1715
+        # Notice also that for some mysterious reason this works only if the result is stored in self (even if then it is not used)
+
         if flag_eccodes_switch or rebuild_gsv or not hasattr(self, 'gsv') or not self.gsv:
             self.logger.debug("Rebuilding GSVRetrieve")
             self.gsv = GSVRetriever(logging_level=gsv_log_level)
