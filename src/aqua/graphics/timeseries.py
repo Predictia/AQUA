@@ -49,9 +49,6 @@ def plot_timeseries(monthly_data=None,
     fig_size = kwargs.get('figsize', (10, 5))
     fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
-    color_list = ["#1898e0", "#8bcd45", "#f89e13", "#d24493",
-                  "#00b2ed", "#dbe622", "#fb4c27", "#8f57bf",
-                  "#00bb62", "#f9c410", "#fb4865", "#645ccc"]
 
     if monthly_data is not None:
         if isinstance(monthly_data, xr.DataArray):
