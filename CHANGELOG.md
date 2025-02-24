@@ -21,6 +21,7 @@ AQUA core complete list:
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
 
 AQUA diagnostics complete list:
+- Diagnostic core: Add additional command-line arguments for configuration and processing options (#1745)
 - Global bias: Handling plev and using scientific notation in contour plots (#1649)
 - Ecmean: Fix net surface radiative flux and wind stresses in ecmean (#1696)
 - Diagnostic core: A common parser and fuctions to open/close the dask cluster are provided (#1703)
