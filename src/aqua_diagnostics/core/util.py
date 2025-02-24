@@ -106,6 +106,9 @@ def load_diagnostic_config(diagnostic: str, args: argparse.Namespace,
         args (argparse.Namespace): arguments of the CLI. "config" argument can modify the default configuration file.
         default_config (str): default name configuration file (yaml format)
         loglevel (str): logging level. Default is 'WARNING'.
+
+    Returns:
+        dict: configuration dictionary
     """
     if args.config:
         filename = args.config
