@@ -16,7 +16,6 @@ def template_parse_arguments(parser: argparse.ArgumentParser):
     Returns:
         argparse.ArgumentParser
     """
-
     parser.add_argument("--loglevel", "-l", type=str,
                         required=False, help="loglevel")
     parser.add_argument("--catalog", type=str,
@@ -27,8 +26,16 @@ def template_parse_arguments(parser: argparse.ArgumentParser):
                         required=False, help="experiment name")
     parser.add_argument("--source", type=str,
                         required=False, help="source name")
-    parser.add_argument('-c', '--config', type=str,
+    parser.add_argument("--config", "-c", type=str,
                         help='yaml configuration file')
+    parser.add_argument("--nworkers", "-n", type=int,
+                        required=False, help="number of workers")
+    parser.add_argument("--cluster", type=str,
+                        required=False, help="cluster address")
+    parser.add_argument("--regrid", action='store_true',
+                        help="regrid data to r100")
+    parser.add_argument("--outputdir", type=str,
+                        required=False, help="output directory")
 
     return parser
 
