@@ -10,7 +10,8 @@ Unreleased in the current development version (target v0.14):
 AQUA core complete list:
 
 - Avoid infinite hanging when accessing bridge (#1733, #1738)
-- Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732)
+- Enable dependabot to monitor dependencies every month (#1748)
+- eccodes bump to 2.40.0 (#1747)
 - Integrate codecov to monitor coverage and remove old bot (#1736, #1737)
 - Reinitialize GSVReader instance only when needed (#1733)
 - Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732, #1743)
@@ -24,6 +25,7 @@ AQUA core complete list:
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
 
 AQUA diagnostics complete list:
+- Diagnostic core: Add additional command-line arguments for configuration and processing options (#1745)
 - Global bias: Handling plev and using scientific notation in contour plots (#1649)
 - Ecmean: Fix net surface radiative flux and wind stresses in ecmean (#1696)
 - Diagnostic core: A common parser and fuctions to open/close the dask cluster are provided (#1703)

@@ -11,15 +11,21 @@ def test_template_parse_arguments():
     """Test the template_parse_arguments function"""
     parser = argparse.ArgumentParser()
     parser = template_parse_arguments(parser)
-    args = parser.parse_args(["--loglevel", "DEBUG", "--catalog", "test_catalog", "--model", "test_model"])
+    args = parser.parse_args(["--loglevel", "DEBUG", "--catalog", "test_catalog", "--model", "test_model",
+                              "--exp", "test_exp", "--source", "test_source", "--config", "test_config.yaml",
+                              "--regrid", "r100", "--outputdir", "test_outputdir", "--cluster", "test_cluster",
+                              "--nworkers", "2"])
 
     assert args.loglevel == "DEBUG"
     assert args.catalog == "test_catalog"
     assert args.model == "test_model"
-    assert args.exp is None
-    assert args.source is None
-    assert args.config is None
-
+    assert args.exp == "test_exp"
+    assert args.source == "test_source"
+    assert args.config == "test_config.yaml"
+    assert args.regrid == "r100"
+    assert args.outputdir == "test_outputdir"
+    assert args.cluster == "test_cluster"
+    assert args.nworkers == 2
 
 @pytest.mark.aqua
 @patch("aqua.diagnostics.core.util.Client")
