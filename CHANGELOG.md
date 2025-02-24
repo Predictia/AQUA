@@ -9,6 +9,7 @@ Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
 
+- Change if statement for fixer_name in Catalog Generator (#1743)
 - Reinitialize GSVReader instance only when needed (#1733)
 - Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732)
 - Fix push_analysis options and aqua_analysis config paths (#1723)
