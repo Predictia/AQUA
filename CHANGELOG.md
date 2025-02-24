@@ -9,7 +9,7 @@ Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
 
-- Avoid infinite hanging when accessing bridge (#1733, #1738)
+- Avoid infinite hanging during bridge access (#1733, #1738)
 - Enable dependabot to monitor dependencies every month (#1748)
 - eccodes bump to 2.40.0 (#1747)
 - Integrate codecov to monitor coverage and remove old bot (#1736, #1737)
