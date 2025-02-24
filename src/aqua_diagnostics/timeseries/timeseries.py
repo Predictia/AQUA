@@ -5,7 +5,7 @@ import xarray as xr
 from aqua.exceptions import NoDataError
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
-from aqua.util import convert_units, eval_formula, load_yaml
+from aqua.util import convert_units, eval_formula, load_yaml, to_list
 from aqua.util import  frequency_string_to_pandas, time_to_string
 from aqua.diagnostics.core import Diagnostic, start_end_dates
 
@@ -67,6 +67,46 @@ class Timeseries(Diagnostic):
         self.std_daily = None
         self.std_monthly = None
         self.std_annual = None
+    
+    def run(self, var: str, formula: bool = False, long_name: str = None,
+            units: str = None, standard_name: str = None, std: bool = False,
+            freq: list = ['monthly', 'annual'], extend: bool = True,
+            exclude_incomplete: bool = True, center_time: bool = True,
+            box_brd: bool = True, outputdir: str = './', rebuild: bool = True,
+            **kwargs):
+        """
+        Run all the steps necessary for the computation of the timeseries.
+        Save the results to netcdf files.
+        Can evaluate different frequencies.
+
+        Args:
+            var (str): The variable to be retrieved.
+            formula (bool): If True, the variable is a formula.
+            long_name (str): The long name of the variable, if different from the variable name.
+            units (str): The units of the variable, if different from the original units.
+            standard_name (str): The standard name of the variable, if different from the variable name.
+            std (bool): If True, compute the standard deviation. Default is False.
+            freq (list): The frequencies to be used for the computation. Available options are 'hourly', 'daily',
+                         'monthly' and 'annual'. Default is ['monthly', 'annual'].
+            extend (bool): If True, extend the data if needed.
+            exclude_incomplete (bool): If True, exclude incomplete periods.
+            center_time (bool): If True, the time will be centered.
+            box_brd (bool): choose if coordinates are comprised or not in area selection.
+            outputdir (str): The directory to save the data.
+            rebuild (bool): If True, rebuild the data from the original files.
+        """
+        self.logger.info('Running Timeseries for %s', var)
+        self.retrieve(var=var, formula=formula, long_name=long_name, units=units, standard_name=standard_name)
+        freq = to_list(freq)
+
+        for f in freq:
+            self.logger.info('Computing %s mean', f)
+            self.compute(freq=f, extend=extend, exclude_incomplete=exclude_incomplete,
+                         center_time=center_time, box_brd=box_brd)
+            if std:
+                self.compute_std(freq=f, exclude_incomplete=exclude_incomplete, center_time=center_time,
+                                 box_brd=box_brd)
+            self.save_netcdf(freq=f, outputdir=outputdir, rebuild=rebuild, **kwargs) 
 
     def retrieve(self, var: str, formula: bool = False, long_name: str = None,
                  units: str = None, standard_name: str = None):
