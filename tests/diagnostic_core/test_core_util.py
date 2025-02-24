@@ -1,7 +1,8 @@
 import pytest
 import argparse
 from unittest.mock import patch
-from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_cluster
+from aqua.diagnostics.core import template_parse_arguments, load_diagnostic_config
+from aqua.diagnostics.core import open_cluster, close_cluster
 
 loglevel = 'DEBUG'
 
@@ -26,6 +27,9 @@ def test_template_parse_arguments():
     assert args.outputdir == "test_outputdir"
     assert args.cluster == "test_cluster"
     assert args.nworkers == 2
+
+    with pytest.raises(ValueError):
+        load_diagnostic_config(diagnostic='pippo', args=args, loglevel=loglevel)
 
 @pytest.mark.aqua
 @patch("aqua.diagnostics.core.util.Client")
@@ -53,3 +57,16 @@ def test_cluster(mock_cluster, mock_client):
     assert private_cluster is False
 
     close_cluster(client, cluster, private_cluster)
+
+
+@pytest.mark.aqua
+def test_load_diagnostic_config():
+    """Test the load_diagnostic_config function"""
+    parser = argparse.ArgumentParser()
+    parser = template_parse_arguments(parser)
+    args = parser.parse_args(["--loglevel", "DEBUG"])
+    ts_dict = load_diagnostic_config(diagnostic='timeseries',
+                                     default_config='config_timeseries_atm.yaml',
+                                     args=args, loglevel=loglevel)
+
+    assert ts_dict['models'] == [{'catalog': None, 'exp': None, 'model': None, 'source': 'lra-r100-monthly'}]
