@@ -32,8 +32,8 @@ def template_parse_arguments(parser: argparse.ArgumentParser):
                         required=False, help="number of workers")
     parser.add_argument("--cluster", type=str,
                         required=False, help="cluster address")
-    parser.add_argument("--regrid", action='store_true',
-                        help="regrid data to r100")
+    parser.add_argument("--regrid", type=str,
+                        required=False, help="target regrid resolution")
     parser.add_argument("--outputdir", type=str,
                         required=False, help="output directory")
 
