@@ -9,6 +9,11 @@ Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
 
+- Reinitialize GSVReader instance only when needed (#1733)
+- Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732)
+- Fix push_analysis options and aqua_analysis config paths (#1723)
+- Enable zip compression for LRA yearly files (#1726)
+- Enable publication of documentation on ReadTheDocs (#1699, #1716)
 - Adapt Catgen test to the new number of sources for ICON (#1708)
 - Added tests for the Hovmoller plot routine (#1532)
 - push_s3 compatibility with boto3>=1.36.0 (#1704)
@@ -16,6 +21,7 @@ AQUA core complete list:
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
 
 AQUA diagnostics complete list:
+- Global bias: Handling plev and using scientific notation in contour plots (#1649)
 - Ecmean: Fix net surface radiative flux and wind stresses in ecmean (#1696)
 - Diagnostic core: A common parser and fuctions to open/close the dask cluster are provided (#1703)
 
