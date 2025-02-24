@@ -120,17 +120,20 @@ def load_diagnostic_config(diagnostic: str, args: argparse.Namespace,
     return load_yaml(filename)
 
 
-def merge_config_args(config: dict, args: argparse.Namespace):
+def merge_config_args(config: dict, args: argparse.Namespace,
+                      loglevel: str = 'WARNING') -> dict:
     """
     Merge the configuration dictionary with the arguments of the CLI.
 
     Args:
         config (dict): configuration dictionary
         args (argparse.Namespace): arguments of the CLI
+        loglevel (str): logging level. Default is 'WARNING'.
 
     Returns:
         dict: merged configuration dictionary
     """
+    logger = log_configure(log_name='merge_config_args', log_level=loglevel)
     datasets = config['datasets']
 
     # Override the first dataset in the config file if provided in the command line
@@ -140,5 +143,14 @@ def merge_config_args(config: dict, args: argparse.Namespace):
     datasets[0]['source'] = get_arg(args, 'source', datasets[0]['source'])
 
     config['output']['outputdir'] = get_arg(args, 'outputdir', config['output']['outputdir'])
+
+    logger.debug("Analyzing models:")
+    for model in config['datasets']:
+        logger.debug(f"  - {model['catalog']} {model['model']} {model['exp']} {model['source']}")
+
+    if 'references' in config:
+        logger.debug("Using reference data:")
+        for ref in config['references']:
+            logger.debug(f"  - {ref['catalog']} {ref['model']} {ref['exp']} {ref['source']}")
 
     return config

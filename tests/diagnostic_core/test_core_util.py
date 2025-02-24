@@ -80,10 +80,11 @@ def test_merge_config_args():
     args = parser.parse_args(["--loglevel", "DEBUG", "--catalog", "test_catalog", "--model", "test_model",
                               "--exp", "test_exp", "--source", "test_source", "--outputdir", "test_outputdir"])
 
-    ts_dict = {'datasets': [{'catalog': None, 'exp': None, 'model': None, 'source': 'lra-r100-monthly'}],
+    ts_dict = {'datasets': [{'catalog': None, 'model': None, 'exp': None, 'source': 'lra-r100-monthly'}],
+               'references': [{'catalog': 'obs', 'model': 'ERA5', 'exp': 'era5', 'source': 'monthly'}],
                'output': {'outputdir': './'}}
 
-    merged_config = merge_config_args(config=ts_dict, args=args)
+    merged_config = merge_config_args(config=ts_dict, args=args, loglevel=loglevel)
 
     assert merged_config['datasets'] == [{'catalog': 'test_catalog', 'exp': 'test_exp',
                                           'model': 'test_model', 'source': 'test_source'}]
