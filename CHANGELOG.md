@@ -8,11 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
-
-- Change if statement for fixer_name in Catalog Generator (#1743)
 - Integrate codecov to monitor coverage and remove old bot (#1736, #1737)
 - Reinitialize GSVReader instance only when needed (#1733)
-- Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732)
+- Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732, #1743)
 - Fix push_analysis options and aqua_analysis config paths (#1723)
 - Enable zip compression for LRA yearly files (#1726)
 - Enable publication of documentation on ReadTheDocs (#1699, #1716)
