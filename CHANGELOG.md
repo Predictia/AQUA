@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
+- eccodes bump to 2.40.0 (#1747)
 - Integrate codecov to monitor coverage and remove old bot (#1736, #1737)
 - Reinitialize GSVReader instance only when needed (#1733)
 - Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732, #1743)
