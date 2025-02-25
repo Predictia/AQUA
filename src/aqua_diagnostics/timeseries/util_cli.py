@@ -3,7 +3,7 @@ from aqua.diagnostics.timeseries import Timeseries
 
 class TimeseriesCLI():
 
-    def __init__(self, config_dict: dict, var: str, formulae: bool = False,
+    def __init__(self, config_dict: dict, var: str, formula: bool = False,
                  loglevel: str = 'WARNING'):
         """
         Initialize the TimeseriesCLI class.
@@ -22,7 +22,7 @@ class TimeseriesCLI():
         self.len_datasets = len(self.config_dict['datasets'])
         self.len_references = len(self.config_dict['references'])
         self.var = var
-        self.formulae = formulae
+        self.formula = formula
     
     def run(self, regrid: str = None, std_startdate: str = None, std_enddate: str = None,
             region: str = None, long_name: str = None, units: str = None,
@@ -32,7 +32,7 @@ class TimeseriesCLI():
         Run the timeseries diagnostics for the given variable and configuration."
         """
         init_args = {'region': region, 'loglevel': self.loglevel}
-        run_args = {'var': self.var, 'formulae': self.formulae, 'long_name': long_name,
+        run_args = {'var': self.var, 'formula': self.formula, 'long_name': long_name,
                     'units': units, 'standard_name': standard_name, 'freq': freq,
                     'outputdir': outputdir, 'rebuild': rebuild}
         # Run the datasets
@@ -88,8 +88,9 @@ def load_var_config(config_dict: dict, var: str):
     var_config['freq'] = freq
 
     # Get the regions
-    regions = var_config.get('regions', None)
-    if regions is not None:
+    regions = [None]
+    if var_config.get('regions') is not None:
+        regions.append(region for region in regions if region is not None)
         del var_config['regions']
 
     return var_config, regions
