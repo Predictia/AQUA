@@ -10,7 +10,7 @@ try:
 except ModuleNotFoundError:
     print("Import error for the ensemble module.")
 
-@pytest.mark.diagnostics
+@pytest.mark.ensemble
 def test_Zonal_datasets():
     """
     load aqua-analysis output of timeseries.
@@ -21,7 +21,7 @@ def test_Zonal_datasets():
     del dataset_list
     return dataset
 
-@pytest.mark.diagnostics
+@pytest.mark.ensemble
 def test_ensemble_Zonal_compute():
     """Test the compute method of EnsembleZonal."""
     sample_dataset = test_Zonal_datasets()
@@ -31,7 +31,7 @@ def test_ensemble_Zonal_compute():
     assert Zonal.dataset_mean.all() is not None
     assert Zonal.dataset_std.any() == 0 or np.nan # this step needs correction  
 
-@pytest.mark.diagnostics
+@pytest.mark.ensemble
 def test_edit_attributes():
     """Test the edit_attributes method."""
     Zonal = EnsembleZonal(var="avg_so")

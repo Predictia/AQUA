@@ -119,7 +119,8 @@ markers = [
     "graphics: tests which deal with graphics",
     "gsv: mark test that requires ECMWF FDB libraries",
     "diagnostics: single marker for all diagnostics",
-    "catgen: mark test for catalog generator"
+    "catgen: mark test for catalog generator",
+    "ensemble: pytest for ensemble diagnostic"
 ]
 
 [tool.coverage.run]
