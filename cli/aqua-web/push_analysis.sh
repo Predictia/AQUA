@@ -22,12 +22,12 @@ rsync_with_mkdir() {
 push_lumio() {
     # This assumes that we are inside the aqua-web repository
     if [[ -n "$3" ]]; then
-#        log_message INFO "Rsyncing to $rsync"
+        log_message INFO "Rsyncing figures to $rsync: $2"
         rsync_with_mkdir content/png/$2/ $3/content/png/$2/
         rsync_with_mkdir content/pdf/$2/ $3/content/pdf/$2/
         return
     else
-#        log_message INFO "Pushing to LUMI-O"
+        log_message INFO "Pushing figures to LUMI-O: $2"
         python $SCRIPT_DIR/push_s3.py $1 content/png/$2
         python $SCRIPT_DIR/push_s3.py $1 content/pdf/$2
     fi
@@ -94,14 +94,13 @@ print_help() {
     echo
     echo "Options:"
     echo "  -b, --bucket BUCKET    push to the specified bucket (defaults to 'aqua-web')"
-    echo "  -d, --dry-run          do not push to the repository"
+    echo "  -c, --config FILE      alternate config file to determine diagnostic groupings for make_contents (defaults to config.grouping.yaml)"
+    echo "  -d, --no-update        do not update the remote github repository"  
     echo "  -h, --help             display this help and exit"
     echo "  -l, --loglevel LEVEL   set the log level (1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL). Default is 2."
-    echo "  -n, --no-convert       do not convert PDFs to PNGs"  
+    echo "  -n, --no-convert       do not convert PDFs to PNGs (use only if all PNGs are already available)"  
     echo "  -r, --repository       remote aqua-web repository (default 'DestinE-Climate-DT/aqua-web'). If it starts with 'local:' a local directory is used."
-    echo "  -c, --config FILE      alternate config file for make_contents"
-    echo "  --branch BRANCH        push to the specified branch (defaults to 'main')"
-    echo "  --rsync URL            remote rsync target (takes priority over s3 bucket if specified)"
+    echo "  -s, --rsync URL        remote rsync target (takes priority over s3 bucket if specified)"
 }
 
 if [ -z "$1" ] || [ -z "$2" ]; then
@@ -109,17 +108,18 @@ if [ -z "$1" ] || [ -z "$2" ]; then
     exit 0
 fi
 
+# define the location of this script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Parse command line arguments
 
-dry=0
 loglevel=2
 convert=1
 bucket="aqua-web"
 repository="DestinE-Climate-DT/aqua-web"
-branch="main"
 update=1
 rsync=""
-config="config.yaml"
+config="$SCRIPT_DIR/config.grouping.yaml"
 
 while [[ $# -gt 2 ]]; do
   case "$1" in
@@ -135,11 +135,7 @@ while [[ $# -gt 2 ]]; do
         loglevel="$2"
         shift 2
         ;;
-    -d|--dry-run)
-        dry=1
-        shift
-        ;;
-    --no-update)
+    -d|--no-update)
         update=0
         shift
         ;;
@@ -151,17 +147,13 @@ while [[ $# -gt 2 ]]; do
         bucket="$2"
         shift 2
         ;;
-    --rsync)
+    -s|--rsync)
         rsync="$2"
         update=0  # if rsync is used, we will not update aqua-web
         shift 2
         ;;
     -r|--repository)
         repository="$2"
-        shift 2
-        ;;
-    --branch)
-        branch="$2"
         shift 2
         ;;
     -*|--*)
@@ -179,9 +171,6 @@ fi
 
 indir=$1
 exps=$2
-
-# define the location of this script
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ ! -f "$SCRIPT_DIR/../util/logger.sh" ]; then
     echo "Warning: $SCRIPT_DIR/../util/logger.sh not found, using dummy logger"
@@ -216,7 +205,7 @@ fi
 
 cd $repo
 if [ $update -eq 1 ]; then
-    git checkout $branch
+    git checkout main
     git pull
 fi
 
@@ -251,7 +240,7 @@ if [ -f "$exps" ]; then
     done < "$exps"
 else  # Otherwise, use the second argument as the experiment folder
     log_message INFO "Collect figures for $exps and converting to png"
-    collect_figures "$indir" "$exps" $wipe
+    collect_figures "$indir" "$exps"
     convert_pdf_to_png "$exps"
     make_contents "$exps" "$config" # create catalog.yaml and catalog.json
     push_lumio $bucket "$exps" "$rsync"
@@ -265,12 +254,8 @@ if [ $update -eq 1 ]; then
     log_message INFO "Commit and push ..."
     git commit -m "update figures"
 
-    if [ "$dry" -eq 1 ]; then
-        log_message INFO "Dry run, not pushing to the repository"
-    else
-        git push
-        log_message INFO "Pushed new figures to lumi-o"
-    fi
+    git push
+    log_message INFO "Updated repository $repository"
 fi
 
 cd ..
