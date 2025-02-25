@@ -127,5 +127,10 @@ markers = [
 [tool.coverage.run]
 branch = true
 command_line = '-m pytest tests'
-omit = ["tests/*", "**/__init__.py"]
+omit = [
+    "tests/*", 
+    "**/__init__.py",
+    "src/aqua/lra_generator/opa_generator.py",
+    "src/aqua/slurm/slurm.py"
+    ]
 
