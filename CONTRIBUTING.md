@@ -10,10 +10,6 @@ The contribution workflow is based on Pull Requests (PR).
 A Pull Request is a request to merge a set of changes into the `main` branch of the repository. 
 It is the main way to contribute to AQUA.
 
-Please note that the `main` branch is *not* protected. 
-Anyway, pushing directly to `main` is forbidden and if not agreed in advance, your changes will be reverted.
-Please use Pull Requests instead.
-
 ### Creating a Pull Request
 
 Pull requests can be created directly in the AQUA repository, creating your own fork of the repository is not mandatory.
