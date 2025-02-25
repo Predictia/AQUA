@@ -9,6 +9,7 @@ Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
 
+- Cleaner workflow and pytest/coverage configuration (#1755)
 - Avoid infinite hanging during bridge access (#1733, #1738)
 - Enable dependabot to monitor dependencies every month (#1748)
 - eccodes bump to 2.40.0 (#1747)
