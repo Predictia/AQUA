@@ -6,7 +6,7 @@ from aqua.diagnostics import SeaIce
 approx_rel = 1e-4
 loglevel = 'DEBUG'
 
-@pytest.mark.seaice
+@pytest.mark.diagnostics
 class TestSeaIce:
     """Test the SeaIce class."""
     
