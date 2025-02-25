@@ -3,7 +3,7 @@ from aqua.diagnostics import Teleconnection
 
 loglevel = 'DEBUG'
 
-@pytest.mark.teleconnections
+@pytest.mark.diagnostics
 def test_class_MJO():
     """TTest that the MJO class is not yet implemented"""
     telecname = 'MJO'

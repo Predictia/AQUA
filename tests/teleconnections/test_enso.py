@@ -14,7 +14,7 @@ interface = 'teleconnections-destine'
 regrid = 'r100'
 
 
-@pytest.mark.teleconnections
+@pytest.mark.diagnostics
 def test_class_ENSO():
     """
     Test that the ENSO class works
@@ -42,7 +42,7 @@ def test_class_ENSO():
                                                                   rel=approx_rel)
 
 
-@pytest.mark.teleconnections
+@pytest.mark.diagnostics
 def test_teleconnections_unknown():
     """Test unknown teleconnection"""
     with pytest.raises(ValueError):
