@@ -1,0 +1,57 @@
+{
+    "creators": [
+      {
+        "affiliation": "CNR-ISAC, Italy",
+        "name": "Nurisso, Matteo",
+        "orcid": ""
+      },
+      {
+        "affiliation": "Politecnico di Torino, Italy",
+        "name": "Caprioli, Silvia",
+        "orcid": ""
+      },
+      {
+        "affiliation": "CNR-ISAC, Italy",
+        "name": "Davini, Paolo",
+        "orcid": "0000-0003-3389-7849"
+      },
+      {
+        "affiliation": "Politecnico di Torino, Italy",
+        "name": "von Hardenberg, Jost",
+        "orcid": "0000-0002-5312-8070"
+      },
+      {
+        "name": "Nazarova, Natalia",
+        "orcid": "0000-0002-9270-1044"
+      },
+      {
+        "affiliation": "AWI, Germany",
+        "name": "Koldunov, Nikolay",
+        "orcid": "0000-0002-3365-8146"
+      },
+      {
+        "affiliation": "BSC, Spain",
+        "name": "Ghosh, Supriyo"
+      },
+      {
+        "affiliation": "CNR-ISAC, Italy",
+        "name": "Ghinassi, Paolo",
+        "orcid": "0000-0003-3389-7849"
+      },
+      { 
+        "name": "Massonnet, François",
+        "affiliation": "University of Louvain, Belgium"
+      },
+      { 
+        "name": "Sayed, Susan",
+        "affiliation": "DWD, Germany"
+      },
+      {
+        "name": "Rajput, Maqsood Mubarak",
+        "affiliation": "AWI, Germany"
+      }
+    ],
+    "description": "AQUA: The Application for QUality Assessment of the Destination Earth Climate DT.",
+    "license": "Apache-2.0",
+    "title": "AQUA"
+  }
