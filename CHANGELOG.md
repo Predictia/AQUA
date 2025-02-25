@@ -9,17 +9,18 @@ Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
 - catalog, model, exp, source info are now stored in the DataArray attributes (#1753)
+- Avoid infinite hanging during bridge access (#1733, #1738)
 - Enable dependabot to monitor dependencies every month (#1748)
-- eccodes bump to 2.40.0 (#1747)
+- `eccodes` bump to 2.40.0 (#1747)
 - Integrate codecov to monitor coverage and remove old bot (#1736, #1737)
-- Reinitialize GSVReader instance only when needed (#1733)
+- Reinitialize `GSVRetriever` instance only when needed (#1733)
 - Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732, #1743)
-- Fix push_analysis options and aqua_analysis config paths (#1723)
+- Fix `push_analysis.sh` options and `aqua_analysis.py` config paths (#1723, #1754)
 - Enable zip compression for LRA yearly files (#1726)
 - Enable publication of documentation on ReadTheDocs (#1699, #1716)
 - Adapt Catgen test to the new number of sources for ICON (#1708)
 - Added tests for the Hovmoller plot routine (#1532)
-- push_s3 compatibility with boto3>=1.36.0 (#1704)
+- `push_s3` compatibility with `boto3>=1.36.0` (#1704)
 - Rsync option for push_analysis.sh (#1689)
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
 

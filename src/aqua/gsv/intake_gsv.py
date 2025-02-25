@@ -418,16 +418,12 @@ class GSVSource(base.DataSource):
     def _switch_eccodes(self):
         """
         Internal method to switch ECCODES version if needed.
-
-        Returns a boolean indicating if the switch was done.
         """
         if self.eccodes_path:  # if needed switch eccodes path
             # unless we have already switched
             if self.eccodes_path and (self.eccodes_path != eccodes.codes_definition_path()):
                 eccodes.codes_context_delete()  # flush old definitions in cache
                 eccodes.codes_set_definitions_path(self.eccodes_path)
-                return True
-        return False
 
     def _index_to_timelevel(self, ii):
         """
@@ -514,8 +510,7 @@ class GSVSource(base.DataSource):
 
         # Select based on type of FDB
         fstream_iterator = False  # We set it False, but it works also with True
-        current_fdb_home = os.environ.get("FDB_HOME", None)
-        current_fdb_path = os.environ.get("FDB5_CONFIG_FILE", None)
+
         if self.chk_type[i]:
             # Bridge FDB type
             if self.fdbhome_bridge:
@@ -532,30 +527,18 @@ class GSVSource(base.DataSource):
             if self.hpc_expver:
                 request["expver"] = self.hpc_expver
 
-        # A rebuild of the GSV is needed if the FDB_HOME or FDB5_CONFIG_FILE has changed
-        rebuild_gsv = False
-        if current_fdb_home != os.environ.get("FDB_HOME", None):
-            self.logger.debug("FDB_HOME has been changed to from %s to %s",
-                              current_fdb_home, os.environ.get("FDB_HOME", None))
-            rebuild_gsv = True
-        if current_fdb_path != os.environ.get("FDB5_CONFIG_FILE", None):
-            self.logger.debug("FDB5_CONFIG_FILE has been changed to from %s to %s",
-                              current_fdb_path, os.environ.get("FDB5_CONFIG_FILE", None))
-            rebuild_gsv = True
+        self._switch_eccodes()
 
-        flag_eccodes_switch = self._switch_eccodes()
-
-        # this is needed here and not in init because each worker spawns a new environment
-        gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
-
-        # The following is done to recycle the GSVRetriever instance: it has to be changed only if FDB_HOME or ECCODES changed
-        # Notice that this is done with a class variable, so it is shared among all instances of GSVSource
-        if flag_eccodes_switch or not hasattr(GSVSource, 'gsv') or not GSVSource.gsv or rebuild_gsv:
-            GSVSource.gsv = GSVRetriever(logging_level=gsv_log_level)
+        # The following is a hack around a pyfdb/fdb5 bug which requires a double initialization when reading from bridge
+        # See https://github.com/DestinE-Climate-DT/AQUA/issues/1715
+        # Notice also that for some mysterious reason this works only if the result is stored in self (even if then it is not used)
+        if self.chk_type[i]:
+            self.gsv = GSVRetriever(logging_level=self.gsv_log_level)
+        gsv = GSVRetriever(logging_level=self.gsv_log_level)
 
         self.logger.debug('Request %s', request)
-        dataset = GSVSource.gsv.request_data(request, use_stream_iterator=fstream_iterator,
-                                             process_derived_variables=False)  # following 2.9.2 we avoid derived variables
+        dataset = gsv.request_data(request, use_stream_iterator=fstream_iterator,
+                                   process_derived_variables=False)  # following 2.9.2 we avoid derived variables
 
         if self.timeshift:  # shift time by one month (special case)
             dataset = shift_time_dataset(dataset)
