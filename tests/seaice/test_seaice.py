@@ -15,8 +15,8 @@ class TestSeaIce():
         [
             ('extent', 'Arctic', 247.5706, 'million km^2'),
             ('extent', 'Weddell Sea', 56.79711387, 'million km^2'),
-            ('volume', 'Arctic', 0.00959179, 'million km^3'), 
-            ('volume', 'Antarctic', 0.00749497, 'million km^3')
+            ('volume', 'Arctic', 0.00959179, 'thousands km^3'), 
+            ('volume', 'Antarctic', 0.00749497, 'thousands km^3')
         ]
     )
     def test_seaice_compute(self, method, region, value, expected_units):
@@ -29,7 +29,7 @@ class TestSeaIce():
             result = seaice.compute_seaice(method=method, var='tprate', threshold=0)
         elif method == 'volume':
             result = seaice.compute_seaice(method=method, var='tprate')  # No threshold needed for volume
-       
+        
         # generate variable name
         regionlower = region.lower().replace(" ", "_")
         var_name = f'sea_ice_{method}_{regionlower}'
