@@ -117,13 +117,8 @@ markers = [
     "sbatch: tests which require sbatch",
     "graphics: tests which deal with graphics",
     "gsv: mark test that requires ECMWF FDB libraries",
-    # beginning of diagnostic tests
-    "dummy: mark test for dummy diagnostic",
-    "teleconnections: mark test for teleconnections diagnostic",
-    "tropical_rainfall: mark test for tropical_rainfall diagnostic",
-    "timeseries: mark for timeseries",
+    "diagnostics: single marker for all diagnostics"
     "catgen: mark test for catalog generator",
-    "ecmean: mark for ecmean performance indices and global mean"
 ]
 
 [tool.coverage.run]

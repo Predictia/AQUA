@@ -31,7 +31,7 @@ def common_setup(tmp_path):
         "exp": exp
     }
 
-@pytest.mark.ecmean
+@pytest.mark.diagnostics
 def test_performance_indices(common_setup):
     """Test PerformanceIndices diagnostic."""
     setup = common_setup
@@ -49,7 +49,7 @@ def test_performance_indices(common_setup):
     assert os.path.exists(yamlfile)
     assert os.path.exists(pdffile)
 
-@pytest.mark.ecmean
+@pytest.mark.diagnostics
 def test_global_mean(common_setup):
     """Test GlobalMean diagnostic."""
     setup = common_setup
