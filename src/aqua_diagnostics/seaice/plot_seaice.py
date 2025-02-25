@@ -74,7 +74,7 @@ class PlotSeaIce:
             return [da.attrs.get("standard_name", da.name) for da in input_xrarray]
 
         error_msg = "Error input data: must be a list of xr.DataArray or a single xr.DataArray"
-        logger.debug(error_msg)
+        self.logger.debug(error_msg)
 
         raise TypeError(error_msg)
 
