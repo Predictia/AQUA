@@ -16,7 +16,7 @@ def test_global_bias():
     """
     Test for global bias computation.
     """
-    global_biases = GlobalBiases(data=data, data_ref=data, var_name='2t')
+    global_biases = GlobalBiases(data=data, data_ref=data, var_name='tprate')
     fig, ax, bias = global_biases.plot_bias(vmin=None, vmax=None)
     assert fig is not None
     assert ax is not None
