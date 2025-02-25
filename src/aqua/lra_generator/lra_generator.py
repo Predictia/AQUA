@@ -462,19 +462,20 @@ class LRAgenerator():
         from the same year
         """
 
-        # infiles = os.path.join(self.outdir,
-        #                       f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}??.nc')
         infiles = self.get_filename(var, year, month = '??')
         if len(glob.glob(infiles)) == 12:
             xfield = xr.open_mfdataset(infiles)
             self.logger.info('Creating a single file for %s, year %s...', var, str(year))
             outfile = self.get_filename(var, year)
-            # outfile = os.path.join(self.tmpdir,
-            #                        f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}.nc')
+
             # clean older file
             if os.path.exists(outfile):
                 os.remove(outfile)
-            xfield.to_netcdf(outfile)
+            
+            # these are made XarrayDataset made of a single variable
+            name = list(xfield.data_vars)[0]
+            xfield.to_netcdf(outfile, 
+                             encoding={'time': self.time_encoding, name: self.var_encoding})
 
             # clean of monthly files
             for infile in glob.glob(infiles):
