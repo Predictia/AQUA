@@ -92,8 +92,8 @@ all = [
 aqua = "aqua.cli.main:main"
 
 [project.urls]
-homepage = "https://aqua-web-climatedt.2.rahtiapp.fi"
-documentation = "https://aqua-web-climatedt.2.rahtiapp.fi/documentation/index.html"
+homepage = "https://github.com/DestinE-Climate-DT/AQUA/"
+documentation = "https://aqua.readthedocs.io/en/latest/index.html"
 repository = "https://github.com/DestinE-Climate-DT/AQUA/"
 issues = "https://github.com/DestinE-Climate-DT/AQUA/issues/"
 
@@ -108,7 +108,6 @@ platforms = ["any"]
 version = {attr = "aqua.version.__version__"}
 
 [tool.pytest.ini_options]
-addopts = "-v --cov=aqua --cov-config=.coveragerc"
 testpaths = [
     "tests"
 ]
@@ -133,23 +132,23 @@ markers = [
 [tool.coverage.run]
 branch = true
 command_line = '-m pytest tests'
-source = ["src/aqua"]
-omit = ["tests/*"]
+source = ["src/aqua", "src/aqua_diagnostics"]
+omit = ["tests/*", "**/__init__.py"]
 
-[tool.coverage.report]
-show_missing = true
-ignore_errors = true
-exclude_lines = [
-  "pragma: no cover",
-  "def __repr__",
-  "def __str__",
-  "raise AssertionError",
-  "raise NotImplementedError",
-  "if __name__ == .__main__.:",
-  "if TYPE_CHECKING:",
-  "if typing.TYPE_CHECKING:"
-]
-
-[tool.coverage.html]
-show_contexts = true
-directory = "coverage/html"
+# [tool.coverage.report]
+# show_missing = true
+# ignore_errors = true
+# exclude_lines = [
+#   "pragma: no cover",
+#   "def __repr__",
+#   "def __str__",
+#   "raise AssertionError",
+#   "raise NotImplementedError",
+#   "if __name__ == .__main__.:",
+#   "if TYPE_CHECKING:",
+#   "if typing.TYPE_CHECKING:"
+# ]
+# 
+# [tool.coverage.html]
+# show_contexts = true
+# directory = "coverage/html"
