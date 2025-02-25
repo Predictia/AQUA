@@ -119,9 +119,13 @@ class Timeseries(BaseMixin):
             self._check_data(var, units)
         if long_name is not None:
             self.data.attrs['long_name'] = long_name
+        # We use the standard_name as the name of the variable
+        # to be always used in plots
         if standard_name is not None:
             self.data.attrs['standard_name'] = standard_name
             self.data.name = standard_name
+        else:
+            self.data.attrs['standard_name'] = var
 
     def compute(self, freq: str, extend: bool = True, exclude_incomplete: bool = True,
                 center_time: bool = True, box_brd: bool = True):
@@ -239,13 +243,7 @@ class Timeseries(BaseMixin):
             data = self.annual if self.annual is not None else self.logger.error('No annual data available')
             data_std = self.std_annual if self.std_annual is not None else None
 
-        for attr in ['standard_name', 'name', 'short_name', 'long_name', 'shortname']:
-            if hasattr(data, attr):
-                diagnostic_product = getattr(data, attr)
-                break
-        if diagnostic_product is None:
-            self.logger.error('No diagnostic product found')
-            raise ValueError('No diagnostic product found')
+        diagnostic_product = getattr(data, 'standard_name', None)
         diagnostic_product += f'.{str_freq}'
         diagnostic_product += f'.{self.region}' if self.region is not None else ''
         self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
