@@ -121,34 +121,13 @@ markers = [
     "dummy: mark test for dummy diagnostic",
     "teleconnections: mark test for teleconnections diagnostic",
     "tropical_rainfall: mark test for tropical_rainfall diagnostic",
+    "timeseries: mark for timeseries",
     "catgen: mark test for catalog generator",
     "ecmean: mark for ecmean performance indices and global mean"
 ]
 
-# This appears to be the correct configuration, but for some reason
-# pytest-cov doesn't appear to be reading this? We are passing some
-# options via the command-line for now, but this needs to be fixed.
-# Ref: https://github.com/pytest-dev/pytest-cov/issues/390
 [tool.coverage.run]
 branch = true
 command_line = '-m pytest tests'
-source = ["src/aqua", "src/aqua_diagnostics"]
 omit = ["tests/*", "**/__init__.py"]
 
-# [tool.coverage.report]
-# show_missing = true
-# ignore_errors = true
-# exclude_lines = [
-#   "pragma: no cover",
-#   "def __repr__",
-#   "def __str__",
-#   "raise AssertionError",
-#   "raise NotImplementedError",
-#   "if __name__ == .__main__.:",
-#   "if TYPE_CHECKING:",
-#   "if typing.TYPE_CHECKING:"
-# ]
-# 
-# [tool.coverage.html]
-# show_contexts = true
-# directory = "coverage/html"
