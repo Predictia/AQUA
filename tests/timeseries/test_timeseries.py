@@ -10,9 +10,7 @@ loglevel = 'DEBUG'
 
 @pytest.mark.diagnostics
 class TestTimeseries:
-    """
-    Test that the timeseries class works
-    """
+    """Test that the timeseries class works"""
 
     def setup_method(self):
         """Initialize variables before each test."""
