@@ -1,3 +1,4 @@
+"""Timeseries class for retrieve and netcdf saving of a single experiment"""
 import os
 
 import pandas as pd
@@ -10,11 +11,12 @@ from aqua.util import  frequency_string_to_pandas, time_to_string
 from aqua.diagnostics.core import Diagnostic, start_end_dates
 
 from .util import loop_seasonalcycle, center_time_str
+from .region import RegionMixin
 
 xr.set_options(keep_attrs=True)
 
 
-class Timeseries(Diagnostic):
+class Timeseries(Diagnostic, RegionMixin):
     """Timeseries class for retrieve and netcdf saving of a single experiment"""
 
     def __init__(self, catalog: str = None, model: str = None,
@@ -278,37 +280,6 @@ class Timeseries(Diagnostic):
             self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
             super().save_netcdf(data=data_std, diagnostic='timeseries', diagnostic_product=diagnostic_product,
                                 default_path=outputdir, rebuild=rebuild)
-
-    def _set_region(self, region: str = None, lon_limits: list = None, lat_limits: list = None):
-        """
-        Set the region to be used.
-
-        Args:
-            region (str): The region to select. This will define the lon and lat limits.
-            lon_limits (list): The longitude limits to be used. Overriden by region.
-            lat_limits (list): The latitude limits to be used. Overriden by region.
-        """
-        if region is not None:
-            region_file = ConfigPath().get_config_dir()
-            region_file = os.path.join(region_file, 'diagnostics',
-                                       'timeseries', 'interface', 'regions.yaml')
-            if os.path.exists(region_file):
-                regions = load_yaml(region_file)
-                if region in regions['regions']:
-                    self.lon_limits = regions['regions'][region].get('lon_limits', None)
-                    self.lat_limits = regions['regions'][region].get('lat_limits', None)
-                    self.region = regions['regions'][region].get('logname', region)
-                    self.logger.info(f'Region {self.region} found, using lon: {self.lon_limits}, lat: {self.lat_limits}')
-                else:
-                    self.logger.error('Region %s not found', region)
-                    raise ValueError('Region %s not found' % region)
-            else:
-                self.logger.error('Region file not found')
-                raise FileNotFoundError('Region file not found')
-        else:
-            self.lon_limits = lon_limits
-            self.lat_limits = lat_limits
-            self.region = None
     
     def _check_data(self, var: str, units: str):
         """
