@@ -1,22 +1,16 @@
 """Timeseries class for retrieve and netcdf saving of a single experiment"""
-import os
-
-import pandas as pd
 import xarray as xr
 from aqua.exceptions import NoDataError
-from aqua.logger import log_configure
-from aqua.util import ConfigPath
-from aqua.util import convert_units, eval_formula, load_yaml, to_list
+from aqua.util import convert_units, eval_formula, to_list
 from aqua.util import  frequency_string_to_pandas, time_to_string
-from aqua.diagnostics.core import Diagnostic, start_end_dates
 
 from .util import loop_seasonalcycle, center_time_str
-from .region import RegionMixin
+from .base import BaseMixin
 
 xr.set_options(keep_attrs=True)
 
 
-class Timeseries(Diagnostic, RegionMixin):
+class Timeseries(BaseMixin):
     """Timeseries class for retrieve and netcdf saving of a single experiment"""
 
     def __init__(self, catalog: str = None, model: str = None,
@@ -47,28 +41,10 @@ class Timeseries(Diagnostic, RegionMixin):
             loglevel (str): The log level to be used. Default is 'WARNING'.
         """
         super().__init__(catalog=catalog, model=model, exp=exp, source=source, regrid=regrid,
-                         loglevel=loglevel)
-
-        self.logger = log_configure(log_level=loglevel, log_name='TimeSeries')
-
-        # We want to make sure we retrieve the required amount of data with a single Reader instance
-        self.startdate, self.enddate = start_end_dates(startdate=startdate, enddate=enddate,
-                                                       start_std=std_startdate, end_std=std_enddate)
-        self.std_startdate = self.startdate if std_startdate is None else std_startdate
-        self.std_enddate = self.enddate if std_enddate is None else std_enddate
-
-        # Set the region based on the region name or the lon and lat limits
-        self._set_region(region=region, lon_limits=lon_limits, lat_limits=lat_limits)
-
-        # Initialize the possible results
-        self.hourly = None
-        self.daily = None
-        self.monthly = None
-        self.annual = None
-        self.std_hourly = None
-        self.std_daily = None
-        self.std_monthly = None
-        self.std_annual = None
+                         startdate=startdate, enddate=enddate,
+                         std_startdate=std_startdate, std_enddate=std_enddate,
+                         region=region, lon_limits=lon_limits,
+                         lat_limits=lat_limits, loglevel=loglevel)
     
     def run(self, var: str, formula: bool = False, long_name: str = None,
             units: str = None, standard_name: str = None, std: bool = False,
