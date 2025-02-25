@@ -22,9 +22,6 @@ references:
     source: 'monthly'
     regrid: null
 
-setup:
-  loglevel: 'WARNING'
-
 output:
   outputdir: "./"
   rebuild: true
@@ -49,18 +46,18 @@ diagnostics:
     formulae: ['tnlwrf+tnswrf', '86400*tprate']
     params:
       default:
-        ref: {catalog: 'obs', model: 'ERA5', exp: 'era5', source: 'monthly'}
         hourly: False
         daily: False
         monthly: True
         annual: True
-        std_startdate: '1990-01-01'
-        std_enddate: '2020-12-31'
-        regions: null
+        std_startdate: '19900101'
+        std_enddate: '20201231'
       tnlwrf+tnswrf:
-        longname: "Net top radiation"
+        standard_name: "net_top_radiation"
+        long_name: "Net top radiation"
       86400*tprate:
-        longname: "Precipitation"
+        standard_name: "tprate"
+        long_name: "Precipitation"
         units: "mm/day"
         regions: ['tropics', 'europe']
 
