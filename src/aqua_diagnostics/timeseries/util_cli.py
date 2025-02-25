@@ -77,4 +77,19 @@ def load_var_config(config_dict: dict, var: str):
     # with the variable specific configuration taking precedence
     var_config = {**default_dict, **var_config}
 
-    return var_config
+    # Take hourly, daily, monthly, annual and make a list of the True
+    # ones, dropping the individual keys
+    freq = []
+    for key in ['hourly', 'daily', 'monthly', 'annual']:
+        if var_config[key]:
+            freq.append(key)
+        if var_config[key] is not None:
+            del var_config[key]
+    var_config['freq'] = freq
+
+    # Get the regions
+    regions = var_config.get('regions', None)
+    if regions is not None:
+        del var_config['regions']
+
+    return var_config, regions
