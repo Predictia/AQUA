@@ -243,7 +243,7 @@ class SeaIce(Diagnostic):
             **kwargs: Additional keyword arguments for saving the data.
 
         Returns:
-            None
+            None 
         """
 
         # Use parent method to handle saving, including metadata
