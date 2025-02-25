@@ -92,8 +92,8 @@ all = [
 aqua = "aqua.cli.main:main"
 
 [project.urls]
-homepage = "https://aqua-web-climatedt.2.rahtiapp.fi"
-documentation = "https://aqua-web-climatedt.2.rahtiapp.fi/documentation/index.html"
+homepage = "https://github.com/DestinE-Climate-DT/AQUA/"
+documentation = "https://aqua.readthedocs.io/en/latest/index.html"
 repository = "https://github.com/DestinE-Climate-DT/AQUA/"
 issues = "https://github.com/DestinE-Climate-DT/AQUA/issues/"
 
@@ -108,7 +108,8 @@ platforms = ["any"]
 version = {attr = "aqua.version.__version__"}
 
 [tool.pytest.ini_options]
-addopts = "-v --cov=aqua --cov-config=.coveragerc"
+# verbose to have full test, run coverage on src folder and use pyproject as a configuration file
+addopts = "-v --cov=src --cov-config=pyproject.toml"
 testpaths = [
     "tests"
 ]
@@ -118,40 +119,13 @@ markers = [
     "sbatch: tests which require sbatch",
     "graphics: tests which deal with graphics",
     "gsv: mark test that requires ECMWF FDB libraries",
-    # beginning of diagnostic tests
-    "dummy: mark test for dummy diagnostic",
-    "teleconnections: mark test for teleconnections diagnostic",
-    "tropical_rainfall: mark test for tropical_rainfall diagnostic",
+    "diagnostics: single marker for all diagnostics",
     "catgen: mark test for catalog generator",
-    "ecmean: mark for ecmean performance indices and global mean",
-    "seaice: mark for sea ice diagnostics"
-
+    "ensemble: pytest for ensemble diagnostic"
 ]
 
-# This appears to be the correct configuration, but for some reason
-# pytest-cov doesn't appear to be reading this? We are passing some
-# options via the command-line for now, but this needs to be fixed.
-# Ref: https://github.com/pytest-dev/pytest-cov/issues/390
 [tool.coverage.run]
 branch = true
 command_line = '-m pytest tests'
-source = ["src/aqua"]
-omit = ["tests/*"]
+omit = ["tests/*", "**/__init__.py"]
 
-[tool.coverage.report]
-show_missing = true
-ignore_errors = true
-exclude_lines = [
-  "pragma: no cover",
-  "def __repr__",
-  "def __str__",
-  "raise AssertionError",
-  "raise NotImplementedError",
-  "if __name__ == .__main__.:",
-  "if TYPE_CHECKING:",
-  "if typing.TYPE_CHECKING:"
-]
-
-[tool.coverage.html]
-show_contexts = true
-directory = "coverage/html"
