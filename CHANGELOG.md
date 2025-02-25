@@ -8,11 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
+- Cleaner workflow and pytest/coverage configuration (#1755)
 - catalog, model, exp, source info are now stored in the DataArray attributes (#1753)
 - Avoid infinite hanging during bridge access (#1733, #1738)
 - Enable dependabot to monitor dependencies every month (#1748)
 - `eccodes` bump to 2.40.0 (#1747)
-- Integrate codecov to monitor coverage and remove old bot (#1736, #1737)
+- Integrate codecov to monitor coverage and test analytics and remove old bot (#1736, #1737, #1755)
 - Reinitialize `GSVRetriever` instance only when needed (#1733)
 - Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732, #1743)
 - Fix `push_analysis.sh` options and `aqua_analysis.py` config paths (#1723, #1754)
