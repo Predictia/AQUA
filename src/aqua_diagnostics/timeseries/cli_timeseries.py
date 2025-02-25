@@ -14,7 +14,7 @@ from aqua.logger import log_configure
 from aqua.util import get_arg, load_yaml
 from aqua.version import __version__ as aqua_version
 from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_cluster
-from aqua.diagnostics.timeseries.util_cli import TimeseriesCLI
+from aqua.diagnostics.timeseries.util_cli import TimeseriesCLI, load_var_config
 # TODO: update import when #1750 is merged
 from aqua.diagnostics.core.util import load_diagnostic_config, merge_config_args
 
@@ -49,18 +49,42 @@ if __name__ == '__main__':
                                          loglevel=loglevel)
     config_dict = merge_config_args(config=config_dict, args=args, loglevel=loglevel)
 
+    regrid = get_arg(args, 'regrid', None)
+
+    # Output options
+    outputdir = config_dict['output'].get('outputdir', './')
+    rebuild = config_dict['output'].get('rebuild', True)
+    save_pdf = config_dict['output'].get('save_pdf', True)
+    save_png = config_dict['output'].get('save_png', True)
+    dpi = config_dict['output'].get('dpi', 300)
+
     if 'timeseries' in config_dict['diagnostics']:
         if config_dict['diagnostics']['timeseries']['run']:
             logger.info("Timeseries diagnostic is enabled.")
 
             for var in config_dict['diagnostics']['timeseries']['variables']:
-                ts = TimeseriesCLI(config_dict=config_dict, var=var,
-                                   formulae=False, loglevel=loglevel)
-                ts.run()
+                var_config, regions = load_var_config(config_dict, var)
+                logger.debug(f"Running Timeseries diagnostic for variable {var} with config {var_config}")
+                
+                for region in regions:
+                    logger.debug(f"Running Timeseries diagnostic in region {region if region else 'global'}")
+
+                    ts = TimeseriesCLI(config_dict=config_dict, var=var,
+                                    formula=False, loglevel=loglevel)
+                    ts.run(regrid=regrid, region=region, outputdir=outputdir,
+                           rebuild=rebuild, **var_config)
+
             for var in config_dict['diagnostics']['timeseries']['formulae']:
-                ts = TimeseriesCLI(config_dict=config_dict, var=var,
-                                   formulae=True, loglevel=loglevel)
-                ts.run()
+                var_config, regions = load_var_config(config_dict, var)
+                logger.debug(f"Running Timeseries diagnostic for variable {var} with config {var_config}")
+
+                for region in regions:
+                    logger.debug(f"Running Timeseries diagnostic in region {region if region else 'global'}")
+
+                    ts = TimeseriesCLI(config_dict=config_dict, var=var,
+                                    formula=True, loglevel=loglevel)
+                    ts.run(regrid=regrid, region=region, outputdir=outputdir,
+                           rebuild=rebuild, **var_config)
 
     close_cluster(client=client, cluster=cluster, private_cluster=private_cluster, loglevel=loglevel)
 
