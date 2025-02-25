@@ -53,3 +53,28 @@ class TimeseriesCLI():
                               'std_startdate': std_startdate, 'std_enddate': std_enddate}
             timeseries = Timeseries(**reference_args, **init_args)
             timeseries.run(std=True, **run_args)
+
+
+def load_var_config(config_dict: dict, var: str):
+    """
+    Load the variable configuration from the configuration dictionary.
+    
+    Args:
+        config_dict (dict): The configuration dictionary.
+        var (str): The variable to load the configuration for.
+
+    Returns:
+        var_config (dict): The variable configuration dictionary
+    """
+    default_dict = config_dict['diagnostics']['timeseries']['params']['default']
+
+    if var in config_dict['diagnostics']['timeseries']['params']:
+        var_config = config_dict['diagnostics']['timeseries']['params'][var]
+    else:
+        var_config = {}
+
+    # Merge the default and variable specific configuration
+    # with the variable specific configuration taking precedence
+    var_config = {**default_dict, **var_config}
+
+    return var_config
