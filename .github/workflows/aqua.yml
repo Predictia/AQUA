@@ -28,8 +28,11 @@ defaults:
 jobs:
   aqua_test:
     # NOTE: this option can be uncommented to run the job only when
-    #       a pull request contains a label with the name "Run Tests" or "Ready to Merge".
-    if: contains(github.event.pull_request.labels.*.name, 'run tests') || contains(github.event.pull_request.labels.*.name, 'ready to merge')
+    #       a pull request contains a label with the name "Run Tests" or "Ready to Merge" or if run by Dependabot.
+    if: > 
+      contains(github.event.pull_request.labels.*.name, 'run tests') || 
+      contains(github.event.pull_request.labels.*.name, 'ready to merge') || 
+      github.actor == 'dependabot[bot]'
     env:
       DEBIAN_FRONTEND: noninteractive
       GRID_DEFINITION_PATH: /tmp
