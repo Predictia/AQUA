@@ -31,7 +31,7 @@ class TimeseriesCLI():
         """
         Run the timeseries diagnostics for the given variable and configuration."
         """
-        init_args = {'regrid': regrid, 'region': region, 'loglevel': self.loglevel}
+        init_args = {'region': region, 'loglevel': self.loglevel}
         run_args = {'var': self.var, 'formulae': self.formulae, 'long_name': long_name,
                     'units': units, 'standard_name': standard_name, 'freq': freq,
                     'outputdir': outputdir, 'rebuild': rebuild}
@@ -39,7 +39,8 @@ class TimeseriesCLI():
         for dataset in self.config_dict['datasets']:
             self.logger.debug(f'Running dataset: {dataset}, variable: {self.var}')
             dataset_args = {'catalog': dataset['catalog'], 'model': dataset['model'],
-                            'exp': dataset['exp'], 'source': dataset['source']}
+                            'exp': dataset['exp'], 'source': dataset['source'],
+                            'regrid': dataset.get('regrid', regrid)}
             timeseries = Timeseries(**dataset_args, **init_args)
             timeseries.run(**run_args)
         
@@ -48,6 +49,7 @@ class TimeseriesCLI():
             self.logger.debug(f'Running reference: {reference}, variable: {self.var}')
             reference_args = {'catalog': reference['catalog'], 'model': reference['model'],
                               'exp': reference['exp'], 'source': reference['source'],
+                              'regrid': reference.get('regrid', regrid),
                               'std_startdate': std_startdate, 'std_enddate': std_enddate}
             timeseries = Timeseries(**reference_args, **init_args)
             timeseries.run(std=True, **run_args)
