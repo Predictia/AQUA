@@ -72,8 +72,7 @@ class Timeseries(Diagnostic):
             units: str = None, standard_name: str = None, std: bool = False,
             freq: list = ['monthly', 'annual'], extend: bool = True,
             exclude_incomplete: bool = True, center_time: bool = True,
-            box_brd: bool = True, outputdir: str = './', rebuild: bool = True,
-            **kwargs):
+            box_brd: bool = True, outputdir: str = './', rebuild: bool = True):
         """
         Run all the steps necessary for the computation of the timeseries.
         Save the results to netcdf files.
@@ -106,7 +105,7 @@ class Timeseries(Diagnostic):
             if std:
                 self.compute_std(freq=f, exclude_incomplete=exclude_incomplete, center_time=center_time,
                                  box_brd=box_brd)
-            self.save_netcdf(freq=f, outputdir=outputdir, rebuild=rebuild, **kwargs) 
+            self.save_netcdf(freq=f, outputdir=outputdir, rebuild=rebuild) 
 
     def retrieve(self, var: str, formula: bool = False, long_name: str = None,
                  units: str = None, standard_name: str = None):
@@ -234,8 +233,7 @@ class Timeseries(Diagnostic):
         elif str_freq == 'annual':
             self.std_annual = data
 
-    def save_netcdf(self, freq: str, outputdir: str = './', rebuild: bool = True,
-                    **kwargs):
+    def save_netcdf(self, freq: str, outputdir: str = './', rebuild: bool = True):
         """
         Save the data to a netcdf file.
         
@@ -243,9 +241,6 @@ class Timeseries(Diagnostic):
             freq (str): The frequency of the data.
             outputdir (str): The directory to save the data.
             rebuild (bool): If True, rebuild the data from the original files.
-
-        Keyword Args:
-            **kwargs: Additional keyword arguments to be passed to the OutputSaver.save_netcdf method.
         """
         if freq is None:
             self.logger.error('Frequency not provided')
@@ -266,17 +261,23 @@ class Timeseries(Diagnostic):
             data = self.annual if self.annual is not None else self.logger.error('No annual data available')
             data_std = self.std_annual if self.std_annual is not None else None
 
-        diagnostic_product = data.name
+        for attr in ['standard_name', 'name', 'short_name', 'long_name', 'shortname']:
+            if hasattr(data, attr):
+                diagnostic_product = getattr(data, attr)
+                break
+        if diagnostic_product is None:
+            self.logger.error('No diagnostic product found')
+            raise ValueError('No diagnostic product found')
         diagnostic_product += f'.{str_freq}'
         diagnostic_product += f'.{self.region}' if self.region is not None else ''
         self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
         super().save_netcdf(data=data, diagnostic='timeseries', diagnostic_product=diagnostic_product,
-                            default_path=outputdir, rebuild=rebuild, **kwargs)
+                            default_path=outputdir, rebuild=rebuild)
         if data_std is not None:
             diagnostic_product = f'{diagnostic_product}.std'
             self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
             super().save_netcdf(data=data_std, diagnostic='timeseries', diagnostic_product=diagnostic_product,
-                                default_path=outputdir, rebuild=rebuild, **kwargs)
+                                default_path=outputdir, rebuild=rebuild)
 
     def _set_region(self, region: str = None, lon_limits: list = None, lat_limits: list = None):
         """
@@ -373,12 +374,16 @@ class Timeseries(Diagnostic):
                 start_date = time_to_string(self.data.time[0].values, format='%Y%m%d')
                 end_date = time_to_string(self.data.time[-1].values, format='%Y%m%d')
 
+                # if the center_time is True, we need to center the time of the start_date and end_date
+                    # to be able to compare them with the class_startdate and class_enddate
+                if center_time:
+                    start_date = center_time_str(time=start_date, freq=freq)
+                    end_date = center_time_str(time=end_date, freq=freq)
+                    class_startdate = center_time_str(time=class_startdate, freq=freq)
+                    class_enddate = center_time_str(time=class_enddate, freq=freq)
+
                 # Extend the data if needed
                 if  class_startdate < start_date:
-                    # if the center_time is True, we need to center the time of the start_date and end_date
-                    # to be able to compare them with the class_startdate and class_enddate
-                    if center_time:
-                        start_date = center_time_str(time=start_date, freq=freq)
                     self.logger.info('Extending back the start date from %s to %s', start_date, class_startdate)
                     loop = loop_seasonalcycle(data=data, startdate=class_startdate, enddate=start_date,
                                               freq=freq, center_time=center_time, loglevel=self.loglevel)
@@ -388,8 +393,6 @@ class Timeseries(Diagnostic):
                     self.logger.debug(f'No extension needed for the start date: {start_date} <= {class_startdate}')
 
                 if class_enddate > end_date:
-                    if center_time:
-                        end_date = center_time_str(time=end_date, freq=freq)
                     self.logger.info('Extending the end date from %s to %s', end_date, class_enddate)
                     loop = loop_seasonalcycle(data=data, startdate=end_date, enddate=class_enddate,
                                             freq=freq, center_time=center_time, loglevel=self.loglevel)
