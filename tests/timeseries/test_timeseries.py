@@ -8,7 +8,7 @@ approx_rel = 1e-4
 loglevel = 'DEBUG'
 
 
-@pytest.mark.timeseries
+@pytest.mark.diagnostics
 def test_class_timeseries():
     """
     Test that the timeseries class works
@@ -68,7 +68,7 @@ def test_class_timeseries():
         assert ts.data_mon is None
 
 
-@pytest.mark.timeseries
+@pytest.mark.diagnostics
 def test_timeseries_regions():
 
     catalogs = ['ci']
