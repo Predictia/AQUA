@@ -14,9 +14,9 @@ from aqua.logger import log_configure
 from aqua.util import get_arg, load_yaml
 from aqua.version import __version__ as aqua_version
 from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_cluster
-from aqua.diagnostics.timeseries import Timeseries
+from aqua.diagnostics.timeseries.util_cli import TimeseriesCLI
 # TODO: update import when #1750 is merged
-from aqua.diagnostics.core.util import load_diagnostic_config
+from aqua.diagnostics.core.util import load_diagnostic_config, merge_config_args
 
 def parse_arguments(args):
     """
@@ -28,6 +28,7 @@ def parse_arguments(args):
     parser = argparse.ArgumentParser(description='Timeseries CLI')
     parser = template_parse_arguments(parser)
     return parser.parse_args(args)
+
 
 if __name__ == '__main__':
     args = parse_arguments(sys.argv[1:])
@@ -41,11 +42,25 @@ if __name__ == '__main__':
 
     client, cluster, private_cluster, = open_cluster(nworkers=nworkers, cluster=cluster, loglevel=loglevel)
 
+    # Load the configuration file and then merge it with the command-line arguments,
+    # overwriting the configuration file values with the command-line arguments.
     config_dict = load_diagnostic_config(diagnostic='timeseries', args=args,
                                          default_config='config_timeseries_atm.yaml',
                                          loglevel=loglevel)
-    
-    logger.debug(f"Timeseries diagnostic configuration: {config_dict}")
+    config_dict = merge_config_args(config=config_dict, args=args, loglevel=loglevel)
+
+    if 'timeseries' in config_dict['diagnostics']:
+        if config_dict['diagnostics']['timeseries']['run']:
+            logger.info("Timeseries diagnostic is enabled.")
+
+            for var in config_dict['diagnostics']['timeseries']['variables']:
+                ts = TimeseriesCLI(config_dict=config_dict, var=var,
+                                   formulae=False, loglevel=loglevel)
+                ts.run()
+            for var in config_dict['diagnostics']['timeseries']['formulae']:
+                ts = TimeseriesCLI(config_dict=config_dict, var=var,
+                                   formulae=True, loglevel=loglevel)
+                ts.run()
 
     close_cluster(client=client, cluster=cluster, private_cluster=private_cluster, loglevel=loglevel)
 
