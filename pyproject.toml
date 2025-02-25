@@ -108,6 +108,7 @@ platforms = ["any"]
 version = {attr = "aqua.version.__version__"}
 
 [tool.pytest.ini_options]
+addopts = "-v --cov=src --cov-config=pyproject.toml"
 testpaths = [
     "tests"
 ]

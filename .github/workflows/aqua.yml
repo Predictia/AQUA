@@ -149,7 +149,7 @@ jobs:
         run: |
           # Produce the XML report
           cd AQUA
-          pytest --cov=src --cov-config=pyproject.toml --cov-report=xml --cov-branch -m "aqua or slow or gsv or graphics or catgen or diagnostics"
+          pytest --cov-report=xml -m "aqua or slow or gsv or graphics or catgen or diagnostics"
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
