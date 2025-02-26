@@ -22,9 +22,6 @@ references:
     source: 'monthly'
     regrid: null
 
-setup:
-  loglevel: 'WARNING'
-
 output:
   outputdir: "./"
   rebuild: true
@@ -38,23 +35,19 @@ diagnostics:
     variables: ['tos', 'siconc']
     params:
       default:
-        ref: {catalog: 'obs', model: 'ERA5', exp: 'era5', source: 'monthly'}
         hourly: False
         daily: False
         monthly: True
         annual: True
-        std_startdate: '1990-01-01'
-        std_enddate: '2020-12-31'
-        regions: null
+        std_startdate: '19900101'
+        std_enddate: '20201231'
       tos:
         regions: ['nh', 'sh']
   
-  seasonal_cycle:
+  seasonalcycles:
     run: true
     variables: ['tos', 'siconc']
     params:
       default:
-        ref: {catalog: 'obs', model: 'ERA5', exp: 'era5', source: 'monthly'}
         std_startdate: '1990-01-01'
         std_enddate: '2020-12-31'
-        regions: null
