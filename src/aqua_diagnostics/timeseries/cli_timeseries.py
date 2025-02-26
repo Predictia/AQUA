@@ -58,47 +58,60 @@ if __name__ == '__main__':
     save_png = config_dict['output'].get('save_png', True)
     dpi = config_dict['output'].get('dpi', 300)
 
+    # Timeseries diagnostic
     if 'timeseries' in config_dict['diagnostics']:
         if config_dict['diagnostics']['timeseries']['run']:
             logger.info("Timeseries diagnostic is enabled.")
 
-            for var in config_dict['diagnostics']['timeseries']['variables']:
+            for var in config_dict['diagnostics']['timeseries'].get('variables', []):
                 var_config, regions = load_var_config(config_dict, var)
-                logger.debug(f"Running Timeseries diagnostic for variable {var} with config {var_config}")
-                
+                logger.info(f"Running Timeseries diagnostic for variable {var} with config {var_config} in regions {[region if region else 'global' for region in regions]}")
                 for region in regions:
-                    logger.debug(f"Running Timeseries diagnostic in region {region if region else 'global'}")
+                    logger.info(f"Running Timeseries diagnostic in region {region if region else 'global'}")
 
                     ts = TimeseriesCLI(config_dict=config_dict, var=var,
-                                    formula=False, loglevel=loglevel)
+                                       formula=False, loglevel=loglevel)
                     ts.run(regrid=regrid, region=region, outputdir=outputdir,
                            rebuild=rebuild, **var_config)
 
-            for var in config_dict['diagnostics']['timeseries']['formulae']:
+            for var in config_dict['diagnostics']['timeseries'].get('formulae', []):
                 var_config, regions = load_var_config(config_dict, var)
-                logger.debug(f"Running Timeseries diagnostic for variable {var} with config {var_config}")
+                logger.info(f"Running Timeseries diagnostic for variable {var} with config {var_config}")
 
                 for region in regions:
-                    logger.debug(f"Running Timeseries diagnostic in region {region if region else 'global'}")
+                    logger.info(f"Running Timeseries diagnostic in region {region if region else 'global'}")
 
                     ts = TimeseriesCLI(config_dict=config_dict, var=var,
-                                    formula=True, loglevel=loglevel)
+                                       formula=True, loglevel=loglevel)
                     ts.run(regrid=regrid, region=region, outputdir=outputdir,
                            rebuild=rebuild, **var_config)
-                    
+
+    # SeasonalCycles diagnostic
     if 'seasonalcycles' in config_dict['diagnostics']:
         if config_dict['diagnostics']['seasonalcycles']['run']:
             logger.info("SeasonalCycles diagnostic is enabled.")
             
-            for var in config_dict['diagnostics']['seasonalcycles']['variables']:
-                var_config, regions = load_var_config(config_dict, var)
-                logger.debug(f"Running SeasonalCycles diagnostic for variable {var} with config {var_config}")
+            for var in config_dict['diagnostics']['seasonalcycles'].get('variables', []):
+                var_config, regions = load_var_config(config_dict, var, diagnostic='seasonalcycles')
+                logger.info(f"Running SeasonalCycles diagnostic for variable {var} with config {var_config}")
                 
                 for region in regions:
-                    logger.debug(f"Running SeasonalCycles diagnostic in region {region if region else 'global'}")
+                    logger.info(f"Running SeasonalCycles diagnostic in region {region if region else 'global'}")
 
                     sc = SeasonalCyclesCLI(config_dict=config_dict, var=var,
                                            formula=False, loglevel=loglevel)
+                    sc.run(regrid=regrid, region=region, outputdir=outputdir,
+                           rebuild=rebuild, **var_config)
+            
+            for var in config_dict['diagnostics']['seasonalcycles'].get('formulae', []):
+                var_config, regions = load_var_config(config_dict, var, diagnostic='seasonalcycles')
+                logger.info(f"Running SeasonalCycles diagnostic for variable {var} with config {var_config}")
+
+                for region in regions:
+                    logger.info(f"Running SeasonalCycles diagnostic in region {region if region else 'global'}")
+
+                    sc = SeasonalCyclesCLI(config_dict=config_dict, var=var,
+                                           formula=True, loglevel=loglevel)
                     sc.run(regrid=regrid, region=region, outputdir=outputdir,
                            rebuild=rebuild, **var_config)
 

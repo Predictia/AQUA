@@ -28,8 +28,8 @@ class SeasonalCycles(BaseMixin):
                              If None, all available data will be retrieved.
             enddate (str): The end date of the data to be retrieved.
                            If None, all available data will be retrieved.
-            std_startdate (str): The start date of the standard period.
-            std_enddate (str): The end date of the standard period.
+            std_startdate (str): The start date of the standard deviation evaluation period.
+            std_enddate (str): The end date of the standard deviation evaluation period.
             region (str): The region to select. This will define the lon and lat limits.
             lon_limits (list): The longitude limits to be used. Overriden by region.
             lat_limits (list): The latitude limits to be used. Overriden by region.
@@ -58,7 +58,7 @@ class SeasonalCycles(BaseMixin):
             center_time (bool): If True, the time will be centered.
             box_brd (bool): choose if coordinates are comprised or not in area selection.
             outputdir (str): The directory to save the data.
-            rebuild (bool): If True, rebuild the data from the original files.
+            rebuild (bool): If True, rebuild the data.
         """
         self.logger.info("Running SeasonalCycles for %s", var)
         self.retrieve(var=var, formula=formula, long_name=long_name, units=units, standard_name=standard_name)

@@ -127,13 +127,14 @@ class SeasonalCyclesCLI(MixinCLI):
             self.diag_references[i].run(**run_args)
 
 
-def load_var_config(config_dict: dict, var: str):
+def load_var_config(config_dict: dict, var: str, diagnostic: str = 'timeseries'):
     """
     Load the variable configuration from the configuration dictionary.
     
     Args:
         config_dict (dict): The configuration dictionary.
         var (str): The variable to load the configuration for.
+        diagnostic (str): The diagnostic to load the configuration for. Default is 'timeseries'.
 
     Returns:
         var_config (dict): The variable configuration dictionary
@@ -151,13 +152,18 @@ def load_var_config(config_dict: dict, var: str):
 
     # Take hourly, daily, monthly, annual and make a list of the True
     # ones, dropping the individual keys
-    freq = []
-    for key in ['hourly', 'daily', 'monthly', 'annual']:
-        if var_config[key]:
-            freq.append(key)
-        if var_config[key] is not None:
-            del var_config[key]
-    var_config['freq'] = freq
+    if diagnostic == 'timeseries':
+        freq = []
+        for key in ['hourly', 'daily', 'monthly', 'annual']:
+            if var_config[key]:
+                freq.append(key)
+            if var_config[key] is not None:
+                del var_config[key]
+        var_config['freq'] = freq
+    elif diagnostic == 'seasonalcycles':
+        for key in ['hourly', 'daily', 'monthly', 'annual']:
+            if var_config[key] is not None:
+                del var_config[key]
 
     # Get the regions
     regions = [None]
