@@ -178,6 +178,21 @@ class TestGsv():
         data = reader.retrieve(level=[900, 800])  # Read only two levels
         assert data.t.isel(plev=1).mean().values == pytest.approx(271.2092), "Field values incorrect"
 
+    def test_reader_bridge(self) -> None:
+        """
+        Reading from a datasource using bridge
+        """
+
+        reader = Reader(model="IFS", exp="test-fdb", source="fdb-bridge", loglevel=loglevel)
+        data = reader.retrieve()
+        # Test if the correct dates have been found
+        assert "1990-01-01T00:00" in str(data.time[0].values)
+        assert "1990-01-02T00:00" in str(data.time[-1].values)
+        # Test if the data can actually be read and contain the expected values
+        assert data.tcc.isel(time=0).values.mean() == pytest.approx(65.30221138649116)  # This is from HPC
+        assert data.tcc.isel(time=15).values.mean() == pytest.approx(65.62109108718757)  # This is from the bridge
+        assert data.tcc.isel(time=-1).values.mean() == pytest.approx(66.87973267265382)  # This is from HPC again
+
     def test_reader_auto(self) -> None:
         """
         Reading from a datasource using new operational schema and auto dates

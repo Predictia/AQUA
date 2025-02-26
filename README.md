@@ -1,5 +1,8 @@
 ![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
+[![AQUA tests](https://github.com/DestinE-Climate-DT/AQUA/actions/workflows/aqua.yml/badge.svg)](https://github.com/DestinE-Climate-DT/AQUA/actions/workflows/aqua.yml)
 [![Documentation Status](https://readthedocs.org/projects/aqua/badge/?version=latest)](https://aqua.readthedocs.io/en/latest/)
+[![codecov](https://codecov.io/gh/DestinE-Climate-DT/AQUA/graph/badge.svg?token=E9D0A8SWIU)](https://codecov.io/gh/DestinE-Climate-DT/AQUA)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14906075.svg)](https://doi.org/10.5281/zenodo.14906075)
 
 # AQUA
 
