@@ -1,7 +1,8 @@
 from aqua.logger import log_configure
 from aqua.diagnostics.timeseries import Timeseries
 
-class TimeseriesCLI():
+
+class MixinCLI():
 
     def __init__(self, config_dict: dict, var: str, formula: bool = False,
                  loglevel: str = 'WARNING'):
@@ -23,6 +24,8 @@ class TimeseriesCLI():
         self.len_references = len(self.config_dict['references'])
         self.var = var
         self.formula = formula
+
+class TimeseriesCLI(MixinCLI):
     
     def run(self, regrid: str = None, std_startdate: str = None, std_enddate: str = None,
             region: str = None, long_name: str = None, units: str = None,
@@ -56,9 +59,9 @@ class TimeseriesCLI():
 
 
 
-class SeasonalCyclesCLI():
+class SeasonalCyclesCLI(MixinCLI):
 
-    def __init__(self):
+    def run(self):
         pass
 
 
