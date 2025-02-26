@@ -4,6 +4,8 @@ both with monthly and annual aggregation options
 """
 import xarray as xr
 import matplotlib.pyplot as plt
+from .plot_timeseries_data import plot_monthly_data, plot_annual_data
+from .plot_timeseries_ref_data import plot_ref_monthly_data, plot_ref_annual_data
 from aqua.logger import log_configure
 from .styles import ConfigStyle
 
@@ -51,68 +53,16 @@ def plot_timeseries(monthly_data=None,
 
 
     if monthly_data is not None:
-        if isinstance(monthly_data, xr.DataArray):
-            monthly_data = [monthly_data]
-        for i in range(len(monthly_data)):
-            color = color_list[i]
-            try:
-                mon_data = monthly_data[i]
-                if data_labels:
-                    label = data_labels[i]
-                    label += ' monthly'
-                else:
-                    label = None
-                mon_data.plot(ax=ax, label=label, color=color)
-            except Exception as e:
-                logger.debug(f"Error plotting monthly data: {e}")
+        plot_monthly_data(ax, monthly_data, data_labels, logger)
 
     if annual_data is not None:
-        for i in range(len(annual_data)):
-            color = color_list[i]
-            try:
-                ann_data = annual_data[i]
-                if data_labels:
-                    label = data_labels[i]
-                    label += ' annual'
-                else:
-                    label = None
-                ann_data.plot(ax=ax, label=label, color=color, linestyle='--')
-            except Exception as e:
-                logger.debug(f"Error plotting annual data: {e}")
+        plot_annual_data(ax, annual_data, data_labels, logger)
 
     if ref_monthly_data is not None:
-        try:
-            if ref_label:
-                ref_label_mon = ref_label + ' monthly'
-            else:
-                ref_label_mon = None
-            ref_monthly_data.plot(ax=ax, label=ref_label_mon, color='black', lw=0.6)
-            if std_monthly_data is not None:
-                std_monthly_data.compute()
-                ax.fill_between(ref_monthly_data.time,
-                                ref_monthly_data - 2.*std_monthly_data.sel(month=ref_monthly_data["time.month"]),
-                                ref_monthly_data + 2.*std_monthly_data.sel(month=ref_monthly_data["time.month"]),
-                                facecolor='grey', alpha=0.25)
-                ax.set(xlim=(ref_monthly_data.time[0], ref_monthly_data.time[-1]))
-        except Exception as e:
-            logger.debug(f"Error plotting monthly std data: {e}")
+        plot_ref_monthly_data(ax, ref_monthly_data, std_monthly_data, ref_label, logger)
 
     if ref_annual_data is not None:
-        try:
-            if ref_label:
-                ref_label_ann = ref_label + ' annual'
-            else:
-                ref_label_ann = None
-            ref_annual_data.plot(ax=ax, label=ref_label_ann, color='black', linestyle='--', lw=0.6)
-            if std_annual_data is not None:
-                std_annual_data.compute()
-                ax.fill_between(ref_annual_data.time,
-                                ref_annual_data - 2.*std_annual_data,
-                                ref_annual_data + 2.*std_annual_data,
-                                facecolor='black', alpha=0.2)
-        except Exception as e:
-            logger.debug(f"Error plotting annual std data: {e}")
-
+        plot_ref_annual_data(ax, ref_annual_data, std_annual_data, ref_label, logger)
     ax.legend(fontsize='small')
     ax.grid(True, axis="both")
 
@@ -162,22 +112,18 @@ def plot_seasonalcycle(data=None,
     monthsNumeric = range(0, 13 + 1)  # Numeric months
     monthsNames = ["", "J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D", ""]
 
-    color_list = ["#1898e0", "#8bcd45", "#f89e13", "#d24493",
-                  "#00b2ed", "#dbe622", "#fb4c27", "#8f57bf",
-                  "#00bb62", "#f9c410", "#fb4865", "#645ccc"]
 
     if data is not None:
         if isinstance(data, xr.DataArray):
             data = [data]
         for i in range(len(data)):
-            color = color_list[i]
             if data_labels:
                 label = data_labels[i]
             else:
                 label = None
             try:
                 mon_data = _extend_cycle(data[i], loglevel)
-                mon_data.plot(ax=ax, label=label, color=color, lw=3)
+                mon_data.plot(ax=ax, label=label, lw=3)
                 ax.set(xlim=(data.time[0], data.time[-1]))
             except Exception as e:
                 logger.debug(f"Error plotting data: {e}")
@@ -203,7 +149,7 @@ def plot_seasonalcycle(data=None,
     ax.set_axisbelow(True)
 
     if grid:
-        ax.grid(axis="both", color="dimgrey", linestyle="--", alpha=0.8)
+        ax.grid(True, axis="both")
 
     title = kwargs.get('title', None)
     if title is not None:
