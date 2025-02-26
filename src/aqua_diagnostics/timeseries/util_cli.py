@@ -55,6 +55,13 @@ class TimeseriesCLI():
             timeseries.run(std=True, **run_args)
 
 
+
+class SeasonalCyclesCLI():
+
+    def __init__(self):
+        pass
+
+
 def load_var_config(config_dict: dict, var: str):
     """
     Load the variable configuration from the configuration dictionary.
