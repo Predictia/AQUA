@@ -9,7 +9,7 @@ Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
 - Added history logging for lat-lon in area selection (#1479)
-- Cleaner workflow and pytest/coverage configuration (#1755)
+- Cleaner workflow and pytest/coverage configuration (#1755, #1758)
 - catalog, model, exp, source info are now stored in the DataArray attributes (#1753)
 - Avoid infinite hanging during bridge access (#1733, #1738)
 - Enable dependabot to monitor dependencies every month (#1748)
