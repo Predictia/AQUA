@@ -20,6 +20,8 @@ def plot_timeseries(monthly_data=None,
                     ref_label: str = None,
                     style: str = None,
                     loglevel: str = 'WARNING',
+                    fig: plt.Figure = None,
+                    ax: plt.Axes = None,
                     **kwargs):
     """
     monthly_data and annual_data are list of xr.DataArray
@@ -48,8 +50,9 @@ def plot_timeseries(monthly_data=None,
     logger = log_configure(loglevel, 'PlotTimeseries')
     ConfigStyle(style=style, loglevel=loglevel)
 
-    fig_size = kwargs.get('figsize', (10, 5))
-    fig, ax = plt.subplots(1, 1, figsize=fig_size)
+    if fig is None and ax is None:
+        fig_size = kwargs.get('figsize', (10, 5))
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
 
     if monthly_data is not None:
@@ -63,6 +66,7 @@ def plot_timeseries(monthly_data=None,
 
     if ref_annual_data is not None:
         plot_ref_annual_data(ax, ref_annual_data, std_annual_data, ref_label, logger)
+    
     ax.legend(fontsize='small')
     ax.grid(True, axis="both")
 
