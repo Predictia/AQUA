@@ -58,9 +58,9 @@ def test_check_variable_name(common_setup):
     print("Test passed successfully!")
 
 
-# @pytest.mark.ocean3d
-# def test_hovmoller_plot(common_setup):
-#     setup = common_setup
-#     setup["data"] = check_variable_name(setup["data"], loglevel=setup["loglevel"])
-#     hovmoller_plot_init = hovmoller_plot(setup)
-#     hovmoller_plot_init.plot()
+@pytest.mark.ocean3d
+def test_hovmoller_plot(common_setup):
+    setup = common_setup
+    setup["data"] = check_variable_name(setup["data"], loglevel=setup["loglevel"])
+    hovmoller_plot_init = hovmoller_plot(setup)
+    hovmoller_plot_init.plot()
