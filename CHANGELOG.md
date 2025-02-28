@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
+- Reader intake-xarray sources can select a coder for time decoding (#1778)
 - Added history logging for lat-lon in area selection (#1479)
 - Cleaner workflow and pytest/coverage configuration (#1755, #1758)
 - catalog, model, exp, source info are now stored in the DataArray attributes (#1753)
