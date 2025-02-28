@@ -43,18 +43,16 @@ class Diagnostic():
         # Data to be retrieved
         self.data = None
 
-    def retrieve(self, var: str = None, return_data: bool = False):
+    def retrieve(self, var: str = None):
         """
         Retrieve the data from the model.
 
         Args:
             var (str): The variable to be retrieved. If None, all variables will be retrieved.
-            return_data (bool): If True, the data will be returned. Default is False.
 
         Attributes:
             self.data: The data retrieved from the model. If return_data is True, the data will be returned.
             self.catalog: The catalog used to retrieve the data if no catalog was provided.
-                          If return_data is True, the catalog attribute will not be changed.
         """
         self.data, self.reader, self.catalog = self._retrieve(model=self.model, exp=self.exp, source=self.source,
                                                               var=var, catalog=self.catalog, startdate=self.startdate,
