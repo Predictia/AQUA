@@ -227,6 +227,61 @@ To use the FDB5 binary library on MN5, set the following environment variable:
 
     export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/gpfs/projects/ehpc01/sbeyer/models/DE_CY48R1.0_climateDT_tco399_aerosol_runoff/build/lib"
 
+
+.. _installation-lumi:
+
+Installation on ECMWF HPC2020
+-----------------------------
+
+HPC2020 is trying to move to a more container-based approach, so the installation process is similar to the one on LUMI.
+In fact, using directly conda or mamba on lustre filesystems (`$PERM`and `$HPCPERM`) is not recommended 
+and has been verified to lead to severe performance issues.
+
+The recommended approach is using the `tykky module <https://docs.csc.fi/computing/containers/tykky/>`_ developed by CSC, which provides
+the same container wrapper technology as what we use for an install on LUMI. 
+This process is also described in the relevant HPC2020 `documentation pages <https://confluence.ecmwf.int/display/UDOC/Moving+away+from+Anaconda+and+Miniconda>`_.
+
+Due to a bug during the installation of the ``perl`` package, a dependency of ``ìmagemagick``, it is recomended to comment, before proceeding, the ``ìmagemagick`` dependency
+in ``environment.yml``. This will allow AQUA to work in full but it will prevent uploading figures in png format to aqua-web. A fix is under development.
+
+In order to speed up creation of the container, it is recommended to start an interactive session asking for adequate resources (just for creating the container environment):
+
+.. code-block:: bash
+
+    ecinteractive -c 8 -m 20 -s 30
+
+which will ask for a session with 8 cpus, 20 GB of RAM and 30 GB of temporary local disk storage.
+
+.. note ::
+    If this is the first time that you run ``ecinteractive``, you should first set up your ssh keys by running the command ``ssh-key-setup``.
+
+After cloning AQUA, an environment using a Apptainer (Singularity) container can be created as follows
+
+.. code-block:: bash
+
+    module load tykky
+    conda-containerize new --mamba --prefix $TYKKY_PATH/aqua environment.yml 
+
+where ``$TYKKY_PATH`` is the path to the directory where you want to store the container and is set up by default by 
+the ``tykky`` module as ``$HPCPERM/tykky``. It is reccomended to use ``$HPCPERM``.
+
+After this it becomes possible to use AQUA by loading the environent with a conda-like syntax.
+
+.. code-block:: bash
+
+    tykky activate aqua
+
+You can later also use ``tykky deactivate`` to deactivate the environment.
+
+If you wish to make the use of the container permanent and avoid the need to load the ``tykky``module and activate it every time, you can add the following line to your ``.bashrc``:
+
+.. code-block:: bash
+
+    export PATH="$HPCPERM/tykky/aqua/bin:$PATH"
+
+(adapt the path to the location of the container).
+
+
 Installation and use of the AQUA container
 ------------------------------------------
 
