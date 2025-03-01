@@ -233,15 +233,15 @@ To use the FDB5 binary library on MN5, set the following environment variable:
 Installation on ECMWF HPC2020
 -----------------------------
 
-HPC2020 is trying to move to a more container-based approach, so the installation process is similar to the one on LUMI.
-In fact, using directly conda or mamba on lustre filesystems (`$PERM`and `$HPCPERM`) is not recommended 
+HPC2020 is moving to a more container-based approach, so the suggested installation process uses a technology similar to the one used on LUMI.
+In fact, using directly conda or mamba on lustre filesystems (``$PERM`` and ``$HPCPERM``) is not recommended 
 and has been verified to lead to severe performance issues.
 
-The recommended approach is using the `tykky module <https://docs.csc.fi/computing/containers/tykky/>`_ developed by CSC, which provides
+The recommended approach is to use the `tykky module <https://docs.csc.fi/computing/containers/tykky/>`_ developed by CSC, and available on HPC2020, which provides
 the same container wrapper technology as what we use for an install on LUMI. 
 This process is also described in the relevant HPC2020 `documentation pages <https://confluence.ecmwf.int/display/UDOC/Moving+away+from+Anaconda+and+Miniconda>`_.
 
-Due to a bug during the installation of the ``perl`` package, a dependency of ``ìmagemagick``, it is recomended to comment, before proceeding, the ``ìmagemagick`` dependency
+Due to a bug during the installation of the ``perl`` package (a dependency of ``ìmagemagick``) it is recomended to comment, before proceeding, the ``ìmagemagick`` dependency
 in ``environment.yml``. This will allow AQUA to work in full but it will prevent uploading figures in png format to aqua-web. A fix is under development.
 
 In order to speed up creation of the container, it is recommended to start an interactive session asking for adequate resources (just for creating the container environment):
@@ -263,7 +263,7 @@ After cloning AQUA, an environment using a Apptainer (Singularity) container can
     conda-containerize new --mamba --prefix $TYKKY_PATH/aqua environment.yml 
 
 where ``$TYKKY_PATH`` is the path to the directory where you want to store the container and is set up by default by 
-the ``tykky`` module as ``$HPCPERM/tykky``. It is reccomended to use ``$HPCPERM``.
+the ``tykky`` module as ``$HPCPERM/tykky``. It is indeed recommended to store  the container in ``$HPCPERM`` for performance reasons.
 
 After this it becomes possible to use AQUA by loading the environent with a conda-like syntax.
 
@@ -273,7 +273,7 @@ After this it becomes possible to use AQUA by loading the environent with a cond
 
 You can later also use ``tykky deactivate`` to deactivate the environment.
 
-If you wish to make the use of the container permanent and avoid the need to load the ``tykky``module and activate it every time, you can add the following line to your ``.bashrc``:
+If you wish to make the use of the container permanent and avoid the need to load the ``tykky`` module and activate it every time, you can add the following line to your ``.bashrc``:
 
 .. code-block:: bash
 
