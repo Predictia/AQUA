@@ -43,7 +43,7 @@ class Timeseries(BaseMixin):
                          std_startdate=std_startdate, std_enddate=std_enddate,
                          region=region, lon_limits=lon_limits,
                          lat_limits=lat_limits, loglevel=loglevel)
-    
+
     def run(self, var: str, formula: bool = False, long_name: str = None,
             units: str = None, standard_name: str = None, std: bool = False,
             freq: list = ['monthly', 'annual'], extend: bool = True,
@@ -110,7 +110,7 @@ class Timeseries(BaseMixin):
                                    lon_limits=self.lon_limits, lat_limits=self.lat_limits)
         data = self.reader.timmean(data, freq=freq, exclude_incomplete=exclude_incomplete,
                                    center_time=center_time)
-        
+
         if extend:
             data = self._extend_data(data=data, freq=str_freq, center_time=center_time)
 
@@ -124,51 +124,51 @@ class Timeseries(BaseMixin):
             self.annual = data
 
     def _extend_data(self, data: xr.DataArray,
-                    freq: str = None, center_time: bool = True):
-            """
-            Extend the data with a loop if needed.
-            This works only for monthly and annual frequencies.
+                     freq: str = None, center_time: bool = True):
+        """
+        Extend the data with a loop if needed.
+        This works only for monthly and annual frequencies.
 
-            Args:
-                data (xr.DataArray): The data to be extended.
-                freq (str): The frequency of the data.
-                center_time (bool): If True, the time will be centered.
-            """
-            if freq == 'monthly' or freq == 'annual':
-                class_startdate = time_to_string(self.startdate, format='%Y%m%d')
-                class_enddate = time_to_string(self.enddate, format='%Y%m%d')
+        Args:
+            data (xr.DataArray): The data to be extended.
+            freq (str): The frequency of the data.
+            center_time (bool): If True, the time will be centered.
+        """
+        if freq == 'monthly' or freq == 'annual':
+            class_startdate = time_to_string(self.startdate, format='%Y%m%d')
+            class_enddate = time_to_string(self.enddate, format='%Y%m%d')
 
-                start_date = time_to_string(self.data.time[0].values, format='%Y%m%d')
-                end_date = time_to_string(self.data.time[-1].values, format='%Y%m%d')
+            start_date = time_to_string(self.data.time[0].values, format='%Y%m%d')
+            end_date = time_to_string(self.data.time[-1].values, format='%Y%m%d')
 
-                # if the center_time is True, we need to center the time of the start_date and end_date
-                    # to be able to compare them with the class_startdate and class_enddate
-                if center_time:
-                    start_date = center_time_str(time=start_date, freq=freq)
-                    end_date = center_time_str(time=end_date, freq=freq)
-                    class_startdate = center_time_str(time=class_startdate, freq=freq)
-                    class_enddate = center_time_str(time=class_enddate, freq=freq)
+            # if the center_time is True, we need to center the time of the start_date and end_date
+            # to be able to compare them with the class_startdate and class_enddate
+            if center_time:
+                start_date = center_time_str(time=start_date, freq=freq)
+                end_date = center_time_str(time=end_date, freq=freq)
+                class_startdate = center_time_str(time=class_startdate, freq=freq)
+                class_enddate = center_time_str(time=class_enddate, freq=freq)
 
-                # Extend the data if needed
-                if  class_startdate < start_date:
-                    self.logger.info('Extending back the start date from %s to %s', start_date, class_startdate)
-                    loop = loop_seasonalcycle(data=data, startdate=class_startdate, enddate=start_date,
-                                              freq=freq, center_time=center_time, loglevel=self.loglevel)
-                    data = xr.concat([loop, data], dim='time')
-                    data = data.sortby('time')
-                else:
-                    self.logger.debug(f'No extension needed for the start date: {start_date} <= {class_startdate}')
-
-                if class_enddate > end_date:
-                    self.logger.info('Extending the end date from %s to %s', end_date, class_enddate)
-                    loop = loop_seasonalcycle(data=data, startdate=end_date, enddate=class_enddate,
-                                            freq=freq, center_time=center_time, loglevel=self.loglevel)
-                    data = xr.concat([data, loop], dim='time')
-                    data = data.sortby('time')
-                else:
-                    self.logger.debug(f'No extension needed for the end date: {class_enddate} >= {end_date}')
-
-                return data
+            # Extend the data if needed
+            if class_startdate < start_date:
+                self.logger.info('Extending back the start date from %s to %s', start_date, class_startdate)
+                loop = loop_seasonalcycle(data=data, startdate=class_startdate, enddate=start_date,
+                                          freq=freq, center_time=center_time, loglevel=self.loglevel)
+                data = xr.concat([loop, data], dim='time')
+                data = data.sortby('time')
             else:
-                self.logger.warning(f"The frequency {freq} does not support extension")
-                return data
+                self.logger.debug(f'No extension needed for the start date: {start_date} <= {class_startdate}')
+
+            if class_enddate > end_date:
+                self.logger.info('Extending the end date from %s to %s', end_date, class_enddate)
+                loop = loop_seasonalcycle(data=data, startdate=end_date, enddate=class_enddate,
+                                          freq=freq, center_time=center_time, loglevel=self.loglevel)
+                data = xr.concat([data, loop], dim='time')
+                data = data.sortby('time')
+            else:
+                self.logger.debug(f'No extension needed for the end date: {class_enddate} >= {end_date}')
+
+            return data
+        else:
+            self.logger.warning(f"The frequency {freq} does not support extension")
+            return data

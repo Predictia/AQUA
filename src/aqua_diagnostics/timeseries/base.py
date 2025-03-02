@@ -1,11 +1,13 @@
 import os
 import xarray as xr
+
 from aqua.exceptions import NoDataError
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
 from aqua.util import frequency_string_to_pandas
 from aqua.util import load_yaml, eval_formula, convert_units
 from aqua.diagnostics.core import Diagnostic, start_end_dates
+
 
 class BaseMixin(Diagnostic):
     """Region selection mixin class. Used by """
@@ -134,7 +136,7 @@ class BaseMixin(Diagnostic):
         else:
             data = self.data
             data = self.reader.fldmean(data, box_brd=box_brd,
-                                    lon_limits=self.lon_limits, lat_limits=self.lat_limits)
+                                       lon_limits=self.lon_limits, lat_limits=self.lat_limits)
             data = self.reader.timmean(data, freq=freq, exclude_incomplete=exclude_incomplete,
                                        center_time=center_time)
         data = data.sel(time=slice(self.std_startdate, self.std_enddate))
@@ -154,7 +156,7 @@ class BaseMixin(Diagnostic):
                     outputdir: str = './', rebuild: bool = True):
         """
         Save the data to a netcdf file.
-        
+
         Args:
             diagnostic (str): The diagnostic to be saved.
             freq (str): The frequency of the data.
@@ -247,7 +249,7 @@ class BaseMixin(Diagnostic):
         """
         Args:
             freq (str): The frequency to be used.
-        
+
         Returns:
             str_freq (str): The frequency as a string.
         """
@@ -262,5 +264,5 @@ class BaseMixin(Diagnostic):
         else:
             self.logger.error('Frequency %s not recognized', freq)
             raise ValueError('Frequency %s not recognized' % freq)
-        
+
         return str_freq
