@@ -29,8 +29,20 @@ class SeaIce(Diagnostic):
                          startdate=startdate, enddate=enddate,
                          loglevel=loglevel)
         self.logger = log_configure(loglevel, 'SeaIce')
+
+        # check region file and defined regions 
+        self.load_regions(regions_file=regions_file, regions=regions)
+
+    def load_regions(self, regions_file=None, regions=None):
+        """
+        Loads region definitions from a .yaml configuration file and sets the regions.
+        If no regions are provided, it uses all available regions from the configuration.
         
-        # region file is the fullpath to the region file
+        Args:
+            regions_file (str): Full path to the region file. If None, a default path is used.
+            regions (list): A region or list of regions to load. If None, all regions are used.
+        """
+        # determine the region file path if not provided
         if regions_file is None:
             folderpath = ConfigPath().get_config_dir()
             regions_file = os.path.join(folderpath, 'diagnostics', 'seaice', 'config', 'regions_definition.yaml')
@@ -38,25 +50,27 @@ class SeaIce(Diagnostic):
         # load the region file
         self.regions_definition = load_yaml(infile=regions_file)
 
+        # check if specific regions were provided
         if regions is None:
             self.logger.warning('No regions defined. Using all available regions.')
             self.regions = list(self.regions_definition.keys())
         else:
-            # if only one region is given as a string, it is converted to a list of strings with only one element
-            # to avoid characters splitting. If the region is not in the regions_definition file, it will be added to the invalid_regions list.
+            # if the region is not in the regions_definition file, it will be added to the invalid_regions list.
+            # convert regions to a list if a single string was provided to avoid chars splitting
             invalid_regions = [reg for reg in to_list(regions) if reg not in self.regions_definition.keys()]
 
-            # If invalid regions are found, raise an error and list them
+            # if any invalid regions are found, raise an error
             if invalid_regions:
-                raise ValueError(f"Invalid region name(s): [{', '.join(f'{i}' for i in invalid_regions)}]. Please check the region file at: f'{regions_file}'.")
+                raise ValueError(f"Invalid region name(s): [{', '.join(f'{i}' for i in invalid_regions)}]. "
+                                 f"Please check the region file at: '{regions_file}'.")
             
             self.regions = to_list(regions)
-        
-        self.extent = None
 
     def show_regions(self):
         """Show the regions available in the region file. Method for the user."""
-
+        # check regions_definition is defined in the class or not None
+        if not hasattr(self, 'regions_definition') or self.regions_definition is None:
+            raise ValueError("No regions_definition found.")
         return dict(self.regions_definition)
 
     @staticmethod
