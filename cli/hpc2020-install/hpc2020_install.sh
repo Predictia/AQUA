@@ -5,7 +5,7 @@
 # Usage
 # bash hpc2020_install.sh 
 # or
-# AQUA=/path/to/aqua; bash hpc2020_install.sh 
+# AQUA=/path/to/aqua bash hpc2020_install.sh 
 
 set -e
 
@@ -15,7 +15,7 @@ if [[ -z "$AQUA" ]]; then
     echo -e "\033[0;31mWarning: We are assuming AQUA is installed in your HPCPERM, i.e. $HPCPERM/AQUA"
     echo -e "\x1b[38;2;255;165;0mAlternatively, define the AQUA environment variable with the path to your 'AQUA' directory."
     echo -e "For example: export AQUA=/path/to/aqua\033[0m"
-    export AQUA=$HPCPERM/AQUA
+    AQUA=$HPCPERM/AQUA
 fi
 
 if [[ ! -d  $AQUA ]] ; then
@@ -28,6 +28,11 @@ else
 fi
 
 setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
+
+log_message WARNING "Installation on a login node may fail. It is better to ask for adequate resources using for example"
+log_message WARNING "ecinteractive -c 8 -m 20 -s 30"
+log_message WARNING "NOTE: If this is the first time that you use ecinteractive, remember to run the command 'ssh-key-setup' first (this needs to be done only once)."
+
 #####################################################################
 # Begin of user input
 
@@ -39,29 +44,24 @@ export INSTALLATION_PATH="$HPCPERM/tykky/aqua"
 log_message INFO "Installation path has been set to ${INSTALLATION_PATH}"
 
 install_aqua() {
-  # clean up environment
-  module reset
-  log_message INFO "Environment has been cleaned up."
 
-  # load modules
+  # load modules. tykky substitutes all other modules, so that a reset is not needed
   module load tykky
   log_message INFO "tykky module has been loaded."
   
   # Fix environment.yml
   SCRIPTDIR="${AQUA}/cli/hpc2020-install"
-  cp $AQUA/environment.yml $SCRIPTDIR/environment_hpc2020.yml
-  sed -i '' 's/- imagemagick/# - imagemagick/' $SCRIPTDIR/environment_hpc2020.yml  # imagemagick has a buggy dependency, it needs to be installed separately
-  sed -i '' 's;-e ./;-e $AQUA;' $SCRIPTDIR/environment_hpc2020.yml  # replace relative paths with $AQUA
-
-  # install AQUA framework and diagnostics
+  sed 's/- imagemagick/# - imagemagick/' ../../environment.yml >$SCRIPTDIR/environment_hpc2020.yml  # imagemagick has a buggy dependency, it needs to be installed separately 
+  sed -i.bak "s;- -e .;- -e $AQUA;" $SCRIPTDIR/environment_hpc2020.yml  # replace relative paths with $AQUA
+  
   # update.sh is needed to fix the imagemagick bug
-
   echo "#!/bin/bash" > $SCRIPTDIR/update.sh
   echo "conda install -y -c conda-forge imagemagick" >> $SCRIPTDIR/update.sh
 
+  # install AQUA framework and diagnostics
   conda-containerize new --mamba --post-install $SCRIPTDIR/update.sh --prefix "${INSTALLATION_PATH}" $SCRIPTDIR/environment_hpc2020.yml
 
-  # rm $SCRIPTDIR/environment_hpc2020.yml $SCRIPTDIR/update.sh 
+  rm $SCRIPTDIR/environment_hpc2020.yml $SCRIPTDIR/environment_hpc2020.yml.bak $SCRIPTDIR/update.sh 
   log_message INFO "AQUA framework and diagnostics have been installed."
 }
 
@@ -114,25 +114,25 @@ fi
 log_message $next_level_msg_type "On HPC2020 you can use AQUA either by using the tykky module (tykky activate aqua) or by adding AQUA to your PATH."
 log_message $next_level_msg_type "Please note that adding AQUA to your PATH will make you use the aqua environment for all activities on HPC2020, so the first option is highly recommended."
 
+# ask if you want to make the container the default
 while true; do
-  log_message $next_level_msg_type "Would you like to use tykky and add the module to your .bash_profile? (y/n) "
+  log_message $next_level_msg_type "Would you add AQUA to your PATH in .bash_profile (not recommended)? (y/n) "
   # Read the user's input
   read -n 1 -r
   echo
   case $REPLY in
     [Yy])
-      if ! grep -q "module load tykky" ~/.bash_profile; then
-        echo "module load tykky" >> ~/.bash_profile
-        log_message INFO 'module load tykky added to your .bash_profile.'
+      if ! grep -q 'export PATH="'$INSTALLATION_PATH'/bin:$PATH"' ~/.bash_profile; then
+        echo 'export PATH="'$INSTALLATION_PATH'/bin:$PATH"' >>  ~/.bash_profile
+        log_message INFO 'AQUA addaed to your PATH in your .bash_profile.'
       else
-        log_message WARNING 'module load tykky is already in your bash profile, not adding it again!'
+        log_message WARNING 'AQUA is already in PATH in your bash profile, not adding it again!'
       fi
-      ftykky=true
       break
       ;;
     [Nn])
-      log_message WARNING "module load tykky not added to .bash_profile"
-      ftykky=false
+      log_message WARNING "AQUA not added to PATH in .bash_profile"
+      log_message $next_level_msg_type "You can use AQUA by loading the tykky module (module load tykky) and then activating the environment (tykky activate aqua)"
       break
       ;;
     *)
@@ -140,33 +140,5 @@ while true; do
       ;;
   esac
 done
-
-# ask if you want to make the container the default
-if [[ "$ftykky" == false ]]; then
-  while true; do
-    log_message $next_level_msg_type "Would you add AQUA to your PATH in .bash_profile? (y/n) "
-    # Read the user's input
-    read -n 1 -r
-    echo
-    case $REPLY in
-      [Yy])
-        if ! grep -q 'export PATH="'$INSTALLATION_PATH'/bin:$PATH"' ~/.bash_profile; then
-          echo 'export PATH="'$INSTALLATION_PATH'/bin:$PATH"' >>  ~/.bash_profile
-          log_message INFO 'AQUA addaed to your PATH in your .bash_profile.'
-        else
-          log_message WARNING 'AQUA is already in PATH in your bash profile, not adding it again!'
-        fi
-        break
-        ;;
-      [Nn])
-        log_message WARNING "AQUA not added to PATH in .bash_profile"
-        break
-        ;;
-      *)
-        log_message ERROR "Invalid response. Please enter 'y' or 'n'."
-        ;;
-    esac
-  done
-fi
 
 log_message WARNING "AQUA environment has been installed, please remember to to run 'aqua install' and 'aqua add lumi'"

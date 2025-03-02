@@ -238,48 +238,58 @@ In fact, using directly conda or mamba on lustre filesystems (``$PERM`` and ``$H
 and has been verified to lead to severe performance issues.
 
 The recommended approach is to use the `tykky module <https://docs.csc.fi/computing/containers/tykky/>`_ developed by CSC, and available on HPC2020, which provides
-the same container wrapper technology as what we use for an install on LUMI. 
+the same container wrapper technology used for an install on LUMI. 
 This process is also described in the relevant HPC2020 `documentation pages <https://confluence.ecmwf.int/display/UDOC/Moving+away+from+Anaconda+and+Miniconda>`_.
 
-Due to a bug during the installation of the ``perl`` package (a dependency of ``ìmagemagick``) it is recomended to comment, before proceeding, the ``ìmagemagick`` dependency
-in ``environment.yml``. This will allow AQUA to work in full but it will prevent uploading figures in png format to aqua-web. A fix is under development.
+While basically you could follow the instructions in the ECMWF docs on how to create a tykky environment, a small bug in one of the AQUA dependencies requires a slightly 
+more complex procedure, so that, as for LUMI, a convenience installation script has been created.
 
-In order to speed up creation of the container, it is recommended to start an interactive session asking for adequate resources (just for creating the container environment):
+First, clone the AQUA repository from GitHub as described in the previous section.
+
+The installation process uses considerable resources which may exceed the capacity of the login node.
+For this reason, it is recommended to start an interactive session asking for adequate resources:
 
 .. code-block:: bash
 
     ecinteractive -c 8 -m 20 -s 30
 
-which will ask for a session with 8 cpus, 20 GB of RAM and 30 GB of temporary local disk storage.
+which will ask for a session with 8 cpus, 20 GB of RAM and 30 GB of temporary local disk storage. This is required only for the installation, not necessarily for using AQUA.
 
 .. note ::
     If this is the first time that you run ``ecinteractive``, you should first set up your ssh keys by running the command ``ssh-key-setup``.
 
-After cloning AQUA, an environment using a Apptainer (Singularity) container can be created as follows
+It is recommended to define an ``$AQUA`` environment variable that points to the AQUA directory (the script will assume by default ``AQUA=$HPCPERM/AQUA``):
 
 .. code-block:: bash
 
+    export AQUA=/path/to/AQUA
+
+Then run the the installation script:
+
+.. code-block:: bash
+
+    cd $AQUA/cli/hpc2020-install
+    ./hpc2020-install.sh
+
+The script installs by default the AQUA tykky environment in the directory ``$HPCPERM/tykky/aqua``.
+
+The script will ask the user if they wish to add the AQUA environment  permanently to their ``$PATH`` in the ``.bash_profile`` file at the end of the installation.
+Please note that adding AQUA to your PATH will make you use the aqua environment for all activities on HPC2020, so this is not really recommended.
+
+Instead, the recommended way to use AQUA is by loading the environment with a conda-like syntax:
+
+.. code-block:: bash
+    
     module load tykky
-    conda-containerize new --mamba --prefix $TYKKY_PATH/aqua environment.yml 
-
-where ``$TYKKY_PATH`` is the path to the directory where you want to store the container and is set up by default by 
-the ``tykky`` module as ``$HPCPERM/tykky``. It is indeed recommended to store  the container in ``$HPCPERM`` for performance reasons.
-
-After this it becomes possible to use AQUA by loading the environent with a conda-like syntax.
-
-.. code-block:: bash
-
     tykky activate aqua
 
 You can later also use ``tykky deactivate`` to deactivate the environment.
 
-If you wish to make the use of the container permanent and avoid the need to load the ``tykky`` module and activate it every time, you can add the following line to your ``.bashrc``:
+In case you plan to use Visual Studio Code, you can add a kernel pointing to the containerized AQUA by running also the following command:
 
 .. code-block:: bash
 
-    export PATH="$HPCPERM/tykky/aqua/bin:$PATH"
-
-(adapt the path to the location of the container).
+    $HPCPERM/tykky/aqua/bin/python3 -m ipykernel install --user --name=<my_containerised_env_name>
 
 
 Installation and use of the AQUA container
