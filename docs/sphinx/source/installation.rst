@@ -228,7 +228,7 @@ To use the FDB5 binary library on MN5, set the following environment variable:
     export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/gpfs/projects/ehpc01/sbeyer/models/DE_CY48R1.0_climateDT_tco399_aerosol_runoff/build/lib"
 
 
-.. _installation-lumi:
+.. _installation-hpc2020:
 
 Installation on ECMWF HPC2020
 -----------------------------
