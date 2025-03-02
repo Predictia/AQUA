@@ -89,7 +89,7 @@ class SeaIce(Diagnostic):
         seaice_computed.attrs["long_name"] = f"{'Std ' if std_flag else ''}Sea ice {method} integrated over {region} region"
         seaice_computed.attrs["standard_name"] = f"{region}_{'std_' if std_flag else ''}sea_ice_{method}"
         seaice_computed.attrs["method"] = f"{method}"
-        seaice_computed.attrs["method"] = f"{region}"
+        seaice_computed.attrs["region"] = f"{region}"
         seaice_computed.name = f"{'std_' if std_flag else ''}sea_ice_{method}_{region.replace(' ', '_').lower()}"
 
     def integrate_seaice_masked_data(self, masked_data, method: str, region: str):
