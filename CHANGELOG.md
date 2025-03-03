@@ -9,6 +9,7 @@ Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
 - Reader intake-xarray sources can select a coder for time decoding (#1778)
+- Document use of AQUA on ECMWF HPC2020 (#1782)
 - Added history logging for lat-lon in area selection (#1479)
 - Cleaner workflow and pytest/coverage configuration (#1755, #1758)
 - catalog, model, exp, source info are now stored in the DataArray attributes (#1753)
@@ -28,6 +29,7 @@ AQUA core complete list:
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
 
 AQUA diagnostics complete list:
+- Diagnostic core: A common function to load the diagnostic config file is provided (#1750)
 - Global bias: add test (#1675)
 - Diagnostic core: Add additional command-line arguments for configuration and processing options (#1745)
 - Global bias: Handling plev and using scientific notation in contour plots (#1649)
