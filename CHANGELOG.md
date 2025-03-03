@@ -8,14 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
-- Cleaner workflow and pytest/coverage configuration (#1755)
+- Added history logging for lat-lon in area selection (#1479)
+- Cleaner workflow and pytest/coverage configuration (#1755, #1758)
 - catalog, model, exp, source info are now stored in the DataArray attributes (#1753)
 - Avoid infinite hanging during bridge access (#1733, #1738)
 - Enable dependabot to monitor dependencies every month (#1748)
 - `eccodes` bump to 2.40.0 (#1747)
 - Integrate codecov to monitor coverage and test analytics and remove old bot (#1736, #1737, #1755)
 - Reinitialize `GSVRetriever` instance only when needed (#1733)
-- Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732, #1743)
+- Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732, #1743, #1762)
 - Fix `push_analysis.sh` options and `aqua_analysis.py` config paths (#1723, #1754)
 - Enable zip compression for LRA yearly files (#1726)
 - Enable publication of documentation on ReadTheDocs (#1699, #1716)
@@ -26,6 +27,7 @@ AQUA core complete list:
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
 
 AQUA diagnostics complete list:
+- Global bias: add test (#1675)
 - Diagnostic core: Add additional command-line arguments for configuration and processing options (#1745)
 - Global bias: Handling plev and using scientific notation in contour plots (#1649)
 - Ecmean: Fix net surface radiative flux and wind stresses in ecmean (#1696)
