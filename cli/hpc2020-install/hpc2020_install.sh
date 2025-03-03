@@ -132,7 +132,7 @@ while true; do
       ;;
     [Nn])
       log_message WARNING "AQUA not added to PATH in .bash_profile"
-      log_message $next_level_msg_type "You can use AQUA by loading the tykky module (module load tykky) and then activating the environment (tykky activate aqua)"
+      log_message $next_level_msg_type "You can use AQUA by loading the tykky module 'module load tykky' and then activating the environment 'tykky activate aqua'"
       break
       ;;
     *)
@@ -141,4 +141,4 @@ while true; do
   esac
 done
 
-log_message WARNING "AQUA environment has been installed, please remember to to run 'aqua install' and 'aqua add lumi'"
+log_message WARNING "AQUA environment has been installed, please remember to run 'aqua install' and 'aqua add hpc2020' (hpc2020 is the name of this machine in AQUA syntax)"
