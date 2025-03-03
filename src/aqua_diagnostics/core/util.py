@@ -29,6 +29,8 @@ def template_parse_arguments(parser: argparse.ArgumentParser):
                         required=False, help="experiment name")
     parser.add_argument("--source", type=str,
                         required=False, help="source name")
+    parser.add_argument('--regrid', type=str, 
+                        required=False, help='Regrid target grid')
     parser.add_argument("--config", "-c", type=str,
                         help='yaml configuration file')
     parser.add_argument("--nworkers", "-n", type=int,
