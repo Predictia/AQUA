@@ -88,8 +88,8 @@ def main():
     vertical = config['diagnostic_attributes'].get('vertical', False)
     regrid = get_arg(args, 'regrid', config['diagnostic_attributes'].get('regrid'))
 
-    logger.debug(f"Data read from Catalog: {catalog_data}; Model: {model_data}; Exp: {exp_data}; Source: {source_data}; Regrid: {regrid_data}")
-    logger.debug(f"Observations read from Catalog: {catalog_obs}; Model: {model_obs}; Exp: {exp_obs}; Source: {source_obs}; Regrid: {regrid_data}")
+    logger.debug(f"Data read from Catalog: {catalog_data}; Model: {model_data}; Exp: {exp_data}; Source: {source_data}; Regrid: {regrid}")
+    logger.debug(f"Observations read from Catalog: {catalog_obs}; Model: {model_obs}; Exp: {exp_obs}; Source: {source_obs}; Regrid: {regrid}")
 
     # Retrieve data and handle potential errors
     try:
