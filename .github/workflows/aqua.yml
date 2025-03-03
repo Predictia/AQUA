@@ -148,8 +148,14 @@ jobs:
         run: |
           # Produce the XML report
           cd AQUA
-          pytest --cov=aqua --cov-report=xml --cov-branch -m "aqua or slow or gsv or graphics or catgen or timeseries or ecmean or teleconnections"
+          # produce a xml report and a junit report to be used by codecov. Please notice other options are set in pyproject.toml
+          pytest --cov-report=xml --junitxml=junit.xml -o junit_family=legacy -m "aqua or slow or gsv or graphics or catgen or diagnostics"
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

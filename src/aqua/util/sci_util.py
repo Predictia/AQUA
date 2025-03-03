@@ -1,6 +1,6 @@
 """Module for scientific utility functions."""
 import xarray as xr
-from aqua.logger import log_configure
+from aqua.logger import log_configure, log_history
 
 # set default options for xarray
 xr.set_options(keep_attrs=True)
@@ -75,6 +75,8 @@ def area_selection(data=None, lat=None, lon=None,
     if drop:
         data = data.dropna(dim='lon', how='all')
         data = data.dropna(dim='lat', how='all')
+
+    data = log_history(data, f"Area selection: lat={lat}, lon={lon}")
 
     return data
 

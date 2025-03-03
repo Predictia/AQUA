@@ -178,6 +178,21 @@ class TestGsv():
         data = reader.retrieve(level=[900, 800])  # Read only two levels
         assert data.t.isel(plev=1).mean().values == pytest.approx(271.2092), "Field values incorrect"
 
+    def test_reader_bridge(self) -> None:
+        """
+        Reading from a datasource using bridge
+        """
+
+        reader = Reader(model="IFS", exp="test-fdb", source="fdb-bridge", loglevel=loglevel)
+        data = reader.retrieve()
+        # Test if the correct dates have been found
+        assert "1990-01-01T00:00" in str(data.time[0].values)
+        assert "1990-01-02T00:00" in str(data.time[-1].values)
+        # Test if the data can actually be read and contain the expected values
+        assert data.tcc.isel(time=0).values.mean() == pytest.approx(65.30221138649116)  # This is from HPC
+        assert data.tcc.isel(time=15).values.mean() == pytest.approx(65.62109108718757)  # This is from the bridge
+        assert data.tcc.isel(time=-1).values.mean() == pytest.approx(66.87973267265382)  # This is from HPC again
+
     def test_reader_auto(self) -> None:
         """
         Reading from a datasource using new operational schema and auto dates
@@ -214,7 +229,9 @@ class TestGsv():
 
     def test_fdb_from_file(self) -> None:
         """
-        Reading fdb dates from a file
+        Reading fdb dates from a file.
+        First test with a file that contains both data and bridge dates.
+        Second test with a file that contains only data dates.
         """
         source = GSVSource(DEFAULT_GSV_PARAMS['request'],  "20080101", "20080101",
                            metadata={'fdb_home': FDB_HOME, 'fdb_home_bridge': FDB_HOME,
@@ -225,3 +242,11 @@ class TestGsv():
         assert source.data_end_date == '19900103T2300'
         assert source.bridge_start_date == '19900101T0000'
         assert source.bridge_end_date == '19900102T2300'
+
+        source = GSVSource(DEFAULT_GSV_PARAMS['request'],  "20080101", "20080101",
+                           metadata={'fdb_home': FDB_HOME, 'fdb_home_bridge': FDB_HOME,
+                                     'fdb_info_file': 'tests/catgen/fdb_info_hpc-only.yaml'},
+                            loglevel=loglevel)
+        
+        assert source.data_start_date == '19900101T0000'
+        assert source.data_end_date == '19900103T2300'

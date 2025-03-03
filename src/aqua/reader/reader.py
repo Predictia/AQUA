@@ -593,6 +593,12 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
         if self.preproc:
             data = self.preproc(data)
 
+        #add info metadata in each dataset
+        info_metadata={'model': self.model,  'exp':   self.exp,
+                       'source':self.source, 'catalog':self.catalog}
+        
+        data = set_attrs(data, info_metadata )
+
         return data
 
     def _index_and_level(self, data, level=None):

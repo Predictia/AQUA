@@ -3,8 +3,8 @@ coverage:
   status:
     project:
       default:
-        target: auto   
-        threshold: 1%  # Allow a 1% drop without failing
+        target: 55%   
+        threshold: 0.1%  # Allow a 0.1% drop without failing
 
 ignore:
   - "tests/*"          # Ignore test files
