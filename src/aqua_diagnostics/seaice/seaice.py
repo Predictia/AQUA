@@ -40,7 +40,7 @@ class SeaIce(Diagnostic):
         
         Args:
             regions_file (str): Full path to the region file. If None, a default path is used.
-            regions (list): A region or list of regions to load. If None, all regions are used.
+            regions (list): A region or list of str with regions name to load. If None, all regions are used.
         """
         # determine the region file path if not provided
         if regions_file is None:
@@ -122,6 +122,8 @@ class SeaIce(Diagnostic):
             # compute sea ice extent: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to million km^2
             seaice_metric = areacello.where(masked_data.notnull()).sum(skipna = True, min_count = 1, 
                                                                        dim=self.reader.space_coord) / 1e12
+            # keep attributes from the retrieved data
+            seaice_metric.attrs = masked_data.attrs
         elif method == 'volume':
             # compute sea ice volume: exclude areas with no sea ice and sum over the spatial dimension, , divide by 1e12 to convert to thousand km^3
             seaice_metric = (masked_data * areacello.where(masked_data.notnull())).sum(skipna = True, min_count = 1, 
