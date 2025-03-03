@@ -141,4 +141,5 @@ while true; do
   esac
 done
 
-log_message WARNING "AQUA environment has been installed, please remember to run 'aqua install' and 'aqua add hpc2020' (hpc2020 is the name of this machine in AQUA syntax)"
+log_message WARNING "AQUA environment has been installed, please remember to run 'aqua install hpc2020' and 'aqua add hpc2020 -e <path/to/your/catalogue>'"
+log_message WARNING "hpc2020 is the name of this machine in AQUA syntax. You will need to provide a catalogue for hpc2020 in order to use the diagnostics."
