@@ -32,7 +32,9 @@ jobs:
     if: > 
       contains(github.event.pull_request.labels.*.name, 'run tests') || 
       contains(github.event.pull_request.labels.*.name, 'ready to merge') || 
-      github.actor == 'dependabot[bot]'
+      github.actor == 'dependabot[bot]' ||
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule'
     env:
       DEBIAN_FRONTEND: noninteractive
       GRID_DEFINITION_PATH: /tmp
