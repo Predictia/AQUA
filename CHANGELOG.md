@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
+- Limit estimation of time for weight generation only to regular lon/lat grids (#1786)
 - Document use of AQUA on ECMWF HPC2020 (#1782)
 - Added history logging for lat-lon in area selection (#1479)
 - Cleaner workflow and pytest/coverage configuration (#1755, #1758)
