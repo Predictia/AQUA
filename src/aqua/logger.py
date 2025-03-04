@@ -113,7 +113,7 @@ def log_history(data, msg):
         data: a dataset or a dataarray
         msg: a string with the message to be logged
     Returns:
-        The dataset or the iterator with the history attribute updated
+        The dataset with the history attribute updated
     """
     now = datetime.datetime.now()
     date_now = now.strftime("%Y-%m-%d %H:%M:%S")

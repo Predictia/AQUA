@@ -630,7 +630,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
         Reader.instance = self  # Refresh the latest reader instance used
 
     def regrid(self, data):
-        """Call the regridder function returning container or iterator"""
+        """Call the regridder function returning container"""
 
         if self.dst_grid_name is None:
             raise NoRegridError('regrid has not been initialized in the Reader, cannot perform any regrid.')
