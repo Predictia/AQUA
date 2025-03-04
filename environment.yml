@@ -23,7 +23,7 @@ dependencies:
   - xesmf # for ECmean
   - intake-esm
   - imagemagick
-  - zarr<3.0.0 # Kerchunk is not compatible with zarr 3.0.0 (https://github.com/fsspec/kerchunk/pull/516)
+  - zarr
   - pip:
     - -e ./diagnostics/ocean3d/ # pip install -e of ocean3d
     - -e ./diagnostics/seaice/ # pip install -e of seaice
