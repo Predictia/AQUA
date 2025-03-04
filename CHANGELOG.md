@@ -9,6 +9,7 @@ Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
 - LRA generation can operate spatial subsection (#1711)
+- Attributes added by AQUA are now "AQUA_" prefixed (#1790)
 - Remove zarr pin (#1794)
 - Reader intake-xarray sources can select a coder for time decoding (#1778)
 - Document use of AQUA on ECMWF HPC2020 (#1782)
@@ -31,6 +32,7 @@ AQUA core complete list:
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
 
 AQUA diagnostics complete list:
+- Diagnostic core: documentation about class and config file structure (#1790)
 - Diagnostic core: A common function to load the diagnostic config file is provided (#1750)
 - Global bias: add test (#1675)
 - Diagnostic core: Add additional command-line arguments for configuration and processing options (#1745)
