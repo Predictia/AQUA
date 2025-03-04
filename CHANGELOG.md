@@ -9,6 +9,7 @@ Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
 - LRA generation can operate spatial subsection (#1711)
+- Remove zarr pin (#1794)
 - Reader intake-xarray sources can select a coder for time decoding (#1778)
 - Document use of AQUA on ECMWF HPC2020 (#1782)
 - Added history logging for lat-lon in area selection (#1479)
