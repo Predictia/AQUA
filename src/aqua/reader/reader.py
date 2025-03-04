@@ -566,10 +566,10 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
                 if not hasattr(data[var], 'units'):
                     self.logger.warning('Variable %s has no units!', var)
 
-            if self.streaming:
-                data = self.streamer.stream(data)
-            elif startdate and enddate and not ffdb:  # do not select if data come from FDB (already done)
-                data = data.sel(time=slice(startdate, enddate))
+        if self.streaming:
+            data = self.streamer.stream(data)
+        elif startdate and enddate and not ffdb:  # do not select if data come from FDB (already done)
+            data = data.sel(time=slice(startdate, enddate))
 
         if isinstance(data, xr.Dataset):
             data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
@@ -633,7 +633,8 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
 
         if self.dst_grid_name is None:
             raise NoRegridError('regrid has not been initialized in the Reader, cannot perform any regrid.')
-            return self._regrid(data)
+
+        return self._regrid(data)
 
     def _regridgen(self, data):
         for ds in data:
