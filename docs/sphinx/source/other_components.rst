@@ -259,6 +259,7 @@ AQUA also provides a simple way to move the computation done by dask to a comput
 The description of this feature is provided in the section :ref:`slurm`.
 
 .. _data-provenance:
+
 Data provenance
 ---------------
 
@@ -271,6 +272,8 @@ This is done by the ``Reader`` and it is under implementation for diagnostics as
 
 A function ``log_history`` is available in the ``aqua.logger`` module to log in this attribute for a specific dataset.
 This can be used as well to log the history of the operations performed on the data in custom scripts.
+
+.. _graphic-tools:
 
 Graphic tools
 -------------
