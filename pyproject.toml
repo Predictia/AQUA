@@ -43,7 +43,7 @@ dependencies = [
     "gcsfs", # Google Cloud Storage File System
     "gribscan",
     "pandas",
-    "intake==0.7.0", # Version 2 is not yet compatible with intake-xarray
+    "intake==0.7.0", # Version 2 is a major refactor still in development
     "intake-esm",
     "intake-xarray",
     "jinja2",
