@@ -152,6 +152,7 @@ class TestRegridder():
         assert val == pytest.approx(274.9045)
 
 
+@pytest.mark.aqua
 def test_non_latlon_interpolation(capsys):
     """
     Test interpolation to a non regular grid,
