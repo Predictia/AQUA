@@ -162,6 +162,7 @@ In this section we provide some guidelines for the development of new diagnostic
 .. toctree::
    :maxdepth: 1
 
+   guidelines/class_structure
    guidelines/output_management
    guidelines/configuration_files
    guidelines/default_parser
