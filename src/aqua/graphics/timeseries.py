@@ -51,7 +51,7 @@ def plot_timeseries(monthly_data=None,
 
     if monthly_data is not None:
         if isinstance(monthly_data, xr.DataArray):
-            monthly_data = to_list(monthly_data)
+            monthly_data = [monthly_data]
         for i in range(len(monthly_data)):
             color = color_list[i]
             try:
