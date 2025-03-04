@@ -151,7 +151,6 @@ class LRAgenerator():
         self.logger.info('Variable(s) to be processed: %s', self.var)
 
         if region is not None:
-            self.logger.info('Region to be processed: %s', region)
             self.region = region
             if self.region['name'] is None:
                 raise KeyError('Please specify name in region.')

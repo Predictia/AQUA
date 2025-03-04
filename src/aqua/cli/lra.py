@@ -134,6 +134,26 @@ def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, l
     Running the default LRA from CLI, looping on all the configuration model/exp/source/var combination
     Optional feature for each source can be defined as `zoom`, `workers` and `realizations`
     Options for dry run and overwriting, as well as monitoring and zarr creation, are available
+
+    Args:
+        args: argparse arguments
+        config: configuration dictionary
+        catalog: catalog to be processed
+        resolution: resolution of the LRA
+        frequency: frequency of the LRA
+        fix: fixer option
+        outdir: output directory
+        tmpdir: temporary directory
+        loglevel: log level
+        region: region to be processed
+        definitive: bool flag to create definitive files
+        overwrite: bool flag to overwrite existing files
+        rebuild: bool flag to rebuild the areas and weights
+        default_workers: default number of workers
+        monitoring: bool flag to enable the dask monitoring
+        do_zarr: bool flag to create zarr
+        verify_zarr: bool flag to verify zarr
+        only_catalog: bool flag to only update the catalog
     """
 
     models = to_list(get_arg(args, 'model', config['data']))
