@@ -41,9 +41,7 @@ class TestLRA():
                             frequency='monthly', definitive=True,
                             loglevel=loglevel, nproc=nworkers)
         test.retrieve()
-        year = test.data.sel(time=test.data.time.dt.year == 2020)
-        month = year.sel(time=year.time.dt.month == 1)
-        test.data = month
+        test.data = test.data.sel(time="2020-01")
         test.generate_lra()
         path = os.path.join(os.getcwd(), outdir,lrapath,
                             "2t_test-tco79_r100_monthly_202001.nc")
@@ -54,6 +52,27 @@ class TestLRA():
         assert pytest.approx(file['2t'][0, 1, 1].item()) == 248.0704
         shutil.rmtree(os.path.join(os.getcwd(), outdir))
 
+    def test_regional_subset(self, lra_arguments):
+        """Test the LRA generator with regional subset"""
+        model, exp, source, var, outdir, tmpdir = lra_arguments
+        region = { 'name': 'europe', 'lon': [-10, 30], 'lat': [35, 70] }
+        test = LRAgenerator(catalog='ci', model=model, exp=exp, source=source, var=var,
+                            outdir=outdir, tmpdir=tmpdir, resolution='r100',
+                            frequency='daily', definitive=True,
+                            loglevel=loglevel, region=region)
+        test.retrieve()
+        test.data = test.data.sel(time="2020-01-20")
+        test.generate_lra()
+        lrapath2 = 'ci/IFS/test-tco79/r100/daily'
+        path = os.path.join(os.getcwd(), outdir,lrapath2,
+                            "2t_test-tco79_r100_daily_europe_202001.nc")
+        assert os.path.isfile(path)
+        xfield = xr.open_dataset(path)
+        xfield = xfield.where(xfield.notnull(), drop=True)
+        assert xfield.lat.min() > 35
+        assert xfield.lat.max() < 70
+        shutil.rmtree(os.path.join(os.getcwd(), outdir))
+        
     # test with definitive = True and  catalog netcdf and zarr entry
     def test_zarr_entry(self, lra_arguments):
         """

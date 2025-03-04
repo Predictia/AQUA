@@ -68,8 +68,9 @@ class LRAgenerator():
                                      are found
             nproc (int, opt):        Number of processors to use. default is 1
             loglevel (string, opt):  Logging level
-            region (dict, opt):    Region to be processed, default is None, 
-                                     meaning the full globe
+            region (dict, opt):      Region to be processed, default is None, 
+                                     meaning the full globe. 
+                                     Requires 'name' (str), 'lon' (list) and 'lat' (list)
             overwrite (bool, opt):   True to overwrite existing files in LRA,
                                      default is False
             definitive (bool, opt):  True to create the output file,
@@ -414,7 +415,7 @@ class LRAgenerator():
             self.logger.info('Verifying that zarr entry can be loaded...')
             try:
                 reader = Reader(model=self.model, exp=self.exp, source=entry_name)
-                data = reader.retrieve()
+                _ = reader.retrieve()
                 self.logger.info('Zarr entry successfully created!!!')
             except (KeyError, ValueError) as e:
                 self.logger.error('Cannot load zarr LRA with error --> %s', e)
