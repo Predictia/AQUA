@@ -6,7 +6,7 @@ approx_rel = 1e-4
 loglevel = 'DEBUG'
 
 
-@pytest.mark.teleconnections
+@pytest.mark.diagnostics
 def test_class_NAO():
     """
     Test that the NAO class works

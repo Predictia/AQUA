@@ -106,4 +106,9 @@ class TestAqua:
         reader = Reader(model=model, exp=exp, source=source, regrid=regrid,
                         fix=False, loglevel=loglevel)
         data = reader.retrieve()
+
+        # Check the time precision
+        if model == 'NEMO':
+            assert data.time.values[0].dtype == 'datetime64[s]'
+
         assert len(data) > 0

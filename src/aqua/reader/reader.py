@@ -1204,6 +1204,10 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
         Returns:
             Dataset
         """
+        # The coder introduces the possibility to specify a time decoder for the time axis
+        if 'time_coder' in esmcat.metadata:
+            coder = xr.coders.CFDatetimeCoder(time_unit=esmcat.metadata['time_coder'])
+            esmcat.xarray_kwargs.update({'decode_times': coder})
 
         data = esmcat.to_dask()
 

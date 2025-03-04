@@ -110,6 +110,7 @@ Finally, the ``metadata`` entry contains optional additional information useful 
     - ``source_grid_name``: the grid name defined in ``aqua-grids.yaml`` to be used for areas and regridding
     - ``fixer_name``: the name of the fixer defined in the fixes folder
     - ``deltat`` (optional): the cumulation window of fluxes in the dataset. This is a fixer option. If not present, the default is 1 second.
+    - ``time_coder``: if specified modifies the target resolution when decoding dates. Defaults to “ns”. Used by the ``CFDatetimeCoder`` and working only for netcdf sources.
 
 You can add fixes to your dataset by following examples in the ``config/fixes/`` directory (see :ref:`fixer`).
 
@@ -311,11 +312,14 @@ Some of the parameters are here described:
     - ``variables``: a list of variables available in the fdb.
     - ``source_grid_name``: the grid name defined in aqua-grids.yaml to be used for areas and regridding
     - ``fixer_name``: the name of the fixer defined in the fixes folder
-    - ``levels``: for 3D FDB data with a `levelist` in the request, this is the list of physical levels 
+    - ``levels``: for 3D FDB data with a ``levelist`` in the request, this is the list of physical levels 
                   (e.g. [0.5, 10, 100, ...] meters while levelist contains [1, 2, 3, ...]).
     - ``deltat`` (optional): the cumulation window of fluxes in the dataset. This is a fixer option. If not present, the default is 1 second.
-    - ``fdb_info_file``(optional): the path to the YAML file written by the workflow that can be used to infer `data_start_date`, `data_end_date`
-                  and other information as `bridge_start_date` and `bridge_end_date`. If not present, default values are used.     
+    - ``fdb_info_file`` (optional): the path to the YAML file written by the workflow that can be used to infer ``data_start_date``, ``data_end_date``
+                  and other information as ``bridge_start_date`` and ``bridge_end_date``. If not present, default values are used.
+                  It consists of two blocks, a ``data`` block and a ``bridge`` block. The first one contains the information for the entire
+                  simulation and it is mandatory, while the second one contains the information for the databridge and can be written
+                  only if the data are split between the FDB and the databridge.
 
     If the ``levels`` key is defined, then retrieving 3D data is greatly accelerated, since only one level 
     of each variable will actually have to be retrieved in order to define the Dataset.
@@ -324,10 +328,6 @@ Some of the parameters are here described:
 
     For FDB sources the ``metadata`` section contains very important informations that are used to
     retrieve the correct variables and levels.
-
-.. warning::
-
-    Please notice that the recent version of ecCodes used by AQUA (>= 2.36.0) is not compatible anymore with definition files from earlier versions (<2.34.0). For this reason we point now to older definition files which have been 'fixed' to keep working. The CLI tool to create such fixed definition files (``fix_eccodes.sh``) is available.
 
 Experiment metadata
 -------------------

@@ -1,5 +1,6 @@
 """Common functions for the Reader"""
 import xarray as xr
+import types
 
 
 def check_catalog_source(cat, model, exp, source, name="dictionary"):
@@ -133,11 +134,17 @@ def set_attrs(ds, attrs):
     Args:
         ds (xarray.Dataset or xarray.DataArray): Dataset to set attributes on
         attrs (dict): Dictionary of attributes to set
+    
+    Returns:
+        xarray.Dataset or xarray.DataArray: Updated Dataset or DataArray, or the same object if not this.
     """
+    if not isinstance(attrs, dict):
+        raise TypeError("The 'attrs' argument must be a dictionary.")
+
     if isinstance(ds, xr.Dataset):
         for var in ds.data_vars:
             ds[var].attrs.update(attrs)
-    else:
+    elif isinstance(ds, xr.DataArray):
         ds.attrs.update(attrs)
     return ds
 

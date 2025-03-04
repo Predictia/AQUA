@@ -17,7 +17,7 @@ lat_limits = [-30, 30]
 plot_ref_kw = {'catalog': 'ci', 'model': 'IFS', 'exp': 'test-tco79', 'source': 'teleconnections'}
 
 
-@pytest.mark.timeseries
+@pytest.mark.diagnostics
 def test_class_seasonalcycle():
     """
     Test that the timeseries class works

@@ -7,7 +7,7 @@ approx_rel = 1e-4
 loglevel = 'DEBUG'
 
 
-@pytest.mark.teleconnections
+@pytest.mark.diagnostics
 def test_lon_conversion():
     """
     Test that the lon conversion works
@@ -19,7 +19,7 @@ def test_lon_conversion():
     assert lon_180_to_360(75) == pytest.approx(75, rel=approx_rel)
 
 
-@pytest.mark.teleconnections
+@pytest.mark.diagnostics
 def test_namelist():
     """
     Test that the namelist can be loaded
@@ -31,7 +31,7 @@ def test_namelist():
     assert len(namelist) > 0
 
 
-@pytest.mark.teleconnections
+@pytest.mark.diagnostics
 @pytest.mark.parametrize("months_window", [1, 3])
 def test_station_based(months_window, loglevel=loglevel):
     """
@@ -56,7 +56,7 @@ def test_station_based(months_window, loglevel=loglevel):
                                  loglevel=loglevel)
 
 
-@pytest.mark.teleconnections
+@pytest.mark.diagnostics
 @pytest.mark.parametrize("months_window", [1, 3])
 def test_regional_mean(months_window):
     """
