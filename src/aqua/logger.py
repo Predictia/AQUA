@@ -112,18 +112,20 @@ def log_history(data, msg):
     Args:
         data: a dataset or a dataarray
         msg: a string with the message to be logged
+    Returns:
+        The dataset or the iterator with the history attribute updated
     """
+    now = datetime.datetime.now()
+    date_now = now.strftime("%Y-%m-%d %H:%M:%S")
+    hist = data.attrs.get("history", "")
 
-    if isinstance(data, (xr.DataArray, xr.Dataset)):
-        now = datetime.datetime.now()
-        date_now = now.strftime("%Y-%m-%d %H:%M:%S")
-        hist = data.attrs.get("history", "")
+    # check that there is a new line at the end of the current history
+    if not hist.endswith("\n"):
+        hist += "\n"
+    hist += f"{date_now} AQUA💧: {msg};\n"
+    data.attrs.update({"history": hist})
 
-        # check that there is a new line at the end of the current history
-        if not hist.endswith("\n"):
-            hist += "\n"
-        hist += f"{date_now} AQUA💧: {msg};\n"
-        data.attrs.update({"history": hist})
+    return data
 
 
 class CustomLogColors(logging.Formatter):
