@@ -27,7 +27,7 @@ class TestRegridder():
 
     def test_basic_interpolation(self, reader_arguments):
         """
-        Test basic interpolation on a set of variable,
+        Test basic interpolation,
         checking output grid dimension and
         fraction of land (i.e. any missing points)
         """
@@ -150,5 +150,19 @@ class TestRegridder():
         data = reader.retrieve(level=[2.5, 2275])
         val = data.isel(time=1).aqua.regrid().thetao.isel(nz1=1).aqua.fldmean().values
         assert val == pytest.approx(274.9045)
+
+
+def test_non_latlon_interpolation(capsys):
+    """
+    Test interpolation to a non regular grid,
+    checking appropriate logging message
+    """
+
+    reader = Reader(model="IFS", exp="test-tco79", source="short", regrid="F80",
+                    fix=True, loglevel=loglevel, rebuild=True)
+    
+    _ = reader.regrid(var='2t')
+    captured = capsys.readouterr()
+    assert "Cannot estimate weight generation time" in captured.err
 
 # missing test for ICON-Healpix
