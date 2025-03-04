@@ -636,9 +636,6 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
 
         return self._regrid(data)
 
-    def _regridgen(self, data):
-        for ds in data:
-            yield self._regrid(ds)
 
     def _regrid(self, datain):
         """
@@ -1031,18 +1028,18 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
 
     def reader_fdb(self, esmcat, var, startdate, enddate, dask=False, level=None):
         """
-        Read fdb data. Returns an iterator or dask array.
+        Read fdb data. Returns a dask array.
 
         Args:
             esmcat (intake catalog): the intake catalog to read
             var (str, int or list): the variable(s) to read
             startdate (str): a starting date and time in the format YYYYMMDD:HHTT
             enddate (str): an ending date and time in the format YYYYMMDD:HHTT
-            dask (bool): return directly a dask array instead of an iterator
+            dask (bool): return directly a dask array
             level (list, float, int): level to be read, overriding default in catalog
 
         Returns:
-            An xarray.Dataset or an iterator over datasets
+            An xarray.Dataset 
         """
         # Var can be a list or a single one of these cases:
         # - an int, in which case it is a paramid
