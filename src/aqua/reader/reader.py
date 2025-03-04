@@ -15,6 +15,7 @@ from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history
 from aqua.util import flip_lat_dir, find_vert_coord
 from aqua.exceptions import NoDataError, NoRegridError
+from aqua.version import __version__ as aqua_version
 import aqua.gsv
 
 from .streaming import Streaming
@@ -578,11 +579,11 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
         if self.preproc:
             data = self.preproc(data)
 
-        #add info metadata in each dataset
-        info_metadata={'model': self.model,  'exp':   self.exp,
-                       'source':self.source, 'catalog':self.catalog}
-        
-        data = set_attrs(data, info_metadata )
+        # Add info metadata in each dataset
+        info_metadata = {'AQUA_model': self.model, 'AQUA_exp': self.exp,
+                         'AQUA_source': self.source, 'AQUA_catalog': self.catalog,
+                         'AQUA_version': aqua_version}
+        data = set_attrs(data, info_metadata)
 
         return data
 
