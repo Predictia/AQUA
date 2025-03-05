@@ -9,6 +9,7 @@ Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
 - Limit estimation of time for weight generation only to regular lon/lat grids (#1786)
+- LRA generation can operate spatial subsection (#1711)
 - Attributes added by AQUA are now "AQUA_" prefixed (#1790)
 - Remove zarr pin (#1794)
 - Reader intake-xarray sources can select a coder for time decoding (#1778)
