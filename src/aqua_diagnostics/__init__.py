@@ -6,8 +6,8 @@ from .ensemble import EnsembleTimeseries, EnsembleLatLon, EnsembleZonal
 from .ecmean import PerformanceIndices, GlobalMean
 
 __all__ = ["Teleconnection",
-           "GregoryPlot", "SeasonalCycles", "Timeseries", 
+           "GregoryPlot", "SeasonalCycles", "Timeseries",
            "GlobalBiases",
-           "Radiation", 
+           "Radiation",
            "EnsembleTimeseries", "EnsembleLatLon", "EnsembleZonal",
            "GlobalMean", "PerformanceIndices"]

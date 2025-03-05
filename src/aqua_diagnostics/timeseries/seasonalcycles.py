@@ -46,7 +46,7 @@ class SeasonalCycles(BaseMixin):
         """
         Run all the steps necessary for the computation of the SeasonalCyles.
         Save the results to netcdf files.
-        
+
         Args:
             var (str): The variable to be used.
             formula (bool): If True, the variable is a formula.
