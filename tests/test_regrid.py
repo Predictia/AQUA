@@ -161,8 +161,8 @@ def test_non_latlon_interpolation(capsys):
 
     reader = Reader(model="IFS", exp="test-tco79", source="short", regrid="F80",
                     fix=True, loglevel=loglevel, rebuild=True)
-    
-    _ = reader.regrid(var='2t')
+
+    _ = reader.retrieve(var='2t')
     captured = capsys.readouterr()
     assert "Cannot estimate weight generation time" in captured.err
 
