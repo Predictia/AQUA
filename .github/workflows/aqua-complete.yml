@@ -62,10 +62,21 @@ jobs:
           # Ubuntu dependencies (Git, curl, ...)
           apt-get update && \
             apt-get install -y \
-              cargo \
               curl \
               git \
               rustc
+      - name: Checkout Climate-DT-catalog repository
+        uses: actions/checkout@v4
+        with:
+          repository: DestinE-Climate-DT/Climate-DT-catalog
+          path: Climate-DT-catalog 
+      - name: Clone GitLab data-portfolio repository
+        run: |
+          git clone https://oauth2:${{ secrets.BSC_GITLAB }}@earth.bsc.es/gitlab/digital-twins/de_340-2/data-portfolio data-portfolio
+      - name: List Workspace Contents
+        run: |
+          echo "Current Directory: $PWD"
+          ls -l
       - name: Set up Micromamba
         uses: mamba-org/setup-micromamba@v2
         with:
