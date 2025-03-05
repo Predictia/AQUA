@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
+- LRA generation can operate spatial subsection (#1711)
 - Attributes added by AQUA are now "AQUA_" prefixed (#1790)
 - Remove zarr pin (#1794)
 - Dropping support for python==3.9 (#1778, #1797)

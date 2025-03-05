@@ -75,7 +75,9 @@ jobs:
           apt-get update && \
             apt-get install -y \
               curl \
-              git
+              git \
+              gpg
+          # gpg is for codecov
       - name: Checkout Climate-DT-catalog repository
         uses: actions/checkout@v4
         with:
