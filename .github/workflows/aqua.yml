@@ -75,8 +75,7 @@ jobs:
           apt-get update && \
             apt-get install -y \
               curl \
-              git \
-              rustc
+              git
       - name: Checkout Climate-DT-catalog repository
         uses: actions/checkout@v4
         with:
