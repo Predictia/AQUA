@@ -1,5 +1,6 @@
 """Test regridding from Reader"""
-
+import sys
+import logging
 import pytest
 from aqua import Reader
 
@@ -27,7 +28,7 @@ class TestRegridder():
 
     def test_basic_interpolation(self, reader_arguments):
         """
-        Test basic interpolation on a set of variable,
+        Test basic interpolation,
         checking output grid dimension and
         fraction of land (i.e. any missing points)
         """
@@ -150,5 +151,20 @@ class TestRegridder():
         data = reader.retrieve(level=[2.5, 2275])
         val = data.isel(time=1).aqua.regrid().thetao.isel(nz1=1).aqua.fldmean().values
         assert val == pytest.approx(274.9045)
+
+
+@pytest.mark.aqua
+def test_non_latlon_interpolation():
+    """
+    Test interpolation to a non regular grid,
+    checking appropriate logging message
+    """
+    reader = Reader(model="IFS", exp="test-tco79", source="short", regrid="F80",
+                    fix=True, loglevel='DEBUG', rebuild=True)
+
+    data = reader.retrieve(var='2t')['2t'].isel(time=0).aqua.regrid()
+
+    assert data.shape == (160, 320)
+    assert data.values[0, 0] == pytest.approx(246.71156470963325)
 
 # missing test for ICON-Healpix
