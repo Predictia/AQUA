@@ -11,6 +11,7 @@ AQUA core complete list:
 - LRA generation can operate spatial subsection (#1711)
 - Attributes added by AQUA are now "AQUA_" prefixed (#1790)
 - Remove zarr pin (#1794)
+- Dropping support for python==3.9 (#1778, #1797)
 - Reader intake-xarray sources can select a coder for time decoding (#1778)
 - Document use of AQUA on ECMWF HPC2020 (#1782)
 - Added history logging for lat-lon in area selection (#1479)
