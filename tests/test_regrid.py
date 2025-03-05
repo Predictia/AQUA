@@ -1,5 +1,6 @@
 """Test regridding from Reader"""
-
+import sys
+import logging
 import pytest
 from aqua import Reader
 
@@ -153,17 +154,17 @@ class TestRegridder():
 
 
 @pytest.mark.aqua
-def test_non_latlon_interpolation(capsys):
+def test_non_latlon_interpolation():
     """
     Test interpolation to a non regular grid,
     checking appropriate logging message
     """
-
     reader = Reader(model="IFS", exp="test-tco79", source="short", regrid="F80",
-                    fix=True, loglevel=loglevel, rebuild=True)
+                    fix=True, loglevel='DEBUG', rebuild=True)
 
-    _ = reader.retrieve(var='2t')
-    captured = capsys.readouterr()
-    assert "Cannot estimate weight generation time" in captured.err
+    data = reader.retrieve(var='2t')['2t'].isel(time=0).aqua.regrid()
+
+    assert data.shape == (160, 320)
+    assert data.values[0, 0] == pytest.approx(246.71156470963325)
 
 # missing test for ICON-Healpix
