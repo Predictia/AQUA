@@ -70,7 +70,7 @@ def test_load_diagnostic_config():
                                      default_config='config_timeseries_atm.yaml',
                                      args=args, loglevel=loglevel)
 
-    assert ts_dict['models'] == [{'catalog': None, 'exp': None, 'model': None, 'source': 'lra-r100-monthly'}]
+    assert ts_dict['datasets'] == [{'catalog': None, 'exp': None, 'model': None, 'source': 'lra-r100-monthly', 'regrid': None}]
 
 
 @pytest.mark.aqua
@@ -99,9 +99,9 @@ def test_start_end_dates():
 
     # Only startdate provided
     assert start_end_dates(startdate="2020-01-01") == ("2020-01-01", None)
-    assert start_end_dates(startdate="20200101") == ("20200101", None)
 
     # Two dates provided
     assert start_end_dates(startdate="2020-01-01", enddate="2020-01-02") == ("2020-01-01", "2020-01-02")
-    assert start_end_dates(startdate="20200101", enddate="20200102") == ("20200101", "20200102")
-    assert start_end_dates(startdate="20200101", start_std="20200102") == ("20200101", None)
+    assert start_end_dates(startdate="20200101", enddate="20200102") == ("2020-01-01", "2020-01-02")
+    assert start_end_dates(startdate="20200101", start_std="20200102") == ("2020-01-01", None)
+    assert start_end_dates(startdate="2020-01-01", enddate="20200102") == ("2020-01-01", "2020-01-02")
