@@ -23,6 +23,8 @@ def common_setup(tmp_path):
     model = 'FESOM'
     source = 'monthly-3d'
     region = 'Indian Ocean'
+    output_dir = "./tmp"
+    output = True
     reader = Reader(model=model, exp=exp, source= source, catalog= catalog, regrid='r100')
     data = reader.retrieve(var="thetao")
     data = reader.regrid(data)
@@ -37,6 +39,8 @@ def common_setup(tmp_path):
         "source": source,
         "data": data,
         "region": region,
+        "output_dir" : "./tmp",
+        "output" : True
     }
 
 @pytest.mark.diagnostics
@@ -55,11 +59,10 @@ def test_check_variable_name(common_setup):
     # Ensure expected dimensions exist
     assert 'lev' in data.dims, "Dimension 'lev' missing in dataset"
 
-    print("Test passed successfully!")
-
 
 @pytest.fixture
 def hovmoller_instance(common_setup):
+    """Fixture to initialize hovmoller plot instance"""
     setup = common_setup
     setup["data"] = check_variable_name(setup["data"], loglevel=setup["loglevel"])
     hovmoller_plot_init = hovmoller_plot(setup)
@@ -67,6 +70,7 @@ def hovmoller_instance(common_setup):
     
 @pytest.mark.diagnostics
 def test_hovmoller_data(hovmoller_instance):
+    """Test data loading for hovmoller plot."""
     hovmoller_instance.data_for_hovmoller_lev_time_plot()
     for i in range(1, len(hovmoller_instance.plot_info) + 1):
         assert hovmoller_instance.plot_info[i]["data"] is not None, f"Data not loaded for hovmoller plot hovmoller_instance.plot_info[1]['type']"
@@ -74,6 +78,6 @@ def test_hovmoller_data(hovmoller_instance):
     
 @pytest.mark.diagnostics
 def test_hovmoller_plot(hovmoller_instance):
+    """Test hovmoller plot generation."""
     hovmoller_instance.plot()
-    assert os.path.exists(hovmoller_instance.filename + ".png"), "Plot not generated"
-    print("Test passed successfully!")
+    assert os.path.exists("./tmp/pdf/FESOM-hpz3-monthly-3d_hovmoller_plot_indian_ocean.pdf"), "Plot not generated"
