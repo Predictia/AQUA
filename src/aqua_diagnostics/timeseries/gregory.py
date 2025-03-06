@@ -1,5 +1,5 @@
 """Gregory plot module."""
-from aqua.util import eval_formula, frequency_string_to_pandas, to_list
+from aqua.util import eval_formula
 from aqua.diagnostics.core import Diagnostic
 
 
@@ -41,7 +41,8 @@ class Gregory(Diagnostic):
     def run(self, freq: list = ['monthly', 'annual'],
             t2m: bool = True, net_toa: bool = True, std: bool = False,
             t2m_name: str = '2t', net_toa_name: str = 'tnlwrf + tnswrf',
-            exclude_incomplete: bool = True):
+            exclude_incomplete: bool = True, outputdir: str = './',
+            rebuild: bool = True):
         """Run the Gregory Plot."""
         self.retrieve(t2m=t2m, net_toa=net_toa, t2m_name=t2m_name, net_toa_name=net_toa_name)
 
@@ -53,7 +54,8 @@ class Gregory(Diagnostic):
             self.compute_net_toa(freq=freq, std=std,
                                  exclude_incomplete=exclude_incomplete)
 
-        self.save_netcdf()
+        self.save_netcdf(freq=freq, std=std, t2m=t2m, net_toa=net_toa,
+                         outputdir=outputdir, rebuild=rebuild)
 
     def retrieve(self, t2m: bool = True, net_toa: bool = True,
                  t2m_name: str = '2t', net_toa_name: str = 'tnlwrf + tnswrf'):
@@ -113,7 +115,6 @@ class Gregory(Diagnostic):
 
     def save_netcdf(self, freq: list = ['monthly', 'annual'], std: bool = False,
                     t2m: bool = True, net_toa: bool = True,
-                    t2m_name: str = '2t', net_toa_name: str = 'tnlwrf + tnswrf',
                     outputdir: str = './', rebuild: bool = True):
         """
         Save the computed data to a netcdf file.
@@ -123,10 +124,40 @@ class Gregory(Diagnostic):
             std (bool): Whether to save the standard deviation. Default is False.
             t2m (bool): Whether to save the 2m temperature data. Default is True.
             net_toa (bool): Whether to save the net TOA radiation data. Default is True.
-            t2m_name (str): The name of the 2m temperature data.
-            net_toa_name (str): The name of the net TOA radiation data.
             outputdir (str): The output directory to save the netcdf file. Default is './'.
             rebuild (bool): Whether to rebuild the netcdf file. Default is True.
         """
-        pass
-        
+        diagnostic = 'gregory'
+
+        if t2m:
+            if std:
+                diagnostic_product = '2t.annual.std'
+                super().save_netcdf(data=self.t2m_std, diagnostic=diagnostic,
+                                    diagnostic_product=diagnostic_product,
+                                    default_path=outputdir, rebuild=rebuild)
+            if 'monthly' in freq:
+                diagnostic_product = '2t.monthly'
+                super().save_netcdf(data=self.t2m_monthly, diagnostic=diagnostic,
+                                    diagnostic_product=diagnostic_product,
+                                    default_path=outputdir, rebuild=rebuild)
+            if 'annual' in freq:
+                diagnostic_product = '2t.annual'
+                super().save_netcdf(data=self.t2m_annual, diagnostic=diagnostic,
+                                    diagnostic_product=diagnostic_product,
+                                    default_path=outputdir, rebuild=rebuild)
+        if net_toa:
+            if std:
+                diagnostic_product = 'net_toa.annual.std'
+                super().save_netcdf(data=self.net_toa_std, diagnostic=diagnostic,
+                                    diagnostic_product=diagnostic_product,
+                                    default_path=outputdir, rebuild=rebuild)
+            if 'monthly' in freq:
+                diagnostic_product = 'net_toa.monthly'
+                super().save_netcdf(data=self.net_toa_monthly, diagnostic=diagnostic,
+                                    diagnostic_product=diagnostic_product,
+                                    default_path=outputdir, rebuild=rebuild)
+            if 'annual' in freq:
+                diagnostic_product = 'net_toa.annual'
+                super().save_netcdf(data=self.net_toa_annual, diagnostic=diagnostic,
+                                    diagnostic_product=diagnostic_product,
+                                    default_path=outputdir, rebuild=rebuild)
