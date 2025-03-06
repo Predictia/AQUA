@@ -52,7 +52,6 @@ grids:
     cdo_options: '--force'
   test-hpz3-nested-fesom-3d:
     path:
-      2d: '{{ grids }}/HealPix/fesom_hpz3_nested_oce.nc'
       level: '{{ grids }}/HealPix/fesom_hpz3_nested_oce_level.nc'
     space_coord: ['cells']
     vert_coord: ['level']
