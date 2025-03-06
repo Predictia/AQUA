@@ -280,7 +280,7 @@ class RegridMixin():
     def _retrieve_plain(self, *args, **kwargs):
         """
         Retrieves making sure that no fixer and agregation are used,
-        read only first variable and converts iterator to data
+        read only first variable
         """
         if self.sample_data is not None:
             self.logger.debug('Sample data already availabe, avoid _retrieve_plain()')
