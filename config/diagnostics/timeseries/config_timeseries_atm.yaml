@@ -60,9 +60,16 @@ diagnostics:
         long_name: "Precipitation"
         units: "mm/day"
         regions: ['tropics', 'europe']
-
-# gregory:
-#   ts: '2t'
-#   toa: ['tnlwrf', 'tnswrf']
-#   monthly: True
-#   annual: True
+  
+  gregory:
+    run: true
+    t2m: '2t'
+    net_toa_name: ['tnlwrf', 'tnswrf']
+    monthly: true
+    annual: true
+    std: true
+    std_startdate: '19900101'
+    std_enddate: '20201231'
+    # Gregory needs 2 datasets and do not care about the references block above
+    t2m_ref: {'catalog': 'obs', 'model': 'ERA5', 'exp': 'era5', 'source': 'monthly'}
+    net_toa_ref: {'catalog': 'obs', 'model': 'CERES', 'exp': 'ebaf-toa42', 'source': 'monthly'}
