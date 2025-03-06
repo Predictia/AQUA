@@ -21,7 +21,7 @@ def common_setup(tmp_path):
     catalog = 'ci'
     exp = 'hpz3'
     model = 'FESOM'
-    source = 'monthly'
+    source = 'monthly-3d'
     region = 'Indian Ocean'
     reader = Reader(model=model, exp=exp, source= source, catalog= catalog, regrid='r100')
     data = reader.retrieve(var="thetao")
@@ -39,7 +39,7 @@ def common_setup(tmp_path):
         "region": region,
     }
 
-@pytest.mark.ocean3d
+@pytest.mark.diagnostics
 def test_check_variable_name(common_setup):
     """Test variable name checking and transformations."""
     setup = common_setup
@@ -58,9 +58,22 @@ def test_check_variable_name(common_setup):
     print("Test passed successfully!")
 
 
-@pytest.mark.ocean3d
-def test_hovmoller_plot(common_setup):
+@pytest.fixture
+def hovmoller_instance(common_setup):
     setup = common_setup
     setup["data"] = check_variable_name(setup["data"], loglevel=setup["loglevel"])
     hovmoller_plot_init = hovmoller_plot(setup)
-    hovmoller_plot_init.plot()
+    return hovmoller_plot_init
+    
+@pytest.mark.diagnostics
+def test_hovmoller_data(hovmoller_instance):
+    hovmoller_instance.data_for_hovmoller_lev_time_plot()
+    for i in range(1, len(hovmoller_instance.plot_info) + 1):
+        assert hovmoller_instance.plot_info[i]["data"] is not None, f"Data not loaded for hovmoller plot hovmoller_instance.plot_info[1]['type']"
+    print("Test passed successfully!")
+    
+@pytest.mark.diagnostics
+def test_hovmoller_plot(hovmoller_instance):
+    hovmoller_instance.plot()
+    assert os.path.exists(hovmoller_instance.filename + ".png"), "Plot not generated"
+    print("Test passed successfully!")
