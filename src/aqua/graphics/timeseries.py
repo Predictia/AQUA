@@ -4,8 +4,7 @@ both with monthly and annual aggregation options
 """
 import xarray as xr
 import matplotlib.pyplot as plt
-from .plot_timeseries_data import plot_monthly_data, plot_annual_data
-from .plot_timeseries_ref_data import plot_ref_monthly_data, plot_ref_annual_data
+from .util_timeseries import plot_monthly_data, plot_annual_data, plot_ref_monthly_data, plot_ref_annual_data
 from aqua.logger import log_configure
 from .styles import ConfigStyle
 
@@ -38,6 +37,8 @@ def plot_timeseries(monthly_data=None,
         data_labels (list of str): labels for the data
         ref_label (str): label for the reference data
         style (str): style to use for the plot. By default the schema specified in the configuration file is used.
+        fig (plt.Figure): figure object to plot on
+        ax (plt.Axes): axis object to plot on
         loglevel (str): logging level
 
     Keyword Arguments:
