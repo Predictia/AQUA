@@ -27,10 +27,8 @@ def common_setup(tmp_path):
     output_dir = "./tmp"
     output = True
     reader = Reader(model=model, exp=exp, source= source, catalog= catalog, regrid='r100')
-    data = reader.retrieve(var="thetao")
+    data = reader.retrieve(var=["thetao", "so"])
     data = reader.regrid(data)
-    data1 = data.rename({"thetao": "so"})
-    data = data.merge(data1)
 
     return {
         "loglevel": loglevel,
