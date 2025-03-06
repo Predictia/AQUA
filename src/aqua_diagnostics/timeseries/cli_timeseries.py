@@ -16,7 +16,7 @@ from aqua.version import __version__ as aqua_version
 from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_cluster
 from aqua.diagnostics.core import load_diagnostic_config, merge_config_args
 from aqua.diagnostics.timeseries.util_cli import load_var_config
-from aqua.diagnostics.timeseries import Timeseries, SeasonalCycles
+from aqua.diagnostics.timeseries import Timeseries, SeasonalCycles, Gregory
 
 
 def parse_arguments(args):
@@ -188,8 +188,44 @@ if __name__ == '__main__':
                             sc_ref[i] = SeasonalCycles(**init_args, **reference_args)
                             sc_ref[i].run(**run_args)
 
-    if 'gregoryplot' in config_dict['diagnostics']:
-        logger.warning("GregoryPlot diagnostic is not implemented yet.")
+    if 'gregory' in config_dict['diagnostics']:
+        if config_dict['diagnostics']['gregory']['run']:
+            logger.info("Gregory diagnostic is enabled.")
+
+            freq = []
+            if config_dict['diagnostics']['gregory'].get('monthly', False):
+                freq.append('monthly')
+            if config_dict['diagnostics']['gregory'].get('annual', False):
+                freq.append('annual')
+            run_args = {'freq': freq, 't2m_name': config_dict['diagnostics']['gregory'].get('t2m_name', '2t'),
+                        'net_toa_name': config_dict['diagnostics']['gregory'].get('net_toa_name', 'tnlwrf + tnswrf'),
+                        'exclude_incomplete': config_dict['diagnostics']['gregory'].get('exclude_incomplete', True),
+                        'outputdir': outputdir, 'rebuild': rebuild}
+
+            # Initialize a list of len from the number of datasets
+            greg = [None] * len(config_dict['datasets'])
+            model_args = {'t2m': True, 'net_toa': True, 'std': False}
+            for i, dataset in enumerate(config_dict['datasets']):
+                logger.info(f'Running dataset: {dataset}')
+                dataset_args = {'catalog': dataset['catalog'], 'model': dataset['model'],
+                                'exp': dataset['exp'], 'source': dataset['source'],
+                                'regrid': dataset.get('regrid', regrid)}
+
+                greg[i] = Gregory(loglevel=loglevel, **dataset_args)
+                greg[i].run(**run_args, **model_args)
+
+            if config_dict['diagnostics']['gregory']['std']:
+                # t2m:
+                dataset_args = {**config_dict['diagnostics']['gregory']['t2m_ref'],
+                                'regrid': regrid}
+                greg = Gregory(loglevel=loglevel, **dataset_args)
+                greg.run(**run_args, t2m=True, net_toa=False, std=True)
+
+                # net_toa:
+                dataset_args = {**config_dict['diagnostics']['gregory']['net_toa_ref'],
+                                'regrid': regrid}
+                greg = Gregory(loglevel=loglevel, **dataset_args)
+                greg.run(**run_args, t2m=False, net_toa=True, std=True)
 
     close_cluster(client=client, cluster=cluster, private_cluster=private_cluster, loglevel=loglevel)
 
