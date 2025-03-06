@@ -12,6 +12,7 @@ from ocean3d import hovmoller_plot
 from ocean3d import time_series
 from ocean3d import multilevel_trend
 from ocean3d import zonal_mean_trend
+from pathlib import Path
 
 @pytest.fixture
 def common_setup(tmp_path):
@@ -80,4 +81,5 @@ def test_hovmoller_data(hovmoller_instance):
 def test_hovmoller_plot(hovmoller_instance):
     """Test hovmoller plot generation."""
     hovmoller_instance.plot()
-    assert os.path.exists("./tmp/pdf/FESOM-hpz3-monthly-3d_hovmoller_plot_indian_ocean.pdf"), "Plot not generated"
+    output_file = Path(f"{hovmoller_instance.output_dir}/pdf/FESOM-hpz3-monthly-3d_hovmoller_plot_indian_ocean.pdf")
+    assert output_file.exists(), "Plot not generated"
