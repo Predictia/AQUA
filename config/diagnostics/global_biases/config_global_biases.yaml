@@ -35,7 +35,6 @@ diagnostic_attributes:
   enddate_data: null
   startdate_obs: "1990-01-01" 
   enddate_obs: "2020-12-31"
-  regrid: null
 
 # Here you can specify the colorbar limits for each variable
 # If you don't specify them, the colorbar limits will be automatically calculated
