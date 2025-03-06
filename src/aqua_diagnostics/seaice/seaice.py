@@ -86,7 +86,7 @@ class SeaIce(Diagnostic):
         else:
             seaice_computed.attrs["units"] = units_dict.get(method)
 
-        seaice_computed.attrs["long_name"] = f"{'Std ' if std_flag else ''}Sea ice {method} integrated over {region} region"
+        seaice_computed.attrs["long_name"] = f"{'Std ' if std_flag else ''}Sea ice {method} integrated over region {region}"
         seaice_computed.attrs["standard_name"] = f"{region}_{'std_' if std_flag else ''}sea_ice_{method}"
         seaice_computed.attrs["method"] = f"{method}"
         seaice_computed.attrs["region"] = f"{region}"
