@@ -100,12 +100,12 @@ def test_convert_data():
     initial_units = data['tprate'].attrs['units']
 
     # Dataset test
-    data_test = check_data(data=data, var='tprate', units='mm/day', loglevel=loglevel)
+    data_test = convert_data(data=data, var='tprate', units='mm/day', loglevel=loglevel)
     assert data_test['tprate'].attrs['units'] == 'mm/day'
 
     # DataArray test
     data = data['tprate']
-    data_test = check_data(data=data, var='tprate', units='mm/day', loglevel=loglevel)
+    data_test = convert_data(data=data, var='tprate', units='mm/day', loglevel=loglevel)
     # We don't test values since this is done in the test_fixer.py
     assert data_test.attrs['units'] == 'mm/day'
     assert f"Converting units of tprate: from {initial_units} to mm/day" in data_test.attrs['history']
