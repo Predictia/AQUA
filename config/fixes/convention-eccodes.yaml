@@ -65,7 +65,6 @@ convention_name:
           - avg_hcc
           - avg_hcc_frac
           - HCC # AQUA ERA5
-          - clh # cmor
         grib: 3075
       lcc: # Low cloud cover
         source:
@@ -77,7 +76,6 @@ convention_name:
           - avg_lcc
           - avg_lcc_frac
           - LCC # AQUA ERA5
-          - cll # cmor
         grib: 3073
       mcc: # Medium cloud cover
         source:
@@ -89,7 +87,6 @@ convention_name:
           - avg_mcc
           - avg_mcc_frac
           - MCC # AQUA ERA5
-          - clm # cmor
         grib: 3074
       msl: # Mean sea level pressure
         source:
@@ -209,7 +206,6 @@ convention_name:
           - tciw
           - avg_tciw
           - clivi # vertically integrated cloud ice (https://easy.gems.dkrz.de/DYAMOND/NextGEMS/Models/c2_icon_ngc2013_output.html)
-          - iwp
         grib: 79
       tclw: # Total column vertically-integrated cloud liquid water
         source:
