@@ -29,16 +29,18 @@ class TurboRegrid():
         self.cfg_grid_dict = cfg_grid_dict #full grid dictionary
         self.src_grid_name = src_grid_name # source grid name
         self.src_grid_dict = cfg_grid_dict['grids'].get(src_grid_name) # source grid dictionary
-
         if not self.src_grid_dict:
             raise ValueError(f"Source grid '{src_grid_name}' not found in the configuration.")
+        self.src_grid_dict = self._normalize_grid_dict(self.src_grid_dict)
+
 
         self.regridder = {} # regridders for each vertical coordinate
         self.src_grid_area = None # source grid area
         self.dst_grid_area = None # destination grid area
 
-        # Set up grid path
-        self.src_grid_path = self._normalize_grid_path(self.src_grid_dict, data)
+        self.src_grid_path = self.src_grid_dict.get('path')
+        self._normalize_grid_path(self.src_grid_path, data)
+
 
         self.logger.info("Grid name: %s", self.src_grid_name)
         self.logger.info("Grid file path: %s", self.src_grid_path)
@@ -55,67 +57,62 @@ class TurboRegrid():
             if pattern.match(grid):
                 return True
         return False
-
-    def _normalize_grid_path(self, grid, data=None):
+    
+    def _normalize_grid_dict(self, grid):
         """
-        Normalize the grid path to a dictionary with the 2d key.
-        4 cases handled: 
-            - a string (CDO grid name)
-            - a dictionary with a path string, a CDO grid name or a file path
-            - a dictionary with a dictionary of path, one for each vertical coordinate
-            - None with data provided, to get info from the dataset
-        
-        Returns:
-            dict: The normalized grid path dictionary. "2d" key is mandatory.
+        Normalize the grid dictionary to a dictionary with the 2d key.
         """
 
         # grid dict is a string: this is the case of a CDO grid name
         if isinstance(grid, str):
             if self._is_cdo_grid(grid):
                 self.logger.info("Grid definition %s is a valid CDO grid name.", grid)
-                return {"2d": grid}
+                return {"path": {"2d": grid}}
             raise ValueError(f"Grid '{grid}' is not a valid CDO grid name.")
-
-        # grid dict is a dictionary: this is the case of a file path
         if isinstance(grid, dict):
-            path = grid.get("path")
+            return grid
+        raise ValueError(f"Grid definition '{grid}' is not a valid type")
 
-            # case path is a string: check if it is a valid CDO grid name or a file path
-            if isinstance(path, str):
-                if self._is_cdo_grid(path):
-                    self.logger.info("Grid path %s is a valid CDO grid name.", path)
-                    return {"2d": path}
-                if self._check_existing_file(path):
-                    self.logger.info("Grid path %s is a valid file path.", path)
-                    return {"2d": path}
-                raise FileNotFoundError(f"Grid file '{path}' does not exist.")
 
-            # case path is a dictionary: check if the values are valid file paths 
-            # (could extend to CDO names?)
-            if isinstance(path, dict):
-                for key, value in path.items():
-                    if not self._check_existing_file(value):
-                        raise FileNotFoundError(f"Grid file '{value}' does not exist for key '{key}'.")
-                self.logger.info("Grid path %s is a valid dictionary of file paths.", path)
-                return path
+    def _normalize_grid_path(self, path, data=None):
+        """
+        Normalize the grid path to a dictionary with the 2d key.
+        3 cases handled: 
+            - a dictionary with a path string, a CDO grid name or a file path
+            - a dictionary with a dictionary of path, one for each vertical coordinate
+            - a dictionary without path with data provided, to get info from the dataset
         
-            # grid path is None: check if data is provided to extract information for CDO
-            if path is None:
-                if data is not None:
-                    self.logger.info("Using provided dataset for grid path.")
-                    return {"2d": data}
-                raise ValueError("Grid path missing in config and no sample data provided.")
-            
-            raise ValueError(f"Grid path '{path}' is not a valid type.")
+        Returns:
+            dict: The normalized grid path dictionary. "2d" key is mandatory.
+        """
 
-        # grid dict is None: check if data is provided to extract information for CDO
-        if grid is None:
+        # case path is a string: check if it is a valid CDO grid name or a file path
+        if isinstance(path, str):
+            if self._is_cdo_grid(path):
+                self.logger.info("Grid path %s is a valid CDO grid name.", path)
+                return {"2d": path}
+            if self._check_existing_file(path):
+                self.logger.info("Grid path %s is a valid file path.", path)
+                return {"2d": path}
+            raise FileNotFoundError(f"Grid file '{path}' does not exist.")
+
+        # case path is a dictionary: check if the values are valid file paths 
+        # (could extend to CDO names?)
+        if isinstance(path, dict):
+            for _, value in path.items():
+                if not (self._is_cdo_grid(value) or self._check_existing_file(value)):
+                    raise ValueError(f"Grid path '{value}' is not a valid CDO grid name nor a file path.")
+            self.logger.info("Grid path %s is a valid dictionary of file paths.", path)
+            return path
+
+        # grid path is None: check if data is provided to extract information for CDO
+        if path is None:
             if data is not None:
                 self.logger.info("Using provided dataset for grid path.")
                 return {"2d": data}
             raise ValueError("Grid path missing in config and no sample data provided.")
 
-        raise ValueError(f"Grid definition '{grid}' is not a valid type")
+        raise ValueError(f"Grid path '{path}' is not a valid type.")
 
 
     def _check_existing_file(self, filename):
@@ -135,16 +132,10 @@ class TurboRegrid():
 
         if dst_grid_name:
             # get the target from the configuration
-            dst_grid_dict = self.cfg_grid_dict['grids'].get(dst_grid_name)
-            dst_grid_path = self._normalize_grid_path(dst_grid_dict)
-
-            # get the cdo options from the configuration: not best solution so far
-            if isinstance(dst_grid_dict, dict):
-                cdo_extra = dst_grid_dict.get('cdo_extra')
-                cdo_options = dst_grid_dict.get('cdo_options')
-            else:
-                cdo_extra = None
-                cdo_options = None
+            dst_grid_dict = self._normalize_grid_dict(self.cfg_grid_dict['grids'].get(dst_grid_name))
+            dst_grid_path = self._normalize_grid_path(dst_grid_dict.get('path'))
+            cdo_extra = dst_grid_dict.get('cdo_extra')
+            cdo_options = dst_grid_dict.get('cdo_options')
         else:
             dst_grid_path = {'2d': None}
             cdo_extra = self.src_grid_dict.get('cdo_extra')
@@ -157,7 +148,8 @@ class TurboRegrid():
         # check if weights already exist, if not, generate them
         if rebuild or self._check_existing_file(area_filename):
   
-            # smmregrid call
+            # smmregrid call: get the first element of the list
+            # this will not work if we do not have a 2d grid, need to be generalized
             generator = CdoGenerate(source_grid=self.src_grid_path['2d'],
                             target_grid=dst_grid_path['2d'],
                             #cdo_download_path=None,
