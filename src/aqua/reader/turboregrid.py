@@ -1,15 +1,16 @@
 """New Regrid class independent from the Reader"""
 import os
 import xarray as xr
-from smmregrid import CdoGenerate, Regridder, GridInspector
+from smmregrid import CdoGenerate, Regridder
 from aqua.logger import log_configure
+from smmregrid.util import CDO_GRID_PATTERNS
 
 class TurboRegrid():
     """Refactor of regridder class"""
     
-    def __init__(self, cfg_grid_dict: dict, 
-                 src_grid_name: str, 
-                 data: xr.Dataset = None, 
+    def __init__(self, cfg_grid_dict: dict,
+                 src_grid_name: str,
+                 data: xr.Dataset = None,
                  loglevel: str = "WARNING"):
         """
         The TurboRegrid constructor.
@@ -37,35 +38,85 @@ class TurboRegrid():
         self.dst_grid_area = None # destination grid area
 
         # Set up grid path
-        self.src_grid_path = self._initialize_grid_path(data)
+        self.src_grid_path = self._normalize_grid_path(self.src_grid_dict, data)
 
         self.logger.info("Grid name: %s", self.src_grid_name)
         self.logger.info("Grid file path: %s", self.src_grid_path)
 
-    
-    def _initialize_grid_path(self, data):
-        """Initializes and validates the source grid path."""
+    @staticmethod
+    def _is_cdo_grid(grid):
+        """
+        Check if the grid name is a valid CDO grid name.
+        Imported from smmregrid
+        """
 
-        src_grid_path = self.src_grid_dict.get("path")
+        # Check if the string matches any of the grid patterns
+        for grid_type, pattern in CDO_GRID_PATTERNS.items():
+            if pattern.match(grid):
+                return True
+        return False
 
-        if not src_grid_path:
+    def _normalize_grid_path(self, grid, data=None):
+        """
+        Normalize the grid path to a dictionary with the 2d key.
+        4 cases handled: 
+            - a string (CDO grid name)
+            - a dictionary with a path string, a CDO grid name or a file path
+            - a dictionary with a dictionary of path, one for each vertical coordinate
+            - None with data provided, to get info from the dataset
+        
+        Returns:
+            dict: The normalized grid path dictionary. "2d" key is mandatory.
+        """
+
+        # grid dict is a string: this is the case of a CDO grid name
+        if isinstance(grid, str):
+            if self._is_cdo_grid(grid):
+                self.logger.info("Grid definition %s is a valid CDO grid name.", grid)
+                return {"2d": grid}
+            raise ValueError(f"Grid '{grid}' is not a valid CDO grid name.")
+
+        # grid dict is a dictionary: this is the case of a file path
+        if isinstance(grid, dict):
+            path = grid.get("path")
+
+            # case path is a string: check if it is a valid CDO grid name or a file path
+            if isinstance(path, str):
+                if self._is_cdo_grid(path):
+                    self.logger.info("Grid path %s is a valid CDO grid name.", path)
+                    return {"2d": path}
+                if self._check_existing_file(path):
+                    self.logger.info("Grid path %s is a valid file path.", path)
+                    return {"2d": path}
+                raise FileNotFoundError(f"Grid file '{path}' does not exist.")
+
+            # case path is a dictionary: check if the values are valid file paths 
+            # (could extend to CDO names?)
+            if isinstance(path, dict):
+                for key, value in path.items():
+                    if not self._check_existing_file(value):
+                        raise FileNotFoundError(f"Grid file '{value}' does not exist for key '{key}'.")
+                self.logger.info("Grid path %s is a valid dictionary of file paths.", path)
+                return path
+        
+            # grid path is None: check if data is provided to extract information for CDO
+            if path is None:
+                if data is not None:
+                    self.logger.info("Using provided dataset for grid path.")
+                    return {"2d": data}
+                raise ValueError("Grid path missing in config and no sample data provided.")
+            
+            raise ValueError(f"Grid path '{path}' is not a valid type.")
+
+        # grid dict is None: check if data is provided to extract information for CDO
+        if grid is None:
             if data is not None:
                 self.logger.info("Using provided dataset for grid path.")
-                return {"2d": data}  # Expand for other grid types if needed
+                return {"2d": data}
+            raise ValueError("Grid path missing in config and no sample data provided.")
 
-            self.logger.warning("Grid file path missing in config and no sample data provided.")
-            return None
+        raise ValueError(f"Grid definition '{grid}' is not a valid type")
 
-        # Convert to dictionary if necessary
-        if isinstance(src_grid_path, str):
-            src_grid_path = {"2d": src_grid_path}
-
-        # Verify paths
-        for key, path in src_grid_path.items():
-            if not os.path.exists(path):
-                raise FileNotFoundError(f"Grid file '{path}' does not exist for key '{key}'.")
-
-        return src_grid_path
 
     def _check_existing_file(self, filename):
         """
@@ -83,18 +134,21 @@ class TurboRegrid():
         area_logname = "target" if dst_grid_name else "source"
 
         if dst_grid_name:
-            # get the target from the configuration: HACK need to be homogenized for `2d` cases
+            # get the target from the configuration
             dst_grid_dict = self.cfg_grid_dict['grids'].get(dst_grid_name)
-            dst_grid_path = self.cfg_grid_dict['grids'].get(dst_grid_name)
-            #if isinstance(dst_grid_dict, dict):
-            #    cdo_extra = dst_grid_dict.get('cdo_extra')
-            #    cdo_options = dst_grid_dict.get('cdo_options')
+            dst_grid_path = self._normalize_grid_path(dst_grid_dict)
+
+            # get the cdo options from the configuration: not best solution so far
+            if isinstance(dst_grid_dict, dict):
+                cdo_extra = dst_grid_dict.get('cdo_extra')
+                cdo_options = dst_grid_dict.get('cdo_options')
+            else:
+                cdo_extra = None
+                cdo_options = None
         else:
-            dst_grid_path = None
-            # get the cdo options from the configuration
-        
-        cdo_extra = self.src_grid_dict.get('cdo_extra')
-        cdo_options = self.src_grid_dict.get('cdo_options')
+            dst_grid_path = {'2d': None}
+            cdo_extra = self.src_grid_dict.get('cdo_extra')
+            cdo_options = self.src_grid_dict.get('cdo_options')
         
         area_filename = f'tmp_areas.nc'
         #weights_filename = self._make_filename(dst_grid_name, self.grid_name, **reader_kwargs)
@@ -105,9 +159,9 @@ class TurboRegrid():
   
             # smmregrid call
             generator = CdoGenerate(source_grid=self.src_grid_path['2d'],
-                            target_grid=dst_grid_path,
-                            cdo_download_path=None,
-                            cdo_icon_grids=None,
+                            target_grid=dst_grid_path['2d'],
+                            #cdo_download_path=None,
+                            #cdo_icon_grids=None,
                             cdo_extra=cdo_extra,
                             cdo_options=cdo_options,
                             cdo='cdo',
@@ -132,7 +186,7 @@ class TurboRegrid():
         Load or generate regridding weights calling smmregrid
         """
 
-        # get the cdo options from the configuration 
+        # get the cdo options from the configuration
         cdo_extra = self.src_grid_dict.get('cdo_extra', None)
         cdo_options = self.src_grid_dict.get('cdo_options', None)
 
@@ -144,7 +198,7 @@ class TurboRegrid():
             #keep fallback option for filename when weights/areas block is not present in the configuration
 
             # check if weights already exist, if not, generate them
-            if rebuild or not os.path.exists(weights_filename):
+            if rebuild or not self._check_existing_file(weights_filename):
                 
                 # smmregrid call
                 generator = CdoGenerate(source_grid=self.src_grid_path[vertical_dim],
