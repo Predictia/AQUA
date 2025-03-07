@@ -120,20 +120,6 @@ class PlotSeaIce:
                           f"and region could not be derived from the variable name.")
             self.logger.debug(errmsg)
             raise KeyError(errmsg)
-    
-    def _check_method(self, list_kwdset: list):
-        """Check if the method in the dataset is allowed.
-        Args:
-            list_kwdset (list): a list of xr.Dataset objects
-        """
-        for ds in list_kwdset:
-            # get method of the actual xr.Dataset ds
-            method = ds.attrs.get("method", "Unknown")
-
-        if method not in self.ALLOWED_METHODS:
-            msg = (f"Dataset {ds.attrs.get('name', 'Unnamed Dataset')} has method: {method} "
-                      f"allowed methods are [{', '.join(f'{i}' for i in self.ALLOWED_METHODS)}]. Check input data.")
-            self.logger.warning(msg)
 
     def repack_datasetlists(self, **kwargs) -> dict:
         """Repack input datasets into a nested dictionary organized by method and region.
@@ -160,7 +146,7 @@ class PlotSeaIce:
             # if the list is None, skip to the next str_data
             if dataset_list is None:
                 continue
-
+            
             self._check_method(dataset_list)
             
             for dataset in dataset_list:
@@ -204,13 +190,12 @@ class PlotSeaIce:
         if isinstance(datain, list) and all(isinstance(da, xr.DataArray) for da in datain):
             return [self._gen_str_from_attributes(da) for da in datain]
 
-    def _get_datadict(self, data_dict: dict, dkey: str):
+    def _get_datadict(self, data_dict: dict, dkey: str) -> xr.DataArray | list[xr.DataArray] | None:
         """Retrieves data from a dictionary and returns either None, a single DataArray or a list of them
         Args:
             data_dict (dict): Dictionary containing the data (list of xr.DataArray or single xr.DataArray or None)
             dkey (str): The key to retrieve data from `data_dict`
         Returns:
-            xr.DataArray | list[xr.DataArray] | None: 
             - A single `xr.DataArray` if the list contains only one element (reference data case)
             - A list of `xr.DataArray` if multiple elements are found (model data case)
             - `None` if the key is missing or the value is not a valid list of `xr.DataArray` """
@@ -236,20 +221,20 @@ class PlotSeaIce:
                 self.logger.info(f"Processing region: {region}")
 
                 # create labels
-                data_labels = ([self._gen_labelname(da) for da in self._get_datadict(data_dict, 'monthly_models')] 
+                data_labels = ([self._gen_labelname(da) for da in self._get_datadict(data_dict, 'monthly_models')]
                                 if self._get_datadict(data_dict, 'monthly_models') is not None else None)
                 ref_label   =  self._gen_labelname(self._get_datadict(data_dict, 'monthly_ref'))
                 std_label   =  self._gen_labelname(self._get_datadict(data_dict, 'monthly_std_ref'))
 
                 fig, ax = plot_timeseries(monthly_data=self._get_datadict(data_dict, 'monthly_models'),
-                                          annual_data=self._get_datadict(data_dict, 'annual_models'), 
+                                          annual_data=self._get_datadict(data_dict, 'annual_models'),
                                           ref_monthly_data=self._get_datadict(data_dict, 'monthly_ref'),
                                           ref_annual_data=self._get_datadict(data_dict, 'annual_ref'),
                                           std_monthly_data=self._get_datadict(data_dict, 'monthly_std_ref'),
                                           std_annual_data =self._get_datadict(data_dict, 'annual_std_ref'),
                                           #labels
                                           data_labels=data_labels,
-                                          ref_label=ref_label, 
+                                          ref_label=ref_label,
                                           std_label=std_label,
                                           fig=fig,
                                           ax=ax,
@@ -260,7 +245,7 @@ class PlotSeaIce:
             
             plt.tight_layout()
 
-            if save_fig:                                
+            if save_fig:
                 fig.savefig(os.path.join(self.outdir, f"seaice_plot_{method}.png"), format="png", dpi=self.dpi)
             
             # clear the figure to free memory
