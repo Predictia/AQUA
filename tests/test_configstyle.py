@@ -12,3 +12,11 @@ def test_ConfigStyle():
 
     cs = ConfigStyle(style=style)
     assert cs.style == style
+
+@pytest.mark.configstyle_default
+def test_ConfigStyle_default():
+    """
+    Test that ConfigStyle class is correctly initialized with default style "
+    """
+    cs = ConfigStyle()
+    assert cs.style is not None
