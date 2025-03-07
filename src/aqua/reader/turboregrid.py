@@ -1,13 +1,17 @@
 """New Regrid class independent from the Reader"""
 import os
+import re
 import xarray as xr
 from smmregrid import CdoGenerate, Regridder
-from aqua.logger import log_configure
 from smmregrid.util import CDO_GRID_PATTERNS
+from aqua.logger import log_configure
+
+# parameters which will affect the weights and areas name
+DEFAULT_WEIGHTS_AREAS_PARAMETERS = ['zoom']
 
 class TurboRegrid():
     """Refactor of regridder class"""
-    
+
     def __init__(self, cfg_grid_dict: dict,
                  src_grid_name: str,
                  data: xr.Dataset = None,
@@ -18,7 +22,8 @@ class TurboRegrid():
         Args:
             cfg_grid_dict (dict): The dictionary containing the full AQUA grid configuration.
             src_grid_name (str): The name of the source grid in the AQUA convention.
-            data (xarray.Dataset): The dataset to be regridded, to be provided in src_grid_path is missing.
+            data (xarray.Dataset, optional): The dataset to be regridded, 
+                                   to be provided in src_grid_path is missing.
             loglevel (str): The logging level.
         """
 
@@ -53,7 +58,7 @@ class TurboRegrid():
         """
 
         # Check if the string matches any of the grid patterns
-        for grid_type, pattern in CDO_GRID_PATTERNS.items():
+        for key, pattern in CDO_GRID_PATTERNS.items():
             if pattern.match(grid):
                 return True
         return False
@@ -96,7 +101,7 @@ class TurboRegrid():
                 return {"2d": path}
             raise FileNotFoundError(f"Grid file '{path}' does not exist.")
 
-        # case path is a dictionary: check if the values are valid file paths 
+        # case path is a dictionary: check if the values are valid file paths
         # (could extend to CDO names?)
         if isinstance(path, dict):
             for _, value in path.items():
@@ -122,7 +127,7 @@ class TurboRegrid():
         """
         return os.path.exists(filename) and os.path.getsize(filename) > 0
 
-    def load_generate_areas(self, dst_grid_name=None, rebuild=False, reader_kwargs=None, **kwargs):
+    def load_generate_areas(self, dst_grid_name=None, rebuild=False, reader_kwargs=None):
         """
         Load or generate regridding areas calling smmregrid
         """
@@ -152,8 +157,6 @@ class TurboRegrid():
             # this will not work if we do not have a 2d grid, need to be generalized
             generator = CdoGenerate(source_grid=self.src_grid_path['2d'],
                             target_grid=dst_grid_path['2d'],
-                            #cdo_download_path=None,
-                            #cdo_icon_grids=None,
                             cdo_extra=cdo_extra,
                             cdo_options=cdo_options,
                             cdo='cdo',
@@ -173,7 +176,7 @@ class TurboRegrid():
         else:
             self.dst_grid_area = grid_area
         
-    def load_generate_weights(self, dst_grid_name, rebuild=False, reader_kwargs=None, **kwargs):
+    def load_generate_weights(self, dst_grid_name, rebuild=False, reader_kwargs=None):
         """
         Load or generate regridding weights calling smmregrid
         """
@@ -195,8 +198,6 @@ class TurboRegrid():
                 # smmregrid call
                 generator = CdoGenerate(source_grid=self.src_grid_path[vertical_dim],
                                 target_grid=self.cfg_grid_dict['grids'][dst_grid_name],
-                                cdo_download_path=None,
-                                cdo_icon_grids=None,
                                 cdo_extra=cdo_extra,
                                 cdo_options=cdo_options,
                                 cdo='cdo',
@@ -215,6 +216,30 @@ class TurboRegrid():
 
             # initialize the regridder
             self.regridder[vertical_dim] = Regridder(weights=weights)
+
+    def _generate_area_filename(self, dst_grid_name, reader_kwargs):
+
+        area_dict = self.cfg_grid_dict.get('areas')
+
+        # destination grid name is provided
+        if dst_grid_name:
+            filename = area_dict["template_grid"].format(grid=dst_grid_name)
+        # source grid name is provided
+        else:
+            if something:
+                filename = area_dict["template_grid"].format(grid=self.src_grid_name)
+            else:
+                filename =  area_dict["template_default"].format(model=reader_kwargs["model"],
+                                                                 exp=reader_kwargs["exp"],
+                                                                 source=reader_kwargs["source"])
+        # add the kwargs naming in the template file
+        for parameter in DEFAULT_WEIGHTS_AREAS_PARAMETERS:
+            if parameter in reader_kwargs:
+                filename = re.sub(r'\.nc',
+                                    '_' + parameter + str(reader_kwargs[parameter]) + r'\g<0>',
+                                    filename)
+
+        return filename
         
     # def _configure_gridtype(self, data=None):
     #     """
