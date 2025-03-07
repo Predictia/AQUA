@@ -157,7 +157,7 @@ def merge_config_args(config: dict, args: argparse.Namespace,
     return config
 
 
-def convert_data(data, var: str, units: str, loglevel: str = 'WARNING'):
+def convert_data_units(data, var: str, units: str, loglevel: str = 'WARNING'):
     """
     Make sure that the data is in the correct units.
 
@@ -183,6 +183,9 @@ def convert_data(data, var: str, units: str, loglevel: str = 'WARNING'):
         data_to_fix = data_to_fix * factor + offset
         data_to_fix.attrs['units'] = final_units
         log_history(data_to_fix, f"Converting units of {var}: from {initial_units} to {final_units}")
+    else:
+        logger.debug('Units of %s are already in %s', var, final_units)
+        return data
 
     if isinstance(data, xr.Dataset):
         data_fixed = data.copy()
