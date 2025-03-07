@@ -147,8 +147,6 @@ class PlotSeaIce:
             if dataset_list is None:
                 continue
             
-            self._check_method(dataset_list)
-            
             for dataset in dataset_list:
                 method = dataset.attrs.get("method", "Unknown")
 
