@@ -34,6 +34,7 @@ class ConfigPath():
             self.configdir = configdir
         self.config_file = os.path.join(self.configdir, self.filename)
         self.logger.debug('Configuration file found in %s', self.config_file)
+        self.config_dict = load_yaml(self.config_file)
 
         # get all the available installed catalogs
         if catalog is None:
@@ -182,15 +183,24 @@ class ConfigPath():
         """
         # loading the grid defintion file
         machine_file = load_yaml(self.machine_file)
+        machine_paths = {}
 
-        # get informtion on paths
+        # get information on paths
         if self.machine in machine_file:
             machine_paths = machine_file[self.machine]
         else:
             if 'default' in machine_file:
                 machine_paths = machine_file['default']
-            else:
-                raise KeyError(f'Cannot find machine paths for {self.machine}, regridding and areas feature will not work')
+
+        # The main config file has priority
+        if 'paths' in self.config_dict:
+            for path in ['areas', 'weights', 'grids']:
+                if path in self.config_dict['paths']:
+                    machine_paths['paths'][path] = self.config_dict['paths'][path]
+        else:
+            self.logger.warning('No paths found in the main configuration file %s', self.base_available)
+        if machine_paths == {}:
+            raise KeyError(f'Cannot find machine paths for {self.machine}, regridding and areas feature will not work')
 
         # extract potential intake variables
         if 'intake' in machine_paths:
@@ -201,10 +211,7 @@ class ConfigPath():
         return machine_paths, intake_vars
 
     def get_base(self):
-        """
-        Get all the possible base configurations available
-        """
-
+        """Get all the possible base configurations available"""
         base = {}
         if os.path.exists(self.config_file):
             for catalog in self.catalog_available:
