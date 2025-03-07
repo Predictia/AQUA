@@ -3,6 +3,7 @@
 import types
 import xarray as xr
 from smmregrid import CdoGenerate
+import re
 
 class RegridMixin():
     """Regridding mixin for the Reader class"""
@@ -166,21 +167,25 @@ class RegridMixin():
         if vert_coord == "2d" or vert_coord == "2dm":  # if 2d we need to pass None to smmregrid
             vert_coord = None
 
-        width, height = map(int, cfg_regrid['grids'][regrid][1:].split('x'))
-        new_grid_size = width * height
-        
-        total_size = sgrid.sizes
-        total_elements = 1
-        for dim_size in total_size.values():
-            total_elements *= dim_size
+        # Check if target grid is in CDO regular lon/lat format (example 'r360x180')
+        if bool(re.match(r'^r\d+x\d+$', cfg_regrid['grids'][regrid])):
+            width, height = map(int, cfg_regrid['grids'][regrid][1:].split('x'))
+            new_grid_size = width * height
+            
+            total_size = sgrid.sizes
+            total_elements = 1
+            for dim_size in total_size.values():
+                total_elements *= dim_size
 
-        if original_grid_size > 0:  # Prevent division by zero
-            vert_coord_size = total_elements / original_grid_size
+            if original_grid_size > 0:  # Prevent division by zero
+                vert_coord_size = total_elements / original_grid_size
+            else:
+                vert_coord_size = 1
+
+            self._weights_generation_time(original_grid_size=original_grid_size,
+                          new_grid_size=new_grid_size, vert_coord_size=vert_coord_size, nproc=nproc)
         else:
-            vert_coord_size = 1
-
-        self._weights_generation_time(original_grid_size=original_grid_size,
-                                      new_grid_size=new_grid_size, vert_coord_size=vert_coord_size, nproc=nproc)
+            self.logger.debug(f"Cannot estimate weight generation time because target grid is not regular lon/lat, but this may take a while for large grids.")
 
         # hack to  pass a correct list of all options
         src_extra = source_grid.get("cdo_extra", [])
