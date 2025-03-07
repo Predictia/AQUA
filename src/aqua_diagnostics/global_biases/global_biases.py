@@ -36,14 +36,14 @@ class GlobalBiases(Diagnostic):
         self.plev = plev
         self.var = var
 
-    def _process_data(self, plev=None, var=None):
+    def retrieve_and_process(self, plev=None, var=None):
         """
         Retrieves and pre-processes the dataset, converting precipitation units if necessary 
         and selecting the specified pressure level.
         """
         self.var = var or self.var
         self.plev = plev or self.plev
-        
+
         super().retrieve(var=self.var)
         
         if self.data is None:
@@ -55,11 +55,11 @@ class GlobalBiases(Diagnostic):
         
         if self.var in ['tprate', 'mtpr']:
             self.logger.info(f'Adjusting units for precipitation variable: {self.var}.')
-            self.data = self._fix_precipitation_units(self.data, self.var)
+            self.data = fix_precipitation_units(self.data, self.var)
         
         if self.plev is not None:
             self.logger.info(f'Selecting pressure level {self.plev} for variable {self.var}.')
-            self.data = self.select_pressure_level(self.data, self.plev, self.var)
+            self.data = select_pressure_level(self.data, self.plev, self.var)
         elif 'plev' in self.data[self.var].dims:
             self.logger.warning(f"Variable {self.var} has multiple pressure levels but none selected. Skipping 2D plotting for bias maps.")
 
