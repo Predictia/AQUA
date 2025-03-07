@@ -14,9 +14,9 @@ def fix_precipitation_units(data, var):
     Returns:
         xr.Dataset: Dataset with adjusted units.
     """
-    if data[var_name].attrs['units'] != 'mm/day':
-        data[var_name] *= 86400
-        data[var_name].attrs['units'] = 'mm/day'
+    if data[var].attrs['units'] != 'mm/day':
+        data[var] *= 86400
+        data[var].attrs['units'] = 'mm/day'
     return data
 
 
@@ -35,10 +35,10 @@ def select_pressure_level(data, plev, var):
     Raises:
         NoDataError: If specified pressure level is not available.
     """
-    if 'plev' in data[var_name].dims:
+    if 'plev' in data[var].dims:
         try:
             return data.sel(plev=plev)
         except KeyError:
             raise NoDataError("The specified pressure level is not in the dataset.")
     else:
-        raise NoDataError(f"{var_name} does not have a 'plev' coordinate.")
+        raise NoDataError(f"{var} does not have a 'plev' coordinate.")
