@@ -224,7 +224,6 @@ class PlotSeaIce:
                 data_labels = ([self._gen_labelname(da) for da in self._get_datadict(data_dict, 'monthly_models')]
                                 if self._get_datadict(data_dict, 'monthly_models') is not None else None)
                 ref_label   =  self._gen_labelname(self._get_datadict(data_dict, 'monthly_ref'))
-                std_label   =  self._gen_labelname(self._get_datadict(data_dict, 'monthly_std_ref'))
 
                 fig, ax = plot_timeseries(monthly_data=self._get_datadict(data_dict, 'monthly_models'),
                                           annual_data=self._get_datadict(data_dict, 'annual_models'),
@@ -235,7 +234,7 @@ class PlotSeaIce:
                                           #labels
                                           data_labels=data_labels,
                                           ref_label=ref_label,
-                                          std_label=std_label,
+                                          std_label=None,
                                           fig=fig,
                                           ax=ax,
                                           **kwargs)
