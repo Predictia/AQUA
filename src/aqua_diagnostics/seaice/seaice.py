@@ -71,7 +71,8 @@ class SeaIce(Diagnostic):
             raise ValueError("No regions_definition found.")
         return dict(self.regions_definition)
 
-    def add_seaice_attrs(self, da_seaice_computed: xr.DataArray, method: str, region: str, std_flag=False):
+    def add_seaice_attrs(self, da_seaice_computed: xr.DataArray, method: str, region: str,
+                          startdate: str=None, enddate: str=None, std_flag=False):
         """Set attributes for seaice_computed."""
 
         # set attributes: 'method','unit'   
@@ -87,6 +88,8 @@ class SeaIce(Diagnostic):
         da_seaice_computed.attrs["standard_name"] = f"{region}_{'std_' if std_flag else ''}sea_ice_{method}"
         da_seaice_computed.attrs["method"] = f"{method}"
         da_seaice_computed.attrs["region"] = f"{region}"
+        if startdate is not None: da_seaice_computed.attrs["startdate"] = f"{startdate}"
+        if enddate is not None: da_seaice_computed.attrs["enddate"] = f"{enddate}"
         da_seaice_computed.name = f"{'std_' if std_flag else ''}sea_ice_{method}_{region.replace(' ', '_').lower()}"
         return da_seaice_computed
 
@@ -205,12 +208,13 @@ class SeaIce(Diagnostic):
         regional_extents_std = [] if calc_std_freq else None
 
         for region in self.regions:
+            print(self.startdate)
 
             # integrate the seaice masked data ci_mask over the regional spatial dimension to compute sea ice extent
             seaice_extent = self.integrate_seaice_masked_data(ci_mask, 'extent', region)
 
             # add attributes and history
-            seaice_extent = self.add_seaice_attrs(seaice_extent, 'extent', region)
+            seaice_extent = self.add_seaice_attrs(seaice_extent, 'extent', region, self.startdate, self.enddate)
             log_history(seaice_extent, "Method used for seaice computation: extent")
 
             regional_extents.append(seaice_extent)
@@ -221,7 +225,8 @@ class SeaIce(Diagnostic):
                 seaice_std_extent = self._calculate_std(seaice_extent, calc_std_freq)
 
                 # update attributes and history
-                seaice_std_extent = self.add_seaice_attrs(seaice_std_extent, 'extent', region, std_flag=True)
+                seaice_std_extent = self.add_seaice_attrs(seaice_std_extent, 'extent', region,
+                                                          self.startdate, self.enddate, std_flag=True)
                 log_history(seaice_std_extent, f"Method used for standard deviation seaice computation: extent")
 
                 regional_extents_std.append(seaice_std_extent)
@@ -261,7 +266,7 @@ class SeaIce(Diagnostic):
             seaice_volume = self.integrate_seaice_masked_data(sivol_mask, 'volume', region)
 
             # add attributes and history
-            seaice_volume = self.add_seaice_attrs(seaice_volume, 'volume', region)
+            seaice_volume = self.add_seaice_attrs(seaice_volume, 'volume', region, self.startdate, self.enddate)
             log_history(seaice_volume, f"Method used for seaice computation: 'volume'")
 
             regional_volumes.append(seaice_volume)
@@ -272,7 +277,8 @@ class SeaIce(Diagnostic):
                 seaice_std_volume = self._calculate_std(seaice_volume, calc_std_freq)
 
                 # update attributes and history
-                seaice_std_volume = self.add_seaice_attrs(seaice_std_volume, 'volume', region, std_flag=True)
+                seaice_std_volume = self.add_seaice_attrs(seaice_std_volume, 'volume', region, 
+                                                          self.startdate, self.enddate, std_flag=True)
                 log_history(seaice_std_volume, f"Method used for standard deviation seaice computation: volume")
 
                 regional_volumes_std.append(seaice_std_volume)
