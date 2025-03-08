@@ -34,10 +34,8 @@ class SeaIce(Diagnostic):
         self.load_regions(regions_file=regions_file, regions=regions)
 
     def load_regions(self, regions_file=None, regions=None):
-        """
-        Loads region definitions from a .yaml configuration file and sets the regions.
-        If no regions are provided, it uses all available regions from the configuration.
-        
+        """ Loads region definitions from a .yaml configuration file and sets the regions.
+            If no regions are provided, it uses all available regions from the configuration.
         Args:
             regions_file (str): Full path to the region file. If None, a default path is used.
             regions (list): A region or list of str with regions name to load. If None, all regions are used.
@@ -73,8 +71,7 @@ class SeaIce(Diagnostic):
             raise ValueError("No regions_definition found.")
         return dict(self.regions_definition)
 
-    @staticmethod
-    def set_seaice_update_attrs(seaice_computed, method: str, region: str, std_flag=False):
+    def add_seaice_attrs(self, da_seaice_computed: xr.DataArray, method: str, region: str, std_flag=False):
         """Set attributes for seaice_computed."""
 
         # set attributes: 'method','unit'   
@@ -84,22 +81,21 @@ class SeaIce(Diagnostic):
         if method not in units_dict:
             raise NoDataError("Variable not found in dataset")
         else:
-            seaice_computed.attrs["units"] = units_dict.get(method)
+            da_seaice_computed.attrs["units"] = units_dict.get(method)
 
-        seaice_computed.attrs["long_name"] = f"{'Std ' if std_flag else ''}Sea ice {method} integrated over region {region}"
-        seaice_computed.attrs["standard_name"] = f"{region}_{'std_' if std_flag else ''}sea_ice_{method}"
-        seaice_computed.attrs["method"] = f"{method}"
-        seaice_computed.attrs["region"] = f"{region}"
-        seaice_computed.name = f"{'std_' if std_flag else ''}sea_ice_{method}_{region.replace(' ', '_').lower()}"
+        da_seaice_computed.attrs["long_name"] = f"{'Std ' if std_flag else ''}Sea ice {method} integrated over region {region}"
+        da_seaice_computed.attrs["standard_name"] = f"{region}_{'std_' if std_flag else ''}sea_ice_{method}"
+        da_seaice_computed.attrs["method"] = f"{method}"
+        da_seaice_computed.attrs["region"] = f"{region}"
+        da_seaice_computed.name = f"{'std_' if std_flag else ''}sea_ice_{method}_{region.replace(' ', '_').lower()}"
+        return da_seaice_computed
 
     def integrate_seaice_masked_data(self, masked_data, method: str, region: str):
         """Integrate the masked data over the spatial dimension to compute sea ice metrics.
-
         Args:
         masked_data (xr.DataArray): The masked data to be integrated.
         method (str): The method to compute sea ice metrics. Options are 'extent' or 'volume'.
         region (str): The region for which the sea ice metric is computed.
-
         Returns:
         xr.DataArray: The computed sea ice metric.
         """
@@ -129,7 +125,7 @@ class SeaIce(Diagnostic):
             seaice_metric = (masked_data * areacello.where(masked_data.notnull())).sum(skipna = True, min_count = 1, 
                                                                                        dim=self.reader.space_coord) / 1e12
         # add attributes
-        self.set_seaice_update_attrs(seaice_metric, method, region)
+        seaice_metric = self.add_seaice_attrs(seaice_metric, method, region)
 
         return seaice_metric
 
@@ -147,7 +143,7 @@ class SeaIce(Diagnostic):
 
         if freq in ['MS', 'ME', 'M', 'mon', 'monthly']:
             freq = 'monthly'
-        elif freq in ['YS', 'YE', 'Y', 'annual']:
+        elif freq in ['YS', 'YE', 'Y', 'annual', 'annually']:
             freq = 'annual'
         else:
             self.logger.error(f"Frequency str: '{freq}' not recognized")
@@ -170,9 +166,27 @@ class SeaIce(Diagnostic):
         return computed_data_std
 
     def _compute_extent(self, threshold: float = 0.15, var: str = 'siconc', calc_std_freq: str = None):
-        """Compute sea ice extent.
-        threshold (float): The threshold value for which sea ice fraction is considered . Default is 0.15.
-        """
+        """ Compute sea ice extent by integrating sea ice concentration data over specified regions.
+        The sea ice extent is calculated by applying a threshold to the sea ice concentration variable
+        and summing the masked data over the regional spatial dimension. If a standard deviation 
+        calculation frequency (`calc_std_freq`) is provided, the standard deviation of the extent is also computed.
+        Args:
+            threshold (float, optional): 
+                The threshold value for sea ice concentration above which a grid cell is considered 
+                part of the sea ice extent. Default is 0.15.
+            var (str, optional): 
+                The name of the sea ice concentration variable in the dataset. Default is 'siconc'.
+            calc_std_freq (str, optional): 
+                The frequency for computing the standard deviation of sea ice extent across time (i.e., 'monthly', 'annual'). 
+                If None, standard deviation is not computed. Default is None.
+        Returns:
+            xr.Dataset or Tuple[xr.Dataset, xr.Dataset]: 
+                - If `calc_std_freq` is None, returns a dataset containing the integrated sea ice extent.
+                - If `calc_std_freq` is provided, returns a tuple containing:
+                    1. `self.extent` (xr.Dataset): The computed sea ice extent.
+                    2. `self.extent_std` (xr.Dataset): The std deviation of sea ice extent with specified frequency.
+        Notes:
+            - Standard deviation is computed across all years if `calc_std_freq` is provided."""
 
         # retrieve data with Diagnostic method
         super().retrieve(var=var)
@@ -191,12 +205,12 @@ class SeaIce(Diagnostic):
         regional_extents_std = [] if calc_std_freq else None
 
         for region in self.regions:
-            
+
             # integrate the seaice masked data ci_mask over the regional spatial dimension to compute sea ice extent
             seaice_extent = self.integrate_seaice_masked_data(ci_mask, 'extent', region)
 
             # add attributes and history
-            self.set_seaice_update_attrs(seaice_extent, 'extent', region)
+            seaice_extent = self.add_seaice_attrs(seaice_extent, 'extent', region)
             log_history(seaice_extent, "Method used for seaice computation: extent")
 
             regional_extents.append(seaice_extent)
@@ -207,11 +221,11 @@ class SeaIce(Diagnostic):
                 seaice_std_extent = self._calculate_std(seaice_extent, calc_std_freq)
 
                 # update attributes and history
-                self.set_seaice_update_attrs(seaice_std_extent, 'extent', region, std_flag=True)
+                seaice_std_extent = self.add_seaice_attrs(seaice_std_extent, 'extent', region, std_flag=True)
                 log_history(seaice_std_extent, f"Method used for standard deviation seaice computation: extent")
 
                 regional_extents_std.append(seaice_std_extent)
-
+                
         # combine the extent DataArrays into a single Dataset and keep as global attributes 
         # only the attrs that are shared across all DataArrays
         self.extent = xr.merge(regional_extents, combine_attrs='drop_conflicts')
@@ -247,7 +261,7 @@ class SeaIce(Diagnostic):
             seaice_volume = self.integrate_seaice_masked_data(sivol_mask, 'volume', region)
 
             # add attributes and history
-            self.set_seaice_update_attrs(seaice_volume, 'volume', region)
+            seaice_volume = self.add_seaice_attrs(seaice_volume, 'volume', region)
             log_history(seaice_volume, f"Method used for seaice computation: 'volume'")
 
             regional_volumes.append(seaice_volume)
@@ -258,7 +272,7 @@ class SeaIce(Diagnostic):
                 seaice_std_volume = self._calculate_std(seaice_volume, calc_std_freq)
 
                 # update attributes and history
-                self.set_seaice_update_attrs(seaice_std_volume, 'volume', region, std_flag=True)
+                seaice_std_volume = self.add_seaice_attrs(seaice_std_volume, 'volume', region, std_flag=True)
                 log_history(seaice_std_volume, f"Method used for standard deviation seaice computation: volume")
 
                 regional_volumes_std.append(seaice_std_volume)
@@ -275,7 +289,6 @@ class SeaIce(Diagnostic):
 
     def compute_seaice(self, method: str, *args, **kwargs):
         """ Execute the seaice diagnostic based on the specified method.
-
         Parameters:
         var (str): The variable to be used for computation.
         method (str): The method to compute sea ice metrics. Options are 'extent' or 'volume'.
@@ -284,7 +297,6 @@ class SeaIce(Diagnostic):
             - var (str): The variable to be used for computation. Default is 'sithick'.
         Returns:
         xr.DataArray or xr.Dataset: The computed sea ice metric. A Dataset is returned if multiple regions are requested.
-        
         Raises:
         ValueError: If an invalid method is specified.
         """
@@ -307,7 +319,6 @@ class SeaIce(Diagnostic):
                     default_path: str = '.', rebuild: bool = True, output_file: str = None,
                     output_dir: str = None, **kwargs):
         """ Save the computed sea ice data to a NetCDF file.
-
         Args:
             seaice_data (xr.DataArray or xr.Dataset): The computed sea ice metric data.
             diagnostic (str): The diagnostic name. It is expected 'SeaIce' for this class.
@@ -317,13 +328,8 @@ class SeaIce(Diagnostic):
             output_file (str, optional): The output file name.
             output_dir (str, optional): The output directory.
             **kwargs: Additional keyword arguments for saving the data.
-
-        Returns:
-            None 
         """
-
         # Use parent method to handle saving, including metadata
         super().save_netcdf(seaice_data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
                             default_path=default_path, rebuild=rebuild, **kwargs)
-
         return None
