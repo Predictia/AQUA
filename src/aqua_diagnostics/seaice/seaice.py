@@ -76,7 +76,7 @@ class SeaIce(Diagnostic):
         """Set attributes for seaice_computed."""
 
         # set attributes: 'method','unit'   
-        units_dict = {"extent": "million km^2", 
+        units_dict = {"extent": "million km^2",
                       "volume": "thousands km^3"}
 
         if method not in units_dict:
@@ -242,7 +242,7 @@ class SeaIce(Diagnostic):
         return (self.extent, self.extent_std) if calc_std_freq else self.extent
 
     def _compute_volume(self, var: str = 'sithick', calc_std_freq: str = None):
-        """Compute sea ice volume."""
+        """Compute sea ice volume by integrating computed data over specified regions."""
 
         # retrieve data with Diagnostic method
         super().retrieve(var=var)
