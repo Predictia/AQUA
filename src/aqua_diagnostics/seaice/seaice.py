@@ -105,7 +105,7 @@ class SeaIce(Diagnostic):
 
         self.logger.debug(f'Calculate cell areas for {region}')
 
-        # get info on grid area that must be reinitialised for each region
+        # get info on grid area that must be reinitialised for each region. Note: areacello units are in (m^2)
         areacello = self.reader.grid_area
 
         # get the region box from the region definition file
@@ -208,7 +208,6 @@ class SeaIce(Diagnostic):
         regional_extents_std = [] if calc_std_freq else None
 
         for region in self.regions:
-            print(self.startdate)
 
             # integrate the seaice masked data ci_mask over the regional spatial dimension to compute sea ice extent
             seaice_extent = self.integrate_seaice_masked_data(ci_mask, 'extent', region)
