@@ -3,7 +3,7 @@ import os
 import re
 import xarray as xr
 from smmregrid import CdoGenerate, Regridder
-from smmregrid.util import CDO_GRID_PATTERNS
+from smmregrid.util import is_cdo_grid, check_gridfile
 from aqua.logger import log_configure
 
 # parameters which will affect the weights and areas name
@@ -49,19 +49,6 @@ class TurboRegrid():
 
         self.logger.info("Grid name: %s", self.src_grid_name)
         self.logger.info("Grid file path: %s", self.src_grid_path)
-
-    @staticmethod
-    def _is_cdo_grid(grid):
-        """
-        Check if the grid name is a valid CDO grid name.
-        Imported from smmregrid
-        """
-
-        # Check if the string matches any of the grid patterns
-        for key, pattern in CDO_GRID_PATTERNS.items():
-            if pattern.match(grid):
-                return True
-        return False
     
     def _normalize_grid_dict(self, grid):
         """
@@ -70,7 +57,7 @@ class TurboRegrid():
 
         # grid dict is a string: this is the case of a CDO grid name
         if isinstance(grid, str):
-            if self._is_cdo_grid(grid):
+            if is_cdo_grid(grid):
                 self.logger.info("Grid definition %s is a valid CDO grid name.", grid)
                 return {"path": {"2d": grid}}
             raise ValueError(f"Grid '{grid}' is not a valid CDO grid name.")
@@ -93,7 +80,7 @@ class TurboRegrid():
 
         # case path is a string: check if it is a valid CDO grid name or a file path
         if isinstance(path, str):
-            if self._is_cdo_grid(path):
+            if is_cdo_grid(path):
                 self.logger.info("Grid path %s is a valid CDO grid name.", path)
                 return {"2d": path}
             if self._check_existing_file(path):
@@ -105,7 +92,7 @@ class TurboRegrid():
         # (could extend to CDO names?)
         if isinstance(path, dict):
             for _, value in path.items():
-                if not (self._is_cdo_grid(value) or self._check_existing_file(value)):
+                if not (is_cdo_grid(value) or self._check_existing_file(value)):
                     raise ValueError(f"Grid path '{value}' is not a valid CDO grid name nor a file path.")
             self.logger.info("Grid path %s is a valid dictionary of file paths.", path)
             return path
@@ -118,8 +105,7 @@ class TurboRegrid():
             raise ValueError("Grid path missing in config and no sample data provided.")
 
         raise ValueError(f"Grid path '{path}' is not a valid type.")
-
-
+    
     def _check_existing_file(self, filename):
         """
         Checks if an area/weights file exists and is valid.
@@ -145,8 +131,11 @@ class TurboRegrid():
             dst_grid_path = {'2d': None}
             cdo_extra = self.src_grid_dict.get('cdo_extra')
             cdo_options = self.src_grid_dict.get('cdo_options')
+
+        # get 2d or the first grid path from the dictionary
+        #dst_grid_path.get('2d', next(iter(d.values()), None))
         
-        area_filename = f'tmp_areas.nc'
+        area_filename = 'tmp_areas.nc'
         #weights_filename = self._make_filename(dst_grid_name, self.grid_name, **reader_kwargs)
         #keep fallback option for filename when weights/areas block is not present in the configuration
 
@@ -221,12 +210,12 @@ class TurboRegrid():
 
         area_dict = self.cfg_grid_dict.get('areas')
 
-        # destination grid name is provided
+        # destination grid name is provided, use grid template
         if dst_grid_name:
             filename = area_dict["template_grid"].format(grid=dst_grid_name)
-        # source grid name is provided
+        # source grid name is provided, check if it is data
         else:
-            if something:
+            if check_gridfile(self.src_grid_name) != 'xarray':
                 filename = area_dict["template_grid"].format(grid=self.src_grid_name)
             else:
                 filename =  area_dict["template_default"].format(model=reader_kwargs["model"],
