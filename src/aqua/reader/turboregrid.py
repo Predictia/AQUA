@@ -57,6 +57,7 @@ class TurboRegrid():
 
         # check if the grid path has been defined
         if not self.src_grid_path:
+            # self.error can be used by the Reader to check if the grid is valid
             self.error = "Source grid path not found. Please provide a dataset or a grid name."
             self.logger.info(self.error)
             return
@@ -73,7 +74,7 @@ class TurboRegrid():
 
         self.logger.info("Grid name: %s", self.src_grid_name)
         self.logger.info("Grid dictionary: %s", self.src_grid_dict)
-        self.logger.info("Grid file path dictionary: %s", self.src_grid_path)
+        self.logger.debug("Grid file path dictionary: %s", self.src_grid_path)
 
 
 
