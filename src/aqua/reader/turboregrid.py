@@ -9,6 +9,11 @@ from aqua.logger import log_configure
 # parameters which will affect the weights and areas name
 DEFAULT_WEIGHTS_AREAS_PARAMETERS = ['zoom']
 
+# please notice: is_cdo_grid and check_gridfile are functions from smmregrid.util
+# to check if a string is a valid CDO grid name and if a grid is a cdo grid, 
+# file on the disk or xarray dataset. Possible inclusion of CDOgrid object is considered
+# but should be developed on the smmregrid side.
+
 class TurboRegrid():
     """Refactor of regridder class"""
 
@@ -36,16 +41,17 @@ class TurboRegrid():
         self.src_grid_dict = cfg_grid_dict['grids'].get(src_grid_name) # source grid dictionary
         if not self.src_grid_dict:
             raise ValueError(f"Source grid '{src_grid_name}' not found in the configuration.")
+        
+        # we want all the grid dictionary to be real dictionaries
         self.src_grid_dict = self._normalize_grid_dict(self.src_grid_dict)
-
 
         self.regridder = {} # regridders for each vertical coordinate
         self.src_grid_area = None # source grid area
         self.dst_grid_area = None # destination grid area
 
+        # we want all the grid path dictionary to be real dictionaries
         self.src_grid_path = self.src_grid_dict.get('path')
         self._normalize_grid_path(self.src_grid_path, data)
-
 
         self.logger.info("Grid name: %s", self.src_grid_name)
         self.logger.info("Grid file path: %s", self.src_grid_path)
@@ -65,7 +71,6 @@ class TurboRegrid():
             return grid
         raise ValueError(f"Grid definition '{grid}' is not a valid type")
 
-
     def _normalize_grid_path(self, path, data=None):
         """
         Normalize the grid path to a dictionary with the 2d key.
@@ -73,6 +78,10 @@ class TurboRegrid():
             - a dictionary with a path string, a CDO grid name or a file path
             - a dictionary with a dictionary of path, one for each vertical coordinate
             - a dictionary without path with data provided, to get info from the dataset
+
+        Args:
+            path (str, dict): The grid path.
+            data (xarray.Dataset): The dataset to extract grid information from.
         
         Returns:
             dict: The normalized grid path dictionary. "2d" key is mandatory.
@@ -106,68 +115,98 @@ class TurboRegrid():
 
         raise ValueError(f"Grid path '{path}' is not a valid type.")
     
-    def _check_existing_file(self, filename):
-        """
-        Checks if an area/weights file exists and is valid.
-        Return true if the file has some records.
-        """
-        return os.path.exists(filename) and os.path.getsize(filename) > 0
-
     def load_generate_areas(self, dst_grid_name=None, rebuild=False, reader_kwargs=None):
         """
-        Load or generate regridding areas calling smmregrid
+        Load or generate regridding areas by calling the appropriate function.
+        """
+        if dst_grid_name:
+            return self._generate_target_areas(dst_grid_name, rebuild, reader_kwargs)
+        return self._generate_source_areas(rebuild, reader_kwargs)
+        
+    def _generate_source_areas(self, rebuild=False, reader_kwargs=None):
+        """
+        Generate or load source grid areas.
+
+        Args:
+            rebuild (bool): If True, rebuild the areas.
+            reader_kwargs (dict): The reader kwargs, including info on model, exp, source, etc.
+        """
+        area_filename = self._area_filename(None, reader_kwargs)
+
+        if not rebuild and self._check_existing_file(area_filename):
+            self.logger.info("Loading existing source area from %s.", area_filename)
+            self.src_grid_area = xr.open_dataset(area_filename)
+            return
+
+        # if cell ino are provide in the grid dictionary, use them
+        cellareas = self.src_grid_dict.get('cellareas')
+        cellareas_var = self.src_grid_dict.get('cellareas_var')
+        if cellareas and cellareas_var:
+            self.logger.info("Using cellareas from variable %s in file %s", cellareas_var, cellareas)
+            grid_area = xr.open_mfdataset(cellareas)[cellareas_var].rename("cell_area").squeeze()
+
+        # otherwise, generate the areas with smmregrid
+        else:
+            generator = CdoGenerate(
+                source_grid=self._get_grid_path(self.src_grid_path), # get the 2d grid path
+                target_grid=None,
+                cdo_extra=self.src_grid_dict.get('cdo_extra'),
+                cdo_options=self.src_grid_dict.get('cdo_options'),
+                cdo='cdo',
+                loglevel=self.loglevel
+            )
+            grid_area = generator.areas(target=False)
+
+        grid_area.to_netcdf(area_filename)
+        self.logger.info("Saved source area to %s.", area_filename)
+        self.src_grid_area = grid_area
+
+    def _generate_target_areas(self, dst_grid_name, rebuild=False, reader_kwargs=None):
+        """
+        Generate or load target grid areas.
+
+        Args:
+            dst_grid_name (str): The destination grid name.
+            rebuild (bool): If True, rebuild the areas.
+            reader_kwargs (dict): The reader kwargs, including info on model, exp, source, etc.
         """
 
-        # get the grid name for logging
-        area_logname = "target" if dst_grid_name else "source"
-
-        if dst_grid_name:
-            # get the target from the configuration
-            dst_grid_dict = self._normalize_grid_dict(self.cfg_grid_dict['grids'].get(dst_grid_name))
-            dst_grid_path = self._normalize_grid_path(dst_grid_dict.get('path'))
-            cdo_extra = dst_grid_dict.get('cdo_extra')
-            cdo_options = dst_grid_dict.get('cdo_options')
-        else:
-            dst_grid_path = {'2d': None}
-            cdo_extra = self.src_grid_dict.get('cdo_extra')
-            cdo_options = self.src_grid_dict.get('cdo_options')
-
-        # get 2d or the first grid path from the dictionary
-        #dst_grid_path.get('2d', next(iter(d.values()), None))
+        # normalize the dst grid dictionary and path
+        dst_grid_dict = self._normalize_grid_dict(self.cfg_grid_dict['grids'].get(dst_grid_name))
+        dst_grid_path = self._normalize_grid_path(dst_grid_dict.get('path'))
         
-        area_filename = 'tmp_areas.nc'
-        #weights_filename = self._make_filename(dst_grid_name, self.grid_name, **reader_kwargs)
-        #keep fallback option for filename when weights/areas block is not present in the configuration
+        area_filename = self._area_filename(dst_grid_name, reader_kwargs)
 
-        # check if weights already exist, if not, generate them
-        if rebuild or self._check_existing_file(area_filename):
-  
-            # smmregrid call: get the first element of the list
-            # this will not work if we do not have a 2d grid, need to be generalized
-            generator = CdoGenerate(source_grid=self.src_grid_path['2d'],
-                            target_grid=dst_grid_path['2d'],
-                            cdo_extra=cdo_extra,
-                            cdo_options=cdo_options,
-                            cdo='cdo',
-                            loglevel=self.loglevel)
-            
-            # if target_grid is not None, will generate the areas for the target grid
-            grid_area = generator.areas(target=bool(dst_grid_name))
-            grid_area.to_netcdf(area_filename)
-            self.logger.info("Saved %s area to %s.", area_logname, area_filename)
-        else:
-            self.logger.info("Loading existing %s area from %s.", area_logname, area_filename)
-            grid_area = xr.open_dataset(area_filename)
+        if not rebuild and self._check_existing_file(area_filename):
+            self.logger.info("Loading existing target area from %s.", area_filename)
+            self.dst_grid_area = xr.open_dataset(area_filename)
+            return
 
-        # assign to the object
-        if dst_grid_name is None:
-            self.src_grid_area = grid_area
-        else:
-            self.dst_grid_area = grid_area
+        generator = CdoGenerate(
+            source_grid=self._get_grid_path(self.src_grid_path),
+            target_grid=self._get_grid_path(dst_grid_path),
+            cdo_extra=dst_grid_dict.get('cdo_extra'),
+            cdo_options=dst_grid_dict.get('cdo_options'),
+            cdo='cdo',
+            loglevel=self.loglevel
+        )
+        grid_area = generator.areas(target=True)
+
+        grid_area.to_netcdf(area_filename)
+        self.logger.info("Saved target area to %s.", area_filename)
+        self.dst_grid_area = grid_area
         
-    def load_generate_weights(self, dst_grid_name, rebuild=False, reader_kwargs=None):
+    def load_generate_weights(self, dst_grid_name, regrid_method="con", nproc=1,
+                              rebuild=False, reader_kwargs=None):
         """
         Load or generate regridding weights calling smmregrid
+
+        Args:
+            dst_grid_name (str): The destination grid name.
+            regrid_method (str): The regrid method.
+            nproc (int): The number of processors to use.
+            rebuild (bool): If True, rebuild the weights.
+            reader_kwargs (dict): The reader kwargs, including info on model, exp, source, etc.
         """
 
         # get the cdo options from the configuration
@@ -177,9 +216,8 @@ class TurboRegrid():
         # loop over the vertical coordinates: 2d, 2dm, or any other
         for vertical_dim in self.src_grid_path:
 
-            weights_filename = f'tmp_{vertical_dim}.nc'
-            #weights_filename = self._make_filename(dst_grid_name, self.grid_name, **reader_kwargs)
-            #keep fallback option for filename when weights/areas block is not present in the configuration
+            weights_filename = self._weights_filename(dst_grid_name, regrid_method, 
+                                                      vertical_dim, reader_kwargs)
 
             # check if weights already exist, if not, generate them
             if rebuild or not self._check_existing_file(weights_filename):
@@ -196,7 +234,9 @@ class TurboRegrid():
                 smm_vert_coord = None if vertical_dim in ['2d', '2dm'] else vertical_dim
 
                 # generate and save the weights
-                weights = generator.weights(method="con", vert_coord=smm_vert_coord, nproc=1)
+                weights = generator.weights(method=regrid_method,
+                                            vert_coord=smm_vert_coord,
+                                            nproc=nproc)
                 weights.to_netcdf(weights_filename)
 
             else:
@@ -206,7 +246,14 @@ class TurboRegrid():
             # initialize the regridder
             self.regridder[vertical_dim] = Regridder(weights=weights)
 
-    def _generate_area_filename(self, dst_grid_name, reader_kwargs):
+    def _area_filename(self, dst_grid_name, reader_kwargs):
+        """"
+        Generate the area filename.
+        
+        Args:
+            dst_grid_name (str): The destination grid name.
+            reader_kwargs (dict): The reader kwargs, including info on model, exp, source, etc.
+        """
 
         area_dict = self.cfg_grid_dict.get('areas')
 
@@ -215,20 +262,96 @@ class TurboRegrid():
             filename = area_dict["template_grid"].format(grid=dst_grid_name)
         # source grid name is provided, check if it is data
         else:
-            if check_gridfile(self.src_grid_name) != 'xarray':
+            if check_gridfile(self.src_grid_path['2d']) != 'xarray':
                 filename = area_dict["template_grid"].format(grid=self.src_grid_name)
             else:
                 filename =  area_dict["template_default"].format(model=reader_kwargs["model"],
                                                                  exp=reader_kwargs["exp"],
                                                                  source=reader_kwargs["source"])
+
+        filename = self._insert_kwargs(filename, reader_kwargs)
+        filename = self._filename_prepend_path(filename, kind="areas")
+        return filename
+
+    def _weights_filename(self, dst_grid_name, regrid_method, vertical_dim, reader_kwargs):
+        """
+        Generate the weights filename.
+
+        Args:
+            dst_grid_name (str): The destination grid name.
+            regrid_method (str): The regrid method.
+            vertical_dim (str): The vertical dimension.
+            reader_kwargs (dict): The reader kwargs, including info on model, exp, source, etc.
+        """
+
+        levname = vertical_dim if vertical_dim in ["2d", "2dm"] else f"3d-{vertical_dim}"
+
+        weights_dict = self.cfg_grid_dict.get('weights')
+
+        # destination grid name is provided, use grid template
+        if check_gridfile(self.src_grid_path[vertical_dim]) != 'xarray':
+            filename = weights_dict["template_grid"].format(
+                sourcegrid=self.src_grid_name,
+                method=regrid_method,
+                targetgrid=dst_grid_name,
+                level=levname)
+        else:
+            filename = weights_dict["weights"]["template_default"].format(
+                model=reader_kwargs["model"],
+                exp=reader_kwargs["exp"],
+                source=reader_kwargs["source"],
+                method=regrid_method,
+                targetgrid=dst_grid_name,
+                level=levname)
+
+        filename = self._insert_kwargs(filename, reader_kwargs)
+        filename = self._filename_prepend_path(filename, kind="weights")
+        return filename
+    
+    def _filename_prepend_path(self, filename, kind="weights"):
+        """
+        Prepend the path to the filename with some fall back option
+        """
+        if not self.cfg_grid_dict.get("paths"):
+            self.logger.warning("Paths block not found in the configuration file, using present directory.")
+        else:
+            if not self.cfg_grid_dict["paths"].get(kind):
+                self.logger.warning("%s block not found in the paths block, using present directory.", kind)
+            else:
+                filename = os.path.join(self.cfg_grid_dict["paths"][kind], filename)
+        return filename
+
+    @staticmethod
+    def _insert_kwargs(filename, reader_kwargs):
+        """
+        Insert the DEFAULT_WEIGHTS_AREAS_PARAMETERS in the filename template.
+        """
         # add the kwargs naming in the template file
-        for parameter in DEFAULT_WEIGHTS_AREAS_PARAMETERS:
-            if parameter in reader_kwargs:
-                filename = re.sub(r'\.nc',
+        if isinstance(reader_kwargs, dict):
+            for parameter in DEFAULT_WEIGHTS_AREAS_PARAMETERS:
+                if parameter in reader_kwargs:
+                    filename = re.sub(r'\.nc',
                                     '_' + parameter + str(reader_kwargs[parameter]) + r'\g<0>',
                                     filename)
 
         return filename
+    
+    @staticmethod
+    def _get_grid_path(grid_path):
+        """
+        Get the grid path from the grid dictionary.
+        This looks for `2d` key, otherwise takes the first available value.
+        """
+        return grid_path.get('2d', next(iter(grid_path.values()), None))
+    
+    @staticmethod
+    def _check_existing_file(filename):
+        """
+        Checks if an area/weights file exists and is valid.
+        Return true if the file has some records.
+        """
+        return os.path.exists(filename) and os.path.getsize(filename) > 0
+        
         
     # def _configure_gridtype(self, data=None):
     #     """
