@@ -42,26 +42,13 @@ class TurboRegrid():
         self.loglevel = loglevel
         self.logger = log_configure(log_level=loglevel, log_name='TurboRegrid')
 
-        # check if CDO is available
-        self.cdo = self._set_cdo()
-
         # define basic attributes:
         self.cfg_grid_dict = cfg_grid_dict #full grid dictionary
         self.src_grid_name = src_grid_name # source grid name
-        self.regridder = {} # regridders for each vertical coordinate
-        self.src_grid_area = None # source grid area
-        self.dst_grid_area = None # destination grid area
 
         # we want all the grid dictionary to be real dictionaries
         self.src_grid_dict = self._normalize_grid_dict(self.src_grid_name)
         self.src_grid_path = self._normalize_grid_path(self.src_grid_dict)
-
-        # configure the masked fields
-        self.masked_attr, self.masked_vars = self._configure_masked_fields(self.src_grid_dict)
-
-        self.logger.info("Grid name: %s", self.src_grid_name)
-        self.logger.info("Grid dictionary: %s", self.src_grid_dict)
-        self.logger.info("Grid file path dictionary: %s", self.src_grid_path)
 
         # grid path is None: check if data is provided to extract information for CDO
         if data is not None:
@@ -70,7 +57,25 @@ class TurboRegrid():
 
         # check if the grid path has been defined
         if not self.src_grid_path:
-                raise ValueError("Source grid path not found. Please provide a dataset or a grid name.")
+            self.error = "Source grid path not found. Please provide a dataset or a grid name."
+            self.logger.info(self.error)
+            return
+        
+        # check if CDO is available
+        self.cdo = self._set_cdo()
+        
+        self.regridder = {} # regridders for each vertical coordinate
+        self.src_grid_area = None # source grid area
+        self.dst_grid_area = None # destination grid area
+        
+        # configure the masked fields
+        self.masked_attr, self.masked_vars = self._configure_masked_fields(self.src_grid_dict)
+
+        self.logger.info("Grid name: %s", self.src_grid_name)
+        self.logger.info("Grid dictionary: %s", self.src_grid_dict)
+        self.logger.info("Grid file path dictionary: %s", self.src_grid_path)
+
+
 
     def _set_cdo(self):
         """
