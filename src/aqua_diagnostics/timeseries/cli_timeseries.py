@@ -198,7 +198,7 @@ if __name__ == '__main__':
             if config_dict['diagnostics']['gregory'].get('annual', False):
                 freq.append('annual')
             run_args = {'freq': freq, 't2m_name': config_dict['diagnostics']['gregory'].get('t2m_name', '2t'),
-                        'net_toa_name': config_dict['diagnostics']['gregory'].get('net_toa_name', 'tnlwrf + tnswrf'),
+                        'net_toa_name': config_dict['diagnostics']['gregory'].get('net_toa_name', 'tnlwrf+tnswrf'),
                         'exclude_incomplete': config_dict['diagnostics']['gregory'].get('exclude_incomplete', True),
                         'outputdir': outputdir, 'rebuild': rebuild}
 
@@ -217,13 +217,17 @@ if __name__ == '__main__':
             if config_dict['diagnostics']['gregory']['std']:
                 # t2m:
                 dataset_args = {**config_dict['diagnostics']['gregory']['t2m_ref'],
-                                'regrid': regrid}
+                                'regrid': regrid,
+                                'startdate': config_dict['diagnostics']['gregory'].get('std_startdate'),
+                                'enddate': config_dict['diagnostics']['gregory'].get('std_enddate')}
                 greg = Gregory(loglevel=loglevel, **dataset_args)
                 greg.run(**run_args, t2m=True, net_toa=False, std=True)
 
                 # net_toa:
                 dataset_args = {**config_dict['diagnostics']['gregory']['net_toa_ref'],
-                                'regrid': regrid}
+                                'regrid': regrid,
+                                'startdate': config_dict['diagnostics']['gregory'].get('std_startdate'),
+                                'enddate': config_dict['diagnostics']['gregory'].get('std_enddate')}
                 greg = Gregory(loglevel=loglevel, **dataset_args)
                 greg.run(**run_args, t2m=False, net_toa=True, std=True)
 

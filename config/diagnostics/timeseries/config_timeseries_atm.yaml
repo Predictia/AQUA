@@ -64,7 +64,7 @@ diagnostics:
   gregory:
     run: true
     t2m: '2t'
-    net_toa_name: ['tnlwrf', 'tnswrf']
+    net_toa_name: 'tnlwrf+tnswrf'
     monthly: true
     annual: true
     std: true

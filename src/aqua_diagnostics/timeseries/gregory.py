@@ -40,7 +40,7 @@ class Gregory(Diagnostic):
 
     def run(self, freq: list = ['monthly', 'annual'],
             t2m: bool = True, net_toa: bool = True, std: bool = False,
-            t2m_name: str = '2t', net_toa_name: str = 'tnlwrf + tnswrf',
+            t2m_name: str = '2t', net_toa_name: str = 'tnlwrf+tnswrf',
             exclude_incomplete: bool = True, outputdir: str = './',
             rebuild: bool = True):
         """Run the Gregory Plot."""
@@ -58,7 +58,7 @@ class Gregory(Diagnostic):
                          outputdir=outputdir, rebuild=rebuild)
 
     def retrieve(self, t2m: bool = True, net_toa: bool = True,
-                 t2m_name: str = '2t', net_toa_name: str = 'tnlwrf + tnswrf'):
+                 t2m_name: str = '2t', net_toa_name: str = 'tnlwrf+tnswrf'):
         """
         Retrieve the necessary data for the Gregory Plot.
 
@@ -68,12 +68,15 @@ class Gregory(Diagnostic):
             t2m_name (str): The name of the 2m temperature data.
             net_toa_name (str): The name of the net TOA radiation data.
         """
-        data, self.reader = super()._retrieve()
+        data, self.reader, self.catalog = super()._retrieve(catalog=self.catalog, model=self.model,
+                                                            exp=self.exp, source=self.source,
+                                                            regrid=self.regrid, startdate=self.startdate,
+                                                            enddate=self.enddate)
 
         if t2m:
             self.t2m = data[t2m_name]
         if net_toa:
-            self.net_toa = eval_formula(mystring=net_toa_name, data=data)
+            self.net_toa = eval_formula(mystring=net_toa_name, xdataset=data)
 
     def compute_t2m(self, freq: list = ['monthly', 'annual'], std: bool = False,
                     exclude_incomplete=True):
