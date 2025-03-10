@@ -8,14 +8,9 @@ from aqua.logger import log_configure, log_history
 from aqua.util import ConfigPath, OutputSaver
 from aqua.graphics import plot_timeseries
 from collections import defaultdict
+from .util import defaultdict_to_dict
 
 xr.set_options(keep_attrs=True)
-
-def defaultdict_to_dict(d):
-    """Recursively converts a defaultdict to a normal dict."""
-    if isinstance(d, defaultdict):
-        return {k: defaultdict_to_dict(v) for k, v in d.items()}
-    return d
 
 class PlotSeaIce:
     """ PlotSeaIce class """
@@ -39,33 +34,22 @@ class PlotSeaIce:
                  save_png=True, dpi=300,
                  loglevel='WARNING'):
         
-        # Logging setup
+        # logging setup
         self.loglevel = loglevel
         self.logger = log_configure(log_level=self.loglevel, log_name='PlotSeaIce')
 
         self.regions_to_plot = self._check_list_regions_type(regions_to_plot)
 
-        # Define and check data types
+        # define and check data types
         self.repacked_dict = self.repack_datasetlists(monthly_models=monthly_models, 
                                                       annual_models=annual_models, 
                                                       monthly_ref=monthly_ref, 
                                                       annual_ref=annual_ref, 
                                                       monthly_std_ref=monthly_std_ref, 
                                                       annual_std_ref=annual_std_ref)
-        # Processing options
-        self.harmonise_time = harmonise_time
-        self.fillna = fillna
-
-        # Plot configuration
-        self.plot_kw = plot_kw or { 'ylimits': {},  'xlimits': {},  'title': None, 
-                                    'xlabel':  None,'ylabel': None, 'grid': None, 
-                                    'figsize': None}
-        self.unit = unit
-
         # Output & saving settings
         self.outdir  = outdir
         self.rebuild = rebuild
-        self.filename_keys = filename_keys
         self.save_pdf = save_pdf
         self.save_png = save_png
         self.dpi = dpi
@@ -188,7 +172,7 @@ class PlotSeaIce:
         if isinstance(datain, list) and all(isinstance(da, xr.DataArray) for da in datain):
             return [self._gen_str_from_attributes(da) for da in datain]
 
-    def _get_datadict(self, data_dict: dict, dkey: str) -> xr.DataArray | list[xr.DataArray] | None:
+    def _getdata_fromdict(self, data_dict: dict, dkey: str) -> xr.DataArray | list[xr.DataArray] | None:
         """Retrieves data from a dictionary and returns either None, a single DataArray or a list of them
         Args:
             data_dict (dict): Dictionary containing the data (list of xr.DataArray or single xr.DataArray or None)
@@ -201,43 +185,133 @@ class PlotSeaIce:
         if isinstance(values, list) and all(isinstance(da, xr.DataArray) for da in values):
             return values if len(values) > 1 else values[0]
         return None
+    
+    def _update_description(self, method, region, data_dict, region_idx):
+        """
+        Append text to the class-level description attribute `self._description`.
+        Return the updated string for convenience, if needed.
+        """
+        # string initialisation
+        if not hasattr(self, '_description'):
+            # if _descriptiont doesn't exist yet, initialize it
+            self._description = ' {method} {self.region_str} '
+        
+        # --- generate dynamic string for regions
+        if region not in self._description:
+            if not hasattr(self, 'region_str'):
+                self.region_str = region  # start with first region
+            else:
+                if region_idx == self.num_regions - 1:  # ensure the last region gets "and"
+                    self.region_str += f" and {region} regions"
+                else:
+                    self.region_str += f", {region}"
+        
+        # --- generate dynamic string for model data
+        if self.data_labels:
+            # Remove duplicates while keeping order
+            unique_labels = list(dict.fromkeys(self.data_labels))
+
+            # Extract model data **once** instead of calling `_getdata_fromdict` multiple times
+            model_data_dict = self._getdata_fromdict(data_dict, 'monthly_models')
+
+            # Extract startdate and enddate for each unique model
+            model_startdate_list = [
+                f"{label} from {model_data_dict.attrs.get('startdate', 'Unknown startdate')} "
+                f"to {model_data_dict.attrs.get('enddate', 'Unknown enddate')}"
+                for label in unique_labels
+            ]
+
+            # Construct the final string efficiently
+            self.model_labels_str = (
+                f"{', '.join(model_startdate_list)} "
+                f"{'are' if len(model_startdate_list) > 1 else 'is'} "
+                f"used as {'models' if len(model_startdate_list) > 1 else 'model'} data."
+            )
+        else:
+            self.model_labels_str = ''
+
+        # --- generate dynamic string for reference data
+        if self.ref_label:
+            if not hasattr(self, 'ref_label_list'):
+                self.ref_label_list = []
+            if self.ref_label not in self.ref_label_list:
+                self.ref_label_list.append(f"{self.ref_label}")
+            # check ref list
+            if len(self.ref_label_list) == 1:
+                self.ref_label_str = f" {self.ref_label_list[0]} is used as a reference."
+            elif len(self.ref_label_list) == 2:
+                self.ref_label_str = (f" {self.ref_label_list[0]} and {self.ref_label_list[1]} are "
+                                      f"used as reference data for the respective regions.")
+            else:
+                ref_labels_str = ", ".join(self.ref_label_list[:-1]) + f", and {self.ref_label_list[-1]}"
+                self.ref_label_str = f" {ref_labels_str} are used as references."
+        else:
+            self.ref_label_str = ''
+
+        # --- generate reference std data string
+        if self.std_label:
+            self.std_label_str = (f' Reference data std is evaluated from '
+                    f"{self._getdata_fromdict(data_dict,'monthly_std_ref').attrs.get("startdate", "No startdate found")} to "
+                    f"{self._getdata_fromdict(data_dict,'monthly_std_ref').attrs.get("enddate", "No enddate found")}.")
+        else:
+            self.std_label_str = ''
+                
+        # finally build the string caption (dynamically)
+        self._description = ('Time series of the Sea ice {} integrated over {}. {}{}{}').format(method, self.region_str, 
+                                                                                                self.model_labels_str,
+                                                                                                self.ref_label_str, self.std_label_str)
+        return self._description
 
     def plot_seaice_timeseries(self, save_fig=False, **kwargs):
         """ Plot data by iterating over dict and calling plot_timeseries"""
-        # Iterate over the methods in the dictionary.
+        # iterate over the methods in the dictionary
         for method, region_dict in self.repacked_dict.items():
             self.logger.info(f"Processing method: {method}")
 
-            num_regions = len(self.repacked_dict.get(method, None)) # Default to None if method not found
+            self.num_regions = len(region_dict)
 
-            # Create a figure and an array of axes for each region
-            fig, axes = plt.subplots(nrows=num_regions, ncols=1, figsize=(10, 4 * num_regions), squeeze=False)
-            # Flatten the axes array for easier iteration when there's only one column.
+            # create a figure and an array of axes for each region
+            fig, axes = plt.subplots(nrows=self.num_regions, ncols=1, figsize=(10, 4 * self.num_regions), squeeze=False)
+            # flatten the axes array for easier iteration when there's only one column
             axes = axes.flatten()
             
-            for ax, (region, data_dict) in zip(axes, region_dict.items()):
+            for region_idx, (ax, (region, data_dict)) in enumerate(zip(axes, region_dict.items())):
                 self.logger.info(f"Processing region: {region}")
 
-                # create labels
-                data_labels = ([self._gen_labelname(da) for da in self._get_datadict(data_dict, 'monthly_models')]
-                                if self._get_datadict(data_dict, 'monthly_models') is not None else None)
-                ref_label   =  self._gen_labelname(self._get_datadict(data_dict, 'monthly_ref'))
+                monthly_models = self._getdata_fromdict(data_dict, 'monthly_models')
+                annual_models  = self._getdata_fromdict(data_dict, 'annual_models')
+                monthly_ref    = self._getdata_fromdict(data_dict, 'monthly_ref')
+                annual_ref     = self._getdata_fromdict(data_dict, 'annual_ref')
+                monthly_std    = self._getdata_fromdict(data_dict, 'monthly_std_ref')
+                annual_std     = self._getdata_fromdict(data_dict, 'annual_std_ref')
 
-                fig, ax = plot_timeseries(monthly_data=self._get_datadict(data_dict, 'monthly_models'),
-                                          annual_data=self._get_datadict(data_dict, 'annual_models'),
-                                          ref_monthly_data=self._get_datadict(data_dict, 'monthly_ref'),
-                                          ref_annual_data=self._get_datadict(data_dict, 'annual_ref'),
-                                          std_monthly_data=self._get_datadict(data_dict, 'monthly_std_ref'),
-                                          std_annual_data =self._get_datadict(data_dict, 'annual_std_ref'),
-                                          #labels
-                                          data_labels=data_labels,
-                                          ref_label=ref_label,
-                                          std_label=None,
+                # create labels
+                if monthly_models is not None:
+                    self.data_labels = [self._gen_labelname(da) for da in monthly_models]
+                else:
+                    self.data_labels = None
+                self.ref_label = self._gen_labelname(monthly_ref)
+                self.std_label = self._gen_labelname(monthly_std)
+                
+                fig, ax = plot_timeseries(monthly_data=monthly_models,
+                                          annual_data=annual_models,
+                                          ref_monthly_data=monthly_ref,
+                                          ref_annual_data=annual_ref,
+                                          std_monthly_data=monthly_std,
+                                          std_annual_data=annual_std,
+                                          data_labels=self.data_labels,
+                                          ref_label=self.ref_label,
+                                          std_label=None,  # don't plot std in legend
                                           fig=fig,
                                           ax=ax,
                                           **kwargs)
+
+                # after plotting, append text about what we did:
+                self._update_description(method, region, data_dict, region_idx)
                 
-                # Optionally, customize the subplot (e.g., add a title)
+                description = self._description
+
+                # optionally, customize the subplot (e.g., add a title)
                 ax.set_title(f"Sea ice {method}: region {region}")
             
             plt.tight_layout()
