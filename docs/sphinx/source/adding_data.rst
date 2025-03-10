@@ -110,6 +110,7 @@ Finally, the ``metadata`` entry contains optional additional information useful 
     - ``source_grid_name``: the grid name defined in ``aqua-grids.yaml`` to be used for areas and regridding
     - ``fixer_name``: the name of the fixer defined in the fixes folder
     - ``deltat`` (optional): the cumulation window of fluxes in the dataset. This is a fixer option. If not present, the default is 1 second.
+    - ``time_coder``: if specified modifies the target resolution when decoding dates. Defaults to “ns”. Used by the ``CFDatetimeCoder`` and working only for netcdf sources.
 
 You can add fixes to your dataset by following examples in the ``config/fixes/`` directory (see :ref:`fixer`).
 
@@ -327,10 +328,6 @@ Some of the parameters are here described:
 
     For FDB sources the ``metadata`` section contains very important informations that are used to
     retrieve the correct variables and levels.
-
-.. warning::
-
-    Please notice that the recent version of ecCodes used by AQUA (>= 2.36.0) is not compatible anymore with definition files from earlier versions (<2.34.0). For this reason we point now to older definition files which have been 'fixed' to keep working. The CLI tool to create such fixed definition files (``fix_eccodes.sh``) is available.
 
 Experiment metadata
 -------------------
