@@ -48,19 +48,17 @@ class TurboRegrid():
 
         # we want all the grid dictionary to be real dictionaries
         self.src_grid_dict = self._normalize_grid_dict(self.src_grid_name)
+        self.src_grid_path = self._normalize_grid_path(self.src_grid_dict.get('path'), data)
 
         self.regridder = {} # regridders for each vertical coordinate
         self.src_grid_area = None # source grid area
         self.dst_grid_area = None # destination grid area
 
-        # we want all the grid path dictionary to be real dictionaries
-        self.src_grid_path = self.src_grid_dict.get('path')
-        self.src_grid_path = self._normalize_grid_path(self.src_grid_path, data)
-
         # configure the masked fields
         self.masked_attr, self.masked_vars = self._configure_masked_fields(self.src_grid_dict)
 
         self.logger.info("Grid name: %s", self.src_grid_name)
+        self.logger.info("Grid dictionary: %s", self.src_grid_dict)
         self.logger.info("Grid file path dictionary: %s", self.src_grid_path)
 
     def _set_cdo(self):
@@ -268,7 +266,8 @@ class TurboRegrid():
                 self.logger.info("Generating weights for %s grid: %s", dst_grid_name, vertical_dim)
                 # smmregrid call
                 generator = CdoGenerate(source_grid=self.src_grid_path[vertical_dim],
-                                target_grid=dst_grid_path[vertical_dim],
+                                #this seems counterintuitive, but CDO-based target grids are defined with 2d
+                                target_grid=dst_grid_path['2d'],
                                 cdo_extra=cdo_extra,
                                 cdo_options=cdo_options,
                                 cdo=self.cdo,
