@@ -215,8 +215,9 @@ class PlotSeaIce:
             model_data_dict = self._getdata_fromdict(data_dict, 'monthly_models')
 
             # extract startdate and enddate for each unique model
-            model_startdate_list = [f"{label} from {model_data_dict.attrs.get('startdate', 'Unknown startdate')} "
-                                    f"to {model_data_dict.attrs.get('enddate', 'Unknown enddate')}" for label in unique_labels]
+            stdate = model_data_dict.attrs.get('startdate', 'Unknown startdate')
+            endate = model_data_dict.attrs.get('enddate', 'Unknown enddate')
+            model_startdate_list = [f"{label} from {stdate} to {endate}" for label in unique_labels]
 
             # build the model data string
             self.model_labels_str = (f"{', '.join(model_startdate_list)} {'are' if len(model_startdate_list) > 1 else 'is'} "
@@ -234,8 +235,8 @@ class PlotSeaIce:
             if len(self.ref_label_list) == 1:
                 self.ref_label_str = f" {self.ref_label_list[0]} is used as a reference."
             elif len(self.ref_label_list) == 2:
-                self.ref_label_str = (f" {self.ref_label_list[0]} and {self.ref_label_list[1]} are "
-                                      f"used as reference data for the respective regions.")
+                self.ref_label_str = (f" {self.ref_label_list[0]} and {self.ref_label_list[1]} "
+                                      f"are used as reference data for the respective regions.")
             else:
                 ref_labels_str = ", ".join(self.ref_label_list[:-1]) + f", and {self.ref_label_list[-1]}"
                 self.ref_label_str = f" {ref_labels_str} are used as references."
@@ -244,9 +245,10 @@ class PlotSeaIce:
 
         # --- generate reference std data string
         if self.std_label:
-            self.std_label_str = (f' Reference data std is evaluated from '
-                    f"{self._getdata_fromdict(data_dict,'monthly_std_ref').attrs.get("startdate", "No startdate found")} to "
-                    f"{self._getdata_fromdict(data_dict,'monthly_std_ref').attrs.get("enddate", "No enddate found")}.")
+            sdtdata = self._getdata_fromdict(data_dict,'monthly_std_ref')
+            std_sdate = sdtdata.attrs.get("startdate", "No startdate found")
+            std_edate = sdtdata.attrs.get("enddate",   "No enddate found")
+            self.std_label_str = f" Reference data std is evaluated from {std_sdate} to {std_edate}."
         else:
             self.std_label_str = ''
                 
