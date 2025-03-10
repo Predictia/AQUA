@@ -67,7 +67,7 @@ class TurboRegrid():
         
         self.regridder = {} # regridders for each vertical coordinate
         self.src_grid_area = None # source grid area
-        self.dst_grid_area = None # destination grid area
+        self.tgt_grid_area = None # destination grid area
         
         # configure the masked fields
         self.masked_attr, self.masked_vars = self._configure_masked_fields(self.src_grid_dict)
@@ -175,17 +175,17 @@ class TurboRegrid():
         raise ValueError(f"Grid path '{path}' is not a valid type.")
 
 
-    def load_generate_areas(self, dst_grid_name=None, rebuild=False, reader_kwargs=None):
+    def load_generate_areas(self, tgt_grid_name=None, rebuild=False, reader_kwargs=None):
         """
         Load or generate regridding areas by calling the appropriate function.
         """
-        if dst_grid_name:
+        if tgt_grid_name:
         
-            # normalize the dst grid dictionary and path
-            dst_grid_dict = self._normalize_grid_dict(dst_grid_name)
-            dst_grid_path = self._normalize_grid_path(dst_grid_dict)
-            self.dst_grid_area = self._load_generate_areas(
-                dst_grid_name, dst_grid_path, dst_grid_dict,
+            # normalize the tgt grid dictionary and path
+            tgt_grid_dict = self._normalize_grid_dict(tgt_grid_name)
+            tgt_grid_path = self._normalize_grid_path(tgt_grid_dict)
+            self.tgt_grid_area = self._load_generate_areas(
+                tgt_grid_name, tgt_grid_path, tgt_grid_dict,
                 reader_kwargs, target=True, rebuild=rebuild)
         else:
         
@@ -247,13 +247,13 @@ class TurboRegrid():
 
         return grid_area
         
-    def load_generate_weights(self, dst_grid_name, regrid_method=DEFAULT_GRID_METHOD, nproc=1,
+    def load_generate_weights(self, tgt_grid_name, regrid_method=DEFAULT_GRID_METHOD, nproc=1,
                               rebuild=False, reader_kwargs=None):
         """
         Load or generate regridding weights calling smmregrid
 
         Args:
-            dst_grid_name (str): The destination grid name.
+            tgt_grid_name (str): The destination grid name.
             regrid_method (str): The regrid method.
             nproc (int): The number of processors to use.
             rebuild (bool): If True, rebuild the weights.
@@ -265,9 +265,9 @@ class TurboRegrid():
         if regrid_method is not DEFAULT_GRID_METHOD:
             self.logger.info("Regrid method: %s", regrid_method)
 
-        # normalize the dst grid dictionary and path
-        dst_grid_dict = self._normalize_grid_dict(dst_grid_name)
-        dst_grid_path = self._normalize_grid_path(dst_grid_dict)
+        # normalize the tgt grid dictionary and path
+        tgt_grid_dict = self._normalize_grid_dict(tgt_grid_name)
+        tgt_grid_path = self._normalize_grid_path(tgt_grid_dict)
 
         # get the cdo options from the configuration
         cdo_extra = self.src_grid_dict.get('cdo_extra', None)
@@ -276,7 +276,7 @@ class TurboRegrid():
         # loop over the vertical coordinates: 2d, 2dm, or any other
         for vertical_dim in self.src_grid_path:
 
-            weights_filename = self._weights_filename(dst_grid_name, regrid_method,
+            weights_filename = self._weights_filename(tgt_grid_name, regrid_method,
                                                       vertical_dim, reader_kwargs)
 
             # check if weights already exist, if not, generate them
@@ -287,11 +287,11 @@ class TurboRegrid():
                     self.logger.warning("Weights file %s exists. Regenerating.", weights_filename)
                     os.remove(weights_filename)
 
-                self.logger.info("Generating weights for %s grid: %s", dst_grid_name, vertical_dim)
+                self.logger.info("Generating weights for %s grid: %s", tgt_grid_name, vertical_dim)
                 # smmregrid call
                 generator = CdoGenerate(source_grid=self.src_grid_path[vertical_dim],
                                 #this seems counterintuitive, but CDO-based target grids are defined with 2d
-                                target_grid=dst_grid_path['2d'],
+                                target_grid=tgt_grid_path['2d'],
                                 cdo_extra=cdo_extra,
                                 cdo_options=cdo_options,
                                 cdo=self.cdo,
@@ -329,20 +329,20 @@ class TurboRegrid():
                 raise ValueError(f"reader_kwargs must contain key '{key}'.")
         return reader_kwargs
 
-    def _area_filename(self, dst_grid_name, reader_kwargs):
+    def _area_filename(self, tgt_grid_name, reader_kwargs):
         """"
         Generate the area filename.
         
         Args:
-            dst_grid_name (str): The destination grid name.
+            tgt_grid_name (str): The destination grid name.
             reader_kwargs (dict): The reader kwargs, including info on model, exp, source, etc.
         """
 
         area_dict = self.cfg_grid_dict.get('areas')
 
         # destination grid name is provided, use grid template
-        if dst_grid_name:
-            filename = area_dict["template_grid"].format(grid=dst_grid_name)
+        if tgt_grid_name:
+            filename = area_dict["template_grid"].format(grid=tgt_grid_name)
             self.logger.debug("Using grid-based template for target grid. Filename: %s", filename)
         # source grid name is provided, check if it is data
         else:
@@ -360,12 +360,12 @@ class TurboRegrid():
         filename = self._filename_prepend_path(filename, kind="areas")
         return filename
 
-    def _weights_filename(self, dst_grid_name, regrid_method, vertical_dim, reader_kwargs):
+    def _weights_filename(self, tgt_grid_name, regrid_method, vertical_dim, reader_kwargs):
         """
         Generate the weights filename.
 
         Args:
-            dst_grid_name (str): The destination grid name.
+            tgt_grid_name (str): The destination grid name.
             regrid_method (str): The regrid method.
             vertical_dim (str): The vertical dimension.
             reader_kwargs (dict): The reader kwargs, including info on model, exp, source, etc.
@@ -380,7 +380,7 @@ class TurboRegrid():
             filename = weights_dict["template_grid"].format(
                 sourcegrid=self.src_grid_name,
                 method=regrid_method,
-                targetgrid=dst_grid_name,
+                targetgrid=tgt_grid_name,
                 level=levname)
             self.logger.debug("Using grid-based template for target grid. Filename: %s", filename)
         else:
@@ -390,7 +390,7 @@ class TurboRegrid():
                 exp=reader_kwargs["exp"],
                 source=reader_kwargs["source"],
                 method=regrid_method,
-                targetgrid=dst_grid_name,
+                targetgrid=tgt_grid_name,
                 level=levname)
             self.logger.debug("Using source-based template for target grid. Filename: %s", filename)
 
