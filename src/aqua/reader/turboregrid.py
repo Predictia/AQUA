@@ -147,6 +147,7 @@ class TurboRegrid():
 
         # otherwise, generate the areas with smmregrid
         else:
+            self.logger.info("Generating source area for %s", self.src_grid_name)
             generator = CdoGenerate(
                 source_grid=self._get_grid_path(self.src_grid_path), # get the 2d grid path
                 target_grid=None,
@@ -174,7 +175,7 @@ class TurboRegrid():
         # normalize the dst grid dictionary and path
         dst_grid_dict = self._normalize_grid_dict(self.cfg_grid_dict['grids'].get(dst_grid_name))
         dst_grid_path = self._normalize_grid_path(dst_grid_dict.get('path'))
-        
+
         area_filename = self._area_filename(dst_grid_name, reader_kwargs)
 
         if not rebuild and self._check_existing_file(area_filename):
@@ -182,8 +183,9 @@ class TurboRegrid():
             self.dst_grid_area = xr.open_dataset(area_filename)
             return
 
+        self.logger.info("Generating target area for %s", dst_grid_name)
         generator = CdoGenerate(
-            source_grid=self._get_grid_path(self.src_grid_path),
+            source_grid=None,
             target_grid=self._get_grid_path(dst_grid_path),
             cdo_extra=dst_grid_dict.get('cdo_extra'),
             cdo_options=dst_grid_dict.get('cdo_options'),
@@ -222,6 +224,7 @@ class TurboRegrid():
             # check if weights already exist, if not, generate them
             if rebuild or not self._check_existing_file(weights_filename):
                 
+                self.logger.info("Generating weights for %s grid: %s", dst_grid_name, vertical_dim)
                 # smmregrid call
                 generator = CdoGenerate(source_grid=self.src_grid_path[vertical_dim],
                                 target_grid=self.cfg_grid_dict['grids'][dst_grid_name],
@@ -240,6 +243,7 @@ class TurboRegrid():
                 weights.to_netcdf(weights_filename)
 
             else:
+                self.logger.info("Loading existing weights from %s.", weights_filename)
                 # load the weights
                 weights = xr.open_dataset(weights_filename)
 
@@ -260,14 +264,17 @@ class TurboRegrid():
         # destination grid name is provided, use grid template
         if dst_grid_name:
             filename = area_dict["template_grid"].format(grid=dst_grid_name)
+            self.logger.debug("Using grid-based template for target grid. Filename: %s", filename)
         # source grid name is provided, check if it is data
         else:
             if check_gridfile(self.src_grid_path['2d']) != 'xarray':
                 filename = area_dict["template_grid"].format(grid=self.src_grid_name)
+                self.logger.debug("Using grid-based template for source grid. Filename: %s", filename)
             else:
                 filename =  area_dict["template_default"].format(model=reader_kwargs["model"],
                                                                  exp=reader_kwargs["exp"],
                                                                  source=reader_kwargs["source"])
+                self.logger.debug("Using source-based template for source grid. Filename: %s", filename)
 
         filename = self._insert_kwargs(filename, reader_kwargs)
         filename = self._filename_prepend_path(filename, kind="areas")
@@ -295,6 +302,7 @@ class TurboRegrid():
                 method=regrid_method,
                 targetgrid=dst_grid_name,
                 level=levname)
+            self.logger.debug("Using grid-based template for target grid. Filename: %s", filename)
         else:
             filename = weights_dict["weights"]["template_default"].format(
                 model=reader_kwargs["model"],
@@ -303,6 +311,7 @@ class TurboRegrid():
                 method=regrid_method,
                 targetgrid=dst_grid_name,
                 level=levname)
+            self.logger.debug("Using source-based template for target grid. Filename: %s", filename)
 
         filename = self._insert_kwargs(filename, reader_kwargs)
         filename = self._filename_prepend_path(filename, kind="weights")
