@@ -188,45 +188,39 @@ class PlotSeaIce:
     
     def _update_description(self, method, region, data_dict, region_idx):
         """
-        Append text to the class-level description attribute `self._description`.
-        Return the updated string for convenience, if needed.
+        Create the caption description from attributes
+        Returns:
+            the updated string
         """
-        # string initialisation
+        # initialise string if _description doesn't exist
         if not hasattr(self, '_description'):
-            # if _descriptiont doesn't exist yet, initialize it
-            self._description = ' {method} {self.region_str} '
+            self._description = ''
         
         # --- generate dynamic string for regions
         if region not in self._description:
             if not hasattr(self, 'region_str'):
                 self.region_str = region  # start with first region
             else:
-                if region_idx == self.num_regions - 1:  # ensure the last region gets "and"
+                if region_idx == self.num_regions - 1:
                     self.region_str += f" and {region} regions"
                 else:
                     self.region_str += f", {region}"
         
         # --- generate dynamic string for model data
         if self.data_labels:
-            # Remove duplicates while keeping order
+            # remove duplicates while keeping order
             unique_labels = list(dict.fromkeys(self.data_labels))
 
-            # Extract model data **once** instead of calling `_getdata_fromdict` multiple times
+            # extract model data from current dictionary
             model_data_dict = self._getdata_fromdict(data_dict, 'monthly_models')
 
-            # Extract startdate and enddate for each unique model
-            model_startdate_list = [
-                f"{label} from {model_data_dict.attrs.get('startdate', 'Unknown startdate')} "
-                f"to {model_data_dict.attrs.get('enddate', 'Unknown enddate')}"
-                for label in unique_labels
-            ]
+            # extract startdate and enddate for each unique model
+            model_startdate_list = [f"{label} from {model_data_dict.attrs.get('startdate', 'Unknown startdate')} "
+                                    f"to {model_data_dict.attrs.get('enddate', 'Unknown enddate')}" for label in unique_labels]
 
-            # Construct the final string efficiently
-            self.model_labels_str = (
-                f"{', '.join(model_startdate_list)} "
-                f"{'are' if len(model_startdate_list) > 1 else 'is'} "
-                f"used as {'models' if len(model_startdate_list) > 1 else 'model'} data."
-            )
+            # build the model data string
+            self.model_labels_str = (f"{', '.join(model_startdate_list)} {'are' if len(model_startdate_list) > 1 else 'is'} "
+                                     f"used as {'models' if len(model_startdate_list) > 1 else 'model'} data.")
         else:
             self.model_labels_str = ''
 
@@ -301,7 +295,7 @@ class PlotSeaIce:
                                           std_annual_data=annual_std,
                                           data_labels=self.data_labels,
                                           ref_label=self.ref_label,
-                                          std_label=None,  # don't plot std in legend
+                                          std_label=None,  # don't plot std in legend in any case
                                           fig=fig,
                                           ax=ax,
                                           **kwargs)
@@ -309,6 +303,7 @@ class PlotSeaIce:
                 # after plotting, append text about what we did:
                 self._update_description(method, region, data_dict, region_idx)
                 
+                # generate and improve figure caption
                 description = self._description
 
                 # optionally, customize the subplot (e.g., add a title)
