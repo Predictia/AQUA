@@ -45,10 +45,9 @@ class TurboRegrid():
         # define basic attributes:
         self.cfg_grid_dict = cfg_grid_dict #full grid dictionary
         self.src_grid_name = src_grid_name # source grid name
-        self.src_grid_dict = self._validate_grid_dict(src_grid_name) # source grid dictionary
 
         # we want all the grid dictionary to be real dictionaries
-        self.src_grid_dict = self._normalize_grid_dict(self.src_grid_dict)
+        self.src_grid_dict = self._normalize_grid_dict(self.src_grid_name)
 
         self.regridder = {} # regridders for each vertical coordinate
         self.src_grid_area = None # source grid area
@@ -77,33 +76,41 @@ class TurboRegrid():
 
         return cdo
     
-    def _validate_grid_dict(self, grid_name):
+    def _normalize_grid_dict(self, grid_name):
         """
-        Validate the grid dictionary, supporting also CDO grid names.
+        Validate the grid name and return the grid dictionary.
+        3 cases handled:
+            - a valid CDO grid name
+            - a grid name in the configuration, again a valid CDO grid name
+            - a grid dictionary in the configuration
+
+        Args:
+            grid_name (str): The grid name.
+
+        Returns:
+            dict: The normalized grid dictionary.
         """
+
+        # if a grid name is a valid CDO grid name, return it in the format of a dictionary
         if is_cdo_grid(grid_name):
             self.logger.debug("Grid name %s is a valid CDO grid name.", grid_name)
             return {"path": {"2d": grid_name}}
 
+        # raise error if the grid does not exist
         grid_dict = self.cfg_grid_dict['grids'].get(grid_name) # source grid dictionary
         if not grid_dict:
             raise ValueError(f"Grid '{grid_name}' not found in the configuration.")
-        return grid_dict
-
-    def _normalize_grid_dict(self, grid):
-        """
-        Normalize the grid dictionary to a dictionary with the 2d key.
-        """
-
+        
         # grid dict is a string: this is the case of a CDO grid name
-        if isinstance(grid, str):
-            if is_cdo_grid(grid):
-                self.logger.debug("Grid definition %s is a valid CDO grid name.", grid)
-                return {"path": {"2d": grid}}
-            raise ValueError(f"Grid '{grid}' is not a valid CDO grid name.")
-        if isinstance(grid, dict):
-            return grid
-        raise ValueError(f"Grid dict '{grid}' is not a valid type")
+        if isinstance(grid_dict, str):
+            if is_cdo_grid(grid_dict):
+                self.logger.debug("Grid definition %s is a valid CDO grid name.", grid_dict)
+                return {"path": {"2d": grid_dict}}
+            raise ValueError(f"Grid '{grid_dict}' is not a valid CDO grid name.")
+        if isinstance(grid_dict, dict):
+            return grid_dict
+        
+        raise ValueError(f"Grid dict '{grid_dict}' is not a valid type")
 
     def _normalize_grid_path(self, path, data=None):
         """
@@ -155,7 +162,7 @@ class TurboRegrid():
         """
         if dst_grid_name:
             # normalize the dst grid dictionary and path
-            dst_grid_dict = self._normalize_grid_dict(self._validate_grid_dict(dst_grid_name))
+            dst_grid_dict = self._normalize_grid_dict(dst_grid_name)
             dst_grid_path = self._normalize_grid_path(dst_grid_dict.get('path'))
 
             self.dst_grid_area = self._load_generate_areas(dst_grid_name, dst_grid_path, dst_grid_dict,
@@ -236,7 +243,8 @@ class TurboRegrid():
         if regrid_method is not DEFAULT_GRID_METHOD:
             self.logger.info("Regrid method: %s", regrid_method)
 
-        dst_grid_dict = self._normalize_grid_dict(self._validate_grid_dict(dst_grid_name))
+        # normalize the dst grid dictionary and path
+        dst_grid_dict = self._normalize_grid_dict(dst_grid_name)
         dst_grid_path = self._normalize_grid_path(dst_grid_dict.get('path'))
         
         # get the cdo options from the configuration
