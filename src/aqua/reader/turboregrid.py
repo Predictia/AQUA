@@ -22,19 +22,22 @@ class TurboRegrid():
     """Refactor of regridder class"""
 
     def __init__(self, cfg_grid_dict: dict,
-                 src_grid_name: str,
+                 src_grid_name: str = None,
                  data: xr.Dataset = None,
                  loglevel: str = "WARNING"):
         """
-        The TurboRegrid constructor.
+        The TurboRegrid constructor. Can be initialized with a dataset or a grid name
 
         Args:
             cfg_grid_dict (dict): The dictionary containing the full AQUA grid configuration.
-            src_grid_name (str): The name of the source grid in the AQUA convention.
+            src_grid_name (str, optional): The name of the source grid in the AQUA convention.
             data (xarray.Dataset, optional): The dataset to be regridded, 
                                    to be provided in src_grid_path is missing.
             loglevel (str): The logging level.
         """
+
+        if src_grid_name is None and data is None:
+            raise ValueError("Either src_grid_name or data must be provided.")
 
         self.loglevel = loglevel
         self.logger = log_configure(log_level=loglevel, log_name='TurboRegrid')
@@ -45,14 +48,13 @@ class TurboRegrid():
         # define basic attributes:
         self.cfg_grid_dict = cfg_grid_dict #full grid dictionary
         self.src_grid_name = src_grid_name # source grid name
-
-        # we want all the grid dictionary to be real dictionaries
-        self.src_grid_dict = self._normalize_grid_dict(self.src_grid_name)
-        self.src_grid_path = self._normalize_grid_path(self.src_grid_dict.get('path'), data)
-
         self.regridder = {} # regridders for each vertical coordinate
         self.src_grid_area = None # source grid area
         self.dst_grid_area = None # destination grid area
+
+        # we want all the grid dictionary to be real dictionaries
+        self.src_grid_dict = self._normalize_grid_dict(self.src_grid_name)
+        self.src_grid_path = self._normalize_grid_path(self.src_grid_dict)
 
         # configure the masked fields
         self.masked_attr, self.masked_vars = self._configure_masked_fields(self.src_grid_dict)
@@ -60,6 +62,15 @@ class TurboRegrid():
         self.logger.info("Grid name: %s", self.src_grid_name)
         self.logger.info("Grid dictionary: %s", self.src_grid_dict)
         self.logger.info("Grid file path dictionary: %s", self.src_grid_path)
+
+        # grid path is None: check if data is provided to extract information for CDO
+        if data is not None:
+            self.logger.info("Using provided dataset as a grid path.")
+            self.src_grid_path = {"2d": data}
+
+        # check if the grid path has been defined
+        if not self.src_grid_path:
+                raise ValueError("Source grid path not found. Please provide a dataset or a grid name.")
 
     def _set_cdo(self):
         """
@@ -73,11 +84,12 @@ class TurboRegrid():
             self.logger.error("CDO not found in path: Weight and area generation will fail.")
 
         return cdo
-    
+
     def _normalize_grid_dict(self, grid_name):
         """
         Validate the grid name and return the grid dictionary.
-        3 cases handled:
+        4 cases handled:
+            - None, return an empty dictionary
             - a valid CDO grid name
             - a grid name in the configuration, again a valid CDO grid name
             - a grid dictionary in the configuration
@@ -88,6 +100,10 @@ class TurboRegrid():
         Returns:
             dict: The normalized grid dictionary.
         """
+
+        # if empty, return an empty dictionary
+        if grid_name is None:
+            return {}
 
         # if a grid name is a valid CDO grid name, return it in the format of a dictionary
         if is_cdo_grid(grid_name):
@@ -110,13 +126,13 @@ class TurboRegrid():
         
         raise ValueError(f"Grid dict '{grid_dict}' is not a valid type")
 
-    def _normalize_grid_path(self, path, data=None):
+    def _normalize_grid_path(self, grid_dict):
         """
         Normalize the grid path to a dictionary with the 2d key.
         3 cases handled: 
+            - an empty dictionary, return an empty dictionary
             - a dictionary with a path string, a CDO grid name or a file path
             - a dictionary with a dictionary of path, one for each vertical coordinate
-            - a dictionary without path with data provided, to get info from the dataset
 
         Args:
             path (str, dict): The grid path.
@@ -125,6 +141,11 @@ class TurboRegrid():
         Returns:
             dict: The normalized grid path dictionary. "2d" key is mandatory.
         """
+
+        # if empty, return an empty dictionary
+        path = grid_dict.get('path')
+        if path is None:
+            return {}
 
         # case path is a string: check if it is a valid CDO grid name or a file path
         if isinstance(path, str):
@@ -144,31 +165,27 @@ class TurboRegrid():
                     raise ValueError(f"Grid path '{value}' is not a valid CDO grid name nor a file path.")
             self.logger.debug("Grid path %s is a valid dictionary of file paths.", path)
             return path
-
-        # grid path is None: check if data is provided to extract information for CDO
-        if path is None:
-            if data is not None:
-                self.logger.debug("Using provided dataset for grid path.")
-                return {"2d": data}
-            raise ValueError("Grid path missing in config and no sample data provided.")
-
+        
         raise ValueError(f"Grid path '{path}' is not a valid type.")
+
 
     def load_generate_areas(self, dst_grid_name=None, rebuild=False, reader_kwargs=None):
         """
         Load or generate regridding areas by calling the appropriate function.
         """
         if dst_grid_name:
+        
             # normalize the dst grid dictionary and path
             dst_grid_dict = self._normalize_grid_dict(dst_grid_name)
-            dst_grid_path = self._normalize_grid_path(dst_grid_dict.get('path'))
-
-            self.dst_grid_area = self._load_generate_areas(dst_grid_name, dst_grid_path, dst_grid_dict,
-                                                    reader_kwargs, target=True, rebuild=rebuild)
+            dst_grid_path = self._normalize_grid_path(dst_grid_dict)
+            self.dst_grid_area = self._load_generate_areas(
+                dst_grid_name, dst_grid_path, dst_grid_dict,
+                reader_kwargs, target=True, rebuild=rebuild)
         else:
         
-            self.src_grid_area = self._load_generate_areas(self.src_grid_name, self.src_grid_path, self.src_grid_dict,
-                                                    reader_kwargs, target=False, rebuild=rebuild)
+            self.src_grid_area = self._load_generate_areas(
+                self.src_grid_name, self.src_grid_path, self.src_grid_dict,
+                reader_kwargs, target=False, rebuild=rebuild)
 
 
     def _load_generate_areas(self, grid_name, grid_path, grid_dict, reader_kwargs,
@@ -188,7 +205,7 @@ class TurboRegrid():
             xr.Dataset: The grid area.
         """
 
-        area_filename = self._area_filename(grid_name, reader_kwargs)
+        area_filename = self._area_filename(grid_name if target else None, reader_kwargs)
         area_logname = "target" if target else "source"
 
         if not rebuild and self._check_existing_file(area_filename):
@@ -234,7 +251,8 @@ class TurboRegrid():
             regrid_method (str): The regrid method.
             nproc (int): The number of processors to use.
             rebuild (bool): If True, rebuild the weights.
-            reader_kwargs (dict): The reader kwargs, including info on model, exp, source, etc.
+            reader_kwargs (dict): The reader kwargs for filename definition, 
+                                  including info on model, exp, source, etc.
         """
 
         # define regrid method
@@ -243,8 +261,8 @@ class TurboRegrid():
 
         # normalize the dst grid dictionary and path
         dst_grid_dict = self._normalize_grid_dict(dst_grid_name)
-        dst_grid_path = self._normalize_grid_path(dst_grid_dict.get('path'))
-        
+        dst_grid_path = self._normalize_grid_path(dst_grid_dict)
+
         # get the cdo options from the configuration
         cdo_extra = self.src_grid_dict.get('cdo_extra', None)
         cdo_options = self.src_grid_dict.get('cdo_options', None)
@@ -276,6 +294,10 @@ class TurboRegrid():
                 # define the vertical coordinate in the smmregrid world
                 smm_vert_coord = None if vertical_dim in ['2d', '2dm'] else vertical_dim
 
+                # minimum time warning
+                if smm_vert_coord:
+                    self.logger.warning('Vertical coordinate detected, computation of weights may take longer.')
+
                 # generate and save the weights
                 weights = generator.weights(method=regrid_method,
                                             vert_coord=smm_vert_coord,
@@ -289,6 +311,17 @@ class TurboRegrid():
 
             # initialize the regridder
             self.regridder[vertical_dim] = Regridder(weights=weights)
+
+    def _validate_reader_kwargs(self, reader_kwargs):
+        """
+        Validate the reader kwargs.
+        """
+        if not reader_kwargs:
+            raise ValueError("reader_kwargs must be provided.")
+        for key in ["model", "exp", "source"]:
+            if key not in reader_kwargs:
+                raise ValueError(f"reader_kwargs must contain key '{key}'.")
+        return reader_kwargs
 
     def _area_filename(self, dst_grid_name, reader_kwargs):
         """"
@@ -311,6 +344,7 @@ class TurboRegrid():
                 filename = area_dict["template_grid"].format(grid=self.src_grid_name)
                 self.logger.debug("Using grid-based template for source grid. Filename: %s", filename)
             else:
+                reader_kwargs = self._validate_reader_kwargs(reader_kwargs)
                 filename =  area_dict["template_default"].format(model=reader_kwargs["model"],
                                                                  exp=reader_kwargs["exp"],
                                                                  source=reader_kwargs["source"])
@@ -344,7 +378,8 @@ class TurboRegrid():
                 level=levname)
             self.logger.debug("Using grid-based template for target grid. Filename: %s", filename)
         else:
-            filename = weights_dict["weights"]["template_default"].format(
+            reader_kwargs = self._validate_reader_kwargs(reader_kwargs)
+            filename = weights_dict["template_default"].format(
                 model=reader_kwargs["model"],
                 exp=reader_kwargs["exp"],
                 source=reader_kwargs["source"],
