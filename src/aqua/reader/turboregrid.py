@@ -45,9 +45,7 @@ class TurboRegrid():
         # define basic attributes:
         self.cfg_grid_dict = cfg_grid_dict #full grid dictionary
         self.src_grid_name = src_grid_name # source grid name
-        self.src_grid_dict = cfg_grid_dict['grids'].get(src_grid_name) # source grid dictionary
-        if not self.src_grid_dict:
-            raise ValueError(f"Source grid '{src_grid_name}' not found in the configuration.")
+        self.src_grid_dict = self._validate_grid_dict(src_grid_name) # source grid dictionary
 
         # we want all the grid dictionary to be real dictionaries
         self.src_grid_dict = self._normalize_grid_dict(self.src_grid_dict)
@@ -58,10 +56,13 @@ class TurboRegrid():
 
         # we want all the grid path dictionary to be real dictionaries
         self.src_grid_path = self.src_grid_dict.get('path')
-        self._normalize_grid_path(self.src_grid_path, data)
+        self.src_grid_path = self._normalize_grid_path(self.src_grid_path, data)
+
+        # configure the masked fields
+        self.masked_attr, self.masked_vars = self._configure_masked_fields(self.src_grid_dict)
 
         self.logger.info("Grid name: %s", self.src_grid_name)
-        self.logger.info("Grid file path: %s", self.src_grid_path)
+        self.logger.info("Grid file path dictionary: %s", self.src_grid_path)
 
     def _set_cdo(self):
         """
@@ -75,6 +76,19 @@ class TurboRegrid():
             self.logger.error("CDO not found in path: Weight and area generation will fail.")
 
         return cdo
+    
+    def _validate_grid_dict(self, grid_name):
+        """
+        Validate the grid dictionary, supporting also CDO grid names.
+        """
+        if is_cdo_grid(grid_name):
+            self.logger.debug("Grid name %s is a valid CDO grid name.", grid_name)
+            return {"path": {"2d": grid_name}}
+
+        grid_dict = self.cfg_grid_dict['grids'].get(grid_name) # source grid dictionary
+        if not grid_dict:
+            raise ValueError(f"Grid '{grid_name}' not found in the configuration.")
+        return grid_dict
 
     def _normalize_grid_dict(self, grid):
         """
@@ -84,12 +98,12 @@ class TurboRegrid():
         # grid dict is a string: this is the case of a CDO grid name
         if isinstance(grid, str):
             if is_cdo_grid(grid):
-                self.logger.info("Grid definition %s is a valid CDO grid name.", grid)
+                self.logger.debug("Grid definition %s is a valid CDO grid name.", grid)
                 return {"path": {"2d": grid}}
             raise ValueError(f"Grid '{grid}' is not a valid CDO grid name.")
         if isinstance(grid, dict):
             return grid
-        raise ValueError(f"Grid definition '{grid}' is not a valid type")
+        raise ValueError(f"Grid dict '{grid}' is not a valid type")
 
     def _normalize_grid_path(self, path, data=None):
         """
@@ -110,10 +124,10 @@ class TurboRegrid():
         # case path is a string: check if it is a valid CDO grid name or a file path
         if isinstance(path, str):
             if is_cdo_grid(path):
-                self.logger.info("Grid path %s is a valid CDO grid name.", path)
+                self.logger.debug("Grid path %s is a valid CDO grid name.", path)
                 return {"2d": path}
             if self._check_existing_file(path):
-                self.logger.info("Grid path %s is a valid file path.", path)
+                self.logger.debug("Grid path %s is a valid file path.", path)
                 return {"2d": path}
             raise FileNotFoundError(f"Grid file '{path}' does not exist.")
 
@@ -123,13 +137,13 @@ class TurboRegrid():
             for _, value in path.items():
                 if not (is_cdo_grid(value) or self._check_existing_file(value)):
                     raise ValueError(f"Grid path '{value}' is not a valid CDO grid name nor a file path.")
-            self.logger.info("Grid path %s is a valid dictionary of file paths.", path)
+            self.logger.debug("Grid path %s is a valid dictionary of file paths.", path)
             return path
 
         # grid path is None: check if data is provided to extract information for CDO
         if path is None:
             if data is not None:
-                self.logger.info("Using provided dataset for grid path.")
+                self.logger.debug("Using provided dataset for grid path.")
                 return {"2d": data}
             raise ValueError("Grid path missing in config and no sample data provided.")
 
@@ -140,84 +154,70 @@ class TurboRegrid():
         Load or generate regridding areas by calling the appropriate function.
         """
         if dst_grid_name:
-            return self._generate_target_areas(dst_grid_name, rebuild, reader_kwargs)
-        return self._generate_source_areas(rebuild, reader_kwargs)
+            # normalize the dst grid dictionary and path
+            dst_grid_dict = self._normalize_grid_dict(self._validate_grid_dict(dst_grid_name))
+            dst_grid_path = self._normalize_grid_path(dst_grid_dict.get('path'))
 
-    def _generate_source_areas(self, rebuild=False, reader_kwargs=None):
-        """
-        Generate or load source grid areas.
+            self.dst_grid_area = self._load_generate_areas(dst_grid_name, dst_grid_path, dst_grid_dict,
+                                                    reader_kwargs, target=True, rebuild=rebuild)
+        else:
+        
+            self.src_grid_area = self._load_generate_areas(self.src_grid_name, self.src_grid_path, self.src_grid_dict,
+                                                    reader_kwargs, target=False, rebuild=rebuild)
 
+
+    def _load_generate_areas(self, grid_name, grid_path, grid_dict, reader_kwargs,
+                             target=False, rebuild=False):
+        """"
+        Load or generate the grid area.
+        
         Args:
-            rebuild (bool): If True, rebuild the areas.
+            grid_name (str): The grid name.
+            grid_path (dict): The normalized grid path dictionary.
+            grid_dict (dict): The normalized grid dictionary.
             reader_kwargs (dict): The reader kwargs, including info on model, exp, source, etc.
+            target (bool): If True, the target grid area is generated. If false, the source grid area is generated.
+            rebuild (bool): If True, rebuild the area.
+        
+        Returns:
+            xr.Dataset: The grid area.
         """
-        area_filename = self._area_filename(None, reader_kwargs)
+
+        area_filename = self._area_filename(grid_name, reader_kwargs)
+        area_logname = "target" if target else "source"
 
         if not rebuild and self._check_existing_file(area_filename):
-            self.logger.info("Loading existing source area from %s.", area_filename)
-            self.src_grid_area = xr.open_dataset(area_filename)
-            return
+            self.logger.info("Loading existing %s area from %s.", area_logname, area_filename)
+            grid_area = xr.open_dataset(area_filename)
+            return grid_area
 
-        # if cell ino are provide in the grid dictionary, use them
-        cellareas = self.src_grid_dict.get('cellareas')
-        cellareas_var = self.src_grid_dict.get('cellareas_var')
+        # if cellares are provided in the grid dictionary, use them
+        cellareas = grid_dict.get('cellareas')
+        cellareas_var = grid_dict.get('cellareas_var')
         if cellareas and cellareas_var:
-            self.logger.info("Using cellareas from variable %s in file %s", 
+            self.logger.info("Using cellareas from variable %s in file %s",
                              cellareas_var, cellareas)
             grid_area = xr.open_mfdataset(cellareas)[cellareas_var].rename("cell_area").squeeze()
 
         # otherwise, generate the areas with smmregrid
         else:
-            self.logger.info("Generating source area for %s", self.src_grid_name)
+            self.logger.info("Generating %s area for %s", area_logname, grid_name)
             generator = CdoGenerate(
-                source_grid=self._get_grid_path(self.src_grid_path), # get the 2d grid path
-                target_grid=None,
-                cdo_extra=self.src_grid_dict.get('cdo_extra'),
-                cdo_options=self.src_grid_dict.get('cdo_options'),
+                # get the 2d grid path if available, otherwise the first available, only if source grid
+                source_grid=None if target else self._get_grid_path(grid_path),
+                # get the 2d grid path if available, otherwise the first available, only if target grid
+                target_grid=self._get_grid_path(grid_path) if target else None,
+                cdo_extra=grid_dict.get('cdo_extra'),
+                cdo_options=grid_dict.get('cdo_options'),
                 cdo=self.cdo,
                 loglevel=self.loglevel
             )
-            grid_area = generator.areas(target=False)
+            grid_area = generator.areas(target=target)
 
         grid_area.to_netcdf(area_filename)
-        self.logger.info("Saved source area to %s.", area_filename)
-        self.src_grid_area = grid_area
+        self.logger.info("Saved %s area to %s.", area_logname, area_filename)
 
-    def _generate_target_areas(self, dst_grid_name, rebuild=False, reader_kwargs=None):
-        """
-        Generate or load target grid areas.
-
-        Args:
-            dst_grid_name (str): The destination grid name.
-            rebuild (bool): If True, rebuild the areas.
-            reader_kwargs (dict): The reader kwargs, including info on model, exp, source, etc.
-        """
-
-        # normalize the dst grid dictionary and path
-        dst_grid_dict = self._normalize_grid_dict(self.cfg_grid_dict['grids'].get(dst_grid_name))
-        dst_grid_path = self._normalize_grid_path(dst_grid_dict.get('path'))
-
-        area_filename = self._area_filename(dst_grid_name, reader_kwargs)
-
-        if not rebuild and self._check_existing_file(area_filename):
-            self.logger.info("Loading existing target area from %s.", area_filename)
-            self.dst_grid_area = xr.open_dataset(area_filename)
-            return
-
-        self.logger.info("Generating target area for %s", dst_grid_name)
-        generator = CdoGenerate(
-            source_grid=None,
-            target_grid=self._get_grid_path(dst_grid_path),
-            cdo_extra=dst_grid_dict.get('cdo_extra'),
-            cdo_options=dst_grid_dict.get('cdo_options'),
-            cdo=self.cdo,
-            loglevel=self.loglevel
-        )
-        grid_area = generator.areas(target=True)
-
-        grid_area.to_netcdf(area_filename)
-        self.logger.info("Saved target area to %s.", area_filename)
-        self.dst_grid_area = grid_area
+        return grid_area
         
     def load_generate_weights(self, dst_grid_name, regrid_method=DEFAULT_GRID_METHOD, nproc=1,
                               rebuild=False, reader_kwargs=None):
@@ -236,6 +236,9 @@ class TurboRegrid():
         if regrid_method is not DEFAULT_GRID_METHOD:
             self.logger.info("Regrid method: %s", regrid_method)
 
+        dst_grid_dict = self._normalize_grid_dict(self._validate_grid_dict(dst_grid_name))
+        dst_grid_path = self._normalize_grid_path(dst_grid_dict.get('path'))
+        
         # get the cdo options from the configuration
         cdo_extra = self.src_grid_dict.get('cdo_extra', None)
         cdo_options = self.src_grid_dict.get('cdo_options', None)
@@ -257,7 +260,7 @@ class TurboRegrid():
                 self.logger.info("Generating weights for %s grid: %s", dst_grid_name, vertical_dim)
                 # smmregrid call
                 generator = CdoGenerate(source_grid=self.src_grid_path[vertical_dim],
-                                target_grid=self.cfg_grid_dict['grids'][dst_grid_name],
+                                target_grid=dst_grid_path[vertical_dim],
                                 cdo_extra=cdo_extra,
                                 cdo_options=cdo_options,
                                 cdo=self.cdo,
@@ -390,6 +393,28 @@ class TurboRegrid():
         Return true if the file has some records.
         """
         return os.path.exists(filename) and os.path.getsize(filename) > 0
+    
+    @staticmethod
+    def _configure_masked_fields(src_grid_dict):
+        """
+        if the grids has the 'masked' option, this can be based on
+        generic attribute or alternatively of a series of specific variables using the 'vars' key
+
+        Args:
+            source_grid (dict): Dictionary containing the grid information
+
+        Returns:
+            masked_attr (dict): Dict with name and proprierty of the attribute to be used for masking
+            masked_vars (list): List of variables to mask
+        """
+        masked_info = src_grid_dict.get("masked")
+        if masked_info is None:
+            return None, None
+
+        masked_vars = masked_info.get("vars")
+        masked_attr = {k: v for k, v in masked_info.items() if k != "vars"} or None
+
+        return masked_attr, masked_vars
     
         
     # def _configure_gridtype(self, data=None):
