@@ -1,6 +1,7 @@
 """New Regrid class independent from the Reader"""
 import os
 import re
+import shutil
 import xarray as xr
 from smmregrid import CdoGenerate, Regridder
 from smmregrid.util import is_cdo_grid, check_gridfile
@@ -9,8 +10,11 @@ from aqua.logger import log_configure
 # parameters which will affect the weights and areas name
 DEFAULT_WEIGHTS_AREAS_PARAMETERS = ['zoom']
 
+# default CDO regrid method
+DEFAULT_GRID_METHOD = 'ycon'
+
 # please notice: is_cdo_grid and check_gridfile are functions from smmregrid.util
-# to check if a string is a valid CDO grid name and if a grid is a cdo grid, 
+# to check if a string is a valid CDO grid name and if a grid is a cdo grid,
 # file on the disk or xarray dataset. Possible inclusion of CDOgrid object is considered
 # but should be developed on the smmregrid side.
 
@@ -35,13 +39,16 @@ class TurboRegrid():
         self.loglevel = loglevel
         self.logger = log_configure(log_level=loglevel, log_name='TurboRegrid')
 
+        # check if CDO is available
+        self.cdo = self._set_cdo()
+
         # define basic attributes:
         self.cfg_grid_dict = cfg_grid_dict #full grid dictionary
         self.src_grid_name = src_grid_name # source grid name
         self.src_grid_dict = cfg_grid_dict['grids'].get(src_grid_name) # source grid dictionary
         if not self.src_grid_dict:
             raise ValueError(f"Source grid '{src_grid_name}' not found in the configuration.")
-        
+
         # we want all the grid dictionary to be real dictionaries
         self.src_grid_dict = self._normalize_grid_dict(self.src_grid_dict)
 
@@ -55,7 +62,20 @@ class TurboRegrid():
 
         self.logger.info("Grid name: %s", self.src_grid_name)
         self.logger.info("Grid file path: %s", self.src_grid_path)
-    
+
+    def _set_cdo(self):
+        """
+        Check information on CDO to set the correct version
+        """
+
+        cdo = shutil.which("cdo")
+        if cdo:
+            self.logger.debug("Found CDO path: %s", cdo)
+        else:
+            self.logger.error("CDO not found in path: Weight and area generation will fail.")
+
+        return cdo
+
     def _normalize_grid_dict(self, grid):
         """
         Normalize the grid dictionary to a dictionary with the 2d key.
@@ -114,7 +134,7 @@ class TurboRegrid():
             raise ValueError("Grid path missing in config and no sample data provided.")
 
         raise ValueError(f"Grid path '{path}' is not a valid type.")
-    
+
     def load_generate_areas(self, dst_grid_name=None, rebuild=False, reader_kwargs=None):
         """
         Load or generate regridding areas by calling the appropriate function.
@@ -122,7 +142,7 @@ class TurboRegrid():
         if dst_grid_name:
             return self._generate_target_areas(dst_grid_name, rebuild, reader_kwargs)
         return self._generate_source_areas(rebuild, reader_kwargs)
-        
+
     def _generate_source_areas(self, rebuild=False, reader_kwargs=None):
         """
         Generate or load source grid areas.
@@ -142,7 +162,8 @@ class TurboRegrid():
         cellareas = self.src_grid_dict.get('cellareas')
         cellareas_var = self.src_grid_dict.get('cellareas_var')
         if cellareas and cellareas_var:
-            self.logger.info("Using cellareas from variable %s in file %s", cellareas_var, cellareas)
+            self.logger.info("Using cellareas from variable %s in file %s", 
+                             cellareas_var, cellareas)
             grid_area = xr.open_mfdataset(cellareas)[cellareas_var].rename("cell_area").squeeze()
 
         # otherwise, generate the areas with smmregrid
@@ -153,7 +174,7 @@ class TurboRegrid():
                 target_grid=None,
                 cdo_extra=self.src_grid_dict.get('cdo_extra'),
                 cdo_options=self.src_grid_dict.get('cdo_options'),
-                cdo='cdo',
+                cdo=self.cdo,
                 loglevel=self.loglevel
             )
             grid_area = generator.areas(target=False)
@@ -189,7 +210,7 @@ class TurboRegrid():
             target_grid=self._get_grid_path(dst_grid_path),
             cdo_extra=dst_grid_dict.get('cdo_extra'),
             cdo_options=dst_grid_dict.get('cdo_options'),
-            cdo='cdo',
+            cdo=self.cdo,
             loglevel=self.loglevel
         )
         grid_area = generator.areas(target=True)
@@ -198,7 +219,7 @@ class TurboRegrid():
         self.logger.info("Saved target area to %s.", area_filename)
         self.dst_grid_area = grid_area
         
-    def load_generate_weights(self, dst_grid_name, regrid_method="con", nproc=1,
+    def load_generate_weights(self, dst_grid_name, regrid_method=DEFAULT_GRID_METHOD, nproc=1,
                               rebuild=False, reader_kwargs=None):
         """
         Load or generate regridding weights calling smmregrid
@@ -211,6 +232,10 @@ class TurboRegrid():
             reader_kwargs (dict): The reader kwargs, including info on model, exp, source, etc.
         """
 
+        # define regrid method
+        if regrid_method is not DEFAULT_GRID_METHOD:
+            self.logger.info("Regrid method: %s", regrid_method)
+
         # get the cdo options from the configuration
         cdo_extra = self.src_grid_dict.get('cdo_extra', None)
         cdo_options = self.src_grid_dict.get('cdo_options', None)
@@ -218,21 +243,26 @@ class TurboRegrid():
         # loop over the vertical coordinates: 2d, 2dm, or any other
         for vertical_dim in self.src_grid_path:
 
-            weights_filename = self._weights_filename(dst_grid_name, regrid_method, 
+            weights_filename = self._weights_filename(dst_grid_name, regrid_method,
                                                       vertical_dim, reader_kwargs)
 
             # check if weights already exist, if not, generate them
             if rebuild or not self._check_existing_file(weights_filename):
-                
+
+                # clean if necessary
+                if os.path.exists(weights_filename):
+                    self.logger.warning("Weights file %s exists. Regenerating.", weights_filename)
+                    os.remove(weights_filename)
+
                 self.logger.info("Generating weights for %s grid: %s", dst_grid_name, vertical_dim)
                 # smmregrid call
                 generator = CdoGenerate(source_grid=self.src_grid_path[vertical_dim],
                                 target_grid=self.cfg_grid_dict['grids'][dst_grid_name],
                                 cdo_extra=cdo_extra,
                                 cdo_options=cdo_options,
-                                cdo='cdo',
+                                cdo=self.cdo,
                                 loglevel=self.loglevel)
-                
+
                 # define the vertical coordinate in the smmregrid world
                 smm_vert_coord = None if vertical_dim in ['2d', '2dm'] else vertical_dim
 
@@ -360,7 +390,7 @@ class TurboRegrid():
         Return true if the file has some records.
         """
         return os.path.exists(filename) and os.path.getsize(filename) > 0
-        
+    
         
     # def _configure_gridtype(self, data=None):
     #     """
