@@ -3,7 +3,8 @@ import os
 import re
 import shutil
 import xarray as xr
-from smmregrid import CdoGenerate, Regridder
+from smmregrid import CdoGenerate
+from smmregrid import Regridder as SMMRegridder
 from smmregrid.util import is_cdo_grid, check_gridfile
 from aqua.logger import log_configure
 
@@ -16,10 +17,10 @@ DEFAULT_GRID_METHOD = 'ycon'
 # please notice: is_cdo_grid and check_gridfile are functions from smmregrid.util
 # to check if a string is a valid CDO grid name and if a grid is a cdo grid,
 # file on the disk or xarray dataset. Possible inclusion of CDOgrid object is considered
-# but should be developed on the smmregrid side.
+# but should be likely developed on the smmregrid side.
 
-class TurboRegrid():
-    """Refactor of regridder class"""
+class Regridder():
+    """AQUA Regridder class"""
 
     def __init__(self, cfg_grid_dict: dict,
                  src_grid_name: str = None,
@@ -61,22 +62,20 @@ class TurboRegrid():
             self.error = "Source grid path not found. Please provide a dataset or a grid name."
             self.logger.info(self.error)
             return
-        
+
         # check if CDO is available
         self.cdo = self._set_cdo()
-        
+
         self.regridder = {} # regridders for each vertical coordinate
         self.src_grid_area = None # source grid area
         self.tgt_grid_area = None # destination grid area
-        
+
         # configure the masked fields
         self.masked_attr, self.masked_vars = self._configure_masked_fields(self.src_grid_dict)
 
         self.logger.info("Grid name: %s", self.src_grid_name)
         self.logger.info("Grid dictionary: %s", self.src_grid_dict)
         self.logger.debug("Grid file path dictionary: %s", self.src_grid_path)
-
-
 
     def _set_cdo(self):
         """
@@ -316,7 +315,7 @@ class TurboRegrid():
                 weights = xr.open_dataset(weights_filename)
 
             # initialize the regridder
-            self.regridder[vertical_dim] = Regridder(weights=weights)
+            self.regridder[vertical_dim] = SMMRegridder(weights=weights)
 
     def _validate_reader_kwargs(self, reader_kwargs):
         """
