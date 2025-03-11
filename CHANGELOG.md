@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
+
+- Add a regrid option to cli of relevant diagnostics (#1792)
+- Limit estimation of time for weight generation only to regular lon/lat grids (#1786)
+- LRA generation can operate spatial subsection (#1711)
+- Attributes added by AQUA are now "AQUA_" prefixed (#1790)
+- Remove zarr pin (#1794)
+- Dropping support for python==3.9 (#1778, #1797)
+- Reader intake-xarray sources can select a coder for time decoding (#1778)
+- Document use of AQUA on ECMWF HPC2020 (#1782)
 - Added history logging for lat-lon in area selection (#1479)
 - Cleaner workflow and pytest/coverage configuration (#1755, #1758)
 - catalog, model, exp, source info are now stored in the DataArray attributes (#1753)
@@ -27,6 +36,10 @@ AQUA core complete list:
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
 
 AQUA diagnostics complete list:
+- Ocean3d: Bug fix to regridding of observations in cli (#1811)
+- Diagnostic core: the `retrieve()` method uses internally a `_retrieve()` method that returns instead of updating attributes (#1763)
+- Diagnostic core: documentation about class and config file structure (#1790)
+- Diagnostic core: A common function to load the diagnostic config file is provided (#1750)
 - Global bias: add test (#1675)
 - Diagnostic core: Add additional command-line arguments for configuration and processing options (#1745)
 - Global bias: Handling plev and using scientific notation in contour plots (#1649)
