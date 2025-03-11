@@ -19,6 +19,7 @@ DEFAULT_GRID_METHOD = 'ycon'
 # file on the disk or xarray dataset. Possible inclusion of CDOgrid object is considered
 # but should be likely developed on the smmregrid side.
 
+
 class Regridder():
     """AQUA Regridder class"""
 
@@ -44,8 +45,8 @@ class Regridder():
         self.logger = log_configure(log_level=loglevel, log_name='TurboRegrid')
 
         # define basic attributes:
-        self.cfg_grid_dict = cfg_grid_dict #full grid dictionary
-        self.src_grid_name = src_grid_name # source grid name
+        self.cfg_grid_dict = cfg_grid_dict  # full grid dictionary
+        self.src_grid_name = src_grid_name  # source grid name
 
         # we want all the grid dictionary to be real dictionaries
         self.src_grid_dict = self._normalize_grid_dict(self.src_grid_name)
@@ -66,12 +67,13 @@ class Regridder():
         # check if CDO is available
         self.cdo = self._set_cdo()
 
-        self.regridder = {} # regridders for each vertical coordinate
-        self.src_grid_area = None # source grid area
-        self.tgt_grid_area = None # destination grid area
+        self.regridder = {}  # regridders for each vertical coordinate
+        self.src_grid_area = None  # source grid area
+        self.tgt_grid_area = None  # destination grid area
 
         # configure the masked fields
-        self.masked_attr, self.masked_vars = self._configure_masked_fields(self.src_grid_dict)
+        self.masked_attr, self.masked_vars = self._configure_masked_fields(
+            self.src_grid_dict)
 
         self.logger.info("Grid name: %s", self.src_grid_name)
         self.logger.info("Grid dictionary: %s", self.src_grid_dict)
@@ -86,7 +88,8 @@ class Regridder():
         if cdo:
             self.logger.debug("Found CDO path: %s", cdo)
         else:
-            self.logger.error("CDO not found in path: Weight and area generation will fail.")
+            self.logger.error(
+                "CDO not found in path: Weight and area generation will fail.")
 
         return cdo
 
@@ -112,23 +115,28 @@ class Regridder():
 
         # if a grid name is a valid CDO grid name, return it in the format of a dictionary
         if is_cdo_grid(grid_name):
-            self.logger.debug("Grid name %s is a valid CDO grid name.", grid_name)
+            self.logger.debug(
+                "Grid name %s is a valid CDO grid name.", grid_name)
             return {"path": {"2d": grid_name}}
 
         # raise error if the grid does not exist
-        grid_dict = self.cfg_grid_dict['grids'].get(grid_name) # source grid dictionary
+        grid_dict = self.cfg_grid_dict['grids'].get(
+            grid_name)  # source grid dictionary
         if not grid_dict:
-            raise ValueError(f"Grid '{grid_name}' not found in the configuration.")
-        
+            raise ValueError(
+                f"Grid '{grid_name}' not found in the configuration.")
+
         # grid dict is a string: this is the case of a CDO grid name
         if isinstance(grid_dict, str):
             if is_cdo_grid(grid_dict):
-                self.logger.debug("Grid definition %s is a valid CDO grid name.", grid_dict)
+                self.logger.debug(
+                    "Grid definition %s is a valid CDO grid name.", grid_dict)
                 return {"path": {"2d": grid_dict}}
-            raise ValueError(f"Grid '{grid_dict}' is not a valid CDO grid name.")
+            raise ValueError(
+                f"Grid '{grid_dict}' is not a valid CDO grid name.")
         if isinstance(grid_dict, dict):
             return grid_dict
-        
+
         raise ValueError(f"Grid dict '{grid_dict}' is not a valid type")
 
     def _normalize_grid_path(self, grid_dict):
@@ -142,7 +150,7 @@ class Regridder():
         Args:
             path (str, dict): The grid path.
             data (xarray.Dataset): The dataset to extract grid information from.
-        
+
         Returns:
             dict: The normalized grid path dictionary. "2d" key is mandatory.
         """
@@ -155,7 +163,8 @@ class Regridder():
         # case path is a string: check if it is a valid CDO grid name or a file path
         if isinstance(path, str):
             if is_cdo_grid(path):
-                self.logger.debug("Grid path %s is a valid CDO grid name.", path)
+                self.logger.debug(
+                    "Grid path %s is a valid CDO grid name.", path)
                 return {"2d": path}
             if self._check_existing_file(path):
                 self.logger.debug("Grid path %s is a valid file path.", path)
@@ -167,19 +176,20 @@ class Regridder():
         if isinstance(path, dict):
             for _, value in path.items():
                 if not (is_cdo_grid(value) or self._check_existing_file(value)):
-                    raise ValueError(f"Grid path '{value}' is not a valid CDO grid name nor a file path.")
-            self.logger.debug("Grid path %s is a valid dictionary of file paths.", path)
+                    raise ValueError(
+                        f"Grid path '{value}' is not a valid CDO grid name nor a file path.")
+            self.logger.debug(
+                "Grid path %s is a valid dictionary of file paths.", path)
             return path
-        
-        raise ValueError(f"Grid path '{path}' is not a valid type.")
 
+        raise ValueError(f"Grid path '{path}' is not a valid type.")
 
     def load_generate_areas(self, tgt_grid_name=None, rebuild=False, reader_kwargs=None):
         """
         Load or generate regridding areas by calling the appropriate function.
         """
         if tgt_grid_name:
-        
+
             # normalize the tgt grid dictionary and path
             tgt_grid_dict = self._normalize_grid_dict(tgt_grid_name)
             tgt_grid_path = self._normalize_grid_path(tgt_grid_dict)
@@ -187,17 +197,16 @@ class Regridder():
                 tgt_grid_name, tgt_grid_path, tgt_grid_dict,
                 reader_kwargs, target=True, rebuild=rebuild)
         else:
-        
+
             self.src_grid_area = self._load_generate_areas(
                 self.src_grid_name, self.src_grid_path, self.src_grid_dict,
                 reader_kwargs, target=False, rebuild=rebuild)
-
 
     def _load_generate_areas(self, grid_name, grid_path, grid_dict, reader_kwargs,
                              target=False, rebuild=False):
         """"
         Load or generate the grid area.
-        
+
         Args:
             grid_name (str): The grid name.
             grid_path (dict): The normalized grid path dictionary.
@@ -205,16 +214,18 @@ class Regridder():
             reader_kwargs (dict): The reader kwargs, including info on model, exp, source, etc.
             target (bool): If True, the target grid area is generated. If false, the source grid area is generated.
             rebuild (bool): If True, rebuild the area.
-        
+
         Returns:
             xr.Dataset: The grid area.
         """
 
-        area_filename = self._area_filename(grid_name if target else None, reader_kwargs)
+        area_filename = self._area_filename(
+            grid_name if target else None, reader_kwargs)
         area_logname = "target" if target else "source"
 
         if not rebuild and self._check_existing_file(area_filename):
-            self.logger.info("Loading existing %s area from %s.", area_logname, area_filename)
+            self.logger.info("Loading existing %s area from %s.",
+                             area_logname, area_filename)
             grid_area = xr.open_dataset(area_filename)
             return grid_area
 
@@ -224,11 +235,13 @@ class Regridder():
         if cellareas and cellareas_var:
             self.logger.info("Using cellareas from variable %s in file %s",
                              cellareas_var, cellareas)
-            grid_area = xr.open_mfdataset(cellareas)[cellareas_var].rename("cell_area").squeeze()
+            grid_area = xr.open_mfdataset(
+                cellareas)[cellareas_var].rename("cell_area").squeeze()
 
         # otherwise, generate the areas with smmregrid
         else:
-            self.logger.info("Generating %s area for %s", area_logname, grid_name)
+            self.logger.info("Generating %s area for %s",
+                             area_logname, grid_name)
             generator = CdoGenerate(
                 # get the 2d grid path if available, otherwise the first available, only if source grid
                 source_grid=None if target else self._get_grid_path(grid_path),
@@ -245,7 +258,7 @@ class Regridder():
         self.logger.info("Saved %s area to %s.", area_logname, area_filename)
 
         return grid_area
-        
+
     def load_generate_weights(self, tgt_grid_name, regrid_method=DEFAULT_GRID_METHOD, nproc=1,
                               rebuild=False, reader_kwargs=None):
         """
@@ -283,25 +296,29 @@ class Regridder():
 
                 # clean if necessary
                 if os.path.exists(weights_filename):
-                    self.logger.warning("Weights file %s exists. Regenerating.", weights_filename)
+                    self.logger.warning(
+                        "Weights file %s exists. Regenerating.", weights_filename)
                     os.remove(weights_filename)
 
-                self.logger.info("Generating weights for %s grid: %s", tgt_grid_name, vertical_dim)
+                self.logger.info(
+                    "Generating weights for %s grid: %s", tgt_grid_name, vertical_dim)
                 # smmregrid call
                 generator = CdoGenerate(source_grid=self.src_grid_path[vertical_dim],
-                                #this seems counterintuitive, but CDO-based target grids are defined with 2d
-                                target_grid=tgt_grid_path['2d'],
-                                cdo_extra=cdo_extra,
-                                cdo_options=cdo_options,
-                                cdo=self.cdo,
-                                loglevel=self.loglevel)
+                                        # this seems counterintuitive, but CDO-based target grids are defined with 2d
+                                        target_grid=tgt_grid_path['2d'],
+                                        cdo_extra=cdo_extra,
+                                        cdo_options=cdo_options,
+                                        cdo=self.cdo,
+                                        loglevel=self.loglevel)
 
                 # define the vertical coordinate in the smmregrid world
-                smm_vert_coord = None if vertical_dim in ['2d', '2dm'] else vertical_dim
+                smm_vert_coord = None if vertical_dim in [
+                    '2d', '2dm'] else vertical_dim
 
                 # minimum time warning
                 if smm_vert_coord:
-                    self.logger.warning('Vertical coordinate detected, computation of weights may take longer.')
+                    self.logger.warning(
+                        'Vertical coordinate detected, computation of weights may take longer.')
 
                 # generate and save the weights
                 weights = generator.weights(method=regrid_method,
@@ -310,7 +327,8 @@ class Regridder():
                 weights.to_netcdf(weights_filename)
 
             else:
-                self.logger.info("Loading existing weights from %s.", weights_filename)
+                self.logger.info(
+                    "Loading existing weights from %s.", weights_filename)
                 # load the weights
                 weights = xr.open_dataset(weights_filename)
 
@@ -331,7 +349,7 @@ class Regridder():
     def _area_filename(self, tgt_grid_name, reader_kwargs):
         """"
         Generate the area filename.
-        
+
         Args:
             tgt_grid_name (str): The destination grid name.
             reader_kwargs (dict): The reader kwargs, including info on model, exp, source, etc.
@@ -342,18 +360,22 @@ class Regridder():
         # destination grid name is provided, use grid template
         if tgt_grid_name:
             filename = area_dict["template_grid"].format(grid=tgt_grid_name)
-            self.logger.debug("Using grid-based template for target grid. Filename: %s", filename)
+            self.logger.debug(
+                "Using grid-based template for target grid. Filename: %s", filename)
         # source grid name is provided, check if it is data
         else:
             if check_gridfile(self.src_grid_path['2d']) != 'xarray':
-                filename = area_dict["template_grid"].format(grid=self.src_grid_name)
-                self.logger.debug("Using grid-based template for source grid. Filename: %s", filename)
+                filename = area_dict["template_grid"].format(
+                    grid=self.src_grid_name)
+                self.logger.debug(
+                    "Using grid-based template for source grid. Filename: %s", filename)
             else:
                 reader_kwargs = self._validate_reader_kwargs(reader_kwargs)
-                filename =  area_dict["template_default"].format(model=reader_kwargs["model"],
-                                                                 exp=reader_kwargs["exp"],
-                                                                 source=reader_kwargs["source"])
-                self.logger.debug("Using source-based template for source grid. Filename: %s", filename)
+                filename = area_dict["template_default"].format(model=reader_kwargs["model"],
+                                                                exp=reader_kwargs["exp"],
+                                                                source=reader_kwargs["source"])
+                self.logger.debug(
+                    "Using source-based template for source grid. Filename: %s", filename)
 
         filename = self._insert_kwargs(filename, reader_kwargs)
         filename = self._filename_prepend_path(filename, kind="areas")
@@ -370,7 +392,8 @@ class Regridder():
             reader_kwargs (dict): The reader kwargs, including info on model, exp, source, etc.
         """
 
-        levname = vertical_dim if vertical_dim in ["2d", "2dm"] else f"3d-{vertical_dim}"
+        levname = vertical_dim if vertical_dim in [
+            "2d", "2dm"] else f"3d-{vertical_dim}"
 
         weights_dict = self.cfg_grid_dict.get('weights')
 
@@ -381,7 +404,8 @@ class Regridder():
                 method=regrid_method,
                 targetgrid=tgt_grid_name,
                 level=levname)
-            self.logger.debug("Using grid-based template for target grid. Filename: %s", filename)
+            self.logger.debug(
+                "Using grid-based template for target grid. Filename: %s", filename)
         else:
             reader_kwargs = self._validate_reader_kwargs(reader_kwargs)
             filename = weights_dict["template_default"].format(
@@ -391,23 +415,27 @@ class Regridder():
                 method=regrid_method,
                 targetgrid=tgt_grid_name,
                 level=levname)
-            self.logger.debug("Using source-based template for target grid. Filename: %s", filename)
+            self.logger.debug(
+                "Using source-based template for target grid. Filename: %s", filename)
 
         filename = self._insert_kwargs(filename, reader_kwargs)
         filename = self._filename_prepend_path(filename, kind="weights")
         return filename
-    
+
     def _filename_prepend_path(self, filename, kind="weights"):
         """
         Prepend the path to the filename with some fall back option
         """
         if not self.cfg_grid_dict.get("paths"):
-            self.logger.warning("Paths block not found in the configuration file, using present directory.")
+            self.logger.warning(
+                "Paths block not found in the configuration file, using present directory.")
         else:
             if not self.cfg_grid_dict["paths"].get(kind):
-                self.logger.warning("%s block not found in the paths block, using present directory.", kind)
+                self.logger.warning(
+                    "%s block not found in the paths block, using present directory.", kind)
             else:
-                filename = os.path.join(self.cfg_grid_dict["paths"][kind], filename)
+                filename = os.path.join(
+                    self.cfg_grid_dict["paths"][kind], filename)
         return filename
 
     @staticmethod
@@ -420,11 +448,12 @@ class Regridder():
             for parameter in DEFAULT_WEIGHTS_AREAS_PARAMETERS:
                 if parameter in reader_kwargs:
                     filename = re.sub(r'\.nc',
-                                    '_' + parameter + str(reader_kwargs[parameter]) + r'\g<0>',
-                                    filename)
+                                      '_' + parameter +
+                                      str(reader_kwargs[parameter]) + r'\g<0>',
+                                      filename)
 
         return filename
-    
+
     @staticmethod
     def _get_grid_path(grid_path):
         """
@@ -432,7 +461,7 @@ class Regridder():
         This looks for `2d` key, otherwise takes the first available value.
         """
         return grid_path.get('2d', next(iter(grid_path.values()), None))
-    
+
     @staticmethod
     def _check_existing_file(filename):
         """
@@ -440,7 +469,7 @@ class Regridder():
         Return true if the file has some records.
         """
         return os.path.exists(filename) and os.path.getsize(filename) > 0
-    
+
     @staticmethod
     def _configure_masked_fields(src_grid_dict):
         """
@@ -459,11 +488,11 @@ class Regridder():
             return None, None
 
         masked_vars = masked_info.get("vars")
-        masked_attr = {k: v for k, v in masked_info.items() if k != "vars"} or None
+        masked_attr = {k: v for k, v in masked_info.items() if k !=
+                       "vars"} or None
 
         return masked_attr, masked_vars
-    
-        
+
     # def _configure_gridtype(self, data=None):
     #     """
     #     Configure the GridType object based on the grid_dict.
@@ -484,7 +513,3 @@ class Regridder():
     #         return None
 
     #     return grid
-
-
-
-
