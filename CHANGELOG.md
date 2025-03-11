@@ -9,6 +9,7 @@ Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
 
+- Remove generators from Reader (#1791)
 - Add a regrid option to cli of relevant diagnostics (#1792)
 - Limit estimation of time for weight generation only to regular lon/lat grids (#1786)
 - LRA generation can operate spatial subsection (#1711)
