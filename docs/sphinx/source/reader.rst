@@ -106,7 +106,7 @@ by the users, but things can be speed up if we target a specific catalog. This c
     data = reader.retrieve()
 
 Dask and streaming capabilities
-^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The standard usage of the ``Reader`` class will load metadata in memory and
 make the data available for processing.
