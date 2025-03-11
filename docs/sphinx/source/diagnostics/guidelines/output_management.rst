@@ -4,6 +4,9 @@ Automatic Standardized File Naming
 Class Overview
 --------------
 
+.. warning::
+    A refactor of the ``OutputSaver`` class is currently in progress. The class will be moved in the `aqua.diagnostics.core` package.
+
 The ``OutputSaver`` class is designed to manage output file naming conventions for scientific data.
 It supports generating filenames for various types of file (e.g., NetCDF, PDF, PNG) with metadata integration to enhance data management and traceability.
 The class ensures consistent and descriptive filenames, facilitating better data management and reproducibility.

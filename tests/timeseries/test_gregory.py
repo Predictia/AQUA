@@ -8,7 +8,7 @@ approx_rel = 1e-4
 loglevel = 'DEBUG'
 
 
-@pytest.mark.timeseries
+@pytest.mark.diagnostics
 def test_class_gregory():
     """
     Test that the GregoryPlot class works
