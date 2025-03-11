@@ -21,22 +21,27 @@ class PlotSeaIce:
                  monthly_models=None, annual_models=None,
                  monthly_ref=None, annual_ref=None,
                  monthly_std_ref: str = None, annual_std_ref: str = None,
+                 model: str = None, 
+                 exp: str = None, 
+                 source: str = None,
+                 catalog: str = None,
                  regions_to_plot: list = None, # ['Arctic', 'Antarctic'], # this is a list of strings with the region names to plot
-                 harmonise_time:  str = None, # 'common', 'to_ref' (only if ref is given), tuple: ('to_model', int) [the int give the list index for the time to use]
-                 fillna: str = None, # 'zero', 'nan', 'interpolate', 'value'
-                 plot_kw=None,
-                 unit=None, # This might involve some function to get the unit of the variable or to convert the unit [from timeseries.py 
-                            # Units of the variable. Default is None and units attribute is used.]
                  outdir='./',
-                 rebuild=None, 
+                 rebuild=True, 
                  filename_keys=None,  # List of keys to keep in the filename. Default is None, which includes all keys.
                  save_pdf=True, 
-                 save_png=True, dpi=300,
+                 save_png=True, 
+                 dpi=300,
                  loglevel='WARNING'):
         
         # logging setup
         self.loglevel = loglevel
         self.logger = log_configure(log_level=self.loglevel, log_name='PlotSeaIce')
+
+        self.model = model
+        self.exp = exp
+        self.source = source
+        self.catalog = catalog
 
         self.regions_to_plot = self._check_list_regions_type(regions_to_plot)
 
@@ -243,7 +248,7 @@ class PlotSeaIce:
         else:
             self.ref_label_str = ''
 
-        # --- generate reference std data string
+        # --- generate string for reference std data
         if self.std_label:
             sdtdata = self._getdata_fromdict(data_dict,'monthly_std_ref')
             std_sdate = sdtdata.attrs.get("startdate", "No startdate found")
@@ -258,7 +263,7 @@ class PlotSeaIce:
                                                                                                 self.ref_label_str, self.std_label_str)
         return self._description
 
-    def plot_seaice_timeseries(self, save_fig=False, **kwargs):
+    def plot_seaice_timeseries(self, **kwargs):
         """ Plot data by iterating over dict and calling plot_timeseries"""
         # iterate over the methods in the dictionary
         for method, region_dict in self.repacked_dict.items():
@@ -313,8 +318,17 @@ class PlotSeaIce:
             
             plt.tight_layout()
 
-            if save_fig:
-                fig.savefig(os.path.join(self.outdir, f"seaice_plot_{method}.png"), format="png", dpi=self.dpi)
-            
-            # clear the figure to free memory
-            #plt.close(fig)
+
+            # save figure            
+            if self.save_png or self.save_pdf:
+
+                # store description
+                metadata = {"Description": description}
+
+                # create outputsaver object
+                output_saver = OutputSaver(diagnostic='PlotSeaIce', catalog=self.catalog, model=self.model, exp=self.exp,
+                                           diagnostic_product=f"seaice_{method}_{'_'.join(region_dict.keys())}",
+                                           loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild)
+
+            if self.save_pdf: output_saver.save_pdf(fig=fig, path=self.outdir, metadata=metadata)
+            if self.save_png: output_saver.save_png(fig=fig, path=self.outdir, metadata=metadata)
