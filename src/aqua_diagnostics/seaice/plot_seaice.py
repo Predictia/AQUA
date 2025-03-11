@@ -71,7 +71,7 @@ class PlotSeaIce:
             raise TypeError(  f"Expected a list of strings, but found element types: {invalid_types}.")
         return regions_to_plot
     
-    def _check_datasets_type(self, datain) -> list[xr.Dataset] | None :
+    def _check_as_datasets_list(self, datain) -> list[xr.Dataset] | None :
         """ Check that the input (`datain`) is either:
             - A single `xarray.Dataset` (which is converted into a list).
             - A list of `xarray.Dataset` objects.
@@ -88,7 +88,7 @@ class PlotSeaIce:
             return datain
         else:
             self.logger.debug(f"Invalid data type: {type(datain)}. Expected xr.Dataset, list of xr.Dataset, or None.")
-            raise ValueError(f"Invalid data type: {type(datain)}. Expected xr.Dataset, list of xr.Dataset, or None.")
+            raise ValueError( f"Invalid data type: {type(datain)}. Expected xr.Dataset, list of xr.Dataset, or None.")
 
     def _get_region_name_in_datarray(self, da: xr.DataArray) -> str:
         """Get the region variable from the dataset or derive it from the variable name."""
@@ -134,7 +134,7 @@ class PlotSeaIce:
 
         for str_data, dataset_list in kwargs.items():
             # normalize the input to a list of datasets (or None)
-            dataset_list = self._check_datasets_type(dataset_list)
+            dataset_list = self._check_as_datasets_list(dataset_list)
 
             # if the list is None, skip to the next str_data
             if dataset_list is None:
