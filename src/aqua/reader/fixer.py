@@ -1000,7 +1000,7 @@ class FixerMixin():
         self.logger.debug("Variables to be loaded: %s", loadvar)
         return loadvar
 
-    def simple_decumulate(self, data, jump=None, keep_first=True, keep_memory=None):
+    def simple_decumulate(self, data, jump=None, keep_first=True):
         """
         Remove cumulative effect on IFS fluxes.
 
@@ -1009,7 +1009,6 @@ class FixerMixin():
             jump (str):              used to fix periodic jumps (a very specific NextGEMS IFS issue)
                                      Examples: jump='month' (the NextGEMS case), jump='day')
             keep_first (bool):       if to keep the first value as it is (True) or place a 0 (False)
-            keep_memory (DataArray): data from previous step
 
         Returns:
             A xarray.DataArray where the cumulation has been removed
@@ -1024,10 +1023,6 @@ class FixerMixin():
             zeros = data.isel(time=0)
         else:
             zeros = xr.zeros_like(data.isel(time=0))
-        if isinstance(keep_memory, xr.DataArray):
-            data0 = data.isel(time=0)
-            keep_memory = keep_memory.assign_coords(time=data0.time)  # We need them to have the same time
-            zeros = data0 - keep_memory
 
         deltas = xr.concat([zeros, deltas], dim='time').transpose('time', ...)
 
