@@ -106,7 +106,7 @@ class SeaIce(Diagnostic):
         self.logger.debug(f'Calculate cell areas for {region}')
 
         # get info on grid area that must be reinitialised for each region. Note: areacello units are in (m^2)
-        areacello = self.reader.grid_area
+        areacello = self.reader.src_grid_area
 
         # get the region box from the region definition file
         box = self.regions_definition[region]
@@ -114,8 +114,13 @@ class SeaIce(Diagnostic):
         # log the computation
         self.logger.info(f'Computing sea ice {method} for {region}')
 
-        # regional selection
+        # make area selection flexible to lon values from -180 to 180 or from 0 to 360
+        lonmin = round(areacello.lon.min().values/180)*180
+        lonmax = round(areacello.lon.max().values/180)*180
+
+        # regional selection with box, use default dict to set the search for lon bounds as above and lat from -90 to 90
         areacello = area_selection(areacello, lat=[box["latS"], box["latN"]], lon=[box["lonW"], box["lonE"]], 
+                                   default={"lon_min": lonmin, "lon_max": lonmax, "lat_min": -90, "lat_max": 90},
                                    loglevel=self.loglevel)
         if method == 'extent':
             # compute sea ice extent: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to million km^2
@@ -124,7 +129,7 @@ class SeaIce(Diagnostic):
             # keep attributes from the retrieved data
             seaice_metric.attrs = masked_data.attrs
         elif method == 'volume':
-            # compute sea ice volume: exclude areas with no sea ice and sum over the spatial dimension, , divide by 1e12 to convert to thousand km^3
+            # compute sea ice volume: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to thousand km^3
             seaice_metric = (masked_data * areacello.where(masked_data.notnull())).sum(skipna = True, min_count = 1, 
                                                                                        dim=self.reader.space_coord) / 1e12
         # add attributes
@@ -214,7 +219,7 @@ class SeaIce(Diagnostic):
 
             # add attributes and history
             seaice_extent = self.add_seaice_attrs(seaice_extent, 'extent', region, self.startdate, self.enddate)
-            log_history(seaice_extent, "Method used for seaice computation: extent")
+            log_history(seaice_extent, "Method used for seaice computation: 'extent'")
 
             regional_extents.append(seaice_extent)
         
