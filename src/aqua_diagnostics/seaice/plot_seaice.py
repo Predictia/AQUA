@@ -75,8 +75,15 @@ class PlotSeaIce:
             raise TypeError(  f"Expected a list of strings, but found element types: {invalid_types}.")
         return regions_to_plot
     
-    def _check_datasets_type(self, datain):
-        """datain must be a a single xr.Dataset, a list of xr.Dataset or None"""
+    def _check_datasets_type(self, datain) -> list[xr.Dataset] | None :
+        """ Check that the input (`datain`) is either:
+            - A single `xarray.Dataset` (which is converted into a list).
+            - A list of `xarray.Dataset` objects.
+            - `None` (which is returned as is).
+        Args:
+            datain (xr.Dataset | list[xr.Dataset] | None): The input dataset(s) to check.
+        Returns:
+            list[xr.Dataset] | None: None if datain is None """
         if isinstance(datain, xr.Dataset):
             # if a single Dataset is passed, wrap it in a list
             return [datain]
@@ -183,9 +190,9 @@ class PlotSeaIce:
             data_dict (dict): Dictionary containing the data (list of xr.DataArray or single xr.DataArray or None)
             dkey (str): The key to retrieve data from `data_dict`
         Returns:
-            - A single `xr.DataArray` if the list contains only one element (reference data case)
-            - A list of `xr.DataArray` if multiple elements are found (model data case)
-            - `None` if the key is missing or the value is not a valid list of `xr.DataArray` """
+            - A single xr.DataArray if the list contains only one element (reference data case)
+            - A list of xr.DataArray if multiple elements are found (model data case)
+            - `None` if the key is missing or the value is not a valid list of xr.DataArray """
         values = data_dict.get(dkey, None)
         if isinstance(values, list) and all(isinstance(da, xr.DataArray) for da in values):
             return values if len(values) > 1 else values[0]
