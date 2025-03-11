@@ -79,7 +79,8 @@ class PlotSeaIce:
         Args:
             datain (xr.Dataset | list[xr.Dataset] | None): The input dataset(s) to check.
         Returns:
-            list[xr.Dataset] | None: None if datain is None """
+            list[xr.Dataset] | None: None if datain is None
+        """
         if isinstance(datain, xr.Dataset):
             # if a single Dataset is passed, wrap it in a list
             return [datain]
@@ -172,7 +173,19 @@ class PlotSeaIce:
         return " ".join(str(datain.attrs[attr]) for attr in required_attrs if attr in datain.attrs)
     
     def _gen_labelname(self, datain: xr.DataArray | list[xr.DataArray] | None) -> str | list[str] | None:
-        """Generate a label or list of labels, for legend using the 'model', 'exp', 'source', and 'catalog' attributes."""
+        """Extract 'model', 'exp', 'source', and 'catalog' from attributes in input data and 
+           generate a label or list of labels for each xr.dataArray to be used in the legend plot. 
+        Args:
+            datain (xr.DataArray | list[xr.DataArray] | None):
+                - A single xr.DataArray: Generates a label from its attributes.
+                - A list of xr.DataArray: Generates a list of labels for each data array.
+                - None: Returns None.
+        Returns:
+            str | list[str] | None:
+                - A single string if datain is a single xarray.DataArray.
+                - A list of strings if datain is a list of xarray.DataArray objects.
+                - None if datain is None.
+        """
         if datain is None:
             return None
         if isinstance(datain, xr.DataArray):
@@ -184,21 +197,21 @@ class PlotSeaIce:
         """Retrieves data from a dictionary and returns either None, a single DataArray or a list of them
         Args:
             data_dict (dict): Dictionary containing the data (list of xr.DataArray or single xr.DataArray or None)
-            dkey (str): The key to retrieve data from `data_dict`
+            dkey (str): The key to retrieve data from data_dict
         Returns:
             - A single xr.DataArray if the list contains only one element (reference data case)
             - A list of xr.DataArray if multiple elements are found (model data case)
-            - `None` if the key is missing or the value is not a valid list of xr.DataArray """
+            - `None` if the key is missing or the value is not a valid list of xr.DataArray 
+        """
         values = data_dict.get(dkey, None)
         if isinstance(values, list) and all(isinstance(da, xr.DataArray) for da in values):
             return values if len(values) > 1 else values[0]
         return None
     
     def _update_description(self, method, region, data_dict, region_idx):
-        """
-        Create the caption description from attributes
+        """ Create the caption description from attributes
         Returns:
-            the updated string
+            the updated string 
         """
         # initialise string if _description doesn't exist
         if not hasattr(self, '_description'):
@@ -264,7 +277,6 @@ class PlotSeaIce:
         self._description = ('Time series of the Sea ice {} integrated over {}. {}{}{}').format(method, self.region_str, 
                                                                                                 self.model_labels_str,
                                                                                                 self.ref_label_str, self.std_label_str)
-        return self._description
 
     def plot_seaice_timeseries(self, save_pdf=True, save_png=True, **kwargs):
         """ Plot data by iterating over dict and calling plot_timeseries"""
@@ -312,9 +324,6 @@ class PlotSeaIce:
 
                 # after plotting, append text about what we did:
                 self._update_description(method, region, data_dict, region_idx)
-                
-                # generate and improve figure caption
-                description = self._description
 
                 # optionally, customize the subplot (e.g., add a title)
                 ax.set_title(f"Sea ice {method}: region {region}")
@@ -325,7 +334,7 @@ class PlotSeaIce:
             if save_png or save_pdf:
 
                 # store description
-                metadata = {"Description": description}
+                metadata = {"Description": self._description}
 
                 # create outputsaver object
                 output_saver = OutputSaver(diagnostic='PlotSeaIce', catalog=self.catalog, model=self.model, exp=self.exp,
