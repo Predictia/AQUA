@@ -15,6 +15,7 @@ from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history
 from aqua.util import flip_lat_dir, find_vert_coord
 from aqua.exceptions import NoDataError, NoRegridError
+from aqua.version import __version__ as aqua_version
 import aqua.gsv
 
 from .streaming import Streaming
@@ -592,6 +593,12 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
         # Preprocessing function
         if self.preproc:
             data = self.preproc(data)
+
+        # Add info metadata in each dataset
+        info_metadata = {'AQUA_model': self.model, 'AQUA_exp': self.exp,
+                         'AQUA_source': self.source, 'AQUA_catalog': self.catalog,
+                         'AQUA_version': aqua_version}
+        data = set_attrs(data, info_metadata)
 
         return data
 
@@ -1198,6 +1205,10 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
         Returns:
             Dataset
         """
+        # The coder introduces the possibility to specify a time decoder for the time axis
+        if 'time_coder' in esmcat.metadata:
+            coder = xr.coders.CFDatetimeCoder(time_unit=esmcat.metadata['time_coder'])
+            esmcat.xarray_kwargs.update({'decode_times': coder})
 
         data = esmcat.to_dask()
 

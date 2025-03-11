@@ -8,6 +8,7 @@ grids:
   # EN4
   en4:
     path:
+      2d: '{{ grids }}/EN4/en4-grid.nc'
       lev: '{{ grids }}/EN4/en4-grid.nc'
     space_coord: ["lon", "lat"]
     vert_coord: ["lev"]
