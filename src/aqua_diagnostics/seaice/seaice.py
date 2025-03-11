@@ -13,7 +13,42 @@ from aqua.util import frequency_string_to_pandas
 xr.set_options(keep_attrs=True)
 
 class SeaIce(Diagnostic):
-    """Class for seaice objects."""
+    """Class for seaice objects.
+    This class provides methods to compute sea ice extent and volume over specified regions.
+    It also allows for the integration of masked data and the calculation of standard deviations.
+    Args:
+        model   (str): The model name.
+        exp     (str): The experiment name.
+        source  (str): The data source.
+        catalog (str, optional): The catalog name.
+        regrid  (str, optional): The regrid option.
+        startdate (str, optional): The start date for the data.
+        enddate   (str, optional): The end date for the data.
+        regions   (list, optional): A list of regions to analyze. Default is ['Arctic', 'Antarctic'].
+        regions_file (str, optional): The path to the regions definition file.
+        loglevel     (str, optional): The logging level. Default is 'WARNING'.
+        extent       (xr.Dataset): The computed sea ice extent.
+        extent_std   (xr.Dataset): The standard deviation of the computed sea ice extent.
+        volume     (xr.Dataset): The computed sea ice volume.
+        volume_std (xr.Dataset): The standard deviation of the computed sea ice volume.
+        regions_definition (dict): The loaded regions definition from the YAML file.
+    Methods:
+        load_regions(regions_file=None, regions=None):
+            Loads region definitions from a .yaml configuration file and sets the regions.
+        show_regions():
+            Show the regions available in the region file.
+        add_seaice_attrs(da_seaice_computed: xr.DataArray, method: str, region: str, startdate: str=None, enddate: str=None, std_flag=False):
+            Set attributes for seaice_computed.
+        integrate_seaice_masked_data(masked_data, method: str, region: str):
+            Integrate the masked data over the spatial dimension to compute sea ice metrics.
+        _calculate_std(computed_data: xr.DataArray, freq: str = None):
+            Compute the standard deviation of the data integrated using the extent or volume method and grouped by a specified time frequency.
+        _compute_extent(threshold: float = 0.15, var: str = 'siconc', calc_std_freq: str = None):
+            Compute sea ice extent by integrating sea ice concentration data over specified regions.
+        _compute_volume(var: str = 'sithick', calc_std_freq: str = None):
+            Compute sea ice volume by integrating computed data over specified regions.
+        compute_seaice(method: str, *args, **kwargs):
+            Execute the seaice diagnostic based on the specified method. """
 
     def __init__(self, model: str, exp: str, source: str,        
                  catalog=None,
@@ -96,11 +131,11 @@ class SeaIce(Diagnostic):
     def integrate_seaice_masked_data(self, masked_data, method: str, region: str):
         """Integrate the masked data over the spatial dimension to compute sea ice metrics.
         Args:
-        masked_data (xr.DataArray): The masked data to be integrated.
-        method (str): The method to compute sea ice metrics. Options are 'extent' or 'volume'.
-        region (str): The region for which the sea ice metric is computed.
+            masked_data (xr.DataArray): The masked data to be integrated.
+            method (str): The method to compute sea ice metrics. Options are 'extent' or 'volume'.
+            region (str): The region for which the sea ice metric is computed.
         Returns:
-        xr.DataArray: The computed sea ice metric.
+            xr.DataArray: The computed sea ice metric.
         """
 
         self.logger.debug(f'Calculate cell areas for {region}')
@@ -137,9 +172,18 @@ class SeaIce(Diagnostic):
 
         return seaice_metric
 
-    def _calculate_std(self, computed_data, freq=None):
-        """Compute the standard deviation of the data computed using the extent or volume method. 
-           Support for monthly and annual frequencies."""
+    def _calculate_std(self, computed_data: xr.DataArray, freq: str = None):
+        """ Compute the standard deviation of the data integrated using the extent or volume method and 
+        grouped by a specified time frequency (`monthly` or `annual`).
+        Args:
+            computed_data (xarray.DataArray): 
+                The input data on which the standard deviation will be computed.
+            freq (str, optional): The time frequency for grouping before computing the standard deviation. 
+                Must be one of (If `None`, an error is raised and set defaults to 'monthly'):
+                - 'monthly' (computes std per month)
+                - 'annual'  (computes std per year)        
+        Returns:
+            xarray.DataArray: A DataArray containing the computed standard deviation. """
 
         if freq is None:
             self.logger.error('Frequency not provided')
@@ -149,13 +193,9 @@ class SeaIce(Diagnostic):
         freq = frequency_string_to_pandas(freq)
         self.logger.debug(f"Checking {freq} standard deviation")
 
-        if freq in ['MS', 'ME', 'M', 'mon', 'monthly']:
+        if freq not in ['monthly', 'annual']:
+            self.logger.error(f"Frequency str: '{freq}' not recognized. Assign freq to 'monthly' by default.")
             freq = 'monthly'
-        elif freq in ['YS', 'YE', 'Y', 'annual', 'annually']:
-            freq = 'annual'
-        else:
-            self.logger.error(f"Frequency str: '{freq}' not recognized")
-            raise ValueError( f"Frequency str: '{freq}' not recognized")
 
         freq_dict = {'monthly':'time.month',
                      'annual': 'time.year'}
@@ -299,17 +339,14 @@ class SeaIce(Diagnostic):
 
     def compute_seaice(self, method: str, *args, **kwargs):
         """ Execute the seaice diagnostic based on the specified method.
-        Parameters:
-        var (str): The variable to be used for computation.
-        method (str): The method to compute sea ice metrics. Options are 'extent' or 'volume'.
-        Kwargs:
-            - threshold (float): The threshold value for which sea ice fraction is considered. Default is 0.15.
-            - var (str): The variable to be used for computation. Default is 'sithick'.
+        Args:
+            var (str): The variable to be used for computation.
+            method (str): The method to compute sea ice metrics. Options are 'extent' or 'volume'.
+            Kwargs:
+                - threshold (float): The threshold value for which sea ice fraction is considered. Default is 0.15.
+                - var (str): The variable to be used for computation. Default is 'sithick'.
         Returns:
-        xr.DataArray or xr.Dataset: The computed sea ice metric. A Dataset is returned if multiple regions are requested.
-        Raises:
-        ValueError: If an invalid method is specified.
-        """
+            xr.DataArray or xr.Dataset: The computed sea ice metric. A Dataset is returned if multiple regions are requested."""
 
         # create a dictionary with the available methods associated with the corresponding function
         methods = {
@@ -337,9 +374,8 @@ class SeaIce(Diagnostic):
             rebuild (bool, optional): If True, rebuild (overwrite) the NetCDF file. Default is True.
             output_file (str, optional): The output file name.
             output_dir (str, optional): The output directory.
-            **kwargs: Additional keyword arguments for saving the data.
-        """
+            **kwargs: Additional keyword arguments for saving the data."""
+
         # Use parent method to handle saving, including metadata
         super().save_netcdf(seaice_data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
                             default_path=default_path, rebuild=rebuild, **kwargs)
-        return None
