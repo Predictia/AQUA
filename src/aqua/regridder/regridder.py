@@ -3,7 +3,7 @@ import os
 import re
 import shutil
 import xarray as xr
-from smmregrid import CdoGenerate
+from smmregrid import CdoGenerate, GridInspector
 from smmregrid import Regridder as SMMRegridder
 from smmregrid.util import is_cdo_grid, check_gridfile
 from aqua.logger import log_configure
@@ -75,7 +75,7 @@ class Regridder():
         self.tgt_grid_area = None  # destination grid area
 
         # configure the masked fields
-        self.masked_attr, self.masked_vars = self._configure_masked_fields(
+        self.masked_attrs, self.masked_vars = self._configure_masked_fields(
             self.src_grid_dict)
 
         self.logger.info("Grid name: %s", self.src_grid_name)
@@ -430,6 +430,61 @@ class Regridder():
                 filename = os.path.join(
                     self.cfg_grid_dict["paths"][kind], filename)
         return filename
+    
+    def _group_shared_dims(self, data):
+        """
+        Groups variables in a dataset that share the same dimension.
+        Built on GridInspector and GridType classes from smmregrid.
+        It is a sort of overkill of what smmregrid do internally.
+        """
+        gridtype = GridInspector(data).get_grid_info()
+        shared_vars = {}
+        for grid in gridtype:
+            variables = list(grid.variables.keys())
+            
+            # Ensure masked variables are stored
+            if self.masked_vars:
+                shared_vars[DEFAULT_DIMENSION_MASK] = self.masked_vars
+
+            # Get the masked variables safely
+            masked_vars = shared_vars.get(DEFAULT_DIMENSION_MASK, [])
+
+            if grid.vertical_dim:
+                shared_vars[grid.vertical_dim] = [var for var in variables if var not in masked_vars]
+            else:
+                shared_vars[DEFAULT_DIMENSION] = [var for var in variables if var not in masked_vars]
+
+        return shared_vars
+
+    def regrid(self, data):
+        """
+        Actual regridding core function. Regrid the dataset or dataarray using common gridtypes
+
+        Args:
+            data (xarray.Dataset, xarray.DataArray): The dataset to be regridded.
+        """
+
+        # get which variables share the same dimensions
+        shared_vars = self._group_shared_dims(data)
+
+        # compact regridding on all dataset with map
+        # not working with vertical coordinates subselection
+        if isinstance(data, xr.Dataset):
+            out = data.map(self._apply_regrid, shared_vars=shared_vars)
+        else:
+            out = self._apply_regrid(data, shared_vars)
+        return out
+
+    def _apply_regrid(self, data, shared_vars):
+        """
+        Core regridding function. 
+        Apply regridding on the different vertical coordinates, including 2dm
+        """
+
+        for vertical, variables in shared_vars.items():
+            if data.name in variables:
+                return self.regridder[vertical].regrid(data)
+        return data
 
     # this static method can be moved to an external module or downgraded to functions
     @staticmethod
@@ -494,10 +549,10 @@ class Regridder():
             return None, None
 
         masked_vars = masked_info.get("vars")
-        masked_attr = {k: v for k, v in masked_info.items() if k !=
+        masked_attrs = {k: v for k, v in masked_info.items() if k !=
                        "vars"} or None
 
-        return masked_attr, masked_vars
+        return masked_attrs, masked_vars
 
     # def _configure_gridtype(self, data=None):
     #     """
