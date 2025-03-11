@@ -107,9 +107,20 @@ class SeaIce(Diagnostic):
         return dict(self.regions_definition)
 
     def add_seaice_attrs(self, da_seaice_computed: xr.DataArray, method: str, region: str,
-                          startdate: str=None, enddate: str=None, std_flag=False):
-        """Set attributes for seaice_computed."""
-
+                          startdate: str=None, enddate: str=None, std_flag=False) -> xr.DataArray:
+        """ Adds metadata attributes to a computed sea ice DataArray. This function assigns descriptive attributes 
+        to an xr.DataArray representing computed sea ice (extent or volume) for a specific region and time period.
+        Args:
+            da_seaice_computed (xr.DataArray): The computed sea ice data to which attributes will be added.
+            method (str): The computation method used. Must be either "extent" or "volume".
+            region (str): The geographical region over which sea ice data is computed.
+            startdate (str, optional): The start date of the data (format "YYYY-MM-DD"). Default to None.
+            enddate (str, optional): The end date of the data (format "YYYY-MM-DD"). Default to None.
+            std_flag (bool, optional): If True, indicates that the computed data represents a standard deviation. 
+                Defaults to False.
+        Returns:
+            xr.DataArray
+        """
         # set attributes: 'method','unit'   
         units_dict = {"extent": "million km^2",
                       "volume": "thousands km^3"}
