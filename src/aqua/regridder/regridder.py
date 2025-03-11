@@ -14,11 +14,14 @@ DEFAULT_WEIGHTS_AREAS_PARAMETERS = ['zoom']
 # default CDO regrid method
 DEFAULT_GRID_METHOD = 'ycon'
 
+# default dimension for the weights and areas
+DEFAULT_DIMENSION = '2d'
+DEFAULT_DIMENSION_MASK = '2dm' #masked grid
+
 # please notice: is_cdo_grid and check_gridfile are functions from smmregrid.util
 # to check if a string is a valid CDO grid name and if a grid is a cdo grid,
 # file on the disk or xarray dataset. Possible inclusion of CDOgrid object is considered
 # but should be likely developed on the smmregrid side.
-
 
 class Regridder():
     """AQUA Regridder class"""
@@ -42,7 +45,7 @@ class Regridder():
             raise ValueError("Either src_grid_name or data must be provided.")
 
         self.loglevel = loglevel
-        self.logger = log_configure(log_level=loglevel, log_name='TurboRegrid')
+        self.logger = log_configure(log_level=loglevel, log_name='Regridder')
 
         # define basic attributes:
         self.cfg_grid_dict = cfg_grid_dict  # full grid dictionary
@@ -55,7 +58,7 @@ class Regridder():
         # grid path is None: check if data is provided to extract information for CDO
         if data is not None:
             self.logger.info("Using provided dataset as a grid path.")
-            self.src_grid_path = {"2d": data}
+            self.src_grid_path = {DEFAULT_DIMENSION: data}
 
         # check if the grid path has been defined
         if not self.src_grid_path:
@@ -117,7 +120,7 @@ class Regridder():
         if is_cdo_grid(grid_name):
             self.logger.debug(
                 "Grid name %s is a valid CDO grid name.", grid_name)
-            return {"path": {"2d": grid_name}}
+            return {"path": {DEFAULT_DIMENSION: grid_name}}
 
         # raise error if the grid does not exist
         grid_dict = self.cfg_grid_dict['grids'].get(
@@ -131,7 +134,7 @@ class Regridder():
             if is_cdo_grid(grid_dict):
                 self.logger.debug(
                     "Grid definition %s is a valid CDO grid name.", grid_dict)
-                return {"path": {"2d": grid_dict}}
+                return {"path": {DEFAULT_DIMENSION: grid_dict}}
             raise ValueError(
                 f"Grid '{grid_dict}' is not a valid CDO grid name.")
         if isinstance(grid_dict, dict):
@@ -141,7 +144,7 @@ class Regridder():
 
     def _normalize_grid_path(self, grid_dict):
         """
-        Normalize the grid path to a dictionary with the 2d key.
+        Normalize the grid path to a dictionary with the DEFAULT_DIMENSION key.
         3 cases handled: 
             - an empty dictionary, return an empty dictionary
             - a dictionary with a path string, a CDO grid name or a file path
@@ -152,7 +155,7 @@ class Regridder():
             data (xarray.Dataset): The dataset to extract grid information from.
 
         Returns:
-            dict: The normalized grid path dictionary. "2d" key is mandatory.
+            dict: The normalized grid path dictionary. "DEFAULT_DIMENSION" key is mandatory.
         """
 
         # if empty, return an empty dictionary
@@ -165,10 +168,10 @@ class Regridder():
             if is_cdo_grid(path):
                 self.logger.debug(
                     "Grid path %s is a valid CDO grid name.", path)
-                return {"2d": path}
+                return {DEFAULT_DIMENSION: path}
             if self._check_existing_file(path):
                 self.logger.debug("Grid path %s is a valid file path.", path)
-                return {"2d": path}
+                return {DEFAULT_DIMENSION: path}
             raise FileNotFoundError(f"Grid file '{path}' does not exist.")
 
         # case path is a dictionary: check if the values are valid file paths
@@ -243,9 +246,9 @@ class Regridder():
             self.logger.info("Generating %s area for %s",
                              area_logname, grid_name)
             generator = CdoGenerate(
-                # get the 2d grid path if available, otherwise the first available, only if source grid
+                # get the DEFAULT_DIMENSION grid path if available, otherwise the first available, only if source grid
                 source_grid=None if target else self._get_grid_path(grid_path),
-                # get the 2d grid path if available, otherwise the first available, only if target grid
+                # get the DEFAULT_DIMENSION grid path if available, otherwise the first available, only if target grid
                 target_grid=self._get_grid_path(grid_path) if target else None,
                 cdo_extra=grid_dict.get('cdo_extra'),
                 cdo_options=grid_dict.get('cdo_options'),
@@ -285,7 +288,7 @@ class Regridder():
         cdo_extra = self.src_grid_dict.get('cdo_extra', None)
         cdo_options = self.src_grid_dict.get('cdo_options', None)
 
-        # loop over the vertical coordinates: 2d, 2dm, or any other
+        # loop over the vertical coordinates: DEFAULT_DIMENSION, DEFAULT_DIMENSION_MASK, or any other
         for vertical_dim in self.src_grid_path:
 
             weights_filename = self._weights_filename(tgt_grid_name, regrid_method,
@@ -304,8 +307,9 @@ class Regridder():
                     "Generating weights for %s grid: %s", tgt_grid_name, vertical_dim)
                 # smmregrid call
                 generator = CdoGenerate(source_grid=self.src_grid_path[vertical_dim],
-                                        # this seems counterintuitive, but CDO-based target grids are defined with 2d
-                                        target_grid=tgt_grid_path['2d'],
+                                        # this seems counterintuitive, 
+                                        # but CDO-based target grids are defined with DEFAULT_DIMENSION
+                                        target_grid=self._get_grid_path(tgt_grid_path),
                                         cdo_extra=cdo_extra,
                                         cdo_options=cdo_options,
                                         cdo=self.cdo,
@@ -313,7 +317,7 @@ class Regridder():
 
                 # define the vertical coordinate in the smmregrid world
                 smm_vert_coord = None if vertical_dim in [
-                    '2d', '2dm'] else vertical_dim
+                    DEFAULT_DIMENSION, DEFAULT_DIMENSION_MASK] else vertical_dim
 
                 # minimum time warning
                 if smm_vert_coord:
@@ -335,17 +339,6 @@ class Regridder():
             # initialize the regridder
             self.regridder[vertical_dim] = SMMRegridder(weights=weights)
 
-    def _validate_reader_kwargs(self, reader_kwargs):
-        """
-        Validate the reader kwargs.
-        """
-        if not reader_kwargs:
-            raise ValueError("reader_kwargs must be provided.")
-        for key in ["model", "exp", "source"]:
-            if key not in reader_kwargs:
-                raise ValueError(f"reader_kwargs must contain key '{key}'.")
-        return reader_kwargs
-
     def _area_filename(self, tgt_grid_name, reader_kwargs):
         """"
         Generate the area filename.
@@ -364,7 +357,7 @@ class Regridder():
                 "Using grid-based template for target grid. Filename: %s", filename)
         # source grid name is provided, check if it is data
         else:
-            if check_gridfile(self.src_grid_path['2d']) != 'xarray':
+            if check_gridfile(self._get_grid_path(self.src_grid_path)) != 'xarray':
                 filename = area_dict["template_grid"].format(
                     grid=self.src_grid_name)
                 self.logger.debug(
@@ -393,7 +386,7 @@ class Regridder():
         """
 
         levname = vertical_dim if vertical_dim in [
-            "2d", "2dm"] else f"3d-{vertical_dim}"
+            DEFAULT_DIMENSION, DEFAULT_DIMENSION_MASK] else f"3d-{vertical_dim}"
 
         weights_dict = self.cfg_grid_dict.get('weights')
 
@@ -438,6 +431,7 @@ class Regridder():
                     self.cfg_grid_dict["paths"][kind], filename)
         return filename
 
+    # this static method can be moved to an external module or downgraded to functions
     @staticmethod
     def _insert_kwargs(filename, reader_kwargs):
         """
@@ -447,20 +441,32 @@ class Regridder():
         if isinstance(reader_kwargs, dict):
             for parameter in DEFAULT_WEIGHTS_AREAS_PARAMETERS:
                 if parameter in reader_kwargs:
-                    filename = re.sub(r'\.nc',
-                                      '_' + parameter +
-                                      str(reader_kwargs[parameter]) + r'\g<0>',
-                                      filename)
+                    filename = re.sub(
+                        r'\.nc', '_' + parameter +
+                        str(reader_kwargs[parameter]) + r'\g<0>',
+                        filename)
 
         return filename
+
+    @staticmethod
+    def _validate_reader_kwargs(reader_kwargs):
+        """
+        Validate the reader kwargs.
+        """
+        if not reader_kwargs:
+            raise ValueError("reader_kwargs must be provided.")
+        for key in ["model", "exp", "source"]:
+            if key not in reader_kwargs:
+                raise ValueError(f"reader_kwargs must contain key '{key}'.")
+        return reader_kwargs
 
     @staticmethod
     def _get_grid_path(grid_path):
         """
         Get the grid path from the grid dictionary.
-        This looks for `2d` key, otherwise takes the first available value.
+        This looks for `DEFAULT_DIMENSION` key, otherwise takes the first available value in the dict.
         """
-        return grid_path.get('2d', next(iter(grid_path.values()), None))
+        return grid_path.get(DEFAULT_DIMENSION, next(iter(grid_path.values()), None))
 
     @staticmethod
     def _check_existing_file(filename):
@@ -498,7 +504,7 @@ class Regridder():
     #     Configure the GridType object based on the grid_dict.
     #     """
 
-    #     # 2d and 2dm should be passed to GridType and GridInspector as extra vert_dims
+    #     # DEFAULT_DIMENSION and DEFAULT_DIMENSION_MASK should be passed to GridType and GridInspector as extra vert_dims
     #     vertical_dims = self.src_grid_dict.get('vert_coords', None)
     #     horizontal_dims = self.src_grid_dict.get('space_coords', None)
     #     grid_dims = to_list(horizontal_dims) + to_list(vertical_dims)
