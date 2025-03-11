@@ -29,8 +29,6 @@ class PlotSeaIce:
                  outdir='./',
                  rebuild=True, 
                  filename_keys=None,  # List of keys to keep in the filename. Default is None, which includes all keys.
-                 save_pdf=True, 
-                 save_png=True, 
                  dpi=300,
                  loglevel='WARNING'):
         
@@ -55,8 +53,6 @@ class PlotSeaIce:
         # Output & saving settings
         self.outdir  = outdir
         self.rebuild = rebuild
-        self.save_pdf = save_pdf
-        self.save_png = save_png
         self.dpi = dpi
 
     def _check_list_regions_type(self, regions_to_plot):
@@ -270,7 +266,7 @@ class PlotSeaIce:
                                                                                                 self.ref_label_str, self.std_label_str)
         return self._description
 
-    def plot_seaice_timeseries(self, **kwargs):
+    def plot_seaice_timeseries(self, save_pdf=True, save_png=True, **kwargs):
         """ Plot data by iterating over dict and calling plot_timeseries"""
         # iterate over the methods in the dictionary
         for method, region_dict in self.repacked_dict.items():
@@ -325,9 +321,8 @@ class PlotSeaIce:
             
             plt.tight_layout()
 
-
             # save figure            
-            if self.save_png or self.save_pdf:
+            if save_png or save_pdf:
 
                 # store description
                 metadata = {"Description": description}
@@ -337,5 +332,5 @@ class PlotSeaIce:
                                            diagnostic_product=f"seaice_{method}_{'_'.join(region_dict.keys())}",
                                            loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild)
 
-            if self.save_pdf: output_saver.save_pdf(fig=fig, path=self.outdir, metadata=metadata)
-            if self.save_png: output_saver.save_png(fig=fig, path=self.outdir, metadata=metadata)
+            if save_pdf: output_saver.save_pdf(fig=fig, path=self.outdir, metadata=metadata)
+            if save_png: output_saver.save_png(fig=fig, path=self.outdir, metadata=metadata)
