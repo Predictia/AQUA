@@ -5,8 +5,11 @@ import shutil
 import xarray as xr
 from smmregrid import CdoGenerate, GridInspector
 from smmregrid import Regridder as SMMRegridder
-from smmregrid.util import is_cdo_grid, check_gridfile
+from smmregrid.util import check_gridfile
 from aqua.logger import log_configure
+from .griddicthandler import GridDictHandler
+from .regridder_util import check_existing_file
+
 
 # parameters which will affect the weights and areas name
 DEFAULT_WEIGHTS_AREAS_PARAMETERS = ['zoom']
@@ -52,8 +55,9 @@ class Regridder():
         self.src_grid_name = src_grid_name  # source grid name
 
         # we want all the grid dictionary to be real dictionaries
-        self.src_grid_dict = self._normalize_grid_dict(self.src_grid_name)
-        self.src_grid_path = self._normalize_grid_path(self.src_grid_dict)
+        self.gridhandler = GridDictHandler(cfg_grid_dict, default_dimension=DEFAULT_DIMENSION, loglevel=loglevel)
+        self.src_grid_dict = self.gridhandler.normalize_grid_dict(self.src_grid_name)
+        self.src_grid_path = self.gridhandler.normalize_grid_path(self.src_grid_dict)
 
         # grid path is None: check if data is provided to extract information for CDO
         if data is not None:
@@ -96,96 +100,6 @@ class Regridder():
 
         return cdo
 
-    def _normalize_grid_dict(self, grid_name):
-        """
-        Validate the grid name and return the grid dictionary.
-        4 cases handled:
-            - None, return an empty dictionary
-            - a valid CDO grid name
-            - a grid name in the configuration, again a valid CDO grid name
-            - a grid dictionary in the configuration
-
-        Args:
-            grid_name (str): The grid name.
-
-        Returns:
-            dict: The normalized grid dictionary.
-        """
-
-        # if empty, return an empty dictionary
-        if grid_name is None:
-            return {}
-
-        # if a grid name is a valid CDO grid name, return it in the format of a dictionary
-        if is_cdo_grid(grid_name):
-            self.logger.debug(
-                "Grid name %s is a valid CDO grid name.", grid_name)
-            return {"path": {DEFAULT_DIMENSION: grid_name}}
-
-        # raise error if the grid does not exist
-        grid_dict = self.cfg_grid_dict['grids'].get(
-            grid_name)  # source grid dictionary
-        if not grid_dict:
-            raise ValueError(
-                f"Grid '{grid_name}' not found in the configuration.")
-
-        # grid dict is a string: this is the case of a CDO grid name
-        if isinstance(grid_dict, str):
-            if is_cdo_grid(grid_dict):
-                self.logger.debug(
-                    "Grid definition %s is a valid CDO grid name.", grid_dict)
-                return {"path": {DEFAULT_DIMENSION: grid_dict}}
-            raise ValueError(
-                f"Grid '{grid_dict}' is not a valid CDO grid name.")
-        if isinstance(grid_dict, dict):
-            return grid_dict
-
-        raise ValueError(f"Grid dict '{grid_dict}' is not a valid type")
-
-    def _normalize_grid_path(self, grid_dict):
-        """
-        Normalize the grid path to a dictionary with the DEFAULT_DIMENSION key.
-        3 cases handled: 
-            - an empty dictionary, return an empty dictionary
-            - a dictionary with a path string, a CDO grid name or a file path
-            - a dictionary with a dictionary of path, one for each vertical coordinate
-
-        Args:
-            path (str, dict): The grid path.
-            data (xarray.Dataset): The dataset to extract grid information from.
-
-        Returns:
-            dict: The normalized grid path dictionary. "DEFAULT_DIMENSION" key is mandatory.
-        """
-
-        # if empty, return an empty dictionary
-        path = grid_dict.get('path')
-        if path is None:
-            return {}
-
-        # case path is a string: check if it is a valid CDO grid name or a file path
-        if isinstance(path, str):
-            if is_cdo_grid(path):
-                self.logger.debug(
-                    "Grid path %s is a valid CDO grid name.", path)
-                return {DEFAULT_DIMENSION: path}
-            if self._check_existing_file(path):
-                self.logger.debug("Grid path %s is a valid file path.", path)
-                return {DEFAULT_DIMENSION: path}
-            raise FileNotFoundError(f"Grid file '{path}' does not exist.")
-
-        # case path is a dictionary: check if the values are valid file paths
-        # (could extend to CDO names?)
-        if isinstance(path, dict):
-            for _, value in path.items():
-                if not (is_cdo_grid(value) or self._check_existing_file(value)):
-                    raise ValueError(
-                        f"Grid path '{value}' is not a valid CDO grid name nor a file path.")
-            self.logger.debug(
-                "Grid path %s is a valid dictionary of file paths.", path)
-            return path
-
-        raise ValueError(f"Grid path '{path}' is not a valid type.")
 
     def load_generate_areas(self, tgt_grid_name=None, rebuild=False, reader_kwargs=None):
         """
@@ -194,8 +108,8 @@ class Regridder():
         if tgt_grid_name:
 
             # normalize the tgt grid dictionary and path
-            tgt_grid_dict = self._normalize_grid_dict(tgt_grid_name)
-            tgt_grid_path = self._normalize_grid_path(tgt_grid_dict)
+            tgt_grid_dict = self.gridhandler.normalize_grid_dict(tgt_grid_name)
+            tgt_grid_path = self.gridhandler.normalize_grid_path(tgt_grid_dict)
             self.tgt_grid_area = self._load_generate_areas(
                 tgt_grid_name, tgt_grid_path, tgt_grid_dict,
                 reader_kwargs, target=True, rebuild=rebuild)
@@ -226,7 +140,7 @@ class Regridder():
             grid_name if target else None, reader_kwargs)
         area_logname = "target" if target else "source"
 
-        if not rebuild and self._check_existing_file(area_filename):
+        if not rebuild and check_existing_file(area_filename):
             self.logger.info("Loading existing %s area from %s.",
                              area_logname, area_filename)
             grid_area = xr.open_dataset(area_filename)
@@ -281,8 +195,8 @@ class Regridder():
             self.logger.info("Regrid method: %s", regrid_method)
 
         # normalize the tgt grid dictionary and path
-        tgt_grid_dict = self._normalize_grid_dict(tgt_grid_name)
-        tgt_grid_path = self._normalize_grid_path(tgt_grid_dict)
+        tgt_grid_dict = self.gridhandler.normalize_grid_dict(tgt_grid_name)
+        tgt_grid_path = self.gridhandler.normalize_grid_path(tgt_grid_dict)
 
         # get the cdo options from the configuration
         cdo_extra = self.src_grid_dict.get('cdo_extra', None)
@@ -295,7 +209,7 @@ class Regridder():
                                                       vertical_dim, reader_kwargs)
 
             # check if weights already exist, if not, generate them
-            if rebuild or not self._check_existing_file(weights_filename):
+            if rebuild or not check_existing_file(weights_filename):
 
                 # clean if necessary
                 if os.path.exists(weights_filename):
@@ -522,14 +436,6 @@ class Regridder():
         This looks for `DEFAULT_DIMENSION` key, otherwise takes the first available value in the dict.
         """
         return grid_path.get(DEFAULT_DIMENSION, next(iter(grid_path.values()), None))
-
-    @staticmethod
-    def _check_existing_file(filename):
-        """
-        Checks if an area/weights file exists and is valid.
-        Return true if the file has some records.
-        """
-        return os.path.exists(filename) and os.path.getsize(filename) > 0
 
     @staticmethod
     def _configure_masked_fields(src_grid_dict):
