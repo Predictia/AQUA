@@ -21,9 +21,9 @@ DEFAULT_GRID_METHOD = 'ycon'
 DEFAULT_DIMENSION = '2d'
 DEFAULT_DIMENSION_MASK = '2dm' #masked grid
 
-# please notice: is_cdo_grid and check_gridfile are functions from smmregrid.util
-# to check if a string is a valid CDO grid name and if a grid is a cdo grid,
-# file on the disk or xarray dataset. Possible inclusion of CDOgrid object is considered
+# please notice: check_gridfile is a function from smmregrid.util
+# to check and if a grid is a cdo grid,
+# a file on the disk or xarray dataset. Possible inclusion of CDOgrid object is considered
 # but should be likely developed on the smmregrid side.
 
 class Regridder():
@@ -55,9 +55,9 @@ class Regridder():
         self.src_grid_name = src_grid_name  # source grid name
 
         # we want all the grid dictionary to be real dictionaries
-        self.gridhandler = GridDictHandler(cfg_grid_dict, default_dimension=DEFAULT_DIMENSION, loglevel=loglevel)
-        self.src_grid_dict = self.gridhandler.normalize_grid_dict(self.src_grid_name)
-        self.src_grid_path = self.gridhandler.normalize_grid_path(self.src_grid_dict)
+        self.handler = GridDictHandler(cfg_grid_dict, default_dimension=DEFAULT_DIMENSION, loglevel=loglevel)
+        self.src_grid_dict = self.handler.normalize_grid_dict(self.src_grid_name)
+        self.src_grid_path = self.handler.normalize_grid_path(self.src_grid_dict)
 
         # this not used but can be shipped back to the reader
         self.src_horizontal_dims = self.src_grid_dict.get('space_coords', None)
@@ -109,10 +109,9 @@ class Regridder():
         Load or generate regridding areas by calling the appropriate function.
         """
         if tgt_grid_name:
-
             # normalize the tgt grid dictionary and path
-            tgt_grid_dict = self.gridhandler.normalize_grid_dict(tgt_grid_name)
-            tgt_grid_path = self.gridhandler.normalize_grid_path(tgt_grid_dict)
+            tgt_grid_dict = self.handler.normalize_grid_dict(tgt_grid_name)
+            tgt_grid_path = self.handler.normalize_grid_path(tgt_grid_dict)
             self.tgt_grid_area = self._load_generate_areas(
                 tgt_grid_name, tgt_grid_path, tgt_grid_dict,
                 reader_kwargs, target=True, rebuild=rebuild)
@@ -198,8 +197,8 @@ class Regridder():
             self.logger.info("Regrid method: %s", regrid_method)
 
         # normalize the tgt grid dictionary and path
-        tgt_grid_dict = self.gridhandler.normalize_grid_dict(tgt_grid_name)
-        tgt_grid_path = self.gridhandler.normalize_grid_path(tgt_grid_dict)
+        tgt_grid_dict = self.handler.normalize_grid_dict(tgt_grid_name)
+        tgt_grid_path = self.handler.normalize_grid_path(tgt_grid_dict)
 
         # get the cdo options from the configuration
         cdo_extra = self.src_grid_dict.get('cdo_extra', None)
@@ -207,6 +206,10 @@ class Regridder():
 
         # loop over the vertical coordinates: DEFAULT_DIMENSION, DEFAULT_DIMENSION_MASK, or any other
         for vertical_dim in self.src_grid_path:
+
+            # define the vertical coordinate in the smmregrid world
+            smm_vertical_dim = None if vertical_dim in [
+                DEFAULT_DIMENSION, DEFAULT_DIMENSION_MASK] else vertical_dim
 
             weights_filename = self._weights_filename(tgt_grid_name, regrid_method,
                                                       vertical_dim, reader_kwargs)
@@ -232,18 +235,15 @@ class Regridder():
                                         cdo=self.cdo,
                                         loglevel=self.loglevel)
 
-                # define the vertical coordinate in the smmregrid world
-                smm_vert_coord = None if vertical_dim in [
-                    DEFAULT_DIMENSION, DEFAULT_DIMENSION_MASK] else vertical_dim
 
                 # minimum time warning
-                if smm_vert_coord:
+                if smm_vertical_dim:
                     self.logger.warning(
                         'Vertical coordinate detected, computation of weights may take longer.')
 
                 # generate and save the weights
                 weights = generator.weights(method=regrid_method,
-                                            vert_coord=smm_vert_coord,
+                                            vertical_dim=smm_vertical_dim,
                                             nproc=nproc)
                 weights.to_netcdf(weights_filename)
 
@@ -256,7 +256,9 @@ class Regridder():
             # initialize the regridder
             self.smmregridder[vertical_dim] = SMMRegridder(
                 weights=weights,
-                horizontal_dims=self.src_horizontal_dims
+                horizontal_dims=self.src_horizontal_dims,
+                vertical_dim=smm_vertical_dim,
+                loglevel=self.loglevel
             )
 
     def _area_filename(self, tgt_grid_name, reader_kwargs):
@@ -359,6 +361,8 @@ class Regridder():
             if vertical_dim not in [DEFAULT_DIMENSION, DEFAULT_DIMENSION_MASK]:
                 if vertical_dim not in data.dims:
                     if vertical_dim in data.coords:
+                        self.logger.debug(
+                            "Expanding dimension %s for variable %s", vertical_dim, data.name)
                         data = data.expand_dims(dim=vertical_dim, axis=1)
         return data
 
@@ -374,16 +378,23 @@ class Regridder():
             variables = list(grid.variables.keys())
             
             # Ensure masked variables are stored
+            # masked vars based on attributes are still missing
             if self.masked_vars:
                 shared_vars[DEFAULT_DIMENSION_MASK] = self.masked_vars
+                self.logger.debug("Variables for coordinate %s: %s",
+                                  DEFAULT_DIMENSION_MASK, shared_vars[DEFAULT_DIMENSION_MASK])
 
             # Get the masked variables safely
             masked_vars = shared_vars.get(DEFAULT_DIMENSION_MASK, [])
 
             if grid.vertical_dim:
                 shared_vars[grid.vertical_dim] = [var for var in variables if var not in masked_vars]
+                self.logger.debug("Variables for coordinate %s: %s",
+                                  grid.vertical_dim, shared_vars[grid.vertical_dim])
             else:
                 shared_vars[DEFAULT_DIMENSION] = [var for var in variables if var not in masked_vars]
+                self.logger.debug("Variables for coordinate %s: %s",
+                                  DEFAULT_DIMENSION, shared_vars[DEFAULT_DIMENSION])
 
         return shared_vars
 
