@@ -225,6 +225,8 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
             self.src_grid_area = self.regridder.src_grid_area
             self.src_space_coord = self.regridder.src_horizontal_dims
             self.vert_coord = self.regridder.src_vertical_dim
+            if self.fix:
+                self.src_grid_area = self._fix_area(self.src_grid_area)
 
         # configure regridder and generate weights
         if regrid:
@@ -236,6 +238,8 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
         if areas and regrid:
             self.regridder.load_generate_areas(tgt_grid_name=self.dst_grid_name, rebuild=rebuild)
             self.dst_grid_area = self.regridder.tgt_grid_area
+            if self.fix:
+                self.dst_grid_area = self._fix_area(self.dst_grid_area)
             self.dst_space_coord = self.regridder.tgt_horizontal_dims
 
 

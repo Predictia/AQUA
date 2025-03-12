@@ -77,10 +77,11 @@ class RegridMixin():
         self.preproc = None
         data = self.retrieve(history=False, *args, **kwargs) #HACK REMOVE THE SAMPLE SINCE IT WAS CREATING A MESS
         # HACK: ensuring we load only a single time step if possible:
-        if 'time' in data.coords:
-            data = data.isel(time=0)
-        else:
-            self.logger.warning('No time dimension found while sampling the data!')
+        if not isinstance(data, types.GeneratorType):
+            if 'time' in data.coords:
+                data = data.isel(time=0)
+            else:
+                self.logger.warning('No time dimension found while sampling the data!')
         self.aggregation = aggregation
         self.chunks = chunks
         self.fix = fix
