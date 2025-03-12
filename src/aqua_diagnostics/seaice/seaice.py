@@ -152,7 +152,7 @@ class SeaIce(Diagnostic):
         self.logger.debug(f'Calculate cell areas for {region}')
 
         # get info on grid area that must be reinitialised for each region. Note: areacello units are in (m^2)
-        areacello = self.reader.src_grid_area
+        areacello = self.reader.grid_area
 
         # get the region box from the region definition file
         box = self.regions_definition[region]
@@ -161,8 +161,11 @@ class SeaIce(Diagnostic):
         self.logger.info(f'Computing sea ice {method} for {region}')
 
         # make area selection flexible to lon values from -180 to 180 or from 0 to 360
-        lonmin = round(areacello.lon.min().values/180)*180
-        lonmax = round(areacello.lon.max().values/180)*180
+        try:
+            lonmin = round(areacello.lon.min().values/180)*180
+            lonmax = round(areacello.lon.max().values/180)*180
+        except Exception as e:
+            self.logger.error(f"An error occurred: {e}")
 
         # regional selection with box, use default dict to set the search for lon bounds as above and lat from -90 to 90
         areacello = area_selection(areacello, lat=[box["latS"], box["latN"]], lon=[box["lonW"], box["lonE"]], 
