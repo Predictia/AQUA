@@ -59,6 +59,9 @@ class Regridder():
         self.src_grid_dict = self.gridhandler.normalize_grid_dict(self.src_grid_name)
         self.src_grid_path = self.gridhandler.normalize_grid_path(self.src_grid_dict)
 
+        # this not used but can be shipped back to the reader
+        self.src_horizontal_dims = self.src_grid_dict.get('space_coords', None)
+
         # grid path is None: check if data is provided to extract information for CDO
         if data is not None:
             self.logger.info("Using provided dataset as a grid path.")
@@ -74,7 +77,7 @@ class Regridder():
         # check if CDO is available
         self.cdo = self._set_cdo()
 
-        self.regridder = {}  # regridders for each vertical coordinate
+        self.smmregridder = {}  # SMMregridders for each vertical coordinate
         self.src_grid_area = None  # source grid area
         self.tgt_grid_area = None  # destination grid area
 
@@ -251,7 +254,10 @@ class Regridder():
                 weights = xr.open_dataset(weights_filename)
 
             # initialize the regridder
-            self.regridder[vertical_dim] = SMMRegridder(weights=weights)
+            self.smmregridder[vertical_dim] = SMMRegridder(
+                weights=weights,
+                horizontal_dims=self.src_horizontal_dims
+            )
 
     def _area_filename(self, tgt_grid_name, reader_kwargs):
         """"
@@ -413,11 +419,11 @@ class Regridder():
 
         for vertical, variables in shared_vars.items():
             if data.name in variables:
-                if not self.regridder.get(vertical):
+                if not self.smmregridder.get(vertical):
                     self.logger.error("Regridder for vertical coordinate %s not found.", vertical)
                     self.logger.error("Cannot regrid variable %s", data.name)
                     continue
-                return self.regridder[vertical].regrid(data)
+                return self.smmregridder[vertical].regrid(data)
         return data
 
     # this static method can be moved to an external module or downgraded to functions
