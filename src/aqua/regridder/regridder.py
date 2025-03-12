@@ -345,6 +345,17 @@ class Regridder():
                     self.cfg_grid_dict["paths"][kind], filename)
         return filename
     
+    def _expand_dims(self, data, vertical_dims):
+        """
+        Expand the dimensions of the dataarray to include the vertical dimensions
+        """
+        for vertical_dim in vertical_dims:
+            if vertical_dim not in [DEFAULT_DIMENSION, DEFAULT_DIMENSION_MASK]:
+                if vertical_dim not in data.dims:
+                    if vertical_dim in data.coords:
+                        data = data.expand_dims(dim=vertical_dim, axis=1)
+        return data
+
     def _group_shared_dims(self, data):
         """
         Groups variables in a dataset that share the same dimension.
@@ -378,11 +389,16 @@ class Regridder():
             data (xarray.Dataset, xarray.DataArray): The dataset to be regridded.
         """
 
+        # expand the dimensions of the dataarray to include the vertical dimensions
+        if isinstance(data, xr.Dataset):
+            data.map(self._expand_dims, vertical_dims=self.src_grid_path.keys())
+        else:
+            data = self._expand_dims(data, vertical_dims=self.src_grid_path.keys())
+
         # get which variables share the same dimensions
         shared_vars = self._group_shared_dims(data)
 
         # compact regridding on all dataset with map
-        # not working with vertical coordinates subselection
         if isinstance(data, xr.Dataset):
             out = data.map(self._apply_regrid, shared_vars=shared_vars)
         else:
@@ -397,6 +413,10 @@ class Regridder():
 
         for vertical, variables in shared_vars.items():
             if data.name in variables:
+                if not self.regridder.get(vertical):
+                    self.logger.error("Regridder for vertical coordinate %s not found.", vertical)
+                    self.logger.error("Cannot regrid variable %s", data.name)
+                    continue
                 return self.regridder[vertical].regrid(data)
         return data
 
