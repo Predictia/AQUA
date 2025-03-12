@@ -895,41 +895,6 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
 
         return data
 
-    # # An error arised here by pylin: An attribute defined in aqua.reader.reader line 125 hides this method
-    # def stream(self, data, startdate=None, enddate=None, aggregation=None,
-    #            timechunks=None, reset=False):
-    #     """
-    #     Stream a dataset chunk using the startdate, enddate, and aggregation parameters defined in the constructor.
-    #     This operation utilizes the 'stream' method from the Streaming class.
-    #     It first checks if the Streaming class has been initialized; if not, it initializes the class.
-
-    #     Arguments:
-    #         data (xr.Dataset):      the input xarray.Dataset
-    #         startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
-    #         enddate (str): the ending date for streaming the data (e.g. '2021-01-01') (None)
-    #         aggregation (str): the streaming frequency in pandas style (1M, 7D etc.)
-    #         timechunks (DataArrayResample, optional): a precomputed chunked time axis
-    #         reset (bool, optional): reset the streaming
-
-    #     Returns:
-    #         A xarray.Dataset containing the subset of the input data that has been streamed.
-    #     """
-    #     if not hasattr(self, 'streamer'):
-    #         self.streamer = Streaming(startdate=startdate,
-    #                                   enddate=enddate,
-    #                                   aggregation=aggregation)
-    #         self.stream = self.streamer.stream
-
-    #     stream_data = self.stream(data,
-    #                               startdate=startdate,
-    #                               enddate=enddate,
-    #                               aggregation=aggregation,
-    #                               timechunks=timechunks,
-    #                               reset=reset)
-
-    #     stream_data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
-
-    #     return stream_data
 
     def info(self):
         """Prints info about the reader"""
