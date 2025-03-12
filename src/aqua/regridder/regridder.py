@@ -68,10 +68,13 @@ class Regridder():
 
         # grid path is None: check if data is provided to extract information for CDO
         if data is not None:
-            gridtype = GridInspector(data, loglevel=self.loglevel).get_grid_info()[0]
-            self.src_horizontal_dims = gridtype.horizontal_dims
-            self.src_vertical_dim = gridtype.vertical_dim
+            gridtypes = GridInspector(data, loglevel=self.loglevel).get_grid_info()
+            # however we have only one 2d grid at the time in AQUA
+            self.src_horizontal_dims = gridtypes[0].horizontal_dims
+            # get all vertical grid available
+            self.src_vertical_dim = [getattr(gridtype, "vertical_dim") for gridtype in gridtypes]
             self.logger.debug("Horizontal dimensions guessed from data: %s", self.src_horizontal_dims)
+            self.logger.debug("Vertical dimensions guessed from data: %s", self.src_vertical_dim)
             if not self.src_grid_path:
                 self.logger.info("Using provided dataset as a grid path.")
                 self.src_grid_path = {DEFAULT_DIMENSION: data}
@@ -85,7 +88,7 @@ class Regridder():
         if not self.src_grid_path:
             # self.error can be used by the Reader to check if the grid is valid
             self.error = "Source grid path not found. Please provide a dataset or a grid name."
-            self.logger.info(self.error)
+            self.logger.warning(self.error)
             return
 
         # check if CDO is available
@@ -377,15 +380,37 @@ class Regridder():
         Expand the dimensions of the dataset or dataarray to include the vertical dimensions
         """
 
-        for vertical_dim in vertical_dims:
-            if vertical_dim not in [DEFAULT_DIMENSION, DEFAULT_DIMENSION_MASK]:
-                if vertical_dim not in data.dims:
+        # to be revised
+        if isinstance(data, xr.Dataset):
+            for var in data.data_vars:
+                if not list(set(data[var].dims) & set(vertical_dims)):
+                    for vertical_dim in vertical_dims:
+                        if vertical_dim in data[var].coords:
+                            data[var] = data[var].expand_dims(dim=vertical_dim, axis=0)
+        elif isinstance(data, xr.DataArray):
+            if not list(set(data.dims) & set(vertical_dims)):
+                for vertical_dim in vertical_dims:
                     if vertical_dim in data.coords:
-                        self.logger.warning(
-                            "Expanding dimension %s for dataset", vertical_dim)
-                        data = data.expand_dims(dim=vertical_dim, axis=1)
-
+                        data = data.expand_dims(dim=vertical_dim, axis=0)
         return data
+
+    
+        # for vertical_dim in vertical_dims:
+        #     self.logger.info('Vertical dimension: %s', vertical_dim)
+        #     if vertical_dim in [DEFAULT_DIMENSION, DEFAULT_DIMENSION_MASK]:
+        #         continue  # Skip default dimensions            
+        #     if isinstance(data, xr.Dataset):
+        #         for name, var in data.data_vars.items():
+        #             print(name, var)
+        #             if vertical_dim not in var.dims and not set(vertical_dims) & set(var.dims):
+        #                 self.logger.warning("Expanding dimension %s for dataset", vertical_dim)
+        #                 data[name] = var.expand_dims(dim=vertical_dim, axis=1)
+            
+        #     elif isinstance(data, xr.DataArray):
+        #         if vertical_dim not in data.dims and vertical_dim in data.coords:
+        #             self.logger.warning("Expanding dimension %s for dataarray", vertical_dim)
+        #             data = data.expand_dims(dim=vertical_dim, axis=1)
+
 
     def _group_shared_dims(self, data):
         """

@@ -95,7 +95,7 @@ class RegridMixin():
         # select only first relevant variable
         variables = [var for var in data.data_vars if
                 not var.endswith("_bnds") and not var.startswith("bounds") and not var.endswith("_bounds")]
-        self.sample_data = data[[variables[-1]]]
+        self.sample_data = data[variables]
 
         return self.sample_data
 
