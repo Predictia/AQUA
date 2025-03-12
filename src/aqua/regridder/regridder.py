@@ -393,6 +393,12 @@ class Regridder():
         Built on GridInspector and GridType classes from smmregrid.
         It is a sort of overkill of what smmregrid do internally.
         """
+
+        # THIS HAS TO REVISITED SINCE AS IT IS IT LEAD FOR MULTIPLE 
+        # VERTICAL COORDINATES WHICH ARE NOT SUPPORTED BY SMMREGRID
+        # We should find a way to group the variables based on the vertical coordinate
+        # and the horizontal dimensions and see if we can make use of GridInspector here
+        # alternative would be to modify gridinspector
         extra_dims = {
             'vertical': list(self.src_grid_path.keys()),
             'horizontal': to_list(self.src_horizontal_dims)

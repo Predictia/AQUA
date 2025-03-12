@@ -244,173 +244,6 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
             self.dst_space_coord = self.regridder.tgt_horizontal_dims
 
 
-    # def _configure_coords(self, cfg_regrid):
-    #     """
-    #     Define the horizontal and vertical coordinates to be used by areas and regrid.
-    #     Horizontal coordinates are guessed from a predefined list.
-    #     Vertical coordinates are read from the grid file.
-
-    #     Args:
-    #         cfg_regrid (dict): dictionary with the grid definitions
-
-    #     Returns:
-    #         Defined into the class object space and vert cordinates
-    #     """
-
-    #     if self.src_grid_name not in cfg_regrid['grids']:
-    #         raise KeyError(f'Source grid {self.src_grid_name} does not exist in aqua-grid.yaml!')
-
-    #     source_grid = cfg_regrid['grids'][self.src_grid_name]
-
-    #     # get values from files
-    #     vert_coord = source_grid.get("vert_coord", None)
-    #     space_coord = source_grid.get("space_coord", None)
-
-    #     # guessing space coordinates
-    #     self.src_space_coord, self.vert_coord = self._guess_coords(space_coord, vert_coord,
-    #                                                                default_space_dims,
-    #                                                                default_vertical_dims)
-    #     self.logger.debug("Space coords are %s", self.src_space_coord)
-    #     self.logger.debug("Vert coords are %s", self.vert_coord)
-
-    #     # Normalize vert_coord to list
-    #     if not isinstance(self.vert_coord, list):
-    #         self.vert_coord = [self.vert_coord]
-
-    #     self.support_dims = source_grid.get("support_dims", [])  # TODO do we use this?
-    #     self.space_coord = self.src_space_coord
-
-    # def _regrid_configure(self, cfg_regrid):
-    #     """
-    #     Configure all the different steps need for the regridding computation
-    #     1) define the masked variables 2) load the source grid file for the different vert grids
-    #     3) define regrid_method to be passed to CDO
-
-    #     Args:
-    #         cfg_regrid (dict): dictionary with the grid definitions
-
-    #     Returns:
-    #         All the required class definition to run the regridding later on
-    #     """
-
-    #     source_grid = cfg_regrid['grids'][self.src_grid_name]
-
-    #     # define which variables has to be masked
-    #     self.masked_attr, self.masked_vars = configure_masked_fields(source_grid)
-
-    #     # set target grid coordinates
-    #     self.dst_space_coord = ["lon", "lat"]
-
-    #     # Expose grid information for the source as a dictionary of
-    #     # open xarrays
-    #     sgridpath = source_grid.get("path", None)
-    #     if sgridpath:
-    #         if isinstance(sgridpath, dict):
-    #             self.src_grid = {}
-    #             for k, v in sgridpath.items():
-    #                 self.src_grid.update({k: xr.open_dataset(v.format(**self.kwargs),
-    #                                                          decode_times=False)})
-    #         else:
-    #             if self.vert_coord:
-    #                 self.src_grid = {self.vert_coord[0]: xr.open_dataset(sgridpath.format(**self.kwargs),
-    #                                                                      decode_times=False)}
-    #             else:
-    #                 self.src_grid = {"2d": xr.open_dataset(sgridpath.format(**self.kwargs),
-    #                                                        decode_times=False)}
-    #     else:
-    #         self.src_grid = None
-
-    #     # if regrid method is not defined, read from the grid and use "ycon" as default
-    #     default_regrid_method = "ycon"
-    #     if self.regrid_method is None:
-    #         self.regrid_method = source_grid.get("regrid_method", default_regrid_method)
-    #     else:
-    #         self.regrid_method = self.regrid_method
-
-    #     if self.regrid_method is not default_regrid_method:
-    #         self.logger.info("Regrid method: %s", self.regrid_method)
-
-    # def _generate_load_dst_area(self, cfg_regrid, rebuild):
-    #     """
-    #     Generate and load area file for the destination grid.
-
-    #     Arguments:
-    #         cfg_regrid (dict): dictionary with the grid definitions
-    #         rebuild (bool): true/false flag to trigger recomputation of areas
-
-    #     Returns:
-    #         the destination area file loaded as xarray dataset and stored in the class object
-    #     """
-
-    #     self.dst_areafile = os.path.join(
-    #             cfg_regrid["paths"]["areas"],
-    #             cfg_regrid["areas"]["template_grid"].format(grid=self.dst_grid_name))
-
-    #     if rebuild or not os.path.exists(self.dst_areafile):
-    #         if os.path.exists(self.dst_areafile):
-    #             os.unlink(self.dst_areafile)
-    #         grid = cfg_regrid["grids"][self.dst_grid_name]
-    #         self._make_dst_area_file(self.dst_areafile, grid)
-
-    #     # open the area file and possibily fix it
-    #     self.dst_grid_area = xr.open_mfdataset(self.dst_areafile).cell_area
-    #     if self.fix:
-    #         self.dst_grid_area = self._fix_area(self.dst_grid_area)
-
-    # def _generate_load_src_area(self, cfg_regrid, rebuild):
-    #     """
-    #     Generate and load area file for the source grid.
-
-    #     Arguments:
-    #         cfg_regrid (dict): dictionary with the grid definitions
-    #         rebuild (bool): true/false flag to trigger recomputation of areas
-
-    #     Returns:
-    #         the source area file loaded as xarray dataset and stored in the class object
-    #     """
-
-    #     source_grid = cfg_regrid['grids'][self.src_grid_name]
-    #     sgridpath = source_grid.get("path", None)
-
-    #     if sgridpath:
-    #         template_file = cfg_regrid["areas"]["template_grid"].format(grid=self.src_grid_name)
-    #     else:
-    #         template_file = cfg_regrid["areas"]["template_default"].format(model=self.model,
-    #                                                                        exp=self.exp,
-    #                                                                        source=self.source)
-    #     # add the kwargs naming in the template file
-    #     for parameter in default_weights_areas_parameters:
-    #         if parameter in self.kwargs:
-    #             template_file = re.sub(r'\.nc',
-    #                                 '_' + parameter + str(self.kwargs[parameter]) + r'\g<0>',
-    #                                 template_file)
-
-    #     self.src_areafile = os.path.join(
-    #         cfg_regrid["paths"]["areas"],
-    #         template_file)
-
-    #     # If source areas do not exist, create them
-    #     if rebuild or not os.path.exists(self.src_areafile):
-    #         if os.path.exists(self.src_areafile):
-    #             os.unlink(self.src_areafile)
-
-    #         # Another possibility: was a "cellarea" file provided in regrid.yaml?
-    #         cellareas = source_grid.get("cellareas", None)
-    #         cellarea_var = source_grid.get("cellarea_var", None)
-    #         if cellareas and cellarea_var:
-    #             self.logger.info("Using cellareas file provided in aqua-grids.yaml")
-    #             xr.open_mfdataset(cellareas)[cellarea_var].rename("cell_area").squeeze().to_netcdf(self.src_areafile)
-    #         else:
-    #             self._make_src_area_file(self.src_areafile, source_grid,
-    #                                      gridpath=cfg_regrid["cdo-paths"]["download"],
-    #                                      icongridpath=cfg_regrid["cdo-paths"]["icon"])
-
-    #     self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
-
-    #     self.grid_area = self.src_grid_area
-    #     if self.fix:
-    #         self.grid_area = self._fix_area(self.grid_area)
-
     def retrieve(self, var=None, level=None,
                  startdate=None, enddate=None,
                  history=True, sample=False):
@@ -574,117 +407,10 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
             raise NoRegridError('regrid has not been initialized in the Reader, cannot perform any regrid.')
 
         out = self.regridder.regrid(data)
+
         # set regridded attribute to 1 for all vars
         out = set_attrs(out, {"regridded": 1})
         return out
-
-    # def _regrid(self, datain):
-    #     """
-    #     Perform regridding of the input dataset.
-
-    #     Arguments:
-    #         data (xr.Dataset):  the input xarray.Dataset
-    #     Returns:
-    #         A xarray.Dataset containing the regridded data.
-    #     """
-
-    #     # Check if original lat has been flipped and in case flip back, returns a deep copy in that case
-    #     data = flip_lat_dir(datain)
-
-    #     data = data.copy()  # make a copy to avoid modifying the original dataset/dataarray
-
-    #     # Scan the variables:
-    #     # if a 2d one is found but this was not expected, then assume that it comes from a 3d one
-    #     # and expand it along the vertical dimension.
-    #     # This works only if only one variable was selected,
-    #     # else the information on which variable was using which dimension is lost.
-    #     expand_list = []
-    #     if self.vert_coord and "2d" not in self.vert_coord:
-    #         if isinstance(data, xr.Dataset):
-    #             for var in data:
-    #                 # check if none of the dimensions of var is in self.vert_coord
-    #                 if not list(set(data[var].dims) & set(self.vert_coord)):
-    #                     # find list of coordinates that start with idx_ in their name
-    #                     idx = [coord for coord in data[var].coords if coord.startswith("idx_")]
-    #                     if idx:  # found coordinates starting with idx_, use first one to expand var
-    #                         coord_exp = idx[0][4:]  # remove idx_ from the name of the first one (there should be only one)
-    #                         if coord_exp in data[var].coords:
-    #                             expand_list.append(var)
-    #             if expand_list:
-    #                 for var in expand_list:
-    #                     data[var] = data[var].expand_dims(dim=coord_exp, axis=1)
-    #                 self.logger.debug(f"Expanding variables {expand_list} with vertical dimension {coord_exp}")
-    #                 if len(idx) > 1:
-    #                     self.logger.warning("Found more than one idx_ coordinate for expanded variables, did you select slices of multiple vertical coordinates? Results may not be correct.")
-
-    #         else:  # assume DataArray
-    #             if not list(set(data.dims) & set(self.vert_coord)):
-    #                 idx = [coord for coord in data.coords if coord.startswith("idx_")]
-    #                 if idx:
-    #                     if len(idx) > 1:
-    #                         self.logger.warning("Found more than one idx_ coordinate, did you select slices of multiple vertical coordinates? Results may not be correct.")
-    #                     coord_exp = idx[0][4:]
-    #                     if coord_exp in data.coords:
-    #                         data = data.expand_dims(dim=coord_exp, axis=1)
-    #                         self.logger.debug(f"Expanding variable {data.name} with vertical dimension {coord_exp}")
-    #                         expand_list = [data.name]
-
-    #     if self.vert_coord == ["2d"]:
-    #         datadic = {"2d": data}
-    #     else:
-    #         self.logger.debug("Grouping variables that share the same dimension")
-    #         self.logger.debug("Vert coord: %s", self.vert_coord)
-    #         self.logger.debug("masked_att: %s", self.masked_attr)
-    #         self.logger.debug("masked_vars: %s", self.masked_vars)
-
-    #         datadic = group_shared_dims(data, self.vert_coord, others="2d",
-    #                                     masked="2dm", masked_att=self.masked_attr,
-    #                                     masked_vars=self.masked_vars)
-
-    #     # Iterate over list of groups of variables, regridding them separately
-    #     out = []
-    #     for vc, dd in datadic.items():
-    #         if isinstance(dd, xr.Dataset):
-    #             self.logger.debug(f"Using vertical coordinate {vc}: {list(dd.data_vars)}")
-    #         else:
-    #             self.logger.debug(f"Using vertical coordinate {vc}: {dd.name}")
-
-    #         # remove extra coordinates starting with idx_ (if any)
-    #         # to make the regridder work correctly with multiple helper indices
-    #         for coord in dd.coords:
-    #             if coord.startswith("idx_") and coord != f"idx_{vc}":
-    #                 dd = dd.drop_vars(coord)
-    #                 if isinstance(dd, xr.Dataset):
-    #                     self.logger.debug(f"Dropping {coord} from {list(dd.data_vars)}")
-    #                 else:
-    #                     self.logger.debug(f"Dropping {coord} from {dd.name}")
-
-    #         out.append(self.regridder[vc].regrid(dd))
-
-    #     if len(out) > 1:
-    #         out = xr.merge(out)
-    #     else:
-    #         # If this was a single dataarray
-    #         out = out[0]
-
-    #     # If we expanded some variables, squeeze them back
-    #     if expand_list:
-    #         out = out.squeeze(dim=coord_exp)
-
-    #     # set regridded attribute to 1 for all vars
-    #     out = set_attrs(out, {"regridded": 1})
-
-    #     # set these two to the target grid
-    #     # (but they are actually not used so far)
-    #     self.grid_area = self.dst_grid_area
-    #     self.space_coord = ["lon", "lat"]
-
-    #     out.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
-
-    #     out = log_history(out, f"Regrid from {self.src_grid_name} to {self.dst_grid_name}")
-
-    #     return out
-
 
     def _check_if_regridded(self, data):
         """
@@ -767,10 +493,13 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
         if lon_limits is not None or lat_limits is not None:
             data = area_selection(data, lon=lon_limits, lat=lat_limits,
                                   loglevel=self.loglevel, **kwargs)
-            
+        self.logger.info('Space coordinates are %s', space_coord)  
         # cleaning coordinates which have "multiple" coordinates in their own definition
         #grid_area = self._clean_spourious_coords(grid_area, name = "area")
         #data = self._clean_spourious_coords(data, name = "data")
+
+        # HAVE TO ADD AN ERROR IF AREAS HAVE NOT THE SAME AREAS AS DATA
+
 
         # check if coordinates are aligned
         try:
