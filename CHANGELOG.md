@@ -36,6 +36,7 @@ AQUA core complete list:
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
 
 AQUA diagnostics complete list:
+- Diagnostic core: A common function to check and convert variable units is provided as `convert_data_units()` (#1806)
 - Ocean3d: Bug fix to regridding of observations in cli (#1811)
 - Diagnostic core: the `retrieve()` method uses internally a `_retrieve()` method that returns instead of updating attributes (#1763)
 - Diagnostic core: documentation about class and config file structure (#1790)
