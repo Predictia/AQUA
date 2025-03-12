@@ -374,16 +374,17 @@ class Regridder():
     
     def _expand_dims(self, data, vertical_dims):
         """
-        Expand the dimensions of the dataarray to include the vertical dimensions
+        Expand the dimensions of the dataset or dataarray to include the vertical dimensions
         """
+
         for vertical_dim in vertical_dims:
             if vertical_dim not in [DEFAULT_DIMENSION, DEFAULT_DIMENSION_MASK]:
-                if not set(data.dims) & set(vertical_dims):
+                if vertical_dim not in data.dims:
                     if vertical_dim in data.coords:
-                        self.logger.debug(
-                            "Expanding dimension %s for variable %s", vertical_dim, data.name)
+                        self.logger.warning(
+                            "Expanding dimension %s for dataset", vertical_dim)
                         data = data.expand_dims(dim=vertical_dim, axis=1)
-        self.logger.error(data)
+
         return data
 
     def _group_shared_dims(self, data):
@@ -432,13 +433,7 @@ class Regridder():
         """
 
         # expand the dimensions of the dataarray to include the vertical dimensions
-        if isinstance(data, xr.Dataset):
-            self.logger.error(list(self.src_grid_path.keys()))
-            data.map(self._expand_dims, vertical_dims=list(self.src_grid_path.keys()))
-        else:
-            data = self._expand_dims(data, vertical_dims=list(self.src_grid_path.keys()))
-
-
+        data = self._expand_dims(data, vertical_dims=list(self.src_grid_path.keys()))
 
         # get which variables share the same dimensions
         shared_vars = self._group_shared_dims(data)
