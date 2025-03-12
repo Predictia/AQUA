@@ -917,7 +917,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
         if self.dst_grid_name:
             print("Regridding is active:")
             print("  Target grid is %s" % self.dst_grid_name)
-            print("  Regridding method is %s" % self.regrid_method)
+            print("  Regridding method is %s" % self.regridder.regrid_method) #HACK
 
         print("Metadata:")
         for k, v in metadata.items():
