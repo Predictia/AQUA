@@ -1,10 +1,5 @@
 """The main AQUA Reader class"""
 
-from json import load
-import os
-import re
-import types
-import shutil
 import intake_esm
 import intake_xarray
 import xarray as xr
@@ -23,8 +18,8 @@ from .streaming import Streaming
 from .fixer import FixerMixin
 from .regrid import RegridMixin
 from .timstat import TimStatMixin
-from .reader_utils import group_shared_dims, set_attrs
-from .reader_utils import configure_masked_fields
+from .reader_utils import set_attrs
+
 
 # default spatial dimensions and vertical coordinates
 default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude',
