@@ -13,25 +13,58 @@ from .util import defaultdict_to_dict
 xr.set_options(keep_attrs=True)
 
 class PlotSeaIce:
-    """ PlotSeaIce class """
+    """ A class for processing and visualizing timeseries of integrated sea ice extent or volume. """
 
     ALLOWED_METHODS = ['extent', 'volume']
 
-    def __init__(self, 
-                 monthly_models=None, annual_models=None,
+    def __init__(self, monthly_models=None, annual_models=None,
                  monthly_ref=None, annual_ref=None,
                  monthly_std_ref: str = None, annual_std_ref: str = None,
-                 model: str = None, 
-                 exp: str = None, 
-                 source: str = None,
-                 catalog: str = None,
+                 model: str = None, exp: str = None, source: str = None, catalog: str = None,
                  regions_to_plot: list = None, # ['Arctic', 'Antarctic'], # this is a list of strings with the region names to plot
-                 outdir='./',
-                 rebuild=True, 
+                 outdir='./', rebuild=True, 
                  filename_keys=None,  # List of keys to keep in the filename. Default is None, which includes all keys.
-                 dpi=300,
-                 loglevel='WARNING'):
-        
+                 dpi=300, loglevel='WARNING'):
+        """
+        Initializes the PlotSeaIce class.
+
+        This constructor sets up logging, initializes input datasets, processes data, and configures output settings
+        for plotting sea ice extent and volume.
+        Args:
+            monthly_models (xr.Dataset | list[xr.Dataset] | None, optional): 
+                Monthly model datasets to be processed. Defaults to None.
+            annual_models (xr.Dataset | list[xr.Dataset] | None, optional): 
+                Annual model datasets to be processed. Defaults to None.
+            monthly_ref (xr.Dataset | list[xr.Dataset] | None, optional): 
+                Monthly reference datasets for comparison. Defaults to None.
+            annual_ref (xr.Dataset | list[xr.Dataset] | None, optional): 
+                Annual reference datasets for comparison. Defaults to None.
+            monthly_std_ref (str, optional): 
+                Monthly standard deviation reference dataset identifier. Defaults to None.
+            annual_std_ref (str, optional): 
+                Annual standard deviation reference dataset identifier. Defaults to None.
+            model (str, optional): 
+                Name of the model associated with the dataset. Defaults to None.
+            exp (str, optional): 
+                Experiment name related to the dataset. Defaults to None.
+            source (str, optional): 
+                Source of the dataset. Defaults to None.
+            catalog (str, optional): 
+                Catalog name of the dataset. Defaults to None.
+            regions_to_plot (list, optional): 
+                List of region names to be plotted (e.g., `['Arctic', 'Antarctic']`). 
+                If None, all available regions are plotted. Defaults to None.
+            outdir (str, optional): 
+                Directory to save output plots. Defaults to './'.
+            rebuild (bool, optional): 
+                Whether to rebuild (overwrite) figure outputs if they already exist. Defaults to True.
+            (overwrite) figure outputs if exists. (list, optional): 
+                List of keys to include in the output filenames. If None, all keys are included. Defaults to None.
+            dpi (int, optional): 
+                Resolution of saved figures (dots per inch). Defaults to 300.
+            loglevel (str, optional): 
+                Logging level for debugging and information messages. Defaults to 'WARNING'.
+        """
         # logging setup
         self.loglevel = loglevel
         self.logger = log_configure(log_level=self.loglevel, log_name='PlotSeaIce')
@@ -62,12 +95,12 @@ class PlotSeaIce:
             return None
 
         if not isinstance(regions_to_plot, list):
-            self.logger.debug(f"Expected regions_to_plot to be a list, but got {type(regions_to_plot).__name__}.")
+            self.logger.error(f"Expected regions_to_plot to be a list, but got {type(regions_to_plot).__name__}.")
             raise TypeError(  f"Expected regions_to_plot to be a list, but got {type(regions_to_plot).__name__}.")
         
         if not all(isinstance(region, str) for region in regions_to_plot):
             invalid_types = [type(region).__name__ for region in regions_to_plot]
-            self.logger.debug(f"Expected a list of strings, but found element types: {invalid_types}.")
+            self.logger.error(f"Expected a list of strings, but found element types: {invalid_types}.")
             raise TypeError(  f"Expected a list of strings, but found element types: {invalid_types}.")
         return regions_to_plot
     
@@ -87,16 +120,16 @@ class PlotSeaIce:
         elif datain is None or (isinstance(datain, list) and all(isinstance(ds, xr.Dataset) for ds in datain)):
             return datain
         else:
-            self.logger.debug(f"Invalid data type: {type(datain)}. Expected xr.Dataset, list of xr.Dataset, or None.")
+            self.logger.error(f"Invalid data type: {type(datain)}. Expected xr.Dataset, list of xr.Dataset, or None.")
             raise ValueError( f"Invalid data type: {type(datain)}. Expected xr.Dataset, list of xr.Dataset, or None.")
 
     def _get_region_name_in_datarray(self, da: xr.DataArray) -> str:
         """Get the region variable from the dataset or derive it from the variable name."""
         if da is None:
-            self.logger.debug(f"DataArray is None. Cannot determine region without a valid DataArray.")
+            self.logger.error(f"DataArray is None. Cannot determine region without a valid DataArray.")
             raise KeyError(f"DataArray is None. Cannot determine region without a valid DataArray.")
 
-        region = da.attrs.get("region")
+        region = da.attrs.get("AQUA_region")
 
         # check if 'region' exists as an attribute of da
         if region:
@@ -111,7 +144,7 @@ class PlotSeaIce:
             else:
                 errmsg = (f"Dataset {da.attrs.get('name', 'Unnamed Dataset')} has no 'region' attribute "
                           f"and region could not be derived from the variable name.")
-            self.logger.debug(errmsg)
+            self.logger.error(errmsg)
             raise KeyError(errmsg)
 
     def repack_datasetlists(self, **kwargs) -> dict:
@@ -127,7 +160,8 @@ class PlotSeaIce:
             **kwargs: A dictionary of keyword arguments, where each str_data is
                       linked to the kwargs in plot_timeseries() and each value is a list of xr.Dataset objects.
         Returns:
-            dict: A nested dict containing the repacked data arrays."""
+            dict: A nested dict containing the repacked data arrays.
+        """
         # initialize repacked_defdict as a nested defaultdict with following structure:
         # method -> region -> str_data -> list of data arrays (can be of size one)
         repacked_defdict = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
@@ -141,7 +175,7 @@ class PlotSeaIce:
                 continue
             
             for dataset in dataset_list:
-                method = dataset.attrs.get("method", "Unknown")
+                method = dataset.attrs.get("AQUA_method", "Unknown")
 
                 # process each data variable in the dataset
                 for var_name, data_array in dataset.data_vars.items():
@@ -165,7 +199,7 @@ class PlotSeaIce:
     def _gen_str_from_attributes(self, datain: xr.DataArray | None) -> str:
         if datain is None:
             return None
-        required_attrs = ["model", "exp", "source"]
+        required_attrs = ["AQUA_model", "AQUA_exp", "AQUA_source"]
         missing_attrs = [attr for attr in required_attrs if attr not in datain.attrs]
         if missing_attrs:
             self.logger.warning(f"These dataset global attrs is missing: {', '.join(missing_attrs)}.")
@@ -236,8 +270,8 @@ class PlotSeaIce:
             model_data_dict = self._getdata_fromdict(data_dict, 'monthly_models')
 
             # extract startdate and enddate for each unique model
-            stdate = model_data_dict.attrs.get('startdate', 'Unknown startdate')
-            endate = model_data_dict.attrs.get('enddate', 'Unknown enddate')
+            stdate = model_data_dict.attrs.get('AQUA_startdate', 'Unknown startdate')
+            endate = model_data_dict.attrs.get('AQUA_enddate', 'Unknown enddate')
             model_startdate_list = [f"{label} from {stdate} to {endate}" for label in unique_labels]
 
             # build the model data string
@@ -267,8 +301,8 @@ class PlotSeaIce:
         # --- generate string for reference std data
         if self.std_label:
             sdtdata = self._getdata_fromdict(data_dict,'monthly_std_ref')
-            std_sdate = sdtdata.attrs.get("startdate", "No startdate found")
-            std_edate = sdtdata.attrs.get("enddate",   "No enddate found")
+            std_sdate = sdtdata.attrs.get("AQUA_startdate", "No startdate found")
+            std_edate = sdtdata.attrs.get("AQUA_enddate",   "No enddate found")
             self.std_label_str = f" Reference data std is evaluated from {std_sdate} to {std_edate}."
         else:
             self.std_label_str = ''

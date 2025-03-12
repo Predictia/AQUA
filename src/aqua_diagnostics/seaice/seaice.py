@@ -116,7 +116,7 @@ class SeaIce(Diagnostic):
             region (str): The geographical region over which sea ice data is computed.
             startdate (str, optional): The start date of the data (format "YYYY-MM-DD"). Default to None.
             enddate (str, optional): The end date of the data (format "YYYY-MM-DD"). Default to None.
-            std_flag (bool, optional): If True, indicates that the computed data represents a standard deviation. 
+            std_flag (bool, optional): If True, add the metadata related to the computed standard deviation. 
                 Defaults to False.
         Returns:
             xr.DataArray
@@ -132,10 +132,10 @@ class SeaIce(Diagnostic):
 
         da_seaice_computed.attrs["long_name"] = f"{'Std ' if std_flag else ''}Sea ice {method} integrated over region {region}"
         da_seaice_computed.attrs["standard_name"] = f"{region}_{'std_' if std_flag else ''}sea_ice_{method}"
-        da_seaice_computed.attrs["method"] = f"{method}"
-        da_seaice_computed.attrs["region"] = f"{region}"
-        if startdate is not None: da_seaice_computed.attrs["startdate"] = f"{startdate}"
-        if enddate is not None: da_seaice_computed.attrs["enddate"] = f"{enddate}"
+        da_seaice_computed.attrs["AQUA_method"] = f"{method}"
+        da_seaice_computed.attrs["AQUA_region"] = f"{region}"
+        if startdate is not None: da_seaice_computed.attrs["AQUA_startdate"] = f"{startdate}"
+        if enddate is not None: da_seaice_computed.attrs["AQUA_enddate"] = f"{enddate}"
         da_seaice_computed.name = f"{'std_' if std_flag else ''}sea_ice_{method}_{region.replace(' ', '_').lower()}"
         return da_seaice_computed
 
@@ -199,10 +199,6 @@ class SeaIce(Diagnostic):
         if freq is None:
             self.logger.error('Frequency not provided')
             raise ValueError( 'Frequency not provided')
-
-        # check the frequency string and assign to an agreed name convention
-        freq = frequency_string_to_pandas(freq)
-        self.logger.debug(f"Checking {freq} standard deviation")
 
         if freq not in ['monthly', 'annual']:
             self.logger.error(f"Frequency str: '{freq}' not recognized. Assign freq to 'monthly' by default.")
