@@ -15,14 +15,14 @@ class TestSeaIce:
         [
             # Valid cases
             ('extent', 'Arctic', 15.3323, 'million km^2', 'siconc', None, None),
-            #('extent', 'Weddell Sea', 56.79711387, 'million km^2', 'siconc', None, None),
-            #('volume', 'Arctic', 0.00959179, 'thousands km^3', 'siconc', None, None),
-            #('volume', 'Antarctic', 0.00749497, 'thousands km^3', 'siconc', None, None),
+            ('extent', 'Weddell Sea', 7.4670, 'million km^2', 'siconc', None, None),
+            ('volume', 'Arctic', 46.7496, 'thousands km^3', 'sithick', None, None),
+            ('volume', 'Antarctic', 16.1676, 'thousands km^3', 'sithick', None, None),
 
             # Invalid cases (Errors expected)
-            #('wrong_method', 'Antarctic', None, None, 'siconc', ValueError, "Invalid method"),
-            #('extent', 'Weddell Sea', None, None, 'errorvar', KeyError, "No variable named ['\"]?errorvar['\"]?"),
-            #('volume', 'Antarctic',   None, None, 'errorvar', KeyError, "No variable named ['\"]?errorvar['\"]?")
+            ('wrong_method', 'Antarctic', None, None, 'siconc', ValueError, "Invalid method"),
+            ('extent', 'Weddell Sea', None, None, 'errorvar', KeyError, None),
+            ('volume', 'Antarctic',   None, None, 'errorvar', KeyError, None)
         ]
     )
     def test_seaice_compute(self, method, region, value, expected_units, 
@@ -35,11 +35,20 @@ class TestSeaIce:
 
         # Handle expected exceptions first
         if expect_exception:
-            with pytest.raises(expect_exception, match=error_message):
-                if method == 'extent':
-                    seaice.compute_seaice(method=method, var=variable, threshold=0.15)  # Only pass threshold kwarg for 'extent'
-                else:
-                    seaice.compute_seaice(method=method, var=variable)  # No threshold for 'volume'
+            if error_message:  
+                # If an error message is provided, check both exception type and message
+                with pytest.raises(expect_exception, match=error_message):
+                    if method == 'extent':
+                        seaice.compute_seaice(method=method, var=variable, threshold=0.15)
+                    else:
+                        seaice.compute_seaice(method=method, var=variable)
+            else:
+                # If no specific error message, only check the exception type
+                with pytest.raises(expect_exception):
+                    if method == 'extent':
+                        seaice.compute_seaice(method=method, var=variable, threshold=0.15)
+                    else:
+                        seaice.compute_seaice(method=method, var=variable)
             return  # Stop further execution for error cases
 
         # Valid case: compute sea ice
