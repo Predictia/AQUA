@@ -1,8 +1,8 @@
 import pandas as pd
 import xarray as xr
 from aqua.logger import log_configure
-from aqua.diagnostics.core import Diagnostic
-from .util import fix_precipitation_units, select_pressure_level
+from aqua.diagnostics.core import Diagnostic, convert_data_units
+from .util import select_pressure_level
 
 xr.set_options(keep_attrs=True)
 
@@ -55,8 +55,8 @@ class GlobalBiases(Diagnostic):
         
         if self.var in ['tprate', 'mtpr']:
             self.logger.info(f'Adjusting units for precipitation variable: {self.var}.')
-            self.data = fix_precipitation_units(self.data, self.var)
-        
+            self.data = convert_data_units(self.data, self.var, 'mm/day', loglevel=self.loglevel)
+
         if self.plev is not None:
             self.logger.info(f'Selecting pressure level {self.plev} for variable {self.var}.')
             self.data = select_pressure_level(self.data, self.plev, self.var)

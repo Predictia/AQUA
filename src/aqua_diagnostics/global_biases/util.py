@@ -3,23 +3,6 @@
 import xarray as xr
 from aqua.exceptions import NoDataError
 
-def fix_precipitation_units(data, var):
-    """
-    Converts precipitation units from kg m-2 s-1 to mm/day.
-
-    Args:
-        data (xr.Dataset): Dataset to adjust.
-        var (str): Variable name for precipitation.
-
-    Returns:
-        xr.Dataset: Dataset with adjusted units.
-    """
-    if data[var].attrs['units'] != 'mm/day':
-        data[var] *= 86400
-        data[var].attrs['units'] = 'mm/day'
-    return data
-
-
 def select_pressure_level(data, plev, var):
     """
     Selects a specified pressure level from the dataset if necessary.
