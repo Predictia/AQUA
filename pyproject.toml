@@ -19,7 +19,7 @@ description = "AQUA; a model evaluation framework for high-resolution climate mo
 readme = "README.md"
 keywords = ["climate", "modeling", "diagnostics", "high-resolution"]
 license = {text = "Private"}
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: System Administrators",
@@ -78,9 +78,8 @@ notebooks = [
 tests = [
     "pytest",
     "pytest-cov",
-    "coverage[toml]",
-    "pandoc",
-    "pycobertura"
+    "coverage",
+    "cdo"
 ]
 all = [
     "aqua[docs]",
