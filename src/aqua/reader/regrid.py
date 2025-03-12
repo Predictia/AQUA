@@ -75,7 +75,7 @@ class RegridMixin():
         self.startdate = None
         self.enddate = None
         self.preproc = None
-        data = self.retrieve(sample=True, history=False, *args, **kwargs)
+        data = self.retrieve(history=False, *args, **kwargs) #HACK REMOVE THE SAMPLE SINCE IT WAS CREATING A MESS
         # HACK: ensuring we load only a single time step if possible:
         if 'time' in data.coords:
             data = data.isel(time=0)
@@ -95,7 +95,7 @@ class RegridMixin():
         # select only first relevant variable
         variables = [var for var in data.data_vars if
                 not var.endswith("_bnds") and not var.startswith("bounds") and not var.endswith("_bounds")]
-        self.sample_data = data[[variables[0]]]
+        self.sample_data = data[[variables[-1]]]
 
         return self.sample_data
 

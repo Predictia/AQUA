@@ -210,7 +210,7 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
                 
                 if self.regridder.error:
                     self.logger.warning('Grid metadata is not defined. Trying to access the real data')
-                    data = self._retrieve_plain(startdate=None)
+                    data = self._retrieve_plain()
                     self.regridder = Regridder(cfg_regrid, self.src_grid_name, loglevel=loglevel, data=data)
                     
 
