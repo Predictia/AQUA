@@ -68,7 +68,7 @@ class Regridder():
 
         # grid path is None: check if data is provided to extract information for CDO
         if data is not None:
-            gridtype = GridInspector(data).get_grid_info()[0]
+            gridtype = GridInspector(data, loglevel=self.loglevel).get_grid_info()[0]
             self.src_horizontal_dims = gridtype.horizontal_dims
             self.src_vertical_dim = gridtype.vertical_dim
             self.logger.debug("Horizontal dimensions guessed from data: %s", self.src_horizontal_dims)
@@ -129,7 +129,7 @@ class Regridder():
             self.tgt_grid_area = self._load_generate_areas(
                 tgt_grid_name, tgt_grid_path, tgt_grid_dict,
                 reader_kwargs, target=True, rebuild=rebuild)
-            self.tgt_horizontal_dims = GridInspector(self.tgt_grid_area).get_grid_info()[0].horizontal_dims
+            self.tgt_horizontal_dims = GridInspector(self.tgt_grid_area, loglevel=self.loglevel).get_grid_info()[0].horizontal_dims
         else:
 
             self.src_grid_area = self._load_generate_areas(
@@ -403,7 +403,7 @@ class Regridder():
             'vertical': list(self.src_grid_path.keys()),
             'horizontal': to_list(self.src_horizontal_dims)
         }
-        gridtype = GridInspector(data, extra_dims=extra_dims).get_grid_info()
+        gridtype = GridInspector(data, extra_dims=extra_dims, loglevel=self.loglevel).get_grid_info()
         shared_vars = {}
         for grid in gridtype:
             variables = list(grid.variables.keys())
