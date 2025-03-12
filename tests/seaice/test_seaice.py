@@ -11,59 +11,125 @@ class TestSeaIce:
     """Test the SeaIce class."""
     
     @pytest.mark.parametrize(
-        ('method', 'region', 'value', 'expected_units', 'variable', 'expect_exception', 'error_message'),
-        [
-            # Valid cases
-            ('extent', 'Arctic', 15.3323, 'million km^2', 'siconc', None, None),
-            ('extent', 'Weddell Sea', 7.4670, 'million km^2', 'siconc', None, None),
-            ('volume', 'Arctic', 46.7496, 'thousands km^3', 'sithick', None, None),
-            ('volume', 'Antarctic', 16.1676, 'thousands km^3', 'sithick', None, None),
+        ('method', 'region', 'value', 'expected_units', 'variable', 'calc_std_freq', 'expect_exception', 'error_message'),
 
-            # Invalid cases (Errors expected)
-            ('wrong_method', 'Antarctic', None, None, 'siconc', ValueError, "Invalid method"),
-            ('extent', 'Weddell Sea', None, None, 'errorvar', KeyError, None),
-            ('volume', 'Antarctic',   None, None, 'errorvar', KeyError, None)
+        [
+        # Valid cases without standard deviation
+        ('extent', 'Arctic',     15.3323, 'million km^2', 'siconc', None, None, None),
+        ('extent', 'Weddell Sea', 7.4670, 'million km^2', 'siconc', None, None, None),
+        ('volume', 'Arctic',    46.7496, 'thousands km^3', 'sithick', None, None, None),
+        ('volume', 'Antarctic', 16.1676, 'thousands km^3', 'sithick', None, None, None),
+
+        # Valid cases with standard deviation computation
+        ('extent', 'Arctic',  3.9402, 'million km^2',   'siconc', 'annual',  None, None),
+        ('extent', 'Antarctic', 0.7623, 'million km^2', 'siconc', 'monthly', None, None),
+        ('volume', 'Antarctic', 1.003, 'thousands km^3', 'sithick', 'monthly', None, None),
+        # Invalid cases (Errors expected)
+        ('wrong_method', 'Antarctic', None, None, 'siconc', None, ValueError, "Invalid method"),
+        ('extent', 'Weddell Sea', None, None, 'errorvar', None, KeyError, None),
+        ('volume', 'Antarctic', None, None, 'errorvar', None, KeyError, None),
+
+        # Invalid standard deviation cases
+        ('extent', 'Weddell Sea', None, None, 'errorvar', None, KeyError, None),
+        ('volume', 'Antarctic',   None, None, 'errorvar', None, KeyError, None)
         ]
     )
-    def test_seaice_compute(self, method, region, value, expected_units, 
-                            variable, expect_exception, error_message):
-        """Test sea ice computation for both valid and invalid cases."""
-        
+    def test_seaice_compute_with_std(self, method, region, value, expected_units, variable,
+                            calc_std_freq, expect_exception, error_message):
+        """Test sea ice computation including std for both valid and invalid cases."""
+
         seaice = SeaIce(model='IFS-NEMO', exp='historical-1990', source='lra-r100-monthly',
                         startdate="1991-01-01", enddate="2000-01-01", regions=region, 
                         regrid='r100', loglevel=loglevel)
 
         # Handle expected exceptions first
         if expect_exception:
-            if error_message:  
-                # If an error message is provided, check both exception type and message
-                with pytest.raises(expect_exception, match=error_message):
-                    if method == 'extent':
-                        seaice.compute_seaice(method=method, var=variable, threshold=0.15)
-                    else:
-                        seaice.compute_seaice(method=method, var=variable)
-            else:
-                # If no specific error message, only check the exception type
-                with pytest.raises(expect_exception):
-                    if method == 'extent':
-                        seaice.compute_seaice(method=method, var=variable, threshold=0.15)
-                    else:
-                        seaice.compute_seaice(method=method, var=variable)
-            return  # Stop further execution for error cases
+            with pytest.raises(expect_exception, match=error_message if error_message else ""):
+                if method == 'extent':
+                    seaice.compute_seaice(method=method, var=variable, threshold=0.15, calc_std_freq=calc_std_freq)
+                else:
+                    seaice.compute_seaice(method=method, var=variable, calc_std_freq=calc_std_freq)
+            return
 
-        # Valid case: compute sea ice
+        # Valid case: compute sea ice with or without standard deviation
+        # result is a Tuple if calc_std_freq is not None
         if method == 'extent':
-            result = seaice.compute_seaice(method=method, var=variable, threshold=0.15)  # Only pass threshold kwarg for 'extent'
+            result = seaice.compute_seaice(method=method, var=variable, threshold=0.15, calc_std_freq=calc_std_freq)
         else:
-            result = seaice.compute_seaice(method=method, var=variable)  #  No threshold for 'volume'
+            result = seaice.compute_seaice(method=method, var=variable, calc_std_freq=calc_std_freq)
 
-        # Generate variable name dynamically
-        regionlower = region.lower().replace(" ", "_")
-        var_name = f'sea_ice_{method}_{regionlower}'
+        if calc_std_freq:
 
-        # Assertions for valid results
-        assert isinstance(result, xr.Dataset)
-        assert list(result.coords) == ['time']
-        assert list(result.data_vars) == [var_name]
-        assert result.attrs['units'] == expected_units
-        assert result[var_name].values[5] == pytest.approx(value, rel=approx_rel)
+            assert isinstance(result, tuple)
+            assert len(result) == 2
+
+            # unpack the tuple 
+            res, res_std = result
+
+            assert isinstance(res, xr.Dataset)
+            assert isinstance(res_std, xr.Dataset)
+
+            regionlower = region.lower().replace(" ", "_")
+            var_name = f'sea_ice_{method}_{regionlower}'
+            std_var_name = f'std_sea_ice_{method}_{regionlower}'
+
+            assert list(res.coords) == ['time']
+            assert list(res.data_vars) == [var_name]
+            assert res.attrs['units'] == expected_units
+
+            # Adjusted assertion for time coordinate
+            expected_time_coord = "year" if calc_std_freq == "annual" else "month" if calc_std_freq == "monthly" else "time"
+            assert expected_time_coord in res_std.coords
+
+            assert list(res_std.data_vars) == [std_var_name]
+            assert res_std.attrs['units'] == expected_units  # Std should retain units
+        else:
+            # If no std computation, result should be a single Dataset
+            assert isinstance(result, xr.Dataset)
+            regionlower = region.lower().replace(" ", "_")
+            var_name = f'sea_ice_{method}_{regionlower}'
+            
+            assert list(result.coords) == ['time']
+            assert list(result.data_vars) == [var_name]
+            assert result.attrs['units'] == expected_units
+            assert result[var_name].values[5] == pytest.approx(value, rel=approx_rel)
+    
+    @pytest.mark.parametrize(
+        ('regions_definition', 'expect_exception', 'error_message', 'expected_output'),
+        [
+            # Valid case: regions_definition is set
+            (
+             {"Arctic": "some definition", "Antarctic": "another definition"}, 
+             None, None, 
+             {"Arctic": "some definition", "Antarctic": "another definition"}
+             ),
+
+            # Invalid cases
+            (None, ValueError, "No regions_definition found.", None),  # regions_definition is None
+        ]
+    )
+    def test_show_regions(self, regions_definition, expect_exception, error_message, expected_output):
+        """Test the show_regions method."""
+        
+        # Create instance of SeaIce with the necessary attributes
+        seaice = SeaIce(model='IFS-NEMO', exp='historical-1990', source='lra-r100-monthly',
+                        startdate="1991-01-01", enddate="2000-01-01", regions="Arctic", 
+                        regrid='r100', loglevel=loglevel)
+
+        # Set regions_definition dynamically
+        if regions_definition is not None:
+            seaice.regions_definition = regions_definition
+        else:
+            if hasattr(seaice, 'regions_definition'):
+                delattr(seaice, 'regions_definition')  # Remove attribute to simulate missing case
+
+        # Handle expected exceptions
+        if expect_exception:
+            with pytest.raises(expect_exception, match=error_message if error_message else ""):
+                seaice.show_regions()
+            return
+
+        # If no exception, verify correct output
+        result = seaice.show_regions()
+        assert isinstance(result, dict)
+        assert result == expected_output
