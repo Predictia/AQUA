@@ -54,19 +54,25 @@ class PlotGlobalBiases:
             self.var = var or self.var
             self.plev = plev or self.plev
 
-            # Check if pressure levels exist but are not specified
-            if 'plev' in self.data[self.var].dims and self.plev is None:
-                self.logger.warning(f"Variable {self.var} has multiple pressure levels, but no specific level was selected. Skipping 2D bias plotting.")
-                return None  # Return None for both fig and ax  
+            # Check if the variable has pressure levels but no specific level is selected
+            if 'plev' in self.data.get(self.var, {}).dims:
+                if self.plev is None:
+                    self.logger.warning(
+                        f"Variable {self.var} has multiple pressure levels, but no specific level was selected. "
+                        "Skipping 2D bias plotting."
+                    )
+                    return None  # Return None for both fig and ax
 
-            if self.plev is not None:
-                self.logger.info(f'Selecting pressure level {self.plev} for variable {self.var}.')
+                # If a pressure level is specified, select it
+                self.logger.info(f"Selecting pressure level {self.plev} for variable {self.var}.")
                 self.data = select_pressure_level(self.data, self.plev, self.var)
                 self.data_ref = select_pressure_level(self.data_ref, self.plev, self.var)
-            elif 'plev' in self.data[self.var].dims:
-                self.logger.warning(f"Variable {self.var} has multiple pressure levels but none selected. Skipping 2D plotting for bias maps.")
 
-            # Plot a single map if only one dataset is provided
+            # If a pressure level is specified but the variable has no pressure levels
+            elif self.plev is not None:
+                self.logger.warning(f"Variable {self.var} does not have pressure levels!")
+
+            # Plot a single map if only one dataset is provided 
             if self.data_ref is None:
                 self.logger.warning('Plotting single dataset map since no reference dataset is provided.')
 
@@ -126,13 +132,23 @@ class PlotGlobalBiases:
             # Set 'sym' to True if either 'vmin' or 'vmax' is None, indicating a symmetric colorbar.
             sym = vmin is None or vmax is None
             
-            if self.plev is not None:
-                self.logger.info(f'Selecting pressure level {self.plev} for variable {self.var}.')
+            # Check if the variable has pressure levels but no specific level is selected
+            if 'plev' in self.data.get(self.var, {}).dims:
+                if self.plev is None:
+                    self.logger.warning(
+                        f"Variable {self.var} has multiple pressure levels, but no specific level was selected. "
+                        "Skipping 2D bias plotting."
+                    )
+                    return None  # Return None for both fig and ax
+
+                # If a pressure level is specified, select it
+                self.logger.info(f"Selecting pressure level {self.plev} for variable {self.var}.")
                 self.data = select_pressure_level(self.data, self.plev, self.var)
                 self.data_ref = select_pressure_level(self.data_ref, self.plev, self.var)
-            elif 'plev' in self.data[self.var].dims:
-                self.logger.warning(f"Variable {self.var} has multiple pressure levels but none selected. Skipping 2D plotting for bias maps.")
-                return None  # Return None for both fig and ax  
+
+            # If a pressure level is specified but the variable has no pressure levels
+            elif self.plev is not None:
+                self.logger.warning(f"Variable {self.var} does not have pressure levels!")
 
             # Validate seasons_stat
             stat_funcs = {'mean': 'mean', 'max': 'max', 'min': 'min', 'std': 'std'}
@@ -183,8 +199,6 @@ class PlotGlobalBiases:
             Calculates and plots the vertical bias between two datasets.
 
             Args:
-                data (xr.Dataset, optional): Dataset for analysis.
-                data_ref (xr.Dataset, optional): Reference dataset for comparison.
                 var (str, optional): Variable name to analyze.
                 plev_min (float, optional): Minimum pressure level.
                 plev_max (float, optional): Maximum pressure level.
