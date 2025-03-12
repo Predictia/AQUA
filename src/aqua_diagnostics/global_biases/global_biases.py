@@ -61,7 +61,7 @@ class GlobalBiases(Diagnostic):
             self.logger.info(f'Selecting pressure level {self.plev} for variable {self.var}.')
             self.data = select_pressure_level(self.data, self.plev, self.var)
         elif 'plev' in self.data[self.var].dims:
-            self.logger.warning(f"Variable {self.var} has multiple pressure levels but none selected. Skipping 2D plotting for bias maps.")
+            self.logger.warning(f"Variable {self.var} has multiple pressure levels but none was selected")
 
 
 
