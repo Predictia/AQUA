@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
+- Remove generators from Reader (#1791)
+- Fix tcc grib code and add some cmor codes in the convention file (#1800)
+- Add a regrid option to cli of relevant diagnostics (#1792)
 - Limit estimation of time for weight generation only to regular lon/lat grids (#1786)
 - LRA generation can operate spatial subsection (#1711)
 - Attributes added by AQUA are now "AQUA_" prefixed (#1790)
@@ -21,7 +24,7 @@ AQUA core complete list:
 - Avoid infinite hanging during bridge access (#1733, #1738)
 - Enable dependabot to monitor dependencies every month (#1748)
 - `eccodes` bump to 2.40.0 (#1747)
-- Integrate codecov to monitor coverage and test analytics and remove old bot (#1736, #1737, #1755)
+- Integrate codecov to monitor coverage and test analytics and remove old bot (#1736, #1737, #1755, #1819)
 - Reinitialize `GSVRetriever` instance only when needed (#1733)
 - Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732, #1743, #1762)
 - Fix `push_analysis.sh` options and `aqua_analysis.py` config paths (#1723, #1754)
@@ -34,6 +37,9 @@ AQUA core complete list:
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
 
 AQUA diagnostics complete list:
+- Ocean3d: Tests for the Ocean3d diagnostic (#1780)
+- Diagnostic core: A common function to check and convert variable units is provided as `convert_data_units()` (#1806)
+- Ocean3d: Bug fix to regridding of observations in cli (#1811)
 - Diagnostic core: the `retrieve()` method uses internally a `_retrieve()` method that returns instead of updating attributes (#1763)
 - Diagnostic core: documentation about class and config file structure (#1790)
 - Diagnostic core: A common function to load the diagnostic config file is provided (#1750)

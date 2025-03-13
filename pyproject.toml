@@ -108,7 +108,7 @@ version = {attr = "aqua.version.__version__"}
 
 [tool.pytest.ini_options]
 # verbose to have full test, run coverage on src folder and use pyproject as a configuration file
-addopts = "-v --cov=src --cov-config=pyproject.toml"
+addopts = "-v --cov=aqua"
 testpaths = [
     "tests"
 ]
@@ -126,10 +126,10 @@ markers = [
 [tool.coverage.run]
 branch = true
 command_line = '-m pytest tests'
+source = ["src/aqua"]
 omit = [
     "tests/*", 
     "**/__init__.py",
-    "src/aqua/lra_generator/opa_generator.py",
     "src/aqua/slurm/slurm.py",
     "src/aqua_diagnostics/dummy"
     ]
