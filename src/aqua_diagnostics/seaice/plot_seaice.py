@@ -144,8 +144,8 @@ class PlotSeaIce:
             else:
                 errmsg = (f"Dataset {da.attrs.get('name', 'Unnamed Dataset')} has no 'region' attribute "
                           f"and region could not be derived from the variable name.")
-            self.logger.error(errmsg)
-            raise KeyError(errmsg)
+                self.logger.error(errmsg)
+                raise KeyError(errmsg)
 
     def repack_datasetlists(self, **kwargs) -> dict:
         """Repack input datasets into a nested dictionary organized by method and region.
