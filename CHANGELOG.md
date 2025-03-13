@@ -23,7 +23,7 @@ AQUA core complete list:
 - Avoid infinite hanging during bridge access (#1733, #1738)
 - Enable dependabot to monitor dependencies every month (#1748)
 - `eccodes` bump to 2.40.0 (#1747)
-- Integrate codecov to monitor coverage and test analytics and remove old bot (#1736, #1737, #1755)
+- Integrate codecov to monitor coverage and test analytics and remove old bot (#1736, #1737, #1755, #1819)
 - Reinitialize `GSVRetriever` instance only when needed (#1733)
 - Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732, #1743, #1762)
 - Fix `push_analysis.sh` options and `aqua_analysis.py` config paths (#1723, #1754)
