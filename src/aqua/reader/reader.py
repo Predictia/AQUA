@@ -127,7 +127,8 @@ class Reader(FixerMixin, TimStatMixin):
         self.configdir = Configurer.configdir
         self.machine = Configurer.get_machine()
         self.config_file = Configurer.config_file
-        self.cat, self.catalog_file, self.machine_file = Configurer.deliver_intake_catalog(catalog=catalog, model=model, exp=exp, source=source)
+        self.cat, self.catalog_file, self.machine_file = Configurer.deliver_intake_catalog(
+            catalog=catalog, model=model, exp=exp, source=source)
         self.fixer_folder, self.grids_folder = Configurer.get_reader_filenames()
 
         # deduce catalog name
@@ -143,7 +144,7 @@ class Reader(FixerMixin, TimStatMixin):
         # Manual safety check for netcdf sources (see #943), we output a more meaningful error message
         if isinstance(self.esmcat, intake_xarray.netcdf.NetCDFSource):
             if not files_exist(self.esmcat.urlpath):
-                raise NoDataError(f"No NetCDF files available for {self.model} {self.exp} {self.source}, please check the urlpath: {self.esmcat.urlpath}") # noqa E501
+                raise NoDataError(f"No NetCDF files available for {self.model} {self.exp} {self.source}, please check the urlpath: {self.esmcat.urlpath}")  # noqa E501
 
         # store the kwargs for further usage
         self.kwargs = self._check_kwargs_parameters(kwargs, intake_vars)
@@ -168,10 +169,10 @@ class Reader(FixerMixin, TimStatMixin):
             # (unless specified in instantiating the Reader)
             if not self.dst_datamodel:
                 self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
-   
+
         # these infos are used by the regridder to correct define areas/weights name
         reader_kwargs = {'model': model, 'exp': exp, 'source': source}
-        
+
         # define grid names
         self.src_grid_name = self.esmcat.metadata.get('source_grid_name')
         self.tgt_grid_name = regrid
@@ -184,7 +185,6 @@ class Reader(FixerMixin, TimStatMixin):
                                          definitions=machine_paths['paths'],
                                          loglevel=self.loglevel)
             cfg_regrid = {**machine_paths, **cfg_regrid}
-            
 
             if self.src_grid_name is None:
                 self.logger.warning('Grid metadata is not defined. Trying to access the real data')
@@ -192,8 +192,8 @@ class Reader(FixerMixin, TimStatMixin):
                 self.regridder = Regridder(cfg_regrid, data=data, loglevel=loglevel)
             else:
                 self.logger.info('Grid metadata is %s', self.src_grid_name)
-                self.regridder = Regridder(cfg_regrid, src_grid_name = self.src_grid_name, loglevel=loglevel)
-                
+                self.regridder = Regridder(cfg_regrid, src_grid_name=self.src_grid_name, loglevel=loglevel)
+
                 if self.regridder.error:
                     self.logger.warning('Issues in the Regridder() init: trying with data')
                     data = self._retrieve_plain()
@@ -212,7 +212,7 @@ class Reader(FixerMixin, TimStatMixin):
         if areas:
             # generate source areas and expose them in the reader
             self.regridder.areas(rebuild=rebuild, reader_kwargs=reader_kwargs)
-            self.src_grid_area = self.regridder.src_grid_area     
+            self.src_grid_area = self.regridder.src_grid_area
             if self.fix:
                 self.src_grid_area = self._fix_area(self.src_grid_area)
 
@@ -232,7 +232,6 @@ class Reader(FixerMixin, TimStatMixin):
                 self.tgt_grid_area = self._fix_area(self.tgt_grid_area)
             self.tgt_space_coord = self.regridder.tgt_horizontal_dims
 
-
     def retrieve(self, var=None, level=None,
                  startdate=None, enddate=None,
                  history=True, sample=False):
@@ -250,7 +249,6 @@ class Reader(FixerMixin, TimStatMixin):
         Returns:
             A xarray.Dataset containing the required data.
         """
-
 
         if not startdate:  # In case the streaming startdate is used also for FDB copy it
             startdate = self.startdate
@@ -442,7 +440,6 @@ class Reader(FixerMixin, TimStatMixin):
     #                             name, list(drop_coords))
     #     return data.drop_vars(drop_coords)
 
-
     def fldmean(self, data, lon_limits=None, lat_limits=None, **kwargs):
         """
         Perform a weighted global average.
@@ -473,13 +470,12 @@ class Reader(FixerMixin, TimStatMixin):
         if lon_limits is not None or lat_limits is not None:
             data = area_selection(data, lon=lon_limits, lat=lat_limits,
                                   loglevel=self.loglevel, **kwargs)
-        self.logger.info('Space coordinates are %s', space_coord)  
+        self.logger.info('Space coordinates are %s', space_coord)
         # cleaning coordinates which have "multiple" coordinates in their own definition
-        #grid_area = self._clean_spourious_coords(grid_area, name = "area")
-        #data = self._clean_spourious_coords(data, name = "data")
+        # grid_area = self._clean_spourious_coords(grid_area, name = "area")
+        # data = self._clean_spourious_coords(data, name = "data")
 
         # HAVE TO ADD AN ERROR IF AREAS HAVE NOT THE SAME AREAS AS DATA
-
 
         # check if coordinates are aligned
         try:
@@ -493,7 +489,7 @@ class Reader(FixerMixin, TimStatMixin):
                     # first case: shape different
                     if len(grid_area[coord]) != len(xcoord):
                         raise ValueError(f'{coord} has different shape between area files and your dataset.'
-                                        'If using the LRA, try setting the regrid=r100 option') from err
+                                         'If using the LRA, try setting the regrid=r100 option') from err
                     # shape are ok, but coords are different
                     if not grid_area[coord].equals(xcoord):
                         # if they are fine when sorted, there is a sorting mismatch
@@ -513,7 +509,6 @@ class Reader(FixerMixin, TimStatMixin):
         return out
 
     def _check_kwargs_parameters(self, main_parameters, intake_parameters):
-
         """
         Function to check if which parameters are included in the metadata of
         the source and performs a few safety checks.
@@ -531,7 +526,7 @@ class Reader(FixerMixin, TimStatMixin):
         # remove null kwargs
         parameters = {key: value for key, value in parameters.items() if value is not None}
 
-        user_parameters =  self.esmcat.describe().get('user_parameters')
+        user_parameters = self.esmcat.describe().get('user_parameters')
         if user_parameters is not None:
             if parameters is None:
                 parameters = {}
@@ -591,7 +586,8 @@ class Reader(FixerMixin, TimStatMixin):
         else:
             raise ValueError('This is not an xarray object!')
 
-        final = log_history(final, f"Interpolated from original levels {data[vert_coord].values} {data[vert_coord].units} to level {levels} using {method} method.")
+        final = log_history(
+            final, f"Interpolated from original levels {data[vert_coord].values} {data[vert_coord].units} to level {levels} using {method} method.")
 
         final.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
@@ -801,7 +797,8 @@ class Reader(FixerMixin, TimStatMixin):
             if self.aggregation and not chunks.get('time'):
                 chunks['time'] = self.aggregation
             if self.streaming and not self.aggregation:
-                self.logger.warning("Aggregation is not set, using default time resolution for streaming. If you are asking for a longer chunks['time'] for GSV access, please set a suitable aggregation value")
+                self.logger.warning(
+                    "Aggregation is not set, using default time resolution for streaming. If you are asking for a longer chunks['time'] for GSV access, please set a suitable aggregation value")
 
         if dask:
             if chunks:  # if the chunking or aggregation option is specified override that from the catalog
@@ -874,7 +871,7 @@ class Reader(FixerMixin, TimStatMixin):
                 self.logger.warning("Duplicate entries found along the time axis, keeping the %s one.", keep)
 
         return data
-    
+
     @contextmanager
     def _temporary_attrs(self, **kwargs):
         """Temporarily override Reader attributes, restoring them afterward."""
@@ -886,7 +883,7 @@ class Reader(FixerMixin, TimStatMixin):
         finally:
             for key, value in original_values.items():
                 setattr(self, key, value)
-    
+
     def _retrieve_plain(self, *args, **kwargs):
         """
         Retrieve data without any additional processing.
@@ -916,7 +913,7 @@ class Reader(FixerMixin, TimStatMixin):
     def _grid_inspector(self, data):
         """
         Use smmregrid GridInspector to get minimal sample data
-        
+
         Args:
             data (xarray.Dataset): input data
 
@@ -925,7 +922,6 @@ class Reader(FixerMixin, TimStatMixin):
         """
 
         def get_gridtype_attr(gridtypes, attr):
-
             """Helper compact tool to extra gridtypes information"""
             out = []
             for gridtype in gridtypes:
@@ -938,7 +934,7 @@ class Reader(FixerMixin, TimStatMixin):
                     out.append(value)
 
             return list(dict.fromkeys(out))
-        
+
         # get gridtypes from smrregird
         gridtypes = GridInspector(data).get_grid_info()
 
@@ -975,7 +971,6 @@ class Reader(FixerMixin, TimStatMixin):
         if self.tgt_grid_name:
             print("Regridding is active:")
             print(f"  Target grid is {self.tgt_grid_name}")
-
 
         print("Metadata:")
         for k, v in metadata.items():

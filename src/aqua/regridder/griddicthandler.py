@@ -4,6 +4,7 @@ from smmregrid.util import is_cdo_grid
 from aqua.logger import log_configure
 from .regridder_util import check_existing_file
 
+
 class GridDictHandler:
     """Class to handle AQUA grid dictionaries."""
 
@@ -12,7 +13,6 @@ class GridDictHandler:
         self.default_dimension = default_dimension
         self.loglevel = loglevel
         self.logger = log_configure(log_level=loglevel, log_name='Regridder')
-
 
     def normalize_grid_dict(self, grid_name):
         """
@@ -30,11 +30,10 @@ class GridDictHandler:
             dict: The normalized grid dictionary.
         """
 
-
         # if empty, return an empty dictionary
         if grid_name is None:
             return {}
-        
+
         if not isinstance(grid_name, (str, dict)):
             raise ValueError(f"Grid name '{grid_name}' is not a valid type.")
 
