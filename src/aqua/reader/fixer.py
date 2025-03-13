@@ -369,19 +369,7 @@ class FixerMixin():
 
         return default_fixes
 
-    def fixer(self, data, var, **kwargs):
-        """Call the fixer function returning container or iterator"""
-        if isinstance(data, types.GeneratorType):
-            return self._fixergen(data, var, **kwargs)
-        else:
-            return self._fixer(data, var, **kwargs)
-
-    def _fixergen(self, data, var, **kwargs):
-        """Iterator version of the fixer"""
-        for ds in data:
-            yield self._fixer(ds, var, keep_memory=True, **kwargs)
-
-    def _fixer(self, data, destvar, apply_unit_fix=True, keep_memory=False):
+    def fixer(self, data, destvar, apply_unit_fix=True):
         """
         Perform fixes (var name, units, coord name adjustments) of the input dataset.
 
@@ -391,8 +379,6 @@ class FixerMixin():
             apply_unit_fix (bool):  if to perform immediately unit conversions (which requite a product or an addition).
                                     The fixer sets anyway an offset or a multiplicative factor in the data attributes.
                                     These can be applied also later with the method `apply_unit_fix`. (true)
-            keep_memory (bool):     if to keep memory of the previous fields (used for decumulation of iterators)
-
         Returns:
             A xarray.Dataset containing the fixed data and target units, factors and offsets in variable attributes.
         """
@@ -596,7 +582,7 @@ class FixerMixin():
 
         # decumulate if necessary and fix first of month if necessary
         if vars_to_fix:
-            data = self._wrapper_decumulate(data, vars_to_fix, varlist, keep_memory, jump)
+            data = self._wrapper_decumulate(data, vars_to_fix, varlist, jump)
             if nanfirst_enddate:  # This is a temporary fix for IFS data, run ony if an end date is specified
                 data = self._wrapper_nanfirst(data, vars_to_fix, varlist,
                                               startdate=nanfirst_startdate,
@@ -692,7 +678,7 @@ class FixerMixin():
 
         return field
 
-    def _wrapper_decumulate(self, data, variables, varlist, keep_memory, jump):
+    def _wrapper_decumulate(self, data, variables, varlist, jump):
         """
         Wrapper function for decumulation, which takes into account the requirement of
         keeping into memory the last step for streaming/fdb purposes
@@ -701,16 +687,12 @@ class FixerMixin():
             Data: Xarray Dataset
             variables: The fixes of the variables
             varlist: the variable dictionary with the old and new names
-            keep_memory: if to keep memory of the previous fields (used for decumulation of iterators)
             jump: the jump for decumulation
 
         Returns:
             Dataset with decumulated fixes
         """
 
-        fkeep = False
-        if keep_memory:
-            data1 = data.isel(time=-1)  # save last timestep for possible future use
         for var in variables:
             # Decumulate if required
             if variables[var].get("decumulate", None):
@@ -718,23 +700,10 @@ class FixerMixin():
                 if varname in data.variables:
                     self.logger.debug("Starting decumulation for variable %s", varname)
                     keep_first = variables[var].get("keep_first", True)
-                    if keep_memory:  # Special case for iterators
-                        fkeep = True  # We have decumulated at least once and we need to keep data
-                        if not self.previous_data:
-                            previous_data = xr.zeros_like(data[varname].isel(time=0))
-                        else:
-                            previous_data = self.previous_data[varname]
-                        data[varname] = self.simple_decumulate(data[varname],
-                                                               jump=jump,
-                                                               keep_first=keep_first,
-                                                               keep_memory=previous_data)
-                    else:
-                        data[varname] = self.simple_decumulate(data[varname],
-                                                               jump=jump,
-                                                               keep_first=keep_first)
+                    data[varname] = self.simple_decumulate(data[varname],
+                                                            jump=jump,
+                                                            keep_first=keep_first)
                     log_history(data[varname], f"Variable {varname} decumulated by fixer")
-        if fkeep:
-            self.previous_data = data1  # keep the last timestep for further decumulations
 
         return data
 
@@ -1031,7 +1000,7 @@ class FixerMixin():
         self.logger.debug("Variables to be loaded: %s", loadvar)
         return loadvar
 
-    def simple_decumulate(self, data, jump=None, keep_first=True, keep_memory=None):
+    def simple_decumulate(self, data, jump=None, keep_first=True):
         """
         Remove cumulative effect on IFS fluxes.
 
@@ -1040,7 +1009,6 @@ class FixerMixin():
             jump (str):              used to fix periodic jumps (a very specific NextGEMS IFS issue)
                                      Examples: jump='month' (the NextGEMS case), jump='day')
             keep_first (bool):       if to keep the first value as it is (True) or place a 0 (False)
-            keep_memory (DataArray): data from previous step
 
         Returns:
             A xarray.DataArray where the cumulation has been removed
@@ -1055,10 +1023,6 @@ class FixerMixin():
             zeros = data.isel(time=0)
         else:
             zeros = xr.zeros_like(data.isel(time=0))
-        if isinstance(keep_memory, xr.DataArray):
-            data0 = data.isel(time=0)
-            keep_memory = keep_memory.assign_coords(time=data0.time)  # We need them to have the same time
-            zeros = data0 - keep_memory
 
         deltas = xr.concat([zeros, deltas], dim='time').transpose('time', ...)
 
