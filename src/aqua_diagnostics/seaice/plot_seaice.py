@@ -27,7 +27,6 @@ class PlotSeaIce:
                  dpi=300, loglevel='WARNING'):
         """
         Initializes the PlotSeaIce class.
-
         This constructor sets up logging, initializes input datasets, processes data, and configures output settings
         for plotting sea ice extent and volume.
         Args:
