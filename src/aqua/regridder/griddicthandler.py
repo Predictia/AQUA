@@ -30,9 +30,13 @@ class GridDictHandler:
             dict: The normalized grid dictionary.
         """
 
+
         # if empty, return an empty dictionary
         if grid_name is None:
             return {}
+        
+        if not isinstance(grid_name, (str, dict)):
+            raise ValueError(f"Grid name '{grid_name}' is not a valid type.")
 
         # if a grid name is a valid CDO grid name, return it in the format of a dictionary
         if is_cdo_grid(grid_name):
@@ -42,18 +46,16 @@ class GridDictHandler:
         # raise error if the grid does not exist
         grid_dict = self.cfg_grid_dict['grids'].get(grid_name)
         if not grid_dict:
-            raise ValueError(f"Grid '{grid_name}' not found in the configuration.")
+            raise ValueError(f"Grid name '{grid_name}' not found in the configuration.")
 
         # grid dict is a string: this is the case of a CDO grid name
         if isinstance(grid_dict, str):
             if is_cdo_grid(grid_dict):
                 self.logger.debug("Grid definition %s is a valid CDO grid name.", grid_dict)
                 return {"path": {self.default_dimension: grid_dict}}
-            raise ValueError(f"Grid '{grid_dict}' is not a valid CDO grid name.")
+            raise ValueError(f"Grid name '{grid_dict}' is not a valid CDO grid name.")
         if isinstance(grid_dict, dict):
             return grid_dict
-
-        raise ValueError(f"Grid dict '{grid_dict}' is not a valid type")
 
     def normalize_grid_path(self, grid_dict):
         """
@@ -90,6 +92,7 @@ class GridDictHandler:
         # (could extend to CDO names?)
         if isinstance(path, dict):
             for _, value in path.items():
+                print(value)
                 if not (is_cdo_grid(value) or check_existing_file(value)):
                     raise ValueError(f"Grid path '{value}' is not a valid CDO grid name nor a file path.")
             self.logger.debug("Grid path %s is a valid dictionary of file paths.", path)

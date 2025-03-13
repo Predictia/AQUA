@@ -1,10 +1,9 @@
 """Test regridding from Reader"""
-import sys
-import logging
 import pytest
 from aqua import Reader
+from aqua.regridder.griddicthandler import GridDictHandler
 
-loglevel = "DEBUG"
+LOGLEVEL = "DEBUG"
 approx_rel = 1e-4
 
 @pytest.fixture(
@@ -21,10 +20,59 @@ approx_rel = 1e-4
 def reader_arguments(request):
     return request.param
 
+# fake dictionary for doing tests
+cfg_dict = {
+    "grids":{
+        "r1000": "r36x18",
+        "n128": "n128",
+        "tragic": "tragic",
+        "afternoon": { "path": { "2d": "r100x50" } },
+        "doing": { "path": "noise.nc" },
+        "wonderful": { "path": { '2d': "r360x180" } },
+        "lovely": { "path": { '2d': "tests" } },
+        "tests": { "path": { "pizza please!" } }
+    }
+}
+
 
 @pytest.mark.aqua
 class TestRegridder():
     """class for regridding test"""
+
+    def test_grid_dict_handler(self):
+        """Test the grid dictionary handler"""
+        
+        gdh = GridDictHandler(cfg_dict, loglevel=LOGLEVEL)
+
+        # empty one
+        assert gdh.normalize_grid_dict(None) == {}
+        # standard
+        assert gdh.normalize_grid_dict("r1000") == {"path": {"2d": "r36x18"}}
+        # couple of CDO grids
+        assert gdh.normalize_grid_dict("n256") == {"path": {"2d": "n256"}}
+        assert gdh.normalize_grid_dict("r100x50") == {"path": {"2d": "r100x50"}}
+
+        # test of errors
+        with pytest.raises(ValueError, match="Grid name 'ciao' not found in the configuration."):
+            gdh.normalize_grid_dict("ciao")
+        with pytest.raises(ValueError, match="Grid name '20' is not a valid type."):
+            gdh.normalize_grid_dict(20)
+        with pytest.raises(ValueError, match="Grid name 'tragic' is not a valid CDO grid name."):
+            gdh.normalize_grid_dict("tragic")
+
+    def test_grid_path_handler(self):
+        """Test the grid path handler"""
+
+        gdh = GridDictHandler(cfg_dict, loglevel=LOGLEVEL)
+        assert gdh.normalize_grid_path(cfg_dict["grids"]["afternoon"]) == {'2d': 'r100x50'}
+        assert gdh.normalize_grid_path(cfg_dict["grids"]["lovely"]) == {'2d': 'tests'}
+        assert gdh.normalize_grid_path(cfg_dict["grids"]["wonderful"]) == {'2d': 'r360x180'}
+        
+        with pytest.raises(FileNotFoundError, match="Grid file 'noise.nc' does not exist."):
+            gdh.normalize_grid_path(cfg_dict["grids"]["doing"])
+        with pytest.raises(ValueError, match="Grid path '{'pizza please!'}' is not a valid type."):
+            gdh.normalize_grid_path(cfg_dict["grids"]["tests"])
+
 
     def test_basic_interpolation(self, reader_arguments):
         """
@@ -35,7 +83,7 @@ class TestRegridder():
         model, exp, source, variable, ratio = reader_arguments
 
         reader = Reader(model=model, exp=exp, source=source, regrid="r200",
-                        fix=True, loglevel=loglevel)
+                        fix=True, loglevel=LOGLEVEL)
         data = reader.retrieve()
         rgd = reader.regrid(data[variable])
         assert len(rgd.lon) == 180
@@ -49,7 +97,7 @@ class TestRegridder():
         (i.e. any missing points)
         """
         reader = Reader(model='FESOM', exp='test-pi', source='original_2d',
-                        regrid='r100', rebuild=True, fix=False, loglevel=loglevel)
+                        regrid='r100', rebuild=True, fix=False, loglevel=LOGLEVEL)
         data = reader.retrieve(var='sst')
         rgd = reader.regrid(data)
 
@@ -64,7 +112,7 @@ class TestRegridder():
         """Test the case where no source grid path is specified in the regrid.yaml file
         and areas/weights are reconstructed from the file itself"""
         reader = Reader(model='IFS', exp='test-tco79', source='long',
-                        regrid='r100', rebuild=True, loglevel=loglevel)
+                        regrid='r100', rebuild=True, loglevel=LOGLEVEL)
         data = reader.retrieve(var='ttr')
         rgd = reader.regrid(data)
 
@@ -91,7 +139,7 @@ class TestRegridder():
         (i.e. any missing points)
         """
         reader = Reader(model='FESOM', exp='test-pi', source='original_3d',
-                        regrid='r100', rebuild=True, fix=False, loglevel=loglevel)
+                        regrid='r100', rebuild=True, fix=False, loglevel=LOGLEVEL)
         data = reader.retrieve(var='temp')
         rgd = reader.regrid(data)
 
@@ -112,7 +160,7 @@ class TestRegridder():
         (i.e. any missing points)
         """
         reader = Reader(model='NEMO', exp='test-eORCA1', source='short-3d',
-                        regrid='r200', rebuild=True, fix=False, loglevel=loglevel)
+                        regrid='r200', rebuild=True, fix=False, loglevel=LOGLEVEL)
         data = reader.retrieve(var='avg_so')
         rgd = reader.regrid(data)
 
@@ -130,7 +178,7 @@ class TestRegridder():
         Test regridding selected levels.
         """
         reader = Reader(model='FESOM', exp='test-pi', source='original_3d',
-                        regrid='r100', loglevel=loglevel)
+                        regrid='r100', loglevel=LOGLEVEL)
         data = reader.retrieve()
 
         layers = [0, 2]

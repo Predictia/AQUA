@@ -976,34 +976,33 @@ class Reader(FixerMixin, TimStatMixin):
 
     def info(self):
         """Prints info about the reader"""
-        print("Reader for model %s, experiment %s, source %s" %
-              (self.model, self.exp, self.source))
+        print(f"Reader for model {self.model}, experiment {self.exp}, source {self.source}")
 
         if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
             if "expver" in self.esmcat._request.keys():
-                print("  This experiment has expID %s" % self.esmcat._request['expver'])
+                print(f"  This experiment has expID {self.esmcat._request['expver']}")
 
         metadata = self.esmcat.metadata
 
         if self.fix:
             print("Data fixing is active:")
             if "fixer_name" in metadata.keys():
-                print("  Fixer name is %s" % metadata["fixer_name"])
+                print(f"  Fixer name is {metadata['fixer_name']}")
             else:
                 # TODO: to be removed when all the catalogs are updated
-                print("  Fixes: %s" % self.fixes)
+                print(f"  Fixes: {self.fixes}")
 
         if self.tgt_grid_name:
             print("Regridding is active:")
-            print("  Target grid is %s" % self.tgt_grid_name)
-            #print("  Regridding method is %s" % self.regrid_method) #HACK
+            print(f"  Target grid is {self.tgt_grid_name}")
+
 
         print("Metadata:")
         for k, v in metadata.items():
-            print("  %s: %s" % (k, v))
+            print(f"  {k}: {v}")
 
         if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
             print("GSV request for this source:")
             for k, v in self.esmcat._request.items():
                 if k not in ["time", "param", "step", "expver"]:
-                    print("  %s: %s" % (k, v))
+                    print(f"  {k}: {v}")
