@@ -286,7 +286,7 @@ class Regridder():
             # define the vertical coordinate in the smmregrid world
             smm_vertical_dim = None if vertical_dim in [
                 DEFAULT_DIMENSION, DEFAULT_DIMENSION_MASK] else vertical_dim
-
+        
             weights_filename = self._weights_filename(tgt_grid_name, regrid_method,
                                                       vertical_dim, reader_kwargs)
 
@@ -298,9 +298,10 @@ class Regridder():
                     self.logger.info(
                         "Weights file %s exists. Regenerating.", weights_filename)
                     os.remove(weights_filename)
-
-                self.logger.info(
-                    "Generating weights for %s grid: %s", tgt_grid_name, vertical_dim)
+                else:
+                    self.logger.info(
+                        "Generating weights for %s grid: %s", tgt_grid_name, vertical_dim)
+                    
                 # smmregrid call
                 generator = CdoGenerate(source_grid=self.src_grid_path[vertical_dim],
                                         target_grid=self._get_grid_path(tgt_grid_path),
@@ -308,11 +309,6 @@ class Regridder():
                                         cdo_options=cdo_options,
                                         cdo=self.cdo,
                                         loglevel=self.loglevel)
-
-                # minimum time warning
-                if smm_vertical_dim:
-                    self.logger.warning(
-                        'Vertical coordinate detected, computation of weights may take longer.')
 
                 # generate and save the weights
                 weights = generator.weights(method=regrid_method,
@@ -359,9 +355,10 @@ class Regridder():
                     "Using grid-based template for source grid. Filename: %s", filename)
             else:
                 reader_kwargs = validate_reader_kwargs(reader_kwargs)
-                filename = area_dict["template_default"].format(model=reader_kwargs["model"],
-                                                                exp=reader_kwargs["exp"],
-                                                                source=reader_kwargs["source"])
+                filename = area_dict["template_default"].format(
+                    model=reader_kwargs["model"],
+                    exp=reader_kwargs["exp"],
+                    source=reader_kwargs["source"])
                 self.logger.debug(
                     "Using source-based template for source grid. Filename: %s", filename)
 
@@ -434,6 +431,8 @@ class Regridder():
         if not list(set(data.dims) & set(vertical_dims)):
             for vertical_dim in vertical_dims:
                 if vertical_dim in data.coords:
+                    self.logger.debug(
+                        "Expanding dimensions to include %s", vertical_dim)
                     data = data.expand_dims(dim=vertical_dim, axis=0)
         return data
 
