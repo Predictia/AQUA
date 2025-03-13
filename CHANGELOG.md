@@ -9,6 +9,8 @@ Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
 
+- Major refactor of the regrid options, with new modular `Regridder()` class replacing `Regrid()` mixin (#1768)
+- Refactor of the `retrieve_plain()` function with contextmanager and smmregrid GridInspector (#1768)
 - Add a regrid option to cli of relevant diagnostics (#1792)
 - Limit estimation of time for weight generation only to regular lon/lat grids (#1786)
 - LRA generation can operate spatial subsection (#1711)
