@@ -402,4 +402,4 @@ class zonal_mean_trend:
             export_fig(self.output_dir, filename, "pdf", metadata_value=title, loglevel=self.loglevel)
         if not IPython.get_ipython():  
             plt.close() 
-        return
+        return self.__dict__

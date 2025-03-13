@@ -62,7 +62,8 @@ def diagnostics_instances(common_setup):
     return {
         "hovmoller": hovmoller_plot(setup),
         "time_series": time_series(setup),
-        "multilevel_trend" : multilevel_trend(setup)
+        "multilevel_trend" : multilevel_trend(setup),
+        "zonal_mean_trend" : zonal_mean_trend(setup)
         
         # Add other instances like multilevel_trend, zonal_mean_trend if needed
     }
@@ -135,5 +136,14 @@ def test_multilevel_trend(diagnostics_instances):
     trend_dic= multilevel_trend_instance.plot()
     assert trend_dic["trend_data"]["thetao"].isel(lev=1, lat=10, lon=10).values == pytest.approx(0.09392428426243855,rel=approx_rel)
     assert trend_dic["trend_data"]["so"].isel(lev=1, lat=10, lon=10).values == pytest.approx(0.02337264012989936,rel=approx_rel)
+    
+# Zonal mean trend Function
+@pytest.mark.diagnostics
+def test_zonal_mean_trend(diagnostics_instances):
+    """Test data loading for time series plot."""
+    zonal_mean_trend_instance = diagnostics_instances["zonal_mean_trend"]
+    zonal_trend_dic = zonal_mean_trend_instance.plot()
+    assert zonal_trend_dic["trend_data"]["thetao"].isel(lev=1, lat=10).values == pytest.approx(-0.2340330794708369,rel=approx_rel)
+    assert zonal_trend_dic["trend_data"]["so"].isel(lev=1, lat=10).values == pytest.approx(0.07857219231591478,rel=approx_rel)
     
     
