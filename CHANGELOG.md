@@ -23,7 +23,7 @@ AQUA core complete list:
 - Avoid infinite hanging during bridge access (#1733, #1738)
 - Enable dependabot to monitor dependencies every month (#1748)
 - `eccodes` bump to 2.40.0 (#1747)
-- Integrate codecov to monitor coverage and test analytics and remove old bot (#1736, #1737, #1755)
+- Integrate codecov to monitor coverage and test analytics and remove old bot (#1736, #1737, #1755, #1819)
 - Reinitialize `GSVRetriever` instance only when needed (#1733)
 - Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732, #1743, #1762)
 - Fix `push_analysis.sh` options and `aqua_analysis.py` config paths (#1723, #1754)
@@ -36,6 +36,7 @@ AQUA core complete list:
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
 
 AQUA diagnostics complete list:
+- Ocean3d: Tests for the Ocean3d diagnostic (#1780)
 - Diagnostic core: A common function to check and convert variable units is provided as `convert_data_units()` (#1806)
 - Ocean3d: Bug fix to regridding of observations in cli (#1811)
 - Diagnostic core: the `retrieve()` method uses internally a `_retrieve()` method that returns instead of updating attributes (#1763)
