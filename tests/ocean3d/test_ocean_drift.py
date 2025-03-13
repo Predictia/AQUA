@@ -1,18 +1,11 @@
-import os
 import pytest
-import xarray as xr
 from aqua import Reader
-from aqua.util import load_yaml, ConfigPath
 from ocean3d import check_variable_name
-
-from ocean3d import stratification
-from ocean3d import mld
 
 from ocean3d import hovmoller_plot
 from ocean3d import time_series
 from ocean3d import multilevel_trend
 from ocean3d import zonal_mean_trend
-from pathlib import Path
 
 approx_rel = 1e-4
 
