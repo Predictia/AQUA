@@ -5,6 +5,7 @@ both with monthly and annual aggregation options
 import xarray as xr
 import matplotlib.pyplot as plt
 from aqua.logger import log_configure
+from aqua.util import to_list
 
 
 def plot_timeseries(monthly_data=None,
@@ -17,13 +18,15 @@ def plot_timeseries(monthly_data=None,
                     ref_label: str = None,
                     std_label: str = None,
                     loglevel: str = 'WARNING',
+                    fig: plt.Figure = None,
+                    ax: plt.Axes = None,
                     **kwargs):
     """
     monthly_data and annual_data are list of xr.DataArray
     that are plot as timeseries together with their reference
     data and standard deviation.
 
-    Arguments:
+    Args:
         monthly_data (list of xr.DataArray): monthly data to plot
         annual_data (list of xr.DataArray): annual data to plot
         ref_monthly_data (xr.DataArray): reference monthly data to plot
@@ -34,7 +37,7 @@ def plot_timeseries(monthly_data=None,
         ref_label (str): label for the reference data
         loglevel (str): logging level
 
-    Keyword Arguments:
+    Keyword Args:
         figsize (tuple): size of the figure
         title (str): title of the plot
 
@@ -42,8 +45,9 @@ def plot_timeseries(monthly_data=None,
         fig, ax (tuple): tuple containing the figure and axis objects
     """
     logger = log_configure(loglevel, 'PlotTimeseries')
-    fig_size = kwargs.get('figsize', (10, 5))
-    fig, ax = plt.subplots(1, 1, figsize=fig_size)
+    if fig is None and ax is None:
+        fig_size = kwargs.get('figsize', (10, 5))
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
     color_list = ["#1898e0", "#8bcd45", "#f89e13", "#d24493",
                   "#00b2ed", "#dbe622", "#fb4c27", "#8f57bf",
@@ -124,7 +128,7 @@ def plot_timeseries(monthly_data=None,
         except Exception as e:
             logger.debug(f"Error plotting annual std data: {e}")
 
-    ax.legend(fontsize='small')
+    ax.legend(fontsize='small', loc='upper left')
     ax.grid(axis="x", color="k")
     ax.spines["right"].set_visible(False)
     ax.spines["top"].set_visible(False)
@@ -135,7 +139,6 @@ def plot_timeseries(monthly_data=None,
 
     return fig, ax
 
-
 def plot_seasonalcycle(data=None,
                        ref_data=None,
                        std_data=None,
@@ -144,10 +147,9 @@ def plot_seasonalcycle(data=None,
                        grid=True,
                        loglevel: str = 'WARNING',
                        **kwargs):
-    """
-    Plot the seasonal cycle of the data and the reference data.
+    """ Plot the seasonal cycle of the data and the reference data.
 
-    Arguments:
+    Args:
         data (list of xr.DataArray): data to plot
         ref_data (xr.DataArray): reference data to plot
         std_data (xr.DataArray): standard deviation of the reference data
@@ -155,11 +157,9 @@ def plot_seasonalcycle(data=None,
         ref_label (str): label for the reference data
         grid (bool): if True, plot grid
         loglevel (str): logging level
-
-    Keyword Arguments:
+    Keyword Args:
         figsize (tuple): size of the figure
         title (str): title of the plot
-
     Returns:
         fig, ax (tuple): tuple containing the figure and axis objects
     """
@@ -224,10 +224,9 @@ def _extend_cycle(data: xr.DataArray = None, loglevel='WARNING'):
     Add december value at the beginning and january value at the end of the data
     for a cyclic plot
 
-    Arguments:
+    Args:
         data (xr.DataArray): data to extend
         loglevel (str): logging level. Default is 'WARNING'
-
     Returns:
         data (xr.DataArray): extended data (if possible)
     """
