@@ -23,18 +23,6 @@ from .fixer import FixerMixin
 from .timstat import TimStatMixin
 from .reader_utils import set_attrs
 
-
-# default spatial dimensions and vertical coordinates
-default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude',
-                      'latitude', 'cell', 'cells', 'ncells', 'values',
-                      'value', 'nod2', 'pix', 'elem', 'xc', 'yc']
-
-# default vertical dimension
-default_vertical_dims = ['nz1', 'nz', 'level', 'height']
-
-# parameters which will affect the weights and areas name
-default_weights_areas_parameters = ['zoom']
-
 # set default options for xarray
 xr.set_options(keep_attrs=True)
 
@@ -119,7 +107,7 @@ class Reader(FixerMixin, TimStatMixin):
 
         self.grid_area = None
         self.src_grid_area = None
-        self.dst_grid_area = None
+        self.tgt_grid_area = None
 
         if stream_generator:  # Stream generator also implies streaming
             streaming = True
@@ -188,62 +176,69 @@ class Reader(FixerMixin, TimStatMixin):
             # (unless specified in instantiating the Reader)
             if not self.dst_datamodel:
                 self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
-
+   
+        # these infos are used by the regridder to correct define areas/weights name
+        reader_kwargs = {'model': model, 'exp': exp, 'source': source}
         
-        reader_kwargs = {'model': model, 'exp': exp, 'source': source, 'catalog': catalog}
-        #self.cdo = self._set_cdo()
+        # define grid names
+        self.src_grid_name = self.esmcat.metadata.get('source_grid_name')
+        self.tgt_grid_name = regrid
 
         # load and check the regrid
         if regrid or areas:
 
+            # create the configuration dictionary
             cfg_regrid = load_multi_yaml(folder_path=self.grids_folder,
                                          definitions=machine_paths['paths'],
                                          loglevel=self.loglevel)
-
             cfg_regrid = {**machine_paths, **cfg_regrid}
-
-            # define grid names
-            self.src_grid_name = self.esmcat.metadata.get('source_grid_name')
             
-            if self.src_grid_name is not None:
+
+            if self.src_grid_name is None:
+                self.logger.warning('Grid metadata is not defined. Trying to access the real data')
+                data = self._retrieve_plain()
+                self.regridder = Regridder(cfg_regrid, data=data, loglevel=loglevel)
+            else:
                 self.logger.info('Grid metadata is %s', self.src_grid_name)
-                self.dst_grid_name = regrid
-                # configure all the required elements
-                self.regridder = Regridder(cfg_regrid, self.src_grid_name, loglevel=loglevel)
+                self.regridder = Regridder(cfg_regrid, src_grid_name = self.src_grid_name, loglevel=loglevel)
                 
                 if self.regridder.error:
-                    self.logger.warning('Grid metadata is not defined. Trying to access the real data')
+                    self.logger.warning('Issues in the Regridder() init: trying with data')
                     data = self._retrieve_plain()
-                    self.regridder = Regridder(cfg_regrid, self.src_grid_name, loglevel=loglevel, data=data)
-                    
+                    self.regridder = Regridder(cfg_regrid, src_grid_name=self.src_grid_name, data=data, loglevel=loglevel)
 
-            else:
-                self.logger.warning('Grid metadata is not defined. Disabling regridding and areas capabilities.')
+            # export src space coord and vertical coord
+            self.src_space_coord = self.regridder.src_horizontal_dims
+            self.vert_coord = self.regridder.src_vertical_dim
+
+            # TODO: it is likely there are other cases where we need to disable regrid.
+            if not self.regridder.cdo:
                 areas = False
-                regrid = None
+                regrid = False
 
         # generate source areas
         if areas:
-            self.regridder.load_generate_areas(rebuild=rebuild, reader_kwargs=reader_kwargs)
-            self.src_grid_area = self.regridder.src_grid_area
-            self.src_space_coord = self.regridder.src_horizontal_dims
-            self.vert_coord = self.regridder.src_vertical_dim
+            # generate source areas and expose them in the reader
+            self.regridder.areas(rebuild=rebuild, reader_kwargs=reader_kwargs)
+            self.src_grid_area = self.regridder.src_grid_area     
             if self.fix:
                 self.src_grid_area = self._fix_area(self.src_grid_area)
 
         # configure regridder and generate weights
         if regrid:
-            self.regridder.load_generate_weights(rebuild=rebuild,
-                                                 tgt_grid_name=self.dst_grid_name,
-                                                 reader_kwargs=reader_kwargs)
+            # generate weights and init the SMMregridder
+            self.regridder.weights(
+                rebuild=rebuild,
+                tgt_grid_name=self.tgt_grid_name,
+                reader_kwargs=reader_kwargs)
 
-        # generate destination areas
+        # generate destination areas, expost them and the associated space coordinates
         if areas and regrid:
-            self.regridder.load_generate_areas(tgt_grid_name=self.dst_grid_name, rebuild=rebuild)
-            self.dst_grid_area = self.regridder.tgt_grid_area
+            self.regridder.areas(tgt_grid_name=self.tgt_grid_name, rebuild=rebuild)
+            self.tgt_grid_area = self.regridder.tgt_grid_area
             if self.fix:
-                self.dst_grid_area = self._fix_area(self.dst_grid_area)
-            self.dst_space_coord = self.regridder.tgt_horizontal_dims
+                self.tgt_grid_area = self._fix_area(self.tgt_grid_area)
+            self.tgt_space_coord = self.regridder.tgt_horizontal_dims
 
 
     def retrieve(self, var=None, level=None,
@@ -405,7 +400,7 @@ class Reader(FixerMixin, TimStatMixin):
     def regrid(self, data):
         """Call the regridder function returning container or iterator"""
 
-        if self.dst_grid_name is None:
+        if self.tgt_grid_name is None:
             raise NoRegridError('regrid has not been initialized in the Reader, cannot perform any regrid.')
 
         out = self.regridder.regrid(data)
@@ -431,38 +426,38 @@ class Reader(FixerMixin, TimStatMixin):
 
         return att.get("regridded", False)
 
-    def _clean_spourious_coords(self, data, name=None):
-        """
-        Remove spurious coordinates from an xarray DataArray or Dataset.
+    # def _clean_spourious_coords(self, data, name=None):
+    #     """
+    #     Remove spurious coordinates from an xarray DataArray or Dataset.
 
-        This function identifies and removes unnecessary coordinates that may
-        be incorrectly associated with spatial coordinates, such as a time
-        coordinate being linked to latitude or longitude.
+    #     This function identifies and removes unnecessary coordinates that may
+    #     be incorrectly associated with spatial coordinates, such as a time
+    #     coordinate being linked to latitude or longitude.
 
-        Parameters:
-        ----------
-        data : xarray.DataArray or xarray.Dataset
-            The input data object from which spurious coordinates will be removed.
+    #     Parameters:
+    #     ----------
+    #     data : xarray.DataArray or xarray.Dataset
+    #         The input data object from which spurious coordinates will be removed.
 
-        name : str, optional
-            An optional name or identifier for the data. This will be used in
-            warning messages to indicate which dataset the issue pertains to.
+    #     name : str, optional
+    #         An optional name or identifier for the data. This will be used in
+    #         warning messages to indicate which dataset the issue pertains to.
 
-        Returns:
-        -------
-        xarray.DataArray or xarray.Dataset
-            The cleaned data object with spurious coordinates removed.
-        """
+    #     Returns:
+    #     -------
+    #     xarray.DataArray or xarray.Dataset
+    #         The cleaned data object with spurious coordinates removed.
+    #     """
 
-        drop_coords = set()
-        for coord in list(data.coords):
-            if len(data[coord].coords)>1:
-                drop_coords.update(koord for koord in data[coord].coords if koord != coord)
-        if not drop_coords:
-            return data
-        self.logger.warning('Issue found in %s, removing %s coordinates',
-                                name, list(drop_coords))
-        return data.drop_vars(drop_coords)
+    #     drop_coords = set()
+    #     for coord in list(data.coords):
+    #         if len(data[coord].coords)>1:
+    #             drop_coords.update(koord for koord in data[coord].coords if koord != coord)
+    #     if not drop_coords:
+    #         return data
+    #     self.logger.warning('Issue found in %s, removing %s coordinates',
+    #                             name, list(drop_coords))
+    #     return data.drop_vars(drop_coords)
 
 
     def fldmean(self, data, lon_limits=None, lat_limits=None, **kwargs):
@@ -486,8 +481,8 @@ class Reader(FixerMixin, TimStatMixin):
         # If these data have been regridded we should use
         # the destination grid info
         if self._check_if_regridded(data):
-            space_coord = self.dst_space_coord
-            grid_area = self.dst_grid_area.cell_area
+            space_coord = self.tgt_space_coord
+            grid_area = self.tgt_grid_area.cell_area
         else:
             space_coord = self.src_space_coord
             grid_area = self.src_grid_area.cell_area
@@ -911,8 +906,16 @@ class Reader(FixerMixin, TimStatMixin):
     
     def _retrieve_plain(self, *args, **kwargs):
         """
-        Retrieves making sure that no fixer and agregation are used,
-        read only first variable and converts iterator to data
+        Retrieve data without any additional processing.
+        Making use of GridInspector, provide a sample data which has minimum
+        size by subselecting along variables and time dimensions 
+
+        Args:
+            *args: arguments to be passed to retrieve
+            **kwargs: keyword arguments to be passed to retrieve
+
+        Returns:
+            A xarray.Dataset containing the required miminal sample data.
         """
         if self.sample_data is not None:
             self.logger.debug('Sample data already availabe, avoid _retrieve_plain()')
@@ -927,9 +930,23 @@ class Reader(FixerMixin, TimStatMixin):
         if isinstance(data, types.GeneratorType):
             data = next(data)
 
+        self.sample_data = self._grid_inspector(data)
+        return self.sample_data
+
+    def _grid_inspector(self, data):
+        """
+        Use smmregrid GridInspector to get minimal sample data
+        
+        Args:
+            data (xarray.Dataset): input data
+
+        Returns:
+            A xarray.Dataset containing the required miminal sample data.
+        """
+
         def get_gridtype_attr(gridtypes, attr):
 
-            """Compact tool to extra gridtypes information"""
+            """Helper compact tool to extra gridtypes information"""
             out = []
             for gridtype in gridtypes:
                 value = getattr(gridtype, attr, None)
@@ -955,9 +972,7 @@ class Reader(FixerMixin, TimStatMixin):
         if minimal_time:
             self.logger.debug('Time dimensions found: %s', minimal_time)
             data = data.isel({t: 0 for t in minimal_time})
-        self.sample_data = data
-        return self.sample_data
-
+        return data
 
     def info(self):
         """Prints info about the reader"""
@@ -978,9 +993,9 @@ class Reader(FixerMixin, TimStatMixin):
                 # TODO: to be removed when all the catalogs are updated
                 print("  Fixes: %s" % self.fixes)
 
-        if self.dst_grid_name:
+        if self.tgt_grid_name:
             print("Regridding is active:")
-            print("  Target grid is %s" % self.dst_grid_name)
+            print("  Target grid is %s" % self.tgt_grid_name)
             #print("  Regridding method is %s" % self.regrid_method) #HACK
 
         print("Metadata:")

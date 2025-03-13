@@ -9,7 +9,7 @@ from smmregrid.util import check_gridfile
 from aqua.logger import log_configure
 from aqua.util import to_list
 from .griddicthandler import GridDictHandler
-from .regridder_util import check_existing_file
+from .regridder_util import check_existing_file, validate_reader_kwargs, configure_masked_fields
 
 
 # parameters which will affect the weights and areas name
@@ -35,7 +35,8 @@ class Regridder():
                  data: xr.Dataset = None,
                  loglevel: str = "WARNING"):
         """
-        The TurboRegrid constructor. Can be initialized with a dataset or a grid name
+        The (new) Regridder class. Can be initialized with a dataset or a grid name
+        It has methods to generate areas and weights, and to regrid a dataset.
 
         Args:
             cfg_grid_dict (dict): The dictionary containing the full AQUA grid configuration.
@@ -43,6 +44,26 @@ class Regridder():
             data (xarray.Dataset, optional): The dataset to be regridded, 
                                    to be provided in src_grid_path is missing.
             loglevel (str): The logging level.
+
+        Attributes:
+            loglevel (str): The logging level.
+            logger (logging.Logger): The logger.
+            cfg_grid_dict (dict): The full grid dictionary.
+            src_grid_name (str): The source grid name.
+            handler (GridDictHandler): The grid dictionary handler.
+            src_grid_dict (dict): The normalized source grid dictionary.
+            src_grid_path (dict): The normalized source grid path.
+            src_horizontal_dims (str): The source horizontal dimensions.
+            src_vertical_dim (str): The source vertical dimension.
+            tgt_horizontal_dims (str): The target horizontal dimensions.
+            error (str): The error message to be used by the Reader.
+            cdo (str): The CDO path.
+            smmregridder (dict): The SMMregrid regridder object for each vertical coordinate.
+            src_grid_area (xarray.Dataset): The source grid area.
+            tgt_grid_area (xarray.Dataset): The target grid area.
+            masked_attrs (dict): The masked attributes.
+            masked_vars (list): The masked variables.
+            extra_dims (dict): The extra dimensions (get from cfg_grid_dict) to be sent to smmregrid.
         """
 
         if src_grid_name is None and data is None:
@@ -60,34 +81,36 @@ class Regridder():
         self.src_grid_dict = self.handler.normalize_grid_dict(self.src_grid_name)
         self.src_grid_path = self.handler.normalize_grid_path(self.src_grid_dict)
 
+        self.logger.debug("Normalized grid dictionary: %s", self.src_grid_dict)
+        self.logger.debug("Normalized grid path: %s", self.src_grid_path)
+
         # this not used but can be shipped back to the reader
-        self.src_horizontal_dims = self.src_grid_dict.get('space_coords', None)
+        self.src_horizontal_dims = self.src_grid_dict.get('space_coord', None)
         self.src_vertical_dim = list(self.src_grid_path.keys())
         self.tgt_horizontal_dims = None
         self.error = None
 
-        # grid path is None: check if data is provided to extract information for CDO
+        self.logger.debug("Horizontal dimensions: %s", self.src_horizontal_dims)
+        self.logger.debug("Vertical dimensions: %s", self.src_vertical_dim)
+
+        # store dimension to be send to smmregrid if needed
+        self.extra_dims = {
+            'vertical': to_list(self.src_vertical_dim),
+            'horizontal': to_list(self.src_horizontal_dims)
+        }
+
+        # check data to extract information for CDO
         if data is not None:
-            gridtypes = GridInspector(data, loglevel=self.loglevel).get_grid_info()
-            # however we have only one 2d grid at the time in AQUA
-            self.src_horizontal_dims = gridtypes[0].horizontal_dims
-            # get all vertical grid available
-            self.src_vertical_dim = [getattr(gridtype, "vertical_dim") for gridtype in gridtypes]
-            self.logger.debug("Horizontal dimensions guessed from data: %s", self.src_horizontal_dims)
-            self.logger.debug("Vertical dimensions guessed from data: %s", self.src_vertical_dim)
-            if not self.src_grid_path:
-                self.logger.info("Using provided dataset as a grid path.")
-                self.src_grid_path = {DEFAULT_DIMENSION: data}
-        
+            self._get_info_from_data(data)
+
         if not self.src_horizontal_dims:
-            self.error = "Horizontal dimensions not found in the grid dictionary."
+            self.error = "Horizontal dimensions not found in the grid path. Please provide a dataset. "
             self.logger.warning(self.error)
             return
             
         # check if the grid path has been defined
         if not self.src_grid_path:
-            # self.error can be used by the Reader to check if the grid is valid
-            self.error = "Source grid path not found. Please provide a dataset or a grid name."
+            self.error = "Source grid path not found. Please provide a dataset."
             self.logger.warning(self.error)
             return
 
@@ -99,8 +122,7 @@ class Regridder():
         self.tgt_grid_area = None  # destination grid area
 
         # configure the masked fields
-        self.masked_attrs, self.masked_vars = self._configure_masked_fields(
-            self.src_grid_dict)
+        self.masked_attrs, self.masked_vars = configure_masked_fields(self.src_grid_dict)
 
         self.logger.info("Grid name: %s", self.src_grid_name)
         self.logger.info("Grid dictionary: %s", self.src_grid_dict)
@@ -119,9 +141,36 @@ class Regridder():
                 "CDO not found in path: Weight and area generation will fail.")
 
         return cdo
+    
+    def _get_info_from_data(self, data):
+        """
+        Extract information from the dataset to be used in the regridding process
+        """
+
+        gridinspector = GridInspector(data, loglevel=self.loglevel, extra_dims=self.extra_dims)
+        gridtypes = gridinspector.get_grid_info()
+
+        # if we have not them from the dictionary, get it from the file
+        if not self.src_horizontal_dims:
+            #however we have only one 2d grid at the time in AQUA
+            self.src_horizontal_dims = gridtypes[0].horizontal_dims
+        self.logger.debug("Horizontal dimensions guessed from data: %s", self.src_horizontal_dims)
+
+        # This should be not necessary since vertical coordinate is always provided
+        # if we have not them from the dictionary, get it from the file
+        #if not self.src_vertical_dim:
+        #    # get all vertical grid available
+        #    self.src_vertical_dim = [getattr(gridtype, "vertical_dim") for gridtype in gridtypes]
+        # self.logger.debug("Vertical dimensions guessed from data: %s", self.src_vertical_dim)
+
+        # if the path is missing, use the data to init smmregrid
+        if not self.src_grid_path:
+            vdim = self.src_vertical_dim if self.src_vertical_dim else DEFAULT_DIMENSION
+            self.logger.info("Using provided dataset as a grid path for %s", vdim)
+            self.src_grid_path = {vdim: data}
 
 
-    def load_generate_areas(self, tgt_grid_name=None, rebuild=False, reader_kwargs=None):
+    def areas(self, tgt_grid_name=None, rebuild=False, reader_kwargs=None):
         """
         Load or generate regridding areas by calling the appropriate function.
         """
@@ -129,17 +178,21 @@ class Regridder():
             # normalize the tgt grid dictionary and path
             tgt_grid_dict = self.handler.normalize_grid_dict(tgt_grid_name)
             tgt_grid_path = self.handler.normalize_grid_path(tgt_grid_dict)
-            self.tgt_grid_area = self._load_generate_areas(
+            self.tgt_grid_area = self._areas(
                 tgt_grid_name, tgt_grid_path, tgt_grid_dict,
-                reader_kwargs, target=True, rebuild=rebuild)
+                reader_kwargs, target=True, rebuild=rebuild
+            )
+            
+            # use grid inspecto to guess horizontal dimensions of target grid
             self.tgt_horizontal_dims = GridInspector(self.tgt_grid_area, loglevel=self.loglevel).get_grid_info()[0].horizontal_dims
         else:
 
-            self.src_grid_area = self._load_generate_areas(
+            self.src_grid_area = self._areas(
                 self.src_grid_name, self.src_grid_path, self.src_grid_dict,
-                reader_kwargs, target=False, rebuild=rebuild)
+                reader_kwargs, target=False, rebuild=rebuild
+            )
 
-    def _load_generate_areas(self, grid_name, grid_path, grid_dict, reader_kwargs,
+    def _areas(self, grid_name, grid_path, grid_dict, reader_kwargs,
                              target=False, rebuild=False):
         """"
         Load or generate the grid area.
@@ -200,7 +253,7 @@ class Regridder():
 
         return grid_area
 
-    def load_generate_weights(self, tgt_grid_name, regrid_method=DEFAULT_GRID_METHOD, nproc=1,
+    def weights(self, tgt_grid_name, regrid_method=DEFAULT_GRID_METHOD, nproc=1,
                               rebuild=False, reader_kwargs=None):
         """
         Load or generate regridding weights calling smmregrid
@@ -249,14 +302,11 @@ class Regridder():
                     "Generating weights for %s grid: %s", tgt_grid_name, vertical_dim)
                 # smmregrid call
                 generator = CdoGenerate(source_grid=self.src_grid_path[vertical_dim],
-                                        # this seems counterintuitive, 
-                                        # but CDO-based target grids are defined with DEFAULT_DIMENSION
                                         target_grid=self._get_grid_path(tgt_grid_path),
                                         cdo_extra=cdo_extra,
                                         cdo_options=cdo_options,
                                         cdo=self.cdo,
                                         loglevel=self.loglevel)
-
 
                 # minimum time warning
                 if smm_vertical_dim:
@@ -307,7 +357,7 @@ class Regridder():
                 self.logger.debug(
                     "Using grid-based template for source grid. Filename: %s", filename)
             else:
-                reader_kwargs = self._validate_reader_kwargs(reader_kwargs)
+                reader_kwargs = validate_reader_kwargs(reader_kwargs)
                 filename = area_dict["template_default"].format(model=reader_kwargs["model"],
                                                                 exp=reader_kwargs["exp"],
                                                                 source=reader_kwargs["source"])
@@ -344,7 +394,7 @@ class Regridder():
             self.logger.debug(
                 "Using grid-based template for target grid. Filename: %s", filename)
         else:
-            reader_kwargs = self._validate_reader_kwargs(reader_kwargs)
+            reader_kwargs = validate_reader_kwargs(reader_kwargs)
             filename = weights_dict["template_default"].format(
                 model=reader_kwargs["model"],
                 exp=reader_kwargs["exp"],
@@ -380,77 +430,47 @@ class Regridder():
         Expand the dimensions of the dataset or dataarray to include the vertical dimensions
         """
 
-        # to be revised
-        if isinstance(data, xr.Dataset):
-            for var in data.data_vars:
-                if not list(set(data[var].dims) & set(vertical_dims)):
-                    for vertical_dim in vertical_dims:
-                        if vertical_dim in data[var].coords:
-                            data[var] = data[var].expand_dims(dim=vertical_dim, axis=0)
-        elif isinstance(data, xr.DataArray):
-            if not list(set(data.dims) & set(vertical_dims)):
-                for vertical_dim in vertical_dims:
-                    if vertical_dim in data.coords:
-                        data = data.expand_dims(dim=vertical_dim, axis=0)
+        if not list(set(data.dims) & set(vertical_dims)):
+            for vertical_dim in vertical_dims:
+                if vertical_dim in data.coords:
+                    data = data.expand_dims(dim=vertical_dim, axis=0)
         return data
-
-    
-        # for vertical_dim in vertical_dims:
-        #     self.logger.info('Vertical dimension: %s', vertical_dim)
-        #     if vertical_dim in [DEFAULT_DIMENSION, DEFAULT_DIMENSION_MASK]:
-        #         continue  # Skip default dimensions            
-        #     if isinstance(data, xr.Dataset):
-        #         for name, var in data.data_vars.items():
-        #             print(name, var)
-        #             if vertical_dim not in var.dims and not set(vertical_dims) & set(var.dims):
-        #                 self.logger.warning("Expanding dimension %s for dataset", vertical_dim)
-        #                 data[name] = var.expand_dims(dim=vertical_dim, axis=1)
-            
-        #     elif isinstance(data, xr.DataArray):
-        #         if vertical_dim not in data.dims and vertical_dim in data.coords:
-        #             self.logger.warning("Expanding dimension %s for dataarray", vertical_dim)
-        #             data = data.expand_dims(dim=vertical_dim, axis=1)
-
 
     def _group_shared_dims(self, data):
         """
-        Groups variables in a dataset that share the same dimension.
+        Groups variables in a dataset that share the same AQUA vertical dimension.
         Built on GridInspector and GridType classes from smmregrid.
         It is a sort of overkill of what smmregrid do internally.
+
+        Args:
+            data (xarray.Dataset): The dataset to be regridded.
+
+        Return:
+            shared_vars (dict): A dictionary of variables that share the same vertical dimensions.
         """
 
-        # THIS HAS TO REVISITED SINCE AS IT IS IT LEAD FOR MULTIPLE 
-        # VERTICAL COORDINATES WHICH ARE NOT SUPPORTED BY SMMREGRID
-        # We should find a way to group the variables based on the vertical coordinate
-        # and the horizontal dimensions and see if we can make use of GridInspector here
-        # alternative would be to modify gridinspector
-        extra_dims = {
-            'vertical': list(self.src_grid_path.keys()),
-            'horizontal': to_list(self.src_horizontal_dims)
-        }
-        gridtype = GridInspector(data, extra_dims=extra_dims, loglevel=self.loglevel).get_grid_info()
         shared_vars = {}
-        for grid in gridtype:
-            variables = list(grid.variables.keys())
-            self.logger.debug("Variables for grid %s: %s", grid.vertical_dim, variables)
+        # TODO: masked vars based on attributes are still missing
+        if self.masked_vars:
+            shared_vars[DEFAULT_DIMENSION_MASK] = self.masked_vars
+            self.logger.debug("Variables for coordinate %s: %s",
+                                DEFAULT_DIMENSION_MASK, shared_vars[DEFAULT_DIMENSION_MASK])
+        # Get the masked variables safely
+        masked_vars = shared_vars.get(DEFAULT_DIMENSION_MASK, [])
+
+        # scan the grid
+        gridtypes = GridInspector(data, extra_dims=self.extra_dims, loglevel=self.loglevel).get_grid_info()
+
+        self.logger.debug("Gridtypes found: %s", len(gridtypes))
+        for gridtype in gridtypes:
+            variables = list(gridtype.variables.keys())
             
-            # Ensure masked variables are stored
-            # masked vars based on attributes are still missing
-            if self.masked_vars:
-                shared_vars[DEFAULT_DIMENSION_MASK] = self.masked_vars
-                self.logger.debug("Variables for coordinate %s: %s",
-                                  DEFAULT_DIMENSION_MASK, shared_vars[DEFAULT_DIMENSION_MASK])
-
-            # Get the masked variables safely
-            masked_vars = shared_vars.get(DEFAULT_DIMENSION_MASK, [])
-
-            if grid.vertical_dim:
-                shared_vars[grid.vertical_dim] = [var for var in variables if var not in masked_vars]
-                self.logger.debug("Variables for coordinate %s: %s",
-                                  grid.vertical_dim, shared_vars[grid.vertical_dim])
+            if gridtype.vertical_dim:
+                self.logger.debug("Variables for dimension %s: %s", gridtype.vertical_dim, variables)
+                shared_vars[gridtype.vertical_dim] = [var for var in variables if var not in masked_vars]
             else:
                 shared_vars[DEFAULT_DIMENSION] = [var for var in variables if var not in masked_vars]
-                self.logger.debug("Variables for coordinate %s: %s",
+                self.logger.debug("Variables for dimensions %s: %s",
                                   DEFAULT_DIMENSION, shared_vars[DEFAULT_DIMENSION])
 
         return shared_vars
@@ -458,28 +478,37 @@ class Regridder():
     def regrid(self, data):
         """
         Actual regridding core function. Regrid the dataset or dataarray using common gridtypes
+        Firstly, expand the dimensions of the dataset to include the vertical dimensions if necessary.
+        Then, group variables that share the same dimensions.
+        Finally, apply regridding on the different vertical coordinates, including 2d and 2dm.
 
         Args:
             data (xarray.Dataset, xarray.DataArray): The dataset to be regridded.
         """
 
-        # expand the dimensions of the dataarray to include the vertical dimensions
-        data = self._expand_dims(data, vertical_dims=list(self.src_grid_path.keys()))
+        # expand the dimensions of the dataset to include the vertical dimensions
+        if isinstance(data, xr.Dataset):
+            data = data.map(self._expand_dims, vertical_dims=list(self.src_vertical_dim))
+        elif isinstance(data, xr.DataArray):
+            data = self._expand_dims(data, vertical_dims=list(self.src_vertical_dim))
+        else:
+            raise ValueError("Data must be an xarray Dataset or DataArray.")
 
         # get which variables share the same dimensions
         shared_vars = self._group_shared_dims(data)
 
         # compact regridding on all dataset with map
         if isinstance(data, xr.Dataset):
-            out = data.map(self._apply_regrid, shared_vars=shared_vars)
-        else:
-            out = self._apply_regrid(data, shared_vars)
-        return out
+            data = data.map(self._apply_regrid, shared_vars=shared_vars)
+        elif isinstance(data, xr.DataArray):
+            data = self._apply_regrid(data, shared_vars)
+
+        return data
 
     def _apply_regrid(self, data, shared_vars):
         """
         Core regridding function. 
-        Apply regridding on the different vertical coordinates, including 2dm
+        Apply regridding on the different vertical coordinates, including 2d and 2dm
         """
 
         for vertical, variables in shared_vars.items():
@@ -491,7 +520,6 @@ class Regridder():
                 return self.smmregridder[vertical].regrid(data)
         return data
 
-    # this static method can be moved to an external module or downgraded to functions
     @staticmethod
     def _insert_kwargs(filename, reader_kwargs):
         """
@@ -509,65 +537,10 @@ class Regridder():
         return filename
 
     @staticmethod
-    def _validate_reader_kwargs(reader_kwargs):
-        """
-        Validate the reader kwargs.
-        """
-        if not reader_kwargs:
-            raise ValueError("reader_kwargs must be provided.")
-        for key in ["model", "exp", "source"]:
-            if key not in reader_kwargs:
-                raise ValueError(f"reader_kwargs must contain key '{key}'.")
-        return reader_kwargs
-
-    @staticmethod
     def _get_grid_path(grid_path):
         """
         Get the grid path from the grid dictionary.
-        This looks for `DEFAULT_DIMENSION` key, otherwise takes the first available value in the dict.
+        This looks for `DEFAULT_DIMENSION` key,
+        otherwise takes the first available value in the dict.
         """
         return grid_path.get(DEFAULT_DIMENSION, next(iter(grid_path.values()), None))
-
-    @staticmethod
-    def _configure_masked_fields(src_grid_dict):
-        """
-        if the grids has the 'masked' option, this can be based on
-        generic attribute or alternatively of a series of specific variables using the 'vars' key
-
-        Args:
-            source_grid (dict): Dictionary containing the grid information
-
-        Returns:
-            masked_attr (dict): Dict with name and proprierty of the attribute to be used for masking
-            masked_vars (list): List of variables to mask
-        """
-        masked_info = src_grid_dict.get("masked")
-        if masked_info is None:
-            return None, None
-
-        masked_vars = masked_info.get("vars")
-        masked_attrs = {k: v for k, v in masked_info.items() if k !=
-                       "vars"} or None
-
-        return masked_attrs, masked_vars
-
-    # def _configure_gridtype(self, data=None):
-    #     """
-    #     Configure the GridType object based on the grid_dict.
-    #     """
-
-    #     # DEFAULT_DIMENSION and DEFAULT_DIMENSION_MASK should be passed to GridType and GridInspector as extra vert_dims
-    #     vertical_dims = self.src_grid_dict.get('vert_coords', None)
-    #     horizontal_dims = self.src_grid_dict.get('space_coords', None)
-    #     grid_dims = to_list(horizontal_dims) + to_list(vertical_dims)
-
-    #     if grid_dims: # check on self.grid_dict
-    #         grid = GridType(dims=grid_dims)
-    #     elif data:  # If not, we need to guess
-    #         # It is the first element of a list because I can handle with smmregrid
-    #         # multiple horizontal grids.
-    #         grid = GridInspector(data).get_grid_info()[0]
-    #     else:
-    #         return None
-
-    #     return grid

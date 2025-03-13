@@ -147,15 +147,6 @@ jobs:
           aqua -vv add ci
           # Double check the catalogs
           aqua -vv list
-      # - name: Run tests
-      #   run: |
-      #     # Produce the XML report
-      #     cd AQUA
-      #     pytest --cov=aqua --cov-report=xml --cov-branch -m "aqua or slow or gsv or graphics or catgen or timeseries or ecmean or seaice or teleconnections"
-      # - name: Upload coverage reports to Codecov
-      #   uses: codecov/codecov-action@v5
-      #   with:
-      #     token: ${{ secrets.CODECOV_TOKEN }}
       - name: Run tests
         run: |
           # Produce the XML report
