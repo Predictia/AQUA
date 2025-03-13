@@ -126,7 +126,6 @@ markers = [
 [tool.coverage.run]
 branch = true
 command_line = '-m pytest tests'
-source = ["src/aqua"]
 omit = [
     "tests/*", 
     "**/__init__.py",
