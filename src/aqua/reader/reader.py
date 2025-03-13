@@ -1,9 +1,13 @@
 """The main AQUA Reader class"""
 
 import types
+from contextlib import contextmanager
 import intake_esm
 import intake_xarray
 import xarray as xr
+
+
+from smmregrid import GridInspector
 
 from aqua.util import load_multi_yaml, files_exist, to_list
 from aqua.util import ConfigPath, area_selection
@@ -893,6 +897,18 @@ class Reader(FixerMixin, TimStatMixin):
 
         return data
     
+    @contextmanager
+    def _temporary_attrs(self, **kwargs):
+        """Temporarily override Reader attributes, restoring them afterward."""
+        original_values = {key: getattr(self, key) for key in kwargs}
+        try:
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+            yield
+        finally:
+            for key, value in original_values.items():
+                setattr(self, key, value)
+    
     def _retrieve_plain(self, *args, **kwargs):
         """
         Retrieves making sure that no fixer and agregation are used,
@@ -902,44 +918,44 @@ class Reader(FixerMixin, TimStatMixin):
             self.logger.debug('Sample data already availabe, avoid _retrieve_plain()')
             return self.sample_data
 
-        self.logger.debug('Getting sample data through _retrieve_plain()...')
-        aggregation = self.aggregation
-        chunks = self.chunks
-        fix = self.fix
-        streaming = self.streaming
-        startdate = self.startdate
-        enddate = self.enddate
-        preproc = self.preproc
-        self.fix = False
-        self.aggregation = None
-        self.chunks = None
-        self.streaming = False
-        self.startdate = None
-        self.enddate = None
-        self.preproc = None
-        data = self.retrieve(history=False, *args, **kwargs) #HACK REMOVE THE SAMPLE SINCE IT WAS CREATING A MESS
-        # HACK: ensuring we load only a single time step if possible:
-        if not isinstance(data, types.GeneratorType):
-            if 'time' in data.coords:
-                data = data.isel(time=0)
-            else:
-                self.logger.warning('No time dimension found while sampling the data!')
-        self.aggregation = aggregation
-        self.chunks = chunks
-        self.fix = fix
-        self.streaming = streaming
-        self.startdate = startdate
-        self.enddate = enddate
-        self.preproc = preproc
+        # Temporarily disable unwanted settings
+        with self._temporary_attrs(aggregation=None, chunks=None, fix=False, streaming=False,
+                                   startdate=None, enddate=None, preproc=None):
+            self.logger.debug('Getting sample data through _retrieve_plain()...')
+            data = self.retrieve(history=False, *args, **kwargs)
 
         if isinstance(data, types.GeneratorType):
             data = next(data)
 
-        # select only first relevant variable
-        variables = [var for var in data.data_vars if
-                not var.endswith("_bnds") and not var.startswith("bounds") and not var.endswith("_bounds")]
-        self.sample_data = data[variables]
+        def get_gridtype_attr(gridtypes, attr):
 
+            """Compact tool to extra gridtypes information"""
+            out = []
+            for gridtype in gridtypes:
+                value = getattr(gridtype, attr, None)
+                if isinstance(value, (list, tuple)):
+                    out.extend(value)
+                elif isinstance(value, dict):
+                    out.extend(value.keys())
+                elif isinstance(value, str):
+                    out.append(value)
+
+            return list(dict.fromkeys(out))
+        
+        # get gridtypes from smrregird
+        gridtypes = GridInspector(data).get_grid_info()
+
+        # get info on time dimensions and variables
+        minimal_variables = get_gridtype_attr(gridtypes, 'variables')
+        minimal_time = get_gridtype_attr(gridtypes, 'time_dims')
+
+        if minimal_variables:
+            self.logger.debug('Variables found: %s', minimal_variables)
+            data = data[minimal_variables]
+        if minimal_time:
+            self.logger.debug('Time dimensions found: %s', minimal_time)
+            data = data.isel({t: 0 for t in minimal_time})
+        self.sample_data = data
         return self.sample_data
 
 
