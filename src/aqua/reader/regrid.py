@@ -1,9 +1,9 @@
-"""Regridder mixin for the Reader class"""
+# """Regridder mixin for the Reader class"""
 
-import types
+# import types
 
-class RegridMixin():
-    """Regridding mixin for the Reader class"""
+# class RegridMixin():
+#     """Regridding mixin for the Reader class"""
 
    
     # def _weights_generation_time(self, original_grid_size=None, new_grid_size=None, nproc=None, vert_coord_size=None):
@@ -49,56 +49,6 @@ class RegridMixin():
     #         minutes = round((int(expected_time) % 3600) / 60)
     #         formatted_time = f'{hours} hours, {minutes} minutes'
     #         self.logger.warning(f'Time to generate the weights will take approximately {formatted_time}.')
-
-
-    def _retrieve_plain(self, *args, **kwargs):
-        """
-        Retrieves making sure that no fixer and agregation are used,
-        read only first variable and converts iterator to data
-        """
-        if self.sample_data is not None:
-            self.logger.debug('Sample data already availabe, avoid _retrieve_plain()')
-            return self.sample_data
-
-        self.logger.debug('Getting sample data through _retrieve_plain()...')
-        aggregation = self.aggregation
-        chunks = self.chunks
-        fix = self.fix
-        streaming = self.streaming
-        startdate = self.startdate
-        enddate = self.enddate
-        preproc = self.preproc
-        self.fix = False
-        self.aggregation = None
-        self.chunks = None
-        self.streaming = False
-        self.startdate = None
-        self.enddate = None
-        self.preproc = None
-        data = self.retrieve(history=False, *args, **kwargs) #HACK REMOVE THE SAMPLE SINCE IT WAS CREATING A MESS
-        # HACK: ensuring we load only a single time step if possible:
-        if not isinstance(data, types.GeneratorType):
-            if 'time' in data.coords:
-                data = data.isel(time=0)
-            else:
-                self.logger.warning('No time dimension found while sampling the data!')
-        self.aggregation = aggregation
-        self.chunks = chunks
-        self.fix = fix
-        self.streaming = streaming
-        self.startdate = startdate
-        self.enddate = enddate
-        self.preproc = preproc
-
-        if isinstance(data, types.GeneratorType):
-            data = next(data)
-
-        # select only first relevant variable
-        variables = [var for var in data.data_vars if
-                not var.endswith("_bnds") and not var.startswith("bounds") and not var.endswith("_bounds")]
-        self.sample_data = data[variables]
-
-        return self.sample_data
 
     # def _guess_coords(self, space_coord, vert_coord, default_horizontal_dims, default_vertical_dims):
     #     """

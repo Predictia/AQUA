@@ -1,14 +1,14 @@
 """The main AQUA Reader class"""
 
+import types
 import intake_esm
 import intake_xarray
 import xarray as xr
-from smmregrid import Regridder
 
 from aqua.util import load_multi_yaml, files_exist, to_list
 from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history
-from aqua.util import flip_lat_dir, find_vert_coord
+from aqua.util import find_vert_coord
 from aqua.exceptions import NoDataError, NoRegridError
 from aqua.version import __version__ as aqua_version
 from aqua.regridder import Regridder
@@ -16,7 +16,6 @@ import aqua.gsv
 
 from .streaming import Streaming
 from .fixer import FixerMixin
-from .regrid import RegridMixin
 from .timstat import TimStatMixin
 from .reader_utils import set_attrs
 
@@ -36,7 +35,7 @@ default_weights_areas_parameters = ['zoom']
 xr.set_options(keep_attrs=True)
 
 
-class Reader(FixerMixin, RegridMixin, TimStatMixin):
+class Reader(FixerMixin, TimStatMixin):
     """General reader for climate data."""
 
     instance = None  # Used to store the latest instance of the class
@@ -893,6 +892,55 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
                 self.logger.warning("Duplicate entries found along the time axis, keeping the %s one.", keep)
 
         return data
+    
+    def _retrieve_plain(self, *args, **kwargs):
+        """
+        Retrieves making sure that no fixer and agregation are used,
+        read only first variable and converts iterator to data
+        """
+        if self.sample_data is not None:
+            self.logger.debug('Sample data already availabe, avoid _retrieve_plain()')
+            return self.sample_data
+
+        self.logger.debug('Getting sample data through _retrieve_plain()...')
+        aggregation = self.aggregation
+        chunks = self.chunks
+        fix = self.fix
+        streaming = self.streaming
+        startdate = self.startdate
+        enddate = self.enddate
+        preproc = self.preproc
+        self.fix = False
+        self.aggregation = None
+        self.chunks = None
+        self.streaming = False
+        self.startdate = None
+        self.enddate = None
+        self.preproc = None
+        data = self.retrieve(history=False, *args, **kwargs) #HACK REMOVE THE SAMPLE SINCE IT WAS CREATING A MESS
+        # HACK: ensuring we load only a single time step if possible:
+        if not isinstance(data, types.GeneratorType):
+            if 'time' in data.coords:
+                data = data.isel(time=0)
+            else:
+                self.logger.warning('No time dimension found while sampling the data!')
+        self.aggregation = aggregation
+        self.chunks = chunks
+        self.fix = fix
+        self.streaming = streaming
+        self.startdate = startdate
+        self.enddate = enddate
+        self.preproc = preproc
+
+        if isinstance(data, types.GeneratorType):
+            data = next(data)
+
+        # select only first relevant variable
+        variables = [var for var in data.data_vars if
+                not var.endswith("_bnds") and not var.startswith("bounds") and not var.endswith("_bounds")]
+        self.sample_data = data[variables]
+
+        return self.sample_data
 
 
     def info(self):
