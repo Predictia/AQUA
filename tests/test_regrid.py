@@ -46,7 +46,7 @@ class TestRegridder():
         gdh = GridDictHandler(cfg_dict, loglevel=LOGLEVEL)
 
         # empty one
-        assert gdh.normalize_grid_dict(None) == {}
+        assert gdh.normalize_grid_dict(None) == {"path": {}}
         # standard
         assert gdh.normalize_grid_dict("r1000") == {"path": {"2d": "r36x18"}}
         # couple of CDO grids
@@ -85,6 +85,14 @@ class TestRegridder():
 
         assert len(out.lon) == 144
         assert len(out.lat) == 72
+
+        src_area = regridder.areas()
+        assert len(src_area.lon) == 18
+        assert len(src_area.lat) == 9
+
+        tgt_area = regridder.areas(tgt_grid_name='r144x72')
+        assert len(tgt_area.lon) == 144
+        assert len(tgt_area.lat) == 72
 
     def test_basic_interpolation(self, reader_arguments):
         """

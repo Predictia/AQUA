@@ -9,10 +9,24 @@ class GridDictHandler:
     """Class to handle AQUA grid dictionaries."""
 
     def __init__(self, cfg_grid_dict, default_dimension='2d', loglevel='WARNING'):
+
         self.cfg_grid_dict = cfg_grid_dict
         self.default_dimension = default_dimension
         self.loglevel = loglevel
         self.logger = log_configure(log_level=loglevel, log_name='Regridder')
+
+        # case for no grid dictionary provided
+        if not self.cfg_grid_dict:
+            self.logger.warning("No grid dictionary provided, only CDO grid names can be used.")
+            return
+            
+        # safety checks
+        if not isinstance(self.cfg_grid_dict, dict):
+            raise ValueError("cfg_grid_dict must be a dictionary.")
+        self.grids = self.cfg_grid_dict.get('grids')
+        if self.grids is None:
+            raise ValueError("No grid dictionary found in the cfg_grid_dict.")
+
 
     def normalize_grid_dict(self, grid_name):
         """
@@ -22,12 +36,12 @@ class GridDictHandler:
             grid_name (str): The grid name (could be a CDO grid).
 
         Returns:
-            dict: The normalized AQUA grid dictionary. Empty if the grid name is None.
+            dict: The normalized AQUA grid dictionary. 
+                  If grid name is none, diction with path as empty dictionary. 
         """
 
         grid_dict = self._normalize_grid_dict(grid_name)
-        if grid_dict:
-            grid_dict['path'] = self._normalize_grid_path(grid_dict)
+        grid_dict['path'] = self._normalize_grid_path(grid_dict)
         return grid_dict
 
     def _normalize_grid_dict(self, grid_name):
@@ -51,21 +65,15 @@ class GridDictHandler:
             return {}
 
         if not isinstance(grid_name, (str, dict)):
-            raise ValueError(f"Grid name '{grid_name}' is not a valid type.")
+            raise ValueError(f"Grid name '{grid_name}' is not a valid type. str or dict expected.")
 
         # if a grid name is a valid CDO grid name, return it in the format of a dictionary
         if isinstance(grid_name, str) and is_cdo_grid(grid_name):
             self.logger.debug("Grid name %s is a valid CDO grid name.", grid_name)
             return {"path": {self.default_dimension: grid_name}}
-        
-        # try to access the cfg grids dictionary
-        grids = self.cfg_grid_dict.get('grids')
-        if grids is None:
-            raise ValueError("No grid dictionary found in the configuration.")
 
-        # raise error if the grid does not exist
-        grid_dict = grids.get(grid_name)
-        if not grid_dict:
+        grid_dict = self.grids.get(grid_name)
+        if grid_dict is None:
             raise ValueError(f"Grid name '{grid_name}' not found in the configuration.")
 
         # grid dict is a string: this is the case of a CDO grid name

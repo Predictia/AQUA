@@ -72,12 +72,9 @@ class Regridder():
         self.loglevel = loglevel
         self.logger = log_configure(log_level=loglevel, log_name='Regridder')
 
-        if cfg_grid_dict is None:
-            self.logger.warning("No AQUA grid configuration provided, Regridder will have limited functionalities.")
-            cfg_grid_dict = {}
 
         # define basic attributes:
-        self.cfg_grid_dict = cfg_grid_dict  # full grid dictionary
+        self.cfg_grid_dict = cfg_grid_dict if cfg_grid_dict else {}  # full grid dictionary
         self.src_grid_name = src_grid_name  # source grid name
 
         # we want all the grid dictionary to be real dictionaries
