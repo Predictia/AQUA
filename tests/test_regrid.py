@@ -61,18 +61,16 @@ class TestRegridder():
         with pytest.raises(ValueError, match="Grid name 'tragic' is not a valid CDO grid name."):
             gdh.normalize_grid_dict("tragic")
 
-    def test_grid_path_handler(self):
-        """Test the grid path handler"""
-
-        gdh = GridDictHandler(cfg_dict, loglevel=LOGLEVEL)
-        assert gdh.normalize_grid_path(cfg_dict["grids"]["afternoon"]) == {'2d': 'r100x50'}
-        assert gdh.normalize_grid_path(cfg_dict["grids"]["lovely"]) == {'2d': 'tests'}
-        assert gdh.normalize_grid_path(cfg_dict["grids"]["wonderful"]) == {'2d': 'r360x180'}
+        # test on grid path
+        assert gdh.normalize_grid_dict("afternoon")['path'] == {'2d': 'r100x50'}
+        assert gdh.normalize_grid_dict("lovely")['path'] == {'2d': 'tests'}
+        assert gdh.normalize_grid_dict("wonderful")['path'] == {'2d': 'r360x180'}
         
+        # errors on grid path
         with pytest.raises(FileNotFoundError, match="Grid file 'noise.nc' does not exist."):
-            gdh.normalize_grid_path(cfg_dict["grids"]["doing"])
+            gdh.normalize_grid_dict("doing")
         with pytest.raises(ValueError, match="Grid path '{'pizza please!'}' is not a valid type."):
-            gdh.normalize_grid_path(cfg_dict["grids"]["tests"])
+            gdh.normalize_grid_dict("tests")
 
     def test_regridder(self):
         """Testing the regridder all in independent way"""

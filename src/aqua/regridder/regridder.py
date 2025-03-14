@@ -42,8 +42,7 @@ class Regridder():
         Args:
             cfg_grid_dict (dict): The dictionary containing the full AQUA grid configuration.
             src_grid_name (str, optional): The name of the source grid in the AQUA convention.
-            data (xarray.Dataset, optional): The dataset to be regridded, 
-                                   to be provided in src_grid_path is missing.
+            data (xarray.Dataset, optional): The dataset to be regridded if src_grid_name is not provided.
             loglevel (str): The logging level.
 
         Attributes:
@@ -53,7 +52,6 @@ class Regridder():
             src_grid_name (str): The source grid name.
             handler (GridDictHandler): The grid dictionary handler.
             src_grid_dict (dict): The normalized source grid dictionary.
-            src_grid_path (dict): The normalized source grid path.
             src_horizontal_dims (str): The source horizontal dimensions.
             src_vertical_dim (str): The source vertical dimension.
             tgt_horizontal_dims (str): The target horizontal dimensions.
@@ -85,7 +83,7 @@ class Regridder():
         # we want all the grid dictionary to be real dictionaries
         self.handler = GridDictHandler(cfg_grid_dict, default_dimension=DEFAULT_DIMENSION, loglevel=loglevel)
         self.src_grid_dict = self.handler.normalize_grid_dict(self.src_grid_name)
-        self.src_grid_path = self.handler.normalize_grid_path(self.src_grid_dict)
+        self.src_grid_path = self.src_grid_dict.get('path')
 
         self.logger.debug("Normalized grid dictionary: %s", self.src_grid_dict)
         self.logger.debug("Normalized grid path: %s", self.src_grid_path)
@@ -123,9 +121,12 @@ class Regridder():
         # check if CDO is available
         self.cdo = self._set_cdo()
 
-        self.smmregridder = {}  # SMMregridders for each vertical coordinate
-        self.src_grid_area = None  # source grid area
-        self.tgt_grid_area = None  # destination grid area
+        # SMMregridders dictionary for each vertical coordinate
+        self.smmregridder = {}
+
+        # source and target areas
+        self.src_grid_area = None
+        self.tgt_grid_area = None
 
         # configure the masked fields
         self.masked_attrs, self.masked_vars = configure_masked_fields(self.src_grid_dict)
@@ -173,14 +174,15 @@ class Regridder():
         if not self.src_grid_path:
             vdim = self.src_vertical_dim if self.src_vertical_dim else DEFAULT_DIMENSION
             self.logger.info("Using provided dataset as a grid path for %s", vdim)
-            self.src_grid_path = {vdim: data}
-
+            self.src_grid_dict = {"path": {vdim: data}}
+            self.src_grid_path = self.src_grid_dict.get('path')
+    
     def areas(self, tgt_grid_name=None, rebuild=False, reader_kwargs=None):
         """
         Load or generate regridding areas for the source or target grid.
 
         Args:
-            tgt_grid_name (str, optional): Name of the target grid. If None, the source grid is used.
+            tgt_grid_name (str, optional): Name of the target grid. If None, the self.src_grid_name is used.
             rebuild (bool, optional): If True, forces regeneration of the area.
             reader_kwargs (dict, optional): Additional parameters for the reader.
 
@@ -191,15 +193,12 @@ class Regridder():
         # normalize dictionaries for target grid
         if tgt_grid_name:
             grid_dict = self.handler.normalize_grid_dict(tgt_grid_name)
-            grid_path = self.handler.normalize_grid_path(grid_dict)
         else:
             grid_dict = self.src_grid_dict
-            grid_path = self.src_grid_path
 
         # generate the area
-        grid_area = self._generate_area(
+        grid_area = self._load_area(
             grid_name=tgt_grid_name,
-            grid_path=grid_path,
             grid_dict=grid_dict,
             reader_kwargs=reader_kwargs,
             rebuild=rebuild
@@ -212,18 +211,18 @@ class Regridder():
             self.tgt_horizontal_dims = GridInspector(
                 self.tgt_grid_area, loglevel=self.loglevel
             ).get_grid_info()[0].horizontal_dims
+
         else:
             self.src_grid_area = grid_area
 
         return grid_area
 
-    def _generate_area(self, grid_name, grid_path, grid_dict, reader_kwargs, rebuild=False):
+    def _load_area(self, grid_name, grid_dict, reader_kwargs, rebuild=False):
         """
         Load or generate the grid area.
 
         Args:
             grid_name (str): The grid name. If None, roll back to src_grid_name.
-            grid_path (dict): The normalized grid path.
             grid_dict (dict): The normalized grid dictionary.
             reader_kwargs (dict): Additional reader parameters.
             target (bool): Whether this is for the target grid (default: False).
@@ -235,29 +234,28 @@ class Regridder():
         area_filename = self._area_filename(grid_name if grid_name else None, reader_kwargs)
         area_type = "target" if grid_name else "source"
 
+        # if file exists, load it
         if not rebuild and check_existing_file(area_filename):
             self.logger.info("Loading existing %s area from %s.", area_type, area_filename)
             return xr.open_dataset(area_filename)
 
-        grid_area = self._load_or_generate_area(grid_name, grid_dict, grid_path, area_filename)
-
+        # generate and save the area
+        grid_area = self._generate_area(grid_name, grid_dict, area_filename, area_type)
         grid_area.to_netcdf(area_filename)
         self.logger.info("Saved %s area to %s.", area_type, area_filename)
+
         return grid_area
 
-    def _load_or_generate_area(self, grid_name, grid_dict, grid_path, area_filename):
+    def _generate_area(self, grid_name, grid_dict, area_filename, area_type):
         """
         Loads cell areas if available; otherwise, generates the area.
 
         Args:
-            grid_name (str): The grid name.
+            grid_name (str): The grid name: if None, the source grid is used.
             grid_dict (dict): The normalized grid dictionary.
-            grid_path (dict): The normalized grid path.
             area_filename (str): The precomputed area filename.
             area_type (str): The area type (i.e. source or target)
         """
-    
-        area_type = "target" if grid_name else "source"
 
         # if they have been provided, read from the AQUA dict
         cellareas, cellareas_var = grid_dict.get('cellareas'), grid_dict.get('cellareas_var')
@@ -272,10 +270,10 @@ class Regridder():
             self.logger.info("%s areas file %s exists. Regenerating.", area_type, area_filename)
             os.remove(area_filename)
 
-        self.logger.info("Generating %s area for %s", area_type, grid_dict.get('grid_name'))
+        self.logger.info("Generating %s area for %s", area_type, grid_name)
 
-        source_grid = None if area_type == "source" else self._get_grid_path(grid_path)
-        target_grid = None if area_type == "target" else self._get_grid_path(grid_path)
+        source_grid = self._get_grid_path(grid_dict.get('path')) if area_type == "source" else None
+        target_grid = self._get_grid_path(grid_dict.get('path')) if area_type == "target" else None
 
         return CdoGenerate(
             source_grid=source_grid,
@@ -284,7 +282,7 @@ class Regridder():
             cdo_options=grid_dict.get('cdo_options'),
             cdo=self.cdo,
             loglevel=self.loglevel
-        ).areas(target=bool(target_grid))
+        ).areas(target=bool(grid_name))
 
     def weights(self, tgt_grid_name, regrid_method=DEFAULT_GRID_METHOD, nproc=1,
                 rebuild=False, reader_kwargs=None):
@@ -306,7 +304,6 @@ class Regridder():
 
         # normalize the tgt grid dictionary and path
         tgt_grid_dict = self.handler.normalize_grid_dict(tgt_grid_name)
-        tgt_grid_path = self.handler.normalize_grid_path(tgt_grid_dict)
 
         # get the cdo options from the configuration
         cdo_extra = self.src_grid_dict.get('cdo_extra', None)
@@ -336,7 +333,7 @@ class Regridder():
                     
                 # smmregrid call
                 generator = CdoGenerate(source_grid=self.src_grid_path[vertical_dim],
-                                        target_grid=self._get_grid_path(tgt_grid_path),
+                                        target_grid=self._get_grid_path(tgt_grid_dict.get('path')),
                                         cdo_extra=cdo_extra,
                                         cdo_options=cdo_options,
                                         cdo=self.cdo,
