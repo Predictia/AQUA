@@ -6,9 +6,23 @@ from .regridder_util import check_existing_file
 
 
 class GridDictHandler:
-    """Class to handle AQUA grid dictionaries."""
+    """
+    Class to handle AQUA grid dictionaries.
+    It is used to normalize all the different dictionaries and strings that can be used to define a grid.
+    It covers many cases (it might seem overdetailed), and can be used also in absence of a cfg_grid_dict dictionary.
+    """
 
     def __init__(self, cfg_grid_dict, default_dimension='2d', loglevel='WARNING'):
+
+        """"
+        Initialize the GridDictHandler.
+        
+        Args:
+            cfg_grid_dict (dict): The AQUA grid dictionary from the configuration file.
+                                  It can be None or empty dictionary but in this case only CDO grid names can be used.
+            default_dimension (str): The default dimension to use for the grid path. '2d' by default.
+            loglevel (str): The logging level.
+        """
 
         self.cfg_grid_dict = cfg_grid_dict
         self.default_dimension = default_dimension
@@ -17,15 +31,14 @@ class GridDictHandler:
 
         # case for no grid dictionary provided
         if not self.cfg_grid_dict:
-            self.logger.warning("No grid dictionary provided, only CDO grid names can be used.")
+            self.logger.warning("No cfg_grid_dict dictionary provided, only CDO grid names can be used.")
             return
             
         # safety checks
         if not isinstance(self.cfg_grid_dict, dict):
             raise ValueError("cfg_grid_dict must be a dictionary.")
-        self.grids = self.cfg_grid_dict.get('grids')
-        if self.grids is None:
-            raise ValueError("No grid dictionary found in the cfg_grid_dict.")
+        if self.cfg_grid_dict.get('grids') is None:
+            raise ValueError("No 'grids' key found in the cfg_grid_dict.")
 
 
     def normalize_grid_dict(self, grid_name):
@@ -37,7 +50,7 @@ class GridDictHandler:
 
         Returns:
             dict: The normalized AQUA grid dictionary. 
-                  If grid name is none, diction with path as empty dictionary. 
+                  If grid name is none, dictionary with 'path' key as empty dictionary. 
         """
 
         grid_dict = self._normalize_grid_dict(grid_name)
@@ -64,6 +77,7 @@ class GridDictHandler:
         if grid_name is None:
             return {}
 
+        # error if it is not a string or a dictionary
         if not isinstance(grid_name, (str, dict)):
             raise ValueError(f"Grid name '{grid_name}' is not a valid type. str or dict expected.")
 
@@ -72,7 +86,12 @@ class GridDictHandler:
             self.logger.debug("Grid name %s is a valid CDO grid name.", grid_name)
             return {"path": {self.default_dimension: grid_name}}
 
-        grid_dict = self.grids.get(grid_name)
+        # stop if the grid dictionary is not provided
+        if self.cfg_grid_dict is None:
+            raise ValueError("No cfg_grid_dict dictionary provided, only CDO grid names can be used.")
+
+        # if the grid name is not in the grids
+        grid_dict = self.cfg_grid_dict['grids'].get(grid_name)
         if grid_dict is None:
             raise ValueError(f"Grid name '{grid_name}' not found in the configuration.")
 
