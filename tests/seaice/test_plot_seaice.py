@@ -7,33 +7,20 @@ approx_rel = 1e-4
 loglevel = 'DEBUG'
 
 # Set up test parameters
-model = 'IFS-NEMO'
-exp = 'historical-1990'
-source = 'lra-r100-monthly'
+catalog='ci'
+model='FESOM'
+exp='hpz3'
+source='monthly-2d'
 regions = ['Arctic', 'Antarctic']
 loglevel = 'warning'
 startdate = "1991-01-01"
 enddate = "2000-01-01"
 
 # Generate test datasets for models
-seaice = SeaIce(model=model, exp=exp, source=source, regions=regions,
+seaice = SeaIce(model=model, exp=exp, source=source, regions=regions, catalog=catalog,
+                regrid='r100',
                 startdate=startdate, enddate=enddate, loglevel=loglevel)
 siext = seaice.compute_seaice(method='extent', var='siconc')
-
-# Generate reference datasets
-model = 'OSI-SAF'
-exp = 'osi-450'
-
-# NH reference data
-seaice_ref_nh = SeaIce(model=model, exp=exp, source='nh-monthly', regions='Arctic',
-                        startdate=startdate, enddate=enddate, loglevel=loglevel)
-siext_ref_nh, siext_std_ref_nh = seaice_ref_nh.compute_seaice(method='extent', var='siconc', calc_std_freq='monthly')
-
-# SH reference data
-seaice_ref_sh = SeaIce(model=model, exp=exp, source='sh-monthly', regions='Antarctic',
-                        startdate=startdate, enddate=enddate, loglevel=loglevel)
-siext_ref_sh, siext_std_ref_sh = seaice_ref_sh.compute_seaice(method='extent', var='siconc', calc_std_freq='monthly')
-
 
 def create_test_dataset_for_repack_datasetlists(method="extent", region="Arctic"):
     """Helper function to create a test dataset with required attributes."""
