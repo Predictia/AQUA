@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version (target v0.14):
 
 AQUA core complete list:
+- Added Healpix zoom 7 grid for ICON R02B08 native oceanic grid (#1823)
 - Remove generators from Reader (#1791)
 - Fix tcc grib code and add some cmor codes in the convention file (#1800)
 - Add a regrid option to cli of relevant diagnostics (#1792)
