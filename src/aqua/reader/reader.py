@@ -123,19 +123,19 @@ class Reader(FixerMixin, TimStatMixin):
         self.sample_data = None  # used to avoid multiple calls of retrieve_plain
 
         # define configuration file and paths
-        Configurer = ConfigPath(catalog=catalog, loglevel=loglevel)
-        self.configdir = Configurer.configdir
-        self.machine = Configurer.get_machine()
-        self.config_file = Configurer.config_file
-        self.cat, self.catalog_file, self.machine_file = Configurer.deliver_intake_catalog(
+        configurer = ConfigPath(catalog=catalog, loglevel=loglevel)
+        self.configdir = configurer.configdir
+        self.machine = configurer.get_machine()
+        self.config_file = configurer.config_file
+        self.cat, self.catalog_file, self.machine_file = configurer.deliver_intake_catalog(
             catalog=catalog, model=model, exp=exp, source=source)
-        self.fixer_folder, self.grids_folder = Configurer.get_reader_filenames()
+        self.fixer_folder, self.grids_folder = configurer.get_reader_filenames()
 
         # deduce catalog name
         self.catalog = self.cat.name
 
         # machine dependent catalog path
-        machine_paths, intake_vars = Configurer.get_machine_info()
+        machine_paths, intake_vars = configurer.get_machine_info()
 
         # load the catalog
         self.esmcat = self.cat(**intake_vars)[self.model][self.exp][self.source](**kwargs)
@@ -211,8 +211,7 @@ class Reader(FixerMixin, TimStatMixin):
         # generate source areas
         if areas:
             # generate source areas and expose them in the reader
-            self.regridder.areas(rebuild=rebuild, reader_kwargs=reader_kwargs)
-            self.src_grid_area = self.regridder.src_grid_area
+            self.src_grid_area = self.regridder.areas(rebuild=rebuild, reader_kwargs=reader_kwargs)
             if self.fix:
                 self.src_grid_area = self._fix_area(self.src_grid_area)
 
@@ -226,8 +225,7 @@ class Reader(FixerMixin, TimStatMixin):
 
         # generate destination areas, expost them and the associated space coordinates
         if areas and regrid:
-            self.regridder.areas(tgt_grid_name=self.tgt_grid_name, rebuild=rebuild)
-            self.tgt_grid_area = self.regridder.tgt_grid_area
+            self.tgt_grid_area = self.regridder.areas(tgt_grid_name=self.tgt_grid_name, rebuild=rebuild)
             if self.fix:
                 self.tgt_grid_area = self._fix_area(self.tgt_grid_area)
             self.tgt_space_coord = self.regridder.tgt_horizontal_dims
@@ -921,6 +919,7 @@ class Reader(FixerMixin, TimStatMixin):
             A xarray.Dataset containing the required miminal sample data.
         """
 
+        # this could be a method of the GridInspector class
         def get_gridtype_attr(gridtypes, attr):
             """Helper compact tool to extra gridtypes information"""
             out = []

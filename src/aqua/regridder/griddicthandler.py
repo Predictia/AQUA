@@ -91,7 +91,6 @@ class GridDictHandler:
         # (could extend to CDO names?)
         if isinstance(path, dict):
             for _, value in path.items():
-                print(value)
                 if not (is_cdo_grid(value) or check_existing_file(value)):
                     raise ValueError(f"Grid path '{value}' is not a valid CDO grid name nor a file path.")
             self.logger.debug("Grid path %s is a valid dictionary of file paths.", path)

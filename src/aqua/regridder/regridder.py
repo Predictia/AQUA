@@ -31,7 +31,7 @@ DEFAULT_DIMENSION_MASK = '2dm'  # masked grid
 class Regridder():
     """AQUA Regridder class"""
 
-    def __init__(self, cfg_grid_dict: dict,
+    def __init__(self, cfg_grid_dict: dict = None,
                  src_grid_name: str = None,
                  data: xr.Dataset = None,
                  loglevel: str = "WARNING"):
@@ -49,7 +49,7 @@ class Regridder():
         Attributes:
             loglevel (str): The logging level.
             logger (logging.Logger): The logger.
-            cfg_grid_dict (dict): The full grid dictionary.
+            cfg_grid_dict (dict): The full AQUA grid dictionary.
             src_grid_name (str): The source grid name.
             handler (GridDictHandler): The grid dictionary handler.
             src_grid_dict (dict): The normalized source grid dictionary.
@@ -67,11 +67,16 @@ class Regridder():
             extra_dims (dict): The extra dimensions (get from cfg_grid_dict) to be sent to smmregrid.
         """
 
+
         if src_grid_name is None and data is None:
             raise ValueError("Either src_grid_name or data must be provided.")
 
         self.loglevel = loglevel
         self.logger = log_configure(log_level=loglevel, log_name='Regridder')
+
+        if cfg_grid_dict is None:
+            self.logger.warning("No AQUA grid configuration provided, Regridder will have limited functionalities.")
+            cfg_grid_dict = {}
 
         # define basic attributes:
         self.cfg_grid_dict = cfg_grid_dict  # full grid dictionary
@@ -172,87 +177,114 @@ class Regridder():
 
     def areas(self, tgt_grid_name=None, rebuild=False, reader_kwargs=None):
         """
-        Load or generate regridding areas by calling the appropriate function.
+        Load or generate regridding areas for the source or target grid.
+
+        Args:
+            tgt_grid_name (str, optional): Name of the target grid. If None, the source grid is used.
+            rebuild (bool, optional): If True, forces regeneration of the area.
+            reader_kwargs (dict, optional): Additional parameters for the reader.
+
+        Returns:
+            xr.Dataset: The computed grid area.
         """
+
+        # normalize dictionaries for target grid
         if tgt_grid_name:
-            # normalize the tgt grid dictionary and path
-            tgt_grid_dict = self.handler.normalize_grid_dict(tgt_grid_name)
-            tgt_grid_path = self.handler.normalize_grid_path(tgt_grid_dict)
-            self.tgt_grid_area = self._areas(
-                tgt_grid_name, tgt_grid_path, tgt_grid_dict,
-                reader_kwargs, target=True, rebuild=rebuild
-            )
-
-            # use grid inspecto to guess horizontal dimensions of target grid
-            self.tgt_horizontal_dims = GridInspector(
-                self.tgt_grid_area, loglevel=self.loglevel).get_grid_info()[0].horizontal_dims
+            grid_dict = self.handler.normalize_grid_dict(tgt_grid_name)
+            grid_path = self.handler.normalize_grid_path(grid_dict)
         else:
+            grid_dict = self.src_grid_dict
+            grid_path = self.src_grid_path
 
-            self.src_grid_area = self._areas(
-                self.src_grid_name, self.src_grid_path, self.src_grid_dict,
-                reader_kwargs, target=False, rebuild=rebuild
-            )
+        # generate the area
+        grid_area = self._generate_area(
+            grid_name=tgt_grid_name,
+            grid_path=grid_path,
+            grid_dict=grid_dict,
+            reader_kwargs=reader_kwargs,
+            rebuild=rebuild
+        )
 
-    def _areas(self, grid_name, grid_path, grid_dict, reader_kwargs,
-               target=False, rebuild=False):
-        """"
+        # assign the area to the correct attribute
+        if tgt_grid_name:
+            self.tgt_grid_area = grid_area
+            # Extra: infer target grid horizontal dimensions
+            self.tgt_horizontal_dims = GridInspector(
+                self.tgt_grid_area, loglevel=self.loglevel
+            ).get_grid_info()[0].horizontal_dims
+        else:
+            self.src_grid_area = grid_area
+
+        return grid_area
+
+    def _generate_area(self, grid_name, grid_path, grid_dict, reader_kwargs, rebuild=False):
+        """
         Load or generate the grid area.
 
         Args:
-            grid_name (str): The grid name.
-            grid_path (dict): The normalized grid path dictionary.
+            grid_name (str): The grid name. If None, roll back to src_grid_name.
+            grid_path (dict): The normalized grid path.
             grid_dict (dict): The normalized grid dictionary.
-            reader_kwargs (dict): The reader kwargs, including info on model, exp, source, etc.
-            target (bool): If True, the target grid area is generated. If false, the source grid area is generated.
-            rebuild (bool): If True, rebuild the area.
+            reader_kwargs (dict): Additional reader parameters.
+            target (bool): Whether this is for the target grid (default: False).
+            rebuild (bool): If True, forces regeneration of the area.
 
         Returns:
-            xr.Dataset: The grid area.
+            xr.Dataset: The computed grid area.
         """
-
-        area_filename = self._area_filename(
-            grid_name if target else None, reader_kwargs)
-        area_logname = "target" if target else "source"
+        area_filename = self._area_filename(grid_name if grid_name else None, reader_kwargs)
+        area_type = "target" if grid_name else "source"
 
         if not rebuild and check_existing_file(area_filename):
-            self.logger.info("Loading existing %s area from %s.",
-                             area_logname, area_filename)
-            grid_area = xr.open_dataset(area_filename)
-            return grid_area
+            self.logger.info("Loading existing %s area from %s.", area_type, area_filename)
+            return xr.open_dataset(area_filename)
 
-        # if cellares are provided in the grid dictionary, use them
-        cellareas = grid_dict.get('cellareas')
-        cellareas_var = grid_dict.get('cellareas_var')
-        if cellareas and cellareas_var:
-            self.logger.info("Using cellareas from variable %s in file %s",
-                             cellareas_var, cellareas)
-            grid_area = xr.open_mfdataset(
-                cellareas)[cellareas_var].rename("cell_area").squeeze()
-
-        # otherwise, generate the areas with smmregrid
-        else:
-            if os.path.exists(area_filename):
-                self.logger.info(
-                    "%s areas file %s exists. Regenerating.", area_logname, area_filename)
-                os.remove(area_filename)
-            self.logger.info("Generating %s area for %s",
-                             area_logname, grid_name)
-            generator = CdoGenerate(
-                # get the DEFAULT_DIMENSION grid path if available, otherwise the first available, only if source grid
-                source_grid=None if target else self._get_grid_path(grid_path),
-                # get the DEFAULT_DIMENSION grid path if available, otherwise the first available, only if target grid
-                target_grid=self._get_grid_path(grid_path) if target else None,
-                cdo_extra=grid_dict.get('cdo_extra'),
-                cdo_options=grid_dict.get('cdo_options'),
-                cdo=self.cdo,
-                loglevel=self.loglevel
-            )
-            grid_area = generator.areas(target=target)
+        grid_area = self._load_or_generate_area(grid_name, grid_dict, grid_path, area_filename)
 
         grid_area.to_netcdf(area_filename)
-        self.logger.info("Saved %s area to %s.", area_logname, area_filename)
-
+        self.logger.info("Saved %s area to %s.", area_type, area_filename)
         return grid_area
+
+    def _load_or_generate_area(self, grid_name, grid_dict, grid_path, area_filename):
+        """
+        Loads cell areas if available; otherwise, generates the area.
+
+        Args:
+            grid_name (str): The grid name.
+            grid_dict (dict): The normalized grid dictionary.
+            grid_path (dict): The normalized grid path.
+            area_filename (str): The precomputed area filename.
+            area_type (str): The area type (i.e. source or target)
+        """
+    
+        area_type = "target" if grid_name else "source"
+
+        # if they have been provided, read from the AQUA dict
+        cellareas, cellareas_var = grid_dict.get('cellareas'), grid_dict.get('cellareas_var')
+        if cellareas and cellareas_var:
+            self.logger.info("Using cellareas from variable %s in file %s", cellareas_var, cellareas)
+            if not os.path.exists(cellareas):
+                raise FileNotFoundError(f"Grid based cell area  file {cellareas} not found.")
+            return xr.open_mfdataset(cellareas)[cellareas_var].rename("cell_area").squeeze()
+
+        # clean if necessary
+        if os.path.exists(area_filename):
+            self.logger.info("%s areas file %s exists. Regenerating.", area_type, area_filename)
+            os.remove(area_filename)
+
+        self.logger.info("Generating %s area for %s", area_type, grid_dict.get('grid_name'))
+
+        source_grid = None if area_type == "source" else self._get_grid_path(grid_path)
+        target_grid = None if area_type == "target" else self._get_grid_path(grid_path)
+
+        return CdoGenerate(
+            source_grid=source_grid,
+            target_grid=target_grid,
+            cdo_extra=grid_dict.get('cdo_extra'),
+            cdo_options=grid_dict.get('cdo_options'),
+            cdo=self.cdo,
+            loglevel=self.loglevel
+        ).areas(target=bool(target_grid))
 
     def weights(self, tgt_grid_name, regrid_method=DEFAULT_GRID_METHOD, nproc=1,
                 rebuild=False, reader_kwargs=None):
@@ -341,6 +373,13 @@ class Regridder():
 
         area_dict = self.cfg_grid_dict.get('areas')
 
+        if not area_dict:
+            self.logger.warning(
+                "Areas block not found in the configuration file, using fallback naming scheme.")
+            if tgt_grid_name:
+                return f"cell_area_{tgt_grid_name}.nc"
+            return f"cell_area_{self.src_grid_name}.nc"
+
         # destination grid name is provided, use grid template
         if tgt_grid_name:
             filename = area_dict["template_grid"].format(grid=tgt_grid_name)
@@ -381,6 +420,12 @@ class Regridder():
             DEFAULT_DIMENSION, DEFAULT_DIMENSION_MASK] else f"3d-{vertical_dim}"
 
         weights_dict = self.cfg_grid_dict.get('weights')
+
+        if not weights_dict:
+            self.logger.warning(
+                "Weights block not found in the configuration file, using fallback naming scheme.")
+            return f"weights_{tgt_grid_name}_{regrid_method}_l{levname}.nc"
+            
 
         # destination grid name is provided, use grid template
         if check_gridfile(self.src_grid_path[vertical_dim]) != 'xarray':

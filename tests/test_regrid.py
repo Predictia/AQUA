@@ -2,6 +2,7 @@
 import pytest
 from aqua import Reader
 from aqua.regridder.griddicthandler import GridDictHandler
+from aqua.regridder import Regridder
 
 LOGLEVEL = "DEBUG"
 approx_rel = 1e-4
@@ -73,6 +74,19 @@ class TestRegridder():
         with pytest.raises(ValueError, match="Grid path '{'pizza please!'}' is not a valid type."):
             gdh.normalize_grid_path(cfg_dict["grids"]["tests"])
 
+    def test_regridder(self):
+        """Testing the regridder all in independent way"""
+
+        reader = Reader(catalog='ci', model='IFS', exp='test-tco79', source='long', loglevel='ERROR')
+        data = reader.retrieve()
+        regridder = Regridder(data=data.isel(time=0), loglevel='debug')
+
+        # Regrid the data
+        regridder.weights(tgt_grid_name='r144x72', regrid_method="bil")
+        out = regridder.regrid(data)
+
+        assert len(out.lon) == 144
+        assert len(out.lat) == 72
 
     def test_basic_interpolation(self, reader_arguments):
         """
