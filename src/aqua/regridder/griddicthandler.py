@@ -16,6 +16,22 @@ class GridDictHandler:
 
     def normalize_grid_dict(self, grid_name):
         """
+        Normalize the grid name to a grid dictionary, setting grid path as well.
+
+        Args:
+            grid_name (str): The grid name (could be a CDO grid).
+
+        Returns:
+            dict: The normalized AQUA grid dictionary. Empty if the grid name is None.
+        """
+
+        grid_dict = self._normalize_grid_dict(grid_name)
+        if grid_dict:
+            grid_dict['path'] = self._normalize_grid_path(grid_dict)
+        return grid_dict
+
+    def _normalize_grid_dict(self, grid_name):
+        """
         Validate the grid name and return the grid dictionary.
         4 cases handled:
             - None, return an empty dictionary
@@ -38,12 +54,17 @@ class GridDictHandler:
             raise ValueError(f"Grid name '{grid_name}' is not a valid type.")
 
         # if a grid name is a valid CDO grid name, return it in the format of a dictionary
-        if is_cdo_grid(grid_name):
+        if isinstance(grid_name, str) and is_cdo_grid(grid_name):
             self.logger.debug("Grid name %s is a valid CDO grid name.", grid_name)
             return {"path": {self.default_dimension: grid_name}}
+        
+        # try to access the cfg grids dictionary
+        grids = self.cfg_grid_dict.get('grids')
+        if grids is None:
+            raise ValueError("No grid dictionary found in the configuration.")
 
         # raise error if the grid does not exist
-        grid_dict = self.cfg_grid_dict['grids'].get(grid_name)
+        grid_dict = grids.get(grid_name)
         if not grid_dict:
             raise ValueError(f"Grid name '{grid_name}' not found in the configuration.")
 
@@ -56,7 +77,7 @@ class GridDictHandler:
         if isinstance(grid_dict, dict):
             return grid_dict
 
-    def normalize_grid_path(self, grid_dict):
+    def _normalize_grid_path(self, grid_dict):
         """
         Normalize the grid path to a dictionary with the self.default_dimension key.
         3 cases handled: 
