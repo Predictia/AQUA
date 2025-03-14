@@ -15,15 +15,15 @@ class TestSeaIce:
 
         [
         # Valid cases without standard deviation
-        ('extent', 'Arctic',     15.3323, 'million km^2', 'siconc', None, None, None),
-        ('extent', 'Weddell Sea', 7.4670, 'million km^2', 'siconc', None, None, None),
-        ('volume', 'Arctic',    46.7496, 'thousands km^3', 'sithick', None, None, None),
-        ('volume', 'Antarctic', 16.1676, 'thousands km^3', 'sithick', None, None, None),
+        ('extent', 'Arctic',     18.4750, 'million km^2', 'siconc', None, None, None),
+        ('extent', 'Weddell Sea', 4.7523, 'million km^2', 'siconc', None, None, None),
+        ('volume', 'Arctic',    14.6634, 'thousands km^3', 'siconc', None, None, None),
+        ('volume', 'Antarctic', 9.7129, 'thousands km^3', 'siconc', None, None, None),
 
         # Valid cases with standard deviation computation
         ('extent', 'Arctic',  3.9402, 'million km^2',   'siconc', 'annual',  None, None),
         ('extent', 'Antarctic', 0.7623, 'million km^2', 'siconc', 'monthly', None, None),
-        ('volume', 'Antarctic', 1.003, 'thousands km^3', 'sithick', 'monthly', None, None),
+        ('volume', 'Antarctic', 1.003, 'thousands km^3', 'siconc', 'monthly', None, None),
         # Invalid cases (Errors expected)
         ('wrong_method', 'Antarctic', None, None, 'siconc', None, ValueError, "Invalid method"),
         ('extent', 'Weddell Sea', None, None, 'errorvar', None, KeyError, None),
@@ -38,7 +38,7 @@ class TestSeaIce:
                             calc_std_freq, expect_exception, error_message):
         """Test sea ice computation including std for both valid and invalid cases."""
 
-        seaice = SeaIce(model='IFS-NEMO', exp='historical-1990', source='lra-r100-monthly',
+        seaice = SeaIce(catalog='ci', model='FESOM', exp='hpz3', source='monthly-2d',
                         startdate="1991-01-01", enddate="2000-01-01", regions=region, 
                         regrid='r100', loglevel=loglevel)
 
@@ -112,7 +112,7 @@ class TestSeaIce:
         """Test the show_regions method."""
         
         # Create instance of SeaIce with the necessary attributes
-        seaice = SeaIce(model='IFS-NEMO', exp='historical-1990', source='lra-r100-monthly',
+        seaice = SeaIce(catalog='ci', model='FESOM', exp='hpz3', source='monthly-2d',
                         startdate="1991-01-01", enddate="2000-01-01", regions="Arctic", 
                         regrid='r100', loglevel=loglevel)
 
