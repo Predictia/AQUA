@@ -139,26 +139,21 @@ class SeaIce(Diagnostic):
         da_seaice_computed.name = f"{'std_' if std_flag else ''}sea_ice_{method}_{region.replace(' ', '_').lower()}"
         return da_seaice_computed
 
-    def integrate_seaice_masked_data(self, masked_data, method: str, region: str):
-        """Integrate the masked data over the spatial dimension to compute sea ice metrics.
+    def get_area_cells(self, region: str) -> xr.DataArray:
+        """ Get areacello and select by provided region.
         Args:
-            masked_data (xr.DataArray): The masked data to be integrated.
-            method (str): The method to compute sea ice metrics. Options are 'extent' or 'volume'.
-            region (str): The region for which the sea ice metric is computed.
+            region (str): The region for which select the area cells.
         Returns:
-            xr.DataArray: The computed sea ice metric.
+            xr.DataArray: The area grid cells (m^2) selected by region coordinates.
         """
-
         self.logger.debug(f'Calculate cell areas for {region}')
 
-        # get info on grid area that must be reinitialised for each region. Note: areacello units are in (m^2)
+        # get xr.DataArray with info on grid area that must be reinitialised for each region. 
+        # # Note: areacello units are in (m^2)
         areacello = self.reader.grid_area
 
         # get the region box from the region definition file
         box = self.regions_definition[region]
-
-        # log the computation
-        self.logger.info(f'Computing sea ice {method} for {region}')
 
         # make area selection flexible to lon values from -180 to 180 or from 0 to 360
         try:
@@ -171,6 +166,24 @@ class SeaIce(Diagnostic):
         areacello = area_selection(areacello, lat=[box["latS"], box["latN"]], lon=[box["lonW"], box["lonE"]], 
                                    default={"lon_min": lonmin, "lon_max": lonmax, "lat_min": -90, "lat_max": 90},
                                    loglevel=self.loglevel)
+        return areacello
+
+    def integrate_seaice_masked_data(self, masked_data, method: str, region: str):
+        """Integrate the masked data over the spatial dimension to compute sea ice metrics.
+        Args:
+            masked_data (xr.DataArray): The masked data to be integrated.
+            method (str): The method to compute sea ice metrics. Options are 'extent' or 'volume'.
+            region (str): The region for which the sea ice metric is computed.
+        Returns:
+            xr.DataArray: The computed sea ice metric.
+        """
+
+        # get areacells of region
+        areacello = self.get_area_cells(region)
+
+        # log the computation
+        self.logger.info(f'Computing sea ice {method} for {region}')
+
         if method == 'extent':
             # compute sea ice extent: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to million km^2
             seaice_metric = areacello.where(masked_data.notnull()).sum(skipna = True, min_count = 1, 
