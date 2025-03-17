@@ -57,16 +57,16 @@ def plot_timeseries(monthly_data=None,
 
 
     if monthly_data is not None:
-        plot_monthly_data(ax, monthly_data, data_labels, logger)
+        plot_monthly_data(ax, monthly_data, data_labels, logger, lw=1.7)
 
     if annual_data is not None:
-        plot_annual_data(ax, annual_data, data_labels, logger)
+        plot_annual_data(ax, annual_data, data_labels, logger, lw=1.7)
 
     if ref_monthly_data is not None:
-        plot_ref_monthly_data(ax, ref_monthly_data, std_monthly_data, ref_label, logger)
+        plot_ref_monthly_data(ax, ref_monthly_data, std_monthly_data, ref_label, logger, lw=0.8)
 
     if ref_annual_data is not None:
-        plot_ref_annual_data(ax, ref_annual_data, std_annual_data, ref_label, logger)
+        plot_ref_annual_data(ax, ref_annual_data, std_annual_data, ref_label, logger, lw=0.8)
     
     ax.legend(fontsize='small')
     ax.grid(True, axis="both")

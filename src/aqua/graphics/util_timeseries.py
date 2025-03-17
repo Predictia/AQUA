@@ -4,7 +4,7 @@
 import xarray as xr
 import matplotlib.pyplot as plt
 
-def plot_monthly_data(ax, monthly_data, data_labels, logger):
+def plot_monthly_data(ax, monthly_data, data_labels, logger, lw=1.5):
     """
     Plot monthly data on the given axis.
 
@@ -25,7 +25,7 @@ def plot_monthly_data(ax, monthly_data, data_labels, logger):
                 label += ' monthly'
             else:
                 label = None
-            mon_data.plot(ax=ax, label=label, lw=1.5)
+            mon_data.plot(ax=ax, label=label, lw=lw)
         except Exception as e:
             logger.debug(f"Error plotting monthly data: {e}")
 
@@ -38,7 +38,7 @@ def plot_monthly_data(ax, monthly_data, data_labels, logger):
     data_labels (list): list of labels for the data
     logger (logging.Logger): logger
 """
-def plot_annual_data(ax, annual_data, data_labels, logger):
+def plot_annual_data(ax, annual_data, data_labels, logger, lw=1.5):
     for i in range(len(annual_data)):
         try:
             ann_data = annual_data[i]
@@ -47,11 +47,11 @@ def plot_annual_data(ax, annual_data, data_labels, logger):
                 label += ' annual'
             else:
                 label = None
-            ann_data.plot(ax=ax, label=label, color='#1898e0', linestyle='--', lw=1.5)
+            ann_data.plot(ax=ax, label=label, color='#1898e0', linestyle='--', lw=lw)
         except Exception as e:
             logger.debug(f"Error plotting annual data: {e}")
 
-def plot_ref_monthly_data(ax, ref_monthly_data, std_monthly_data, ref_label, logger):
+def plot_ref_monthly_data(ax, ref_monthly_data, std_monthly_data, ref_label, logger, lw=0.6):
     """
     Plot reference monthly data on the given axis.
 
@@ -67,7 +67,7 @@ def plot_ref_monthly_data(ax, ref_monthly_data, std_monthly_data, ref_label, log
             ref_label_mon = ref_label + ' monthly'
         else:
             ref_label_mon = None
-        ref_monthly_data.plot(ax=ax, label=ref_label_mon, color='black', lw=0.6)
+        ref_monthly_data.plot(ax=ax, label=ref_label_mon, color='black', lw=lw)
         if std_monthly_data is not None:
             std_monthly_data.compute()
             ax.fill_between(ref_monthly_data.time,
@@ -78,7 +78,7 @@ def plot_ref_monthly_data(ax, ref_monthly_data, std_monthly_data, ref_label, log
     except Exception as e:
         logger.debug(f"Error plotting monthly std data: {e}")
 
-def plot_ref_annual_data(ax, ref_annual_data, std_annual_data, ref_label, logger):
+def plot_ref_annual_data(ax, ref_annual_data, std_annual_data, ref_label, logger, lw=0.6):
     """
     Plot reference annual data on the given axis.
 
@@ -94,7 +94,7 @@ def plot_ref_annual_data(ax, ref_annual_data, std_annual_data, ref_label, logger
             ref_label_ann = ref_label + ' annual'
         else:
             ref_label_ann = None
-        ref_annual_data.plot(ax=ax, label=ref_label_ann, color='black', linestyle='--', lw=0.6)
+        ref_annual_data.plot(ax=ax, label=ref_label_ann, color='black', linestyle='--', lw=lw)
         if std_annual_data is not None:
             std_annual_data.compute()
             ax.fill_between(ref_annual_data.time,

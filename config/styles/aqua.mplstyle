@@ -12,19 +12,19 @@ xtick.color: .15
 ytick.color: .15
 axes.axisbelow: True
 font.family: sans-serif
-#grid.linestyle: -
+grid.linestyle: --
 lines.solid_capstyle: round
 
 # Seaborn darkgrid parameters
-# axes.grid: False
-# axes.facecolor: EAEAF2
-# axes.edgecolor: white
-# axes.linewidth: 0
-# grid.color: white
-# xtick.major.size: 0
-# ytick.major.size: 0
-# xtick.minor.size: 0
-# ytick.minor.size: 0
+#axes.grid: False
+#axes.facecolor: EAEAF2
+#axes.edgecolor: white
+#axes.linewidth: 0
+#grid.color: white
+#xtick.major.size: 0
+#ytick.major.size: 0
+#xtick.minor.size: 0
+#ytick.minor.size: 0
 
 # Custom
 font.sans-serif: Luxi Sans, Overpass, Helvetica, Helvetica Neue, Arial, Liberation Sans, DejaVu Sans, Bitstream Vera Sans, sans-serif
@@ -32,5 +32,4 @@ axes.prop_cycle: cycler('color', ["#1898e0", "#8bcd45", "#f89e13", "#d24493", "#
 figure.facecolor: fefeff
 savefig.facecolor: fefeff
 grid.color: dimgrey
-grid.linestyle: --
 grid.alpha: 0.8
