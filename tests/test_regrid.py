@@ -1,8 +1,7 @@
 """Test regridding from Reader"""
 import pytest
-from aqua import Reader
+from aqua import Reader, Regridder
 from aqua.regridder.griddicthandler import GridDictHandler
-from aqua.regridder import Regridder
 
 LOGLEVEL = "DEBUG"
 approx_rel = 1e-4
@@ -42,7 +41,7 @@ class TestRegridder():
 
     def test_grid_dict_handler(self):
         """Test the grid dictionary handler"""
-        
+
         gdh = GridDictHandler(cfg_dict, loglevel=LOGLEVEL)
 
         # empty one
@@ -90,9 +89,9 @@ class TestRegridder():
         assert len(src_area.lon) == 18
         assert len(src_area.lat) == 9
 
-        tgt_area = regridder.areas(tgt_grid_name='r144x72')
-        assert len(tgt_area.lon) == 144
-        assert len(tgt_area.lat) == 72
+        tgt_area = regridder.areas(tgt_grid_name='n32')
+        assert len(tgt_area.lon) == 128
+        assert len(tgt_area.lat) == 64
 
     def test_basic_interpolation(self, reader_arguments):
         """

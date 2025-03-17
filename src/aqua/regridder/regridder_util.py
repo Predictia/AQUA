@@ -21,26 +21,3 @@ def validate_reader_kwargs(reader_kwargs):
         if key not in reader_kwargs:
             raise ValueError(f"reader_kwargs must contain key '{key}'.")
     return reader_kwargs
-
-
-def configure_masked_fields(src_grid_dict):
-    """
-    if the grids has the 'masked' option, this can be based on
-    generic attribute or alternatively of a series of specific variables using the 'vars' key
-
-    Args:
-        source_grid (dict): Dictionary containing the grid information
-
-    Returns:
-        masked_attr (dict): Dict with name and proprierty of the attribute to be used for masking
-        masked_vars (list): List of variables to mask
-    """
-    masked_info = src_grid_dict.get("masked")
-    if masked_info is None:
-        return None, None
-
-    masked_vars = masked_info.get("vars")
-    masked_attrs = {k: v for k, v in masked_info.items() if k !=
-                    "vars"} or None
-
-    return masked_attrs, masked_vars

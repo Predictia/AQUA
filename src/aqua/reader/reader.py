@@ -5,7 +5,6 @@ import intake_esm
 import intake_xarray
 import xarray as xr
 
-
 from smmregrid import GridInspector
 
 from aqua.util import load_multi_yaml, files_exist, to_list
@@ -24,7 +23,6 @@ from .reader_utils import set_attrs
 
 # set default options for xarray
 xr.set_options(keep_attrs=True)
-
 
 class Reader(FixerMixin, TimStatMixin):
     """General reader for climate data."""
@@ -92,6 +90,8 @@ class Reader(FixerMixin, TimStatMixin):
         self.exp = exp
         self.model = model
         self.source = source
+        # these infos are used by the regridder to correct define areas/weights name
+        reader_kwargs = {'model': model, 'exp': exp, 'source': source}
         self.regrid_method = regrid_method
         self.nproc = nproc
         self.vert_coord = None
@@ -170,12 +170,26 @@ class Reader(FixerMixin, TimStatMixin):
             if not self.dst_datamodel:
                 self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
 
-        # these infos are used by the regridder to correct define areas/weights name
-        reader_kwargs = {'model': model, 'exp': exp, 'source': source}
-
         # define grid names
         self.src_grid_name = self.esmcat.metadata.get('source_grid_name')
         self.tgt_grid_name = regrid
+
+        # init the regridder and the areas
+        self._configure_regridder(machine_paths, regrid=regrid, areas=areas,
+                                  rebuild=rebuild, reader_kwargs=reader_kwargs)
+
+    def _configure_regridder(self, machine_paths, regrid=False, areas=False,
+                             rebuild=False, reader_kwargs=None):
+        """
+        Configure the regridder and generate areas and weights.
+
+        Arguments:
+            machine_paths (dict): The machine specific paths. Used to configure regridder file paths
+            regrid (bool): If regrid is required. Defaults to False.
+            areas (bool): If areas are required. Defaults to False.
+            rebuild (bool): If weights and areas should be rebuilt. Defaults to False.
+            reader_kwargs (dict): The reader kwargs.
+        """
 
         # load and check the regrid
         if regrid or areas:
@@ -189,15 +203,17 @@ class Reader(FixerMixin, TimStatMixin):
             if self.src_grid_name is None:
                 self.logger.warning('Grid metadata is not defined. Trying to access the real data')
                 data = self._retrieve_plain()
-                self.regridder = Regridder(cfg_regrid, data=data, loglevel=loglevel)
+                self.regridder = Regridder(cfg_regrid, data=data, loglevel=self.loglevel)
             else:
                 self.logger.info('Grid metadata is %s', self.src_grid_name)
-                self.regridder = Regridder(cfg_regrid, src_grid_name=self.src_grid_name, loglevel=loglevel)
+                self.regridder = Regridder(cfg_regrid, src_grid_name=self.src_grid_name, 
+                                           loglevel=self.loglevel)
 
                 if self.regridder.error:
                     self.logger.warning('Issues in the Regridder() init: trying with data')
                     data = self._retrieve_plain()
-                    self.regridder = Regridder(cfg_regrid, src_grid_name=self.src_grid_name, data=data, loglevel=loglevel)
+                    self.regridder = Regridder(cfg_regrid, src_grid_name=self.src_grid_name, 
+                                               data=data, loglevel=self.loglevel)
 
             # export src space coord and vertical coord
             self.src_space_coord = self.regridder.src_horizontal_dims

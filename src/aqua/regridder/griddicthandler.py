@@ -8,8 +8,10 @@ from .regridder_util import check_existing_file
 class GridDictHandler:
     """
     Class to handle AQUA grid dictionaries.
-    It is used to normalize all the different dictionaries and strings that can be used to define a grid.
-    It covers many cases (it might seem overdetailed), and can be used also in absence of a cfg_grid_dict dictionary.
+    It is used to normalize all the different dictionaries and strings 
+    that can be used to define a grid.
+    It covers many cases (it might seem overdetailed), and can be used also 
+    in absence of a cfg_grid_dict dictionary.
     """
 
     def __init__(self, cfg_grid_dict, default_dimension='2d', loglevel='WARNING'):
@@ -19,8 +21,10 @@ class GridDictHandler:
         
         Args:
             cfg_grid_dict (dict): The AQUA grid dictionary from the configuration file.
-                                  It can be None or empty dictionary but in this case only CDO grid names can be used.
-            default_dimension (str): The default dimension to use for the grid path. '2d' by default.
+                                  It can be None or empty dictionary but in this case 
+                                  only CDO grid names can be used.
+            default_dimension (str): The default dimension to use for the grid path. 
+                                     '2d' by default.
             loglevel (str): The logging level.
         """
 
@@ -33,7 +37,7 @@ class GridDictHandler:
         if not self.cfg_grid_dict:
             self.logger.warning("No cfg_grid_dict dictionary provided, only CDO grid names can be used.")
             return
-            
+
         # safety checks
         if not isinstance(self.cfg_grid_dict, dict):
             raise ValueError("cfg_grid_dict must be a dictionary.")

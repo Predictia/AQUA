@@ -9,7 +9,7 @@ from smmregrid.util import check_gridfile
 from aqua.logger import log_configure
 from aqua.util import to_list
 from .griddicthandler import GridDictHandler
-from .regridder_util import check_existing_file, validate_reader_kwargs, configure_masked_fields
+from .regridder_util import check_existing_file, validate_reader_kwargs
 
 
 # parameters which will affect the weights and areas name
@@ -27,13 +27,13 @@ DEFAULT_DIMENSION_MASK = '2dm'  # masked grid
 # a file on the disk or xarray dataset. Possible inclusion of CDOgrid object is considered
 # but should be likely developed on the smmregrid side.
 
-
 class Regridder():
     """AQUA Regridder class"""
 
     def __init__(self, cfg_grid_dict: dict = None,
                  src_grid_name: str = None,
                  data: xr.Dataset = None,
+                 cdo: str = None,
                  loglevel: str = "WARNING"):
         """
         The (new) Regridder class. Can be initialized with a dataset or a grid name
@@ -43,6 +43,7 @@ class Regridder():
             cfg_grid_dict (dict): The dictionary containing the full AQUA grid configuration.
             src_grid_name (str, optional): The name of the source grid in the AQUA convention.
             data (xarray.Dataset, optional): The dataset to be regridded if src_grid_name is not provided.
+            cdo (str, optional): The path to the CDO executable. If None, guess it from the system.
             loglevel (str): The logging level.
 
         Attributes:
@@ -116,7 +117,7 @@ class Regridder():
             return
 
         # check if CDO is available
-        self.cdo = self._set_cdo()
+        self.cdo = self._set_cdo(cdo=cdo)
 
         # SMMregridders dictionary for each vertical coordinate
         self.smmregridder = {}
@@ -126,26 +127,28 @@ class Regridder():
         self.tgt_grid_area = None
 
         # configure the masked fields
-        self.masked_attrs, self.masked_vars = configure_masked_fields(self.src_grid_dict)
+        self.masked_attrs, self.masked_vars = self.configure_masked_fields(self.src_grid_dict)
 
         self.logger.info("Grid name: %s", self.src_grid_name)
-        self.logger.info("Grid dictionary: %s", self.src_grid_dict)
-        self.logger.debug("Grid file path dictionary: %s", self.src_grid_path)
+        self.logger.debug("Grid dictionary: %s", self.src_grid_dict)
 
-    def _set_cdo(self):
+    def _set_cdo(self, cdo=None):
         """
         Check information on CDO to set the correct version
         """
+        if cdo:
+            # TODO: add a subprocess call to add if cdo is available
+            self.logger.debug("Going to use CDO in: %s", cdo)
+            return cdo
 
         cdo = shutil.which("cdo")
         if cdo:
             self.logger.debug("Found CDO path: %s", cdo)
-        else:
-            self.logger.error(
+            return cdo
+
+        raise FileNotFoundError(    
                 "CDO not found in path: Weight and area generation will fail.")
-
-        return cdo
-
+    
     def _get_info_from_data(self, data):
         """
         Extract information from the dataset to be used in the regridding process
@@ -574,6 +577,29 @@ class Regridder():
                         filename)
 
         return filename
+    
+    @staticmethod
+    def configure_masked_fields(src_grid_dict):
+        """
+        if the grids has the 'masked' option, this can be based on
+        generic attribute or alternatively of a series of specific variables using the 'vars' key
+
+        Args:
+            source_grid (dict): Dictionary containing the grid information
+
+        Returns:
+            masked_attr (dict): Dict with name and proprierty of the attribute to be used for masking
+            masked_vars (list): List of variables to mask
+        """
+        masked_info = src_grid_dict.get("masked")
+        if masked_info is None:
+            return None, None
+
+        masked_vars = masked_info.get("vars")
+        masked_attrs = {k: v for k, v in masked_info.items() if k !=
+                        "vars"} or None
+
+        return masked_attrs, masked_vars
 
     @staticmethod
     def _get_grid_path(grid_path):
