@@ -3,7 +3,6 @@
 from json import load
 import os
 import re
-import types
 import shutil
 import intake_esm
 import intake_xarray
@@ -21,7 +20,7 @@ import aqua.gsv
 from .streaming import Streaming
 from .fixer import FixerMixin
 from .regrid import RegridMixin
-from .timstat import TimStatMixin
+from .timstat import TimStat
 from .reader_utils import group_shared_dims, set_attrs
 from .reader_utils import configure_masked_fields
 
@@ -40,7 +39,7 @@ default_weights_areas_parameters = ['zoom']
 xr.set_options(keep_attrs=True)
 
 
-class Reader(FixerMixin, RegridMixin, TimStatMixin):
+class Reader(FixerMixin, RegridMixin):
     """General reader for climate data."""
 
     instance = None  # Used to store the latest instance of the class
@@ -218,6 +217,9 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
         # generate destination areas
         if areas and regrid:
             self._generate_load_dst_area(cfg_regrid, rebuild)
+
+        # activste time statistics
+        self.timemodule = TimStat()
 
     def _set_cdo(self):
         """
@@ -1285,3 +1287,49 @@ class Reader(FixerMixin, RegridMixin, TimStatMixin):
             for k, v in self.esmcat._request.items():
                 if k not in ["time", "param", "step", "expver"]:
                     print("  %s: %s" % (k, v))
+
+    def timmean(self, data, freq=None, exclude_incomplete=False,
+                time_bounds=False, center_time=False):
+        """
+        Exposed method for time averaging statistic. Wrapper for timstat()
+        """
+
+        return self.timemodule.timstat(data, stat='mean', freq=freq, exclude_incomplete=exclude_incomplete,
+                            time_bounds=time_bounds, center_time=center_time)
+
+    def timmax(self, data, freq=None, exclude_incomplete=False,
+               time_bounds=False, center_time=False):
+        """
+        Exposed method for time maximum statistic. Wrapper for timstat()
+        """
+
+        return self.timemodule.timstat(data, stat='max', freq=freq, exclude_incomplete=exclude_incomplete,
+                            time_bounds=time_bounds, center_time=center_time)
+
+    def timmin(self, data, freq=None, exclude_incomplete=False,
+               time_bounds=False, center_time=False):
+        """
+        Exposed method for time maximum statistic. Wrapper for timstat()
+        """
+
+        return self.timemodule.timstat(data, stat='min', freq=freq, exclude_incomplete=exclude_incomplete,
+                            time_bounds=time_bounds, center_time=center_time)
+
+    def timstd(self, data, freq=None, exclude_incomplete=False,
+               time_bounds=False, center_time=False):
+        """
+        Exposed method for time standard deviation statistic. Wrapper for timstat()
+        """
+
+        return self.timemodule.timstat(data, stat='std', freq=freq, exclude_incomplete=exclude_incomplete,
+                            time_bounds=time_bounds, center_time=center_time)
+
+    def timstat(self, data, stat='mean', freq=None, exclude_incomplete=False,
+                 time_bounds=False, center_time=False):
+        """
+        Perform daily, monthly and yearly time statistics.
+        See timstat for more details.
+        """
+
+        return self.timemodule.timstat(data, stat=stat, freq=freq, exclude_incomplete=exclude_incomplete,
+                            time_bounds=time_bounds, center_time=center_time)
