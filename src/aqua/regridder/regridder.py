@@ -260,7 +260,8 @@ class Regridder():
         # if they have been provided, read from the AQUA dict
         cellareas, cellareas_var = grid_dict.get('cellareas'), grid_dict.get('cellareas_var')
         if cellareas and cellareas_var:
-            self.logger.info("Using cellareas from variable %s in file %s", cellareas_var, cellareas)
+            self.logger.info("Using cellareas from variable %s in file %s",
+                             cellareas_var, cellareas)
             if not os.path.exists(cellareas):
                 raise FileNotFoundError(f"Grid based cell area  file {cellareas} not found.")
             return xr.open_mfdataset(cellareas)[cellareas_var].rename("cell_area").squeeze()
@@ -508,7 +509,8 @@ class Regridder():
             variables = list(gridtype.variables.keys())
 
             if gridtype.vertical_dim:
-                self.logger.debug("Variables for dimension %s: %s", gridtype.vertical_dim, variables)
+                self.logger.debug("Variables for dimension %s: %s", 
+                                  gridtype.vertical_dim, variables)
                 shared_vars[gridtype.vertical_dim] = [var for var in variables if var not in masked_vars]
             else:
                 shared_vars[DEFAULT_DIMENSION] = [var for var in variables if var not in masked_vars]
