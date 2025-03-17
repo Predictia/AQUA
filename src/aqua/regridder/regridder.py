@@ -134,7 +134,16 @@ class Regridder():
 
     def _set_cdo(self, cdo=None):
         """
-        Check information on CDO to set the correct version
+        Check information on CDO to set the correct version.
+
+        Args:
+            cdo (str, optional): The path to the CDO executable. If None, guess it from the system.
+
+        Returns:
+            str: The path to the CDO executable.
+
+        Raises:
+            FileNotFoundError: If CDO is not found in the system path.
         """
         if cdo:
             # TODO: add a subprocess call to add if cdo is available
@@ -333,6 +342,8 @@ class Regridder():
                         "Generating weights for %s grid: %s", tgt_grid_name, vertical_dim)
                     
                 # smmregrid call
+                #TODO: here or better in smmregird, we could use GridInspect to get the grid info
+                # and reduce the dimensionality of the input data. 
                 generator = CdoGenerate(source_grid=self.src_grid_path[vertical_dim],
                                         target_grid=self._get_grid_path(tgt_grid_dict.get('path')),
                                         cdo_extra=cdo_extra,
@@ -561,6 +572,7 @@ class Regridder():
                     self.logger.error("Regridder for vertical coordinate %s not found.", vertical)
                     self.logger.error("Cannot regrid variable %s", data.name)
                     continue
+                # TODO: if smmregridder is not found, we can call the weights method to generate on the fly
                 return self.smmregridder[vertical].regrid(data)
         return data
 
