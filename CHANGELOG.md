@@ -5,7 +5,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-Unreleased in the current development version (target v0.14):
+Unreleased in the current development version (target v0.14.1):
+
+## [v0.14.0]
+
+Main changes are:
+- AQUA is now open source
+- Documentation is now available on ReadTheDocs
+- Attributes added by AQUA are now "AQUA_" prefixed
+- A core diagnostic class has been introduced
+
+Deprecated:
+- Support for python==3.9 has been dropped.
+- Generators option from the Reader has been removed.
 
 AQUA core complete list:
 - Added Healpix zoom 7 grid for ICON R02B08 native oceanic grid (#1823)
@@ -852,7 +864,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.1...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.14.0...HEAD
+[v0.14.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.1...v0.14.0
 [v0.13.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.0...v0.13.1
 [v0.13.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-beta...v0.13.0
 [v0.13-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-alpha...v0.13-beta
