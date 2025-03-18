@@ -27,10 +27,6 @@ class SeaIce(Diagnostic):
         regions   (list, optional): A list of regions to analyze. Default is ['Arctic', 'Antarctic'].
         regions_file (str, optional): The path to the regions definition file.
         loglevel     (str, optional): The logging level. Default is 'WARNING'.
-        extent       (xr.Dataset): The computed sea ice extent.
-        extent_std   (xr.Dataset): The standard deviation of the computed sea ice extent.
-        volume     (xr.Dataset): The computed sea ice volume.
-        volume_std (xr.Dataset): The standard deviation of the computed sea ice volume.
         regions_definition (dict): The loaded regions definition from the YAML file.
     Methods:
         load_regions(regions_file=None, regions=None):
