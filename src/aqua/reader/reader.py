@@ -8,9 +8,8 @@ import xarray as xr
 from smmregrid import GridInspector
 
 from aqua.util import load_multi_yaml, files_exist, to_list
-from aqua.util import ConfigPath, area_selection
+from aqua.util import ConfigPath, area_selection, find_vert_coord
 from aqua.logger import log_configure, log_history
-from aqua.util import find_vert_coord
 from aqua.exceptions import NoDataError, NoRegridError
 from aqua.version import __version__ as aqua_version
 from aqua.regridder import Regridder
@@ -229,6 +228,8 @@ class Reader(FixerMixin, TimStatMixin):
             # generate source areas and expose them in the reader
             self.src_grid_area = self.regridder.areas(rebuild=rebuild, reader_kwargs=reader_kwargs)
             if self.fix:
+                # TODO: this should include the latitudes flipping fix. 
+                # TODO: No check is done on the areas coords vs data coords
                 self.src_grid_area = self._fix_area(self.src_grid_area)
 
         # configure regridder and generate weights
@@ -243,6 +244,7 @@ class Reader(FixerMixin, TimStatMixin):
         if areas and regrid:
             self.tgt_grid_area = self.regridder.areas(tgt_grid_name=self.tgt_grid_name, rebuild=rebuild)
             if self.fix:
+                # TODO: this should include the latitudes flipping fix
                 self.tgt_grid_area = self._fix_area(self.tgt_grid_area)
             self.tgt_space_coord = self.regridder.tgt_horizontal_dims
 
@@ -322,13 +324,14 @@ class Reader(FixerMixin, TimStatMixin):
             data = self.fixer(data, var)
 
         if not ffdb:  # FDB sources already have the index, already selected levels
-            data = self._index_and_level(data, level=level)  # add helper index, select levels (optional)
+            data = self._add_index(data)  # add helper index
+            data = self._select_level(data, level=level)  # select levels (optional)
 
         # log an error if some variables have no units
         if isinstance(data, xr.Dataset) and self.fix:
-            for var in data.data_vars:
-                if not hasattr(data[var], 'units'):
-                    self.logger.warning('Variable %s has no units!', var)
+            for variable in data.data_vars:
+                if not hasattr(data[variable], 'units'):
+                    self.logger.warning('Variable %s has no units!', variable)
 
         if self.streaming:
             data = self.streamer.stream(data)
@@ -350,42 +353,63 @@ class Reader(FixerMixin, TimStatMixin):
 
         return data
 
-    def _index_and_level(self, data, level=None):
+    def _add_index(self, data):
+
         """
-        Add a helper idx_3d coordinate to the data and select levels if provided
+        Add a helper idx_{dim3d} coordinate to the data to be used for level selection
+
+        Arguments:
+            data (xr.Dataset):  the input xarray.Dataset
+
+        Returns:
+            A xarray.Dataset containing the data with the idx_dim{3d} coordinate.
+        """
+
+        if self.vert_coord:
+            for dim in to_list(self.vert_coord):
+                if dim in data.coords:
+                    idx = list(range(0, len(data.coords[dim])))
+                    data = data.assign_coords(**{f"idx_{dim}": (dim, idx)})
+        return data
+
+    def _select_level(self, data, level=None):
+        """
+        Select levels if provided. It is based on self.vert_coord but it extends the feature 
+        to atmospheric levels, so it should not be considered as the same vertical coordinate
 
         Arguments:
             data (xr.Dataset):  the input xarray.Dataset
             level (list, int):  levels to be selected. Defaults to None.
 
         Returns:
-            A xarray.Dataset containing the data with the idx_3d coordinate.
+            A xarray.Dataset containing the data with the selected levels.
         """
 
-        if self.vert_coord:
-            vert_coord = [coord for coord in self.vert_coord if coord not in ["2d", "2dm"]]  # filter out 2d stuff
-        else:
-            vert_coord = []
+        # return if no levels are selected
+        if not level:
+            return data
 
-        for dim in vert_coord:  # Add a helper index to the data
-            if dim in data.coords:
-                idx = list(range(0, len(data.coords[dim])))
-                data = data.assign_coords(**{f"idx_{dim}": (dim, idx)})
+        # find the vertical coordinate, which can be the smmregrid one or 
+        # any other with a dimension compatible (Pa, cm, etc)
+        full_vert_coord = find_vert_coord(data) if not self.vert_coord else self.vert_coord
 
-        if level:
-            if not isinstance(level, list):
-                level = [level]
-            if not vert_coord:  # try to find a vertical coordinate
-                vert_coord = find_vert_coord(data)
-            if vert_coord:
-                if len(vert_coord) > 1:
-                    self.logger.warning("Found more than one vertical coordinate, using the first one: %s", vert_coord[0])
-                data = data.sel(**{vert_coord[0]: level})
-                data = log_history(data, f"Selecting levels {level} from vertical coordinate {vert_coord[0]}")
-            else:
-                self.logger.error("Levels selected but no vertical coordinate found in data!")
+        # return if no vertical coordinate is found
+        if not full_vert_coord:
+            self.logger.error("Levels selected but no vertical coordinate found in data!")
+            return data
+        
+        # ensure that level is a list
+        level = to_list(level)
 
+        # do the selection on the first vertical coordinate found
+        if len(full_vert_coord) > 1:
+            self.logger.warning(
+                "Found more than one vertical coordinate, using the first one: %s", 
+                full_vert_coord[0])
+        data = data.sel(**{full_vert_coord[0]: level})
+        data = log_history(data, f"Selecting levels {level} from vertical coordinate {full_vert_coord[0]}")
         return data
+
 
     def set_default(self):
         """Sets this reader as the default for the accessor."""
@@ -484,7 +508,7 @@ class Reader(FixerMixin, TimStatMixin):
         if lon_limits is not None or lat_limits is not None:
             data = area_selection(data, lon=lon_limits, lat=lat_limits,
                                   loglevel=self.loglevel, **kwargs)
-        self.logger.info('Space coordinates are %s', space_coord)
+        self.logger.debug('Space coordinates are %s', space_coord)
         # cleaning coordinates which have "multiple" coordinates in their own definition
         # grid_area = self._clean_spourious_coords(grid_area, name = "area")
         # data = self._clean_spourious_coords(data, name = "data")

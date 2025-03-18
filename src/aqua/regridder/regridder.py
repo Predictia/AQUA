@@ -343,7 +343,7 @@ class Regridder():
                     
                 # smmregrid call
                 #TODO: here or better in smmregird, we could use GridInspect to get the grid info
-                # and reduce the dimensionality of the input data. 
+                # and reduce the dimensionality of the input data.
                 generator = CdoGenerate(source_grid=self.src_grid_path[vertical_dim],
                                         target_grid=self._get_grid_path(tgt_grid_dict.get('path')),
                                         cdo_extra=cdo_extra,
