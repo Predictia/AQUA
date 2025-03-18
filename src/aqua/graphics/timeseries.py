@@ -69,7 +69,9 @@ def plot_timeseries(monthly_data=None,
         plot_ref_annual_data(ax, ref_annual_data, std_annual_data, ref_label, logger, lw=0.8)
     
     ax.legend(fontsize='small')
-    ax.grid(True, axis="both")
+    ax.grid(True, axis="y", linestyle='-', color='silver', alpha=0.8)
+    for spine in plt.gca().spines.values():
+        spine.set_visible(False)
 
     title = kwargs.get('title', None)
     if title:
