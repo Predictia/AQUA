@@ -423,12 +423,12 @@ class Reader(FixerMixin, TimStatMixin):
         data = log_history(data, f"Selecting levels {level} from vertical coordinate {full_vert_coord[0]}")
         return data
     
-    def fldmean(self, data):
+    def fldmean(self, data, lon_limits=None, lat_limits=None, **kwargs):
         """Fldmean average on the data. If regridded, it will use the target grid areas."""
 
         if self._check_if_regridded(data):
-            return self.tgt_fldstat.fldmean(data)
-        return self.src_fldstat.fldmean(data)
+            return self.tgt_fldstat.fldmean(data, lon_limits=lon_limits, lat_limits=lat_limits, **kwargs)
+        return self.src_fldstat.fldmean(data, lon_limits=lon_limits, lat_limits=lat_limits, **kwargs)
 
     def set_default(self):
         """Sets this reader as the default for the accessor."""

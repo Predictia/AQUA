@@ -30,7 +30,7 @@ class FldStat():
         
         # TODO: add a guess with smmregrid GridInspector
         if horizontal_dims is None:
-            self.logger.warning("No horizontal coordinates provided, using default ['lon', 'lat'].")
+            self.logger.warning("No horizontal dimensions provided, using default ['lon', 'lat'].")
             horizontal_dims = ['lon', 'lat']
         self.horizontal_dims = horizontal_dims
         self.logger.debug('Space coordinates are %s', self.horizontal_dims)
@@ -93,7 +93,7 @@ class FldStat():
             #             else:
             #                 raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
 
-        self.logger.debug('Computing the weighted average over f{self.horizontal_dims}')
+        self.logger.debug('Computing the weighted average over  %s', self.horizontal_dims)
         out = data.weighted(weights=self.area.fillna(0)).mean(dim=self.horizontal_dims)
 
         if self.grid_name is not None:
