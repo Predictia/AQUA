@@ -23,10 +23,10 @@ def select_pressure_level(data, plev, var):
         # If 'plev' is already in coordinates and matches the selected level, return as is
         if 'plev' in data[var].coords and data[var].coords['plev'].size == 1:
             if data[var].coords['plev'].values[0] == plev:
-                return data  # Already at the requested level
+                return data  
         # Otherwise, try selecting the specified pressure level
         try:
-            return data.sel(plev=plev)
+            return data.sel(plev=plev, method="nearest")
         except KeyError:
             raise NoDataError(f"The specified pressure level {plev} is not in the dataset.")
     else:
