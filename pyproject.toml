@@ -130,7 +130,6 @@ source = ["src/aqua"]
 omit = [
     "tests/*", 
     "**/__init__.py",
-    "src/aqua/lra_generator/opa_generator.py",
     "src/aqua/slurm/slurm.py",
     "src/aqua_diagnostics/dummy"
     ]
