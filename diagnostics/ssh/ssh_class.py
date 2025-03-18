@@ -397,7 +397,7 @@ class sshVariability():
             # Use the value from the config if args.regrid is not provided
             regrid_option = config['base_model']['regrid']
         reader = Reader(model=config['base_model']['name'], exp=config['base_model']['experiment'],
-                source=config['base_model']['source'], regrid=regrid_option, fix=True)
+                source=config['base_model']['source'], regrid=regrid_option, fix=False)
     
                 #Assuming aviso_ssh_std_file_path contains the path to the "AVISO_ssh-L4_daily" file
         aviso_ssh_std_file_path = os.path.join(config['output_directory'],"netcdf", "AVISO_ssh-L4_daily_std.nc")
@@ -426,7 +426,7 @@ class sshVariability():
             try:
                 # regrid_option = args.regrid if args.regrid is not None else config['base_model']['regrid']  
                 reader = Reader(model=config['base_model']['name'], exp=config['base_model']['experiment'],
-                                source=config['base_model']['source'], regrid=regrid_option, fix=True)
+                                source=config['base_model']['source'], regrid=regrid_option, fix=False)
                 regrid=regrid_option
             except:
                 raise NoObservationError("AVISO data not found.")
