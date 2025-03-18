@@ -10,7 +10,7 @@ approx_rel = 1e-4
     params=[
         ("IFS", "test-tco79", "short", "2t", 0),
         ("IFS", "test-tco79", "short_nn", "2t", 0),
-        ("IFS", "test-tco79", "long", "mtntrf", 0),
+        ("IFS", "test-tco79", "long-nogrid", "mtntrf", 0),
         ("ICON", "test-r2b0", "short", "2t", 0),
         ("ICON", "test-healpix", "short", "2t", 0),
         ("FESOM", "test-pi", "original_2d", "tos", 0.33925926),
