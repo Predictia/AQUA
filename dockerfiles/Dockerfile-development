@@ -22,7 +22,6 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 # We switch to mamba user later, root for now just to create the user.
 USER root
 
-# --- x snip x ---
 # --- This is from the official docs from the micromamba image.
 # --- https://micromamba-docker.readthedocs.io/en/latest/advanced_usage.html#adding-micromamba-to-an-existing-docker-image
 # if your image defaults to a non-root user, then you may want to make the
@@ -42,7 +41,13 @@ COPY --from=micromamba /usr/local/bin/_entrypoint.sh /usr/local/bin/_entrypoint.
 COPY --from=micromamba /usr/local/bin/_dockerfile_initialize_user_accounts.sh /usr/local/bin/_dockerfile_initialize_user_accounts.sh
 COPY --from=micromamba /usr/local/bin/_dockerfile_setup_root_prefix.sh /usr/local/bin/_dockerfile_setup_root_prefix.sh
 
-RUN /usr/local/bin/_dockerfile_initialize_user_accounts.sh && \
+#FIX: Check if GID exists before adding group
+RUN if ! getent group "$MAMBA_USER_GID" >/dev/null; then \
+        groupadd -g "$MAMBA_USER_GID" "$MAMBA_USER"; \
+    else \
+        echo "Group with GID $MAMBA_USER_GID already exists, using existing group."; \
+    fi && \
+    useradd -m -u "$MAMBA_USER_ID" -g "$MAMBA_USER_GID" -s /bin/bash "$MAMBA_USER" && \
     /usr/local/bin/_dockerfile_setup_root_prefix.sh
 
 USER $MAMBA_USER
