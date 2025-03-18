@@ -13,6 +13,7 @@ def plot_monthly_data(ax, monthly_data, data_labels, logger, lw=1.5):
         monthly_data (xr.DataArray or list of xr.DataArray): monthly data to plot
         data_labels (list): list of labels for the data
         logger (logging.Logger): logger
+        lw (float): line width, default is 1.5
     """
     # in case monthly_data is not a list yet, make it a list
     if isinstance(monthly_data, xr.DataArray):
@@ -37,6 +38,7 @@ def plot_monthly_data(ax, monthly_data, data_labels, logger, lw=1.5):
     annual_data (list): list of xarray.DataArray objects containing the annual data
     data_labels (list): list of labels for the data
     logger (logging.Logger): logger
+    lw (float): line width, default is 1.5
 """
 def plot_annual_data(ax, annual_data, data_labels, logger, lw=1.5):
     for i in range(len(annual_data)):
@@ -61,6 +63,7 @@ def plot_ref_monthly_data(ax, ref_monthly_data, std_monthly_data, ref_label, log
         std_monthly_data (xr.DataArray): standard deviation of the reference monthly data
         ref_label (str): label for the reference data
         logger (logging.Logger): logger
+        lw (float): line width, default is 0.6
     """
     try:
         if ref_label:
@@ -88,6 +91,7 @@ def plot_ref_annual_data(ax, ref_annual_data, std_annual_data, ref_label, logger
         std_annual_data (xr.DataArray): standard deviation of the reference annual data
         ref_label (str): label for the reference data
         logger (logging.Logger): logger
+        lw (float): line width, default is 0.6
     """
     try:
         if ref_label:
