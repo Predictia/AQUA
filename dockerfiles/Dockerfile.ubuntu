@@ -1,4 +1,9 @@
 # Custom Ubuntu 24.04 Docker image with recent FDB5, ECCODES
+
+#-----IMPORTANT-----
+# # IMPORTANT: the filename of the docker is defined in the action, and include the name of the branch
+# to keep a level of consistence, please name the branch as "aqua-base-container"
+
 FROM ubuntu:24.04
 
 LABEL maintainer="jost.hardenberg@polito.it"
