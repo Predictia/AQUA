@@ -2,13 +2,13 @@
     Functions to plot monthly and annual data, as well as reference data.
 """
 import xarray as xr
-import matplotlib.pyplot as plt
+
 
 def plot_monthly_data(ax, monthly_data, data_labels, logger, lw=1.5):
     """
     Plot monthly data on the given axis.
 
-    Arguments:
+    Args:
         ax (matplotlib.axes._subplots.AxesSubplot): axis object to plot the data on
         monthly_data (xr.DataArray or list of xr.DataArray): monthly data to plot
         data_labels (list): list of labels for the data
@@ -30,17 +30,18 @@ def plot_monthly_data(ax, monthly_data, data_labels, logger, lw=1.5):
         except Exception as e:
             logger.debug(f"Error plotting monthly data: {e}")
 
-"""
+
+def plot_annual_data(ax, annual_data, data_labels, logger, lw=1.5):
+    """
     Plot annual data on the given axis.
 
-    Arguments:
-    ax (matplotlib.axes._subplots.AxesSubplot): axis object to plot the data on
-    annual_data (list): list of xarray.DataArray objects containing the annual data
-    data_labels (list): list of labels for the data
-    logger (logging.Logger): logger
-    lw (float): line width, default is 1.5
-"""
-def plot_annual_data(ax, annual_data, data_labels, logger, lw=1.5):
+    Args:
+        ax (matplotlib.axes._subplots.AxesSubplot): axis object to plot the data on
+        annual_data (list): list of xarray.DataArray objects containing the annual data
+        data_labels (list): list of labels for the data
+        logger (logging.Logger): logger
+        lw (float): line width, default is 1.5
+    """
     for i in range(len(annual_data)):
         try:
             ann_data = annual_data[i]
@@ -53,11 +54,12 @@ def plot_annual_data(ax, annual_data, data_labels, logger, lw=1.5):
         except Exception as e:
             logger.debug(f"Error plotting annual data: {e}")
 
+
 def plot_ref_monthly_data(ax, ref_monthly_data, std_monthly_data, ref_label, logger, lw=0.6):
     """
     Plot reference monthly data on the given axis.
 
-    Arguments:
+    Args:
         ax (matplotlib.axes._subplots.AxesSubplot): axis object to plot the data on
         ref_monthly_data (xr.DataArray): reference monthly data to plot
         std_monthly_data (xr.DataArray): standard deviation of the reference monthly data
@@ -81,11 +83,12 @@ def plot_ref_monthly_data(ax, ref_monthly_data, std_monthly_data, ref_label, log
     except Exception as e:
         logger.debug(f"Error plotting monthly std data: {e}")
 
+
 def plot_ref_annual_data(ax, ref_annual_data, std_annual_data, ref_label, logger, lw=0.6):
     """
     Plot reference annual data on the given axis.
 
-    Arguments:
+    Args:
         ax (matplotlib.axes._subplots.AxesSubplot): axis object to plot the data on
         ref_annual_data (xr.DataArray): reference annual data to plot
         std_annual_data (xr.DataArray): standard deviation of the reference annual data
