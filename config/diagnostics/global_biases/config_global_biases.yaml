@@ -36,10 +36,13 @@ diagnostics:
       startdate_ref: "1990-01-01"
       enddate_ref: "2020-12-31"
     plot_params:
-      2t:
-        vmin: -15
-        vmax: 15
-      t:
-        vmin: {85000: -20, 20000: -20, vertical: -20}
-        vmax: {85000: 20, 20000: 20, vertical: 20}
-    
+      limits:
+        2d_maps:
+          2t: {vmin: -15, vmax: 15}
+          msl: {vmin: -1000, vmax: 1000}
+          tnlwrf: {vmin: -40, vmax: 40}
+          tprate: {vmin: -8, vmax: 8}
+        vertical_maps:
+          t: {vmin: -20, vmax: 20}
+          u: {vmin: -50, vmax: 50}
+          q: {vmin: -0.002, vmax: 0.002}
