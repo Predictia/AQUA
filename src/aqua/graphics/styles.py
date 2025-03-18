@@ -6,21 +6,22 @@ from aqua.util import ConfigPath, load_yaml
 
 
 class ConfigStyle(ConfigPath):
-    """Class to load the choosen style for graphical utilities.
-    Attributes:
-        style (str): name of the style to load.
-                     If not provided, it will be read from the configuration file.
-        filename (str): name of the configuration file. Default is 'config-aqua.yaml'.
-        configdir (str): path to the configuration directory.
-                         If not provided, it is determined by the `get_config_dir` method.
-        loglevel (str): logging level. Default is 'WARNING'.
-    """
+    """Class to load the choosen style for graphical utilities."""
     def __init__(self,
                  style: str = None,
                  filename: str = 'config-aqua.yaml',
                  configdir: str = None,
                  loglevel: str = 'WARNING'):
-        """Initialize the class."""
+        """Initialize the class.
+
+        Args:
+            style (str): name of the style to load.
+                     If not provided, it will be read from the configuration file.
+            filename (str): name of the configuration file. Default is 'config-aqua.yaml'.
+            configdir (str): path to the configuration directory.
+                            If not provided, it is determined by the `get_config_dir` method.
+            loglevel (str): logging level. Default is 'WARNING'
+        """
 
         # Initialize the ConfigPath class
         super().__init__(configdir=configdir, filename=filename, loglevel=loglevel)
@@ -30,9 +31,9 @@ class ConfigStyle(ConfigPath):
             self.style = style
         else:  # Read the style from the configuration file
             configfile = load_yaml(self.config_file)
-            try:
+            if 'options' in configfile:
                 self.style = configfile['options'].get('style', 'aqua')
-            except KeyError:
+            else:
                 self.style = 'aqua'
 
         style_dir = os.path.join(self.configdir, 'styles')
@@ -47,8 +48,5 @@ class ConfigStyle(ConfigPath):
             plt.style.use(self.style_file)
             self.logger.debug("Setting style %s from file %s", self.style, self.style_file)
         except OSError:
-            try:
-                plt.style.use(self.style)
-                self.logger.debug("Setting matplotlib style %s", self.style)
-            except OSError as e:
-                self.logger.error(f"Error loading style: {e}")
+            plt.style.use(self.style)
+            self.logger.debug("Setting matplotlib style %s", self.style)
