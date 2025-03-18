@@ -25,6 +25,8 @@ Workflow modifications:
 - `push_analysis.sh`: now has an option to rsync the figures to a specified location. Extra flags have been added (see Dashboard section in the documentation).
 
 AQUA core complete list:
+- Updated AQUA development container to micromamba 2.0.7 (#1834)
+- Updated base container to eccodes 2.40 (#1833)
 - Added Healpix zoom 7 grid for ICON R02B08 native oceanic grid (#1823)
 - Remove generators from Reader (#1791)
 - Fix tcc grib code and add some cmor codes in the convention file (#1800)
