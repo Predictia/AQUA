@@ -93,7 +93,7 @@ Available target grids
 
 .. note::
 
-    From AQUA version v0.14, all CDO grids are supported natively by AQUA, so it is possible to target `r360x180` without the need to specify `r100``
+    From AQUA version v0.14, all CDO grids are supported natively by AQUA, so it is possible to target `r360x180` without the need to specify `r100`
 
 The "predefined" target grids are:
 

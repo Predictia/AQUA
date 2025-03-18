@@ -36,8 +36,8 @@ class Regridder():
                  cdo: str = None,
                  loglevel: str = "WARNING"):
         """
-        The (new) Regridder class. Can be initialized with a dataset or a grid name
-        It has methods to generate areas and weights, and to regrid a dataset.
+        The (new) Regridder class. Can be initialized with a data (xr.Dataset/DataArray) or a src_grid_name
+        It provides methods to generate areas and weights, and to regrid a dataset.
 
         Args:
             cfg_grid_dict (dict): The dictionary containing the full AQUA grid configuration.
@@ -63,9 +63,8 @@ class Regridder():
             tgt_grid_area (xarray.Dataset): The target grid area.
             masked_attrs (dict): The masked attributes.
             masked_vars (list): The masked variables.
-            extra_dims (dict): The extra dimensions (get from cfg_grid_dict) to be sent to smmregrid.
+            extra_dims (dict): The extra dimensions (from cfg_grid_dict) to be sent to smmregrid.
         """
-
 
         if src_grid_name is None and data is None:
             raise ValueError("Either src_grid_name or data must be provided.")
@@ -73,13 +72,14 @@ class Regridder():
         self.loglevel = loglevel
         self.logger = log_configure(log_level=loglevel, log_name='Regridder')
 
-
         # define basic attributes:
         self.cfg_grid_dict = cfg_grid_dict if cfg_grid_dict else {}  # full grid dictionary
         self.src_grid_name = src_grid_name  # source grid name
 
         # we want all the grid dictionary to be real dictionaries
-        self.handler = GridDictHandler(cfg_grid_dict, default_dimension=DEFAULT_DIMENSION, loglevel=loglevel)
+        self.handler = GridDictHandler(cfg_grid_dict, 
+                                       default_dimension=DEFAULT_DIMENSION, 
+                                       loglevel=loglevel)
         self.src_grid_dict = self.handler.normalize_grid_dict(self.src_grid_name)
         self.src_grid_path = self.src_grid_dict.get('path')
 
@@ -191,7 +191,8 @@ class Regridder():
         Load or generate regridding areas for the source or target grid.
 
         Args:
-            tgt_grid_name (str, optional): Name of the target grid. If None, the self.src_grid_name is used.
+            tgt_grid_name (str, optional): Name of the target grid. 
+                                           If None, the self.src_grid_name is used.
             rebuild (bool, optional): If True, forces regeneration of the area.
             reader_kwargs (dict, optional): Additional parameters for the reader.
 

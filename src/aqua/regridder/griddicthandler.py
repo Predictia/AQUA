@@ -83,7 +83,7 @@ class GridDictHandler:
 
         # error if it is not a string or a dictionary
         if not isinstance(grid_name, (str, dict)):
-            raise ValueError(f"Grid name '{grid_name}' is not a valid type. str or dict expected.")
+            raise TypeError(f"Grid name '{grid_name}' is not a valid type. str or dict expected.")
 
         # if a grid name is a valid CDO grid name, return it in the format of a dictionary
         if isinstance(grid_name, str) and is_cdo_grid(grid_name):
@@ -148,4 +148,4 @@ class GridDictHandler:
             self.logger.debug("Grid path %s is a valid dictionary of file paths.", path)
             return path
 
-        raise ValueError(f"Grid path '{path}' is not a valid type.")
+        raise TypeError(f"Grid path '{path}' is not a valid type.")
