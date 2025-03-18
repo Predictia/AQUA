@@ -116,18 +116,18 @@ class PlotGlobalBiases:
 
                 bias = data[self.var].mean(dim='time') - data_ref[self.var].mean(dim='time')
 
-            if self.save_png or self.save_pdf:
-                description = (
-                        f"Spatial map of the total bias of the variable {self.var} from {self.startdate} to {self.enddate} "
-                        f"for the {self.model} model, experiment {self.exp}, with {self.model_ref} used as reference data. "
-                    )
-                metadata = {"Description": description}
+            description = (
+                    f"Spatial map of the total bias of the variable {self.var} from {self.startdate} to {self.enddate} "
+                    f"for the {self.model} model, experiment {self.exp}, with {self.model_ref} used as reference data. "
+                )
+            metadata = {"Description": description}
 
-                output_saver = OutputSaver(diagnostic='global_biases', model=self.model, exp=self.exp, loglevel=self.loglevel,
-                            default_path=self.outdir)
+            output_saver = OutputSaver(diagnostic='global_biases', model=self.model, exp=self.exp, loglevel=self.loglevel,
+                        default_path=self.outdir)
 
-                if self.save_pdf: output_saver.save_pdf(fig=fig, diagnostic_product='total_bias_map', path=self.outdir, metadata=metadata)
-                if self.save_png: output_saver.save_png(fig=fig, diagnostic_product='total_bias_map', path=self.outdir, metadata=metadata)
+            output_saver.save_netcdf(dataset=bias, diagnostic_product='total_bias_map', path=self.outdir, metadata=metadata)
+            if self.save_pdf: output_saver.save_pdf(fig=fig, diagnostic_product='total_bias_map', path=self.outdir, metadata=metadata)
+            if self.save_png: output_saver.save_png(fig=fig, diagnostic_product='total_bias_map', path=self.outdir, metadata=metadata)
 
 
     def plot_seasonal_bias(self, seasons_stat='mean', var=None, plev=None, vmin=None, vmax=None):
@@ -214,19 +214,19 @@ class PlotGlobalBiases:
 
             fig, ax = plot_maps(**plot_kwargs)
             
-            if self.save_png or self.save_pdf:
-                description = (
-                            f"Seasonal bias map of the variable {self.var} for the {self.model} model, experiment {self.exp}"
-                            f", using {self.model_ref} as reference data. "
-                            f"The bias is computed for each season over the period from {self.startdate} to {self.enddate}"
-                        )
-                metadata = {"Description": description}
+            description = (
+                        f"Seasonal bias map of the variable {self.var} for the {self.model} model, experiment {self.exp}"
+                        f", using {self.model_ref} as reference data. "
+                        f"The bias is computed for each season over the period from {self.startdate} to {self.enddate}"
+                    )
+            metadata = {"Description": description}
 
-                output_saver = OutputSaver(diagnostic='global_biases', model=self.model, exp=self.exp, loglevel=self.loglevel,
-                            default_path=self.outdir)
+            output_saver = OutputSaver(diagnostic='global_biases', model=self.model, exp=self.exp, loglevel=self.loglevel,
+                        default_path=self.outdir)
 
-                if self.save_pdf: output_saver.save_pdf(fig=fig, diagnostic_product='seasonal_bias_map', path=self.outdir, metadata=metadata)
-                if self.save_png: output_saver.save_png(fig=fig, diagnostic_product='seasonal_bias_map', path=self.outdir, metadata=metadata)
+            output_saver.save_netcdf(dataset=bias_dataset, diagnostic_product='seasonal_bias_map', path=self.outdir, metadata=metadata)
+            if self.save_pdf: output_saver.save_pdf(fig=fig, diagnostic_product='seasonal_bias_map', path=self.outdir, metadata=metadata)
+            if self.save_png: output_saver.save_png(fig=fig, diagnostic_product='seasonal_bias_map', path=self.outdir, metadata=metadata)
 
     def plot_vertical_bias(self, var=None, plev_min=None, plev_max=None, vmin=None, vmax=None):
             """
@@ -301,5 +301,6 @@ class PlotGlobalBiases:
                 output_saver = OutputSaver(diagnostic='global_biases', model=self.model, exp=self.exp, loglevel=self.loglevel,
                             default_path=self.outdir)
 
+                output_saver.save_netcdf(dataset=zonal_bias, diagnostic_product='vertical_bias_map', path=self.outdir, metadata=metadata)
                 if self.save_pdf: output_saver.save_pdf(fig=fig, diagnostic_product='vertical_bias_map', path=self.outdir, metadata=metadata)
                 if self.save_png: output_saver.save_png(fig=fig, diagnostic_product='vertical_bias_map', path=self.outdir, metadata=metadata)
