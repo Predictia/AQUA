@@ -30,10 +30,11 @@ will be loaded in memory only when necessary, allowing for further subsetting an
 Basic usage of the Regridder()
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Alternatively - although not reccomended - the regridding functionalities can be used in a standalone way.
+Alternatively - although not recommended - the regridding functionalities can be used in a standalone way.
 
-When using the `Regridder()` in this way, you can provide a dataset (xr.Dataset or xr.DataArray) 
-and then regrid it to a target grid. 
+When using the `Regridder()` in this way, users can provide a dataset (xr.Dataset or xr.DataArray) 
+and then regrid it to a target grid. The class can also initialized with a dictionary containing a set of 
+AQUA grids: however, in this case it might be preferrer to go through the `Reader()`. 
 The target grid has to be specified when generating the weights (which is a mandatory step). 
 Please notice that the regridder will write the data provided to the disk to initialize the regridding process, 
 so it might be a long operation if data are not sampled in the right way. 
@@ -44,18 +45,18 @@ so it might be a long operation if data are not sampled in the right way.
     regridder.weights(tgt_grid_name='r144x72', regrid_method="bil")
     data_r = regridder.regrid(data)
 
+As in the previous case, this will return an ``xarray.Dataset`` with the data lazily regridded to the target grid.
+The default regrid method is ``ycon`` which is a conservative regrid method.
+If you want to use a different regrid method, you can specify it in the ``regrid_method`` keyword,
+following the CDO convention.
+
 The `Regridder()` class can also be used to retrieve the areas of the source and target grids.
 
 .. code-block:: python
     src_area = regridder.areas()
     tgt_area = regridder.areas(tgt_grid_name='n64')
 
-As in the previous case, this will return an ``xarray.Dataset`` with the data lazily regridded to the target grid.
-
-The default regrid method is ``ycon`` which is a conservative regrid method.
-If you want to use a different regrid method, you can specify it in the ``regrid_method`` keyword,
-following the CDO convention.
-
+This can - as before - will use the ``smmregrid`` engine based on CDO to compute the areas of the source and target grids.
 
 Concept
 ^^^^^^^
