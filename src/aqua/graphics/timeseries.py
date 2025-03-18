@@ -4,8 +4,8 @@ both with monthly and annual aggregation options
 """
 import xarray as xr
 import matplotlib.pyplot as plt
-from .util_timeseries import plot_monthly_data, plot_annual_data, plot_ref_monthly_data, plot_ref_annual_data
 from aqua.logger import log_configure
+from .util_timeseries import plot_monthly_data, plot_annual_data, plot_ref_monthly_data, plot_ref_annual_data
 from .styles import ConfigStyle
 
 
