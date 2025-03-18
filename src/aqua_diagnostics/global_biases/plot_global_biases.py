@@ -1,5 +1,7 @@
 import pandas as pd
 import xarray as xr
+import numpy as np
+import matplotlib.pyplot as plt
 from aqua.logger import log_configure
 from aqua.util import ConfigPath, OutputSaver
 from aqua.util import create_folder, select_season
@@ -13,7 +15,7 @@ class PlotGlobalBiases:
                  var=None, plev=None,
                  model=None, exp=None, model_ref=None, 
                  save_pdf=True, 
-                 save_png=True, dpi=300,
+                 save_png=True, dpi=300, outdir='./',
                  loglevel='WARNING'):
         """
         Initialize the PlotGlobalBiases class
@@ -34,10 +36,12 @@ class PlotGlobalBiases:
         self.save_pdf = save_pdf
         self.save_png = save_png
         self.dpi = dpi
+        self.outdir = outdir
+        self.loglevel = loglevel
 
         self.logger = log_configure(log_level=loglevel, log_name='Global Biases')
 
-    def plot_bias(self, stat='mean', var=None, plev=None, vmin=None, vmax=None):
+    def plot_bias(self, stat='mean', var=None, plev=None, vmin=None, vmax=None ):
             """
             Plots global biases or a single dataset map if reference data is unavailable.
 
@@ -54,6 +58,9 @@ class PlotGlobalBiases:
             self.var = var or self.var
             self.plev = plev or self.plev
 
+            data = self.data
+            data_ref = self.data_ref
+
             # Check if the variable has pressure levels but no specific level is selected
             if 'plev' in self.data.get(self.var, {}).dims:
                 if self.plev is None:
@@ -65,27 +72,27 @@ class PlotGlobalBiases:
 
                 # If a pressure level is specified, select it
                 self.logger.info(f"Selecting pressure level {self.plev} for variable {self.var}.")
-                self.data = select_pressure_level(self.data, self.plev, self.var)
-                self.data_ref = select_pressure_level(self.data_ref, self.plev, self.var)
+                data = select_pressure_level(self.data, self.plev, self.var)
+                data_ref = select_pressure_level(self.data_ref, self.plev, self.var)
 
             # If a pressure level is specified but the variable has no pressure levels
             elif self.plev is not None:
                 self.logger.warning(f"Variable {self.var} does not have pressure levels!")
 
             # Plot a single map if only one dataset is provided 
-            if self.data_ref is None:
+            if data_ref is None:
                 self.logger.warning('Plotting single dataset map since no reference dataset is provided.')
 
                 title = (f"{self.var} map {self.model} {self.exp} {self.startdate}/{self.enddate}" 
                         + (f" at {int(self.plev / 100)} hPa" if self.plev else ""))
 
-                fig, ax = plot_single_map(self.data[self.var].mean(dim='time'), 
+                fig, ax = plot_single_map(data[self.var].mean(dim='time'), 
                                         return_fig=True, 
                                         title=title,
                                         vmin=vmin, vmax=vmax)
                 ax.set_xlabel("Longitude")
                 ax.set_ylabel("Latitude")
-                bias = self.data[self.var].mean(dim='time')
+                bias = data[self.var].mean(dim='time')
             else:
                 # Plot the bias map if two datasets are provided
                 self.logger.info('Plotting bias map between two datasets.')
@@ -93,12 +100,12 @@ class PlotGlobalBiases:
                 # Set 'sym' to True if either 'vmin' or 'vmax' is None, indicating a symmetric colorbar.
                 sym = vmin is None or vmax is None
 
-                title = (f"{self.var} global bias of {self.model} {self.exp} {self.startdate}/{self.enddate}\n"
-                        f"relative to {self.model_ref} climatology {self.startdate_ref}/{self.enddate_ref}"
+                title = (f"{self.var} global bias of {self.model} {self.exp}\n"
+                        f"relative to {self.model_ref} climatology"
                         + (f" at {int(self.plev / 100)} hPa" if self.plev else ""))
 
-                fig, ax = plot_single_map_diff(data=self.data[self.var].mean(dim='time'), 
-                                            data_ref=self.data_ref[self.var].mean(dim='time'),
+                fig, ax = plot_single_map_diff(data=data[self.var].mean(dim='time'), 
+                                            data_ref=data_ref[self.var].mean(dim='time'),
                                             return_fig=True,
                                             contour=True, 
                                             title=title,
@@ -106,9 +113,22 @@ class PlotGlobalBiases:
                                             vmin_fill=vmin, vmax_fill=vmax)
                 ax.set_xlabel("Longitude")
                 ax.set_ylabel("Latitude")
-                bias = self.data[self.var].mean(dim='time') - self.data_ref[self.var].mean(dim='time')
 
-            return fig, ax, bias
+                bias = data[self.var].mean(dim='time') - data_ref[self.var].mean(dim='time')
+
+            if self.save_png or self.save_pdf:
+                description = (
+                        f"Spatial map of the total bias of the variable {self.var} from {self.startdate} to {self.enddate} "
+                        f"for the {self.model} model, experiment {self.exp}, with {self.model_ref} used as reference data. "
+                    )
+                metadata = {"Description": description}
+
+                output_saver = OutputSaver(diagnostic='global_biases', model=self.model, exp=self.exp, loglevel=self.loglevel,
+                            default_path=self.outdir)
+
+                if self.save_pdf: output_saver.save_pdf(fig=fig, diagnostic_product='total_bias_map', path=self.outdir, metadata=metadata)
+                if self.save_png: output_saver.save_png(fig=fig, diagnostic_product='total_bias_map', path=self.outdir, metadata=metadata)
+
 
     def plot_seasonal_bias(self, seasons_stat='mean', var=None, plev=None, vmin=None, vmax=None):
             """
@@ -131,6 +151,9 @@ class PlotGlobalBiases:
 
             # Set 'sym' to True if either 'vmin' or 'vmax' is None, indicating a symmetric colorbar.
             sym = vmin is None or vmax is None
+
+            data = self.data
+            data_ref = self.data_ref
             
             # Check if the variable has pressure levels but no specific level is selected
             if 'plev' in self.data.get(self.var, {}).dims:
@@ -143,8 +166,8 @@ class PlotGlobalBiases:
 
                 # If a pressure level is specified, select it
                 self.logger.info(f"Selecting pressure level {self.plev} for variable {self.var}.")
-                self.data = select_pressure_level(self.data, self.plev, self.var)
-                self.data_ref = select_pressure_level(self.data_ref, self.plev, self.var)
+                data = select_pressure_level(data, self.plev, self.var)
+                data_ref = select_pressure_level(data_ref, self.plev, self.var)
 
             # If a pressure level is specified but the variable has no pressure levels
             elif self.plev is not None:
@@ -161,8 +184,8 @@ class PlotGlobalBiases:
 
             for season in season_list:
                 # Select season for both data and reference
-                data_season = select_season(self.data[self.var], season)
-                data_ref_season = select_season(self.data_ref[self.var], season)
+                data_season = select_season(data[self.var], season)
+                data_ref_season = select_season(data_ref[self.var], season)
 
                 # Compute seasonal statistics
                 data_stat = getattr(data_season, stat_funcs[seasons_stat])(dim='time')
@@ -190,9 +213,20 @@ class PlotGlobalBiases:
                 plot_kwargs['vmax'] = vmax
 
             fig, ax = plot_maps(**plot_kwargs)
+            
+            if self.save_png or self.save_pdf:
+                description = (
+                            f"Seasonal bias map of the variable {self.var} for the {self.model} model, experiment {self.exp}"
+                            f", using {self.model_ref} as reference data. "
+                            f"The bias is computed for each season over the period from {self.startdate} to {self.enddate}"
+                        )
+                metadata = {"Description": description}
 
-            return fig, ax, bias_dataset
+                output_saver = OutputSaver(diagnostic='global_biases', model=self.model, exp=self.exp, loglevel=self.loglevel,
+                            default_path=self.outdir)
 
+                if self.save_pdf: output_saver.save_pdf(fig=fig, diagnostic_product='seasonal_bias_map', path=self.outdir, metadata=metadata)
+                if self.save_png: output_saver.save_png(fig=fig, diagnostic_product='seasonal_bias_map', path=self.outdir, metadata=metadata)
 
     def plot_vertical_bias(self, var=None, plev_min=None, plev_max=None, vmin=None, vmax=None):
             """
@@ -214,10 +248,10 @@ class PlotGlobalBiases:
             var = var or self.var
 
             # Compute climatology for reference dataset
-            ref_climatology = data_ref[var].mean(dim='time')
+            ref_climatology = self.data_ref[var].mean(dim='time')
 
             # Calculate the bias between the two datasets
-            bias = data[var] - ref_climatology
+            bias = self.data[var] - ref_climatology
 
             # Filter pressure levels
             if plev_min is None:
@@ -243,8 +277,8 @@ class PlotGlobalBiases:
 
             levels = np.linspace(vmin, vmax, nlevels)
 
-            title = (f"{var} vertical bias of {self.model} {self.exp} {self.startdate_data}/{self.enddate_data}\n" 
-                f"relative to {self.model_obs} climatology {self.startdate_obs}/{self.enddate_obs}\n")
+            title = (f"{var} vertical bias of {self.model} {self.exp} {self.startdate}/{self.enddate}\n" 
+                f"relative to {self.model_ref} climatology {self.startdate_ref}/{self.enddate_ref}\n")
 
             # Plotting the zonal bias
             fig, ax = plt.subplots(figsize=(10, 8))
@@ -254,7 +288,18 @@ class PlotGlobalBiases:
             ax.set_ylabel('Pressure Level (Pa)')
             ax.set_xlabel('Latitude')
             ax.invert_yaxis()
-            fig.colorbar(cax, ax=ax, label=f'{var} [{data[var].attrs.get("units", "")}]')
+            fig.colorbar(cax, ax=ax, label=f'{var} [{self.data[var].attrs.get("units", "")}]')
             ax.grid(True)
 
-            return fig, ax, zonal_bias
+            if self.save_png or self.save_pdf:
+                description = (
+                            f"Vertical bias plot of the variable {self.var} across pressure levels from {self.startdate} to {self.enddate} "
+                            f"for the {self.model} model, experiment {self.exp}, with {self.model_ref} used as reference data. "
+                        )
+                metadata = {"Description": description}
+
+                output_saver = OutputSaver(diagnostic='global_biases', model=self.model, exp=self.exp, loglevel=self.loglevel,
+                            default_path=self.outdir)
+
+                if self.save_pdf: output_saver.save_pdf(fig=fig, diagnostic_product='vertical_bias_map', path=self.outdir, metadata=metadata)
+                if self.save_png: output_saver.save_png(fig=fig, diagnostic_product='vertical_bias_map', path=self.outdir, metadata=metadata)
