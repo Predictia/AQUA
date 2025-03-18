@@ -105,8 +105,8 @@ class GridDictHandler:
                 self.logger.debug("Grid definition %s is a valid CDO grid name.", grid_dict)
                 return {"path": {self.default_dimension: grid_dict}}
             raise ValueError(f"Grid name '{grid_dict}' is not a valid CDO grid name.")
-        if isinstance(grid_dict, dict):
-            return grid_dict
+        # if the grid dict is a dictionary, return it
+        return grid_dict
 
     def _normalize_grid_path(self, grid_dict):
         """
