@@ -19,6 +19,11 @@ Removed:
 - Support for python==3.9 has been dropped.
 - Generators option from the Reader has been removed.
 
+Workflow modifications:
+- `aqua_analysis.py`: all the config files are used from the `AQUA_CONFIG` folder. This allows individual run modification kept in the `AQUA_CONFIG` folder for reproducibility.
+- `makes_contents.py`: can now take a config file as an argument to generate the `content.yaml` file.
+- `push_analysis.sh`: now has an option to rsync the figures to a specified location. Extra flags have been added (see Dashboard section in the documentation).
+
 AQUA core complete list:
 - Added Healpix zoom 7 grid for ICON R02B08 native oceanic grid (#1823)
 - Remove generators from Reader (#1791)
