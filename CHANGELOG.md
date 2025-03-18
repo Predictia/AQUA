@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ## [Unreleased]
 
@@ -15,7 +15,7 @@ Main changes are:
 - Attributes added by AQUA are now "AQUA_" prefixed
 - A core diagnostic class has been introduced
 
-Deprecated:
+Removed:
 - Support for python==3.9 has been dropped.
 - Generators option from the Reader has been removed.
 
