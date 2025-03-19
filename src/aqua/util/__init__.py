@@ -18,6 +18,7 @@ from .time import time_to_string
 from .coord import flip_lat_dir, find_lat_dir, check_direction
 from .zarr import create_zarr_reference
 from .output_saver import OutputSaver
+from .output_saver_NEW import OutputSaver_NEW
 
 __all__ = ['ConfigPath',
            'read_eccodes_def', 'get_eccodes_attr',
@@ -35,4 +36,4 @@ __all__ = ['ConfigPath',
            'check_chunk_completeness', 'frequency_string_to_pandas',
            'time_to_string',
            'flip_lat_dir', 'find_lat_dir', 'check_direction',
-           'create_zarr_reference', 'OutputSaver']
+           'create_zarr_reference', 'OutputSaver', 'OutputSaver_NEW']
