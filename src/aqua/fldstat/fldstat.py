@@ -1,5 +1,6 @@
 """AQUA class for field statitics"""
 import xarray as xr
+import numpy as np
 
 from smmregrid import GridInspector
 
@@ -71,11 +72,11 @@ class FldStat():
         if self.area is None:
             return data.mean(dim=self.horizontal_dims)
         
-        # align dimensions of area and data
+        # align dimensions naming of area to match data
         self.area = self.align_area_dimensions(data)
 
-        # verify that coordinates are aligned
-        self.area = self._check_coords_alignment(data)
+        # align coordinates values of area to match data
+        self.area = self.align_area_coordinates(data)
 
         if lon_limits is not None or lat_limits is not None:
             data = area_selection(data, lon=lon_limits, lat=lat_limits,
@@ -120,23 +121,23 @@ class FldStat():
         self.logger.info("Area dimensions has been renamed with %s",  matching_dims)
         return self.area.rename(matching_dims)
     
-    def _check_coords_alignment(self, data):
+    def align_area_coordinates(self, data):
         """
         Check if the coordinates of the area and data are aligned.
         If they are not aligned, try to flip the coordinates.
         """
+
+        # area.coords should be only lon-lat
         for coord in self.area.coords:
             if coord in data.coords:
                 area_coord = self.area[coord]
                 data_coord = data[coord]
 
-                # Check shape mismatch
-                if len(area_coord) != len(data_coord):
-                    raise ValueError(f"{coord} has different shapes between area and data. Consider regridding.")
-
-                # Check coordinate values mismatch
-                if not area_coord.equals(data_coord):
-                    if area_coord.sortby(coord).equals(data_coord.sortby(coord)):
+                # Check coordinate values mismatch: use numpy as it is faster and focus on values
+                if not np.array_equal(area_coord.values, data_coord.values):
+                    if np.array_equal(area_coord.sortby(coord).values, data_coord.sortby(coord).values):
+                #if not area_coord.equals(data_coord):
+                #    if area_coord.sortby(coord).equals(data_coord.sortby(coord)):
                         self.logger.warning("%s is sorted differently. Flipping coordinates.", coord)
                         self.area = self.area.reindex({coord: list(reversed(area_coord))})
                     else:
