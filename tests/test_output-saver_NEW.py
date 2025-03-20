@@ -18,13 +18,31 @@ def output_saver():
 def test_generate_name(output_saver):
     """Test the generation of output filenames with and without additional parameters."""
     # Test filename generation without additional parameters
-    filename = output_saver.generate_name(diagnostic_product='mean', var='tprate')
-    assert filename == 'dummy.mean.lumi-phase2.MSWEP.past.tprate'
+    filename = output_saver.generate_name(diagnostic_product='mean')
+    assert filename == 'dummy.mean.lumi-phase2.MSWEP.past'
 
-    # Test filename generation with extra keys
-    extra_keys = {
-        'catalog_2': 'lumi-phase3', 'model_2': 'ERA5', 'exp_2': 'era5', 'region': 'indian_ocean'
-    }
-    filename = output_saver.generate_name(diagnostic_product='mean', var='tprate', extra_keys=extra_keys)
-    assert filename == 'dummy.mean.lumi-phase2.MSWEP.past.tprate.lumi-phase3.ERA5.era5.indian_ocean' 
+    # Test with generic multi-model keyword
+    extra_keys = {'model': 'multi', 'var' : 'tprate'}
+    filename = output_saver.generate_name(diagnostic_product='mean', extra_keys=extra_keys)
+    assert filename == 'dummy.mean.multi.tprate'
 
+    # Test with multiple models
+    extra_keys = {'model': ['IFS-NEMO', 'ICON', 'ERA5'], 'var': 'tprate', 'region' : 'indian_ocean'}
+    filename = output_saver.generate_name(diagnostic_product='mean', extra_keys=extra_keys)
+    assert filename == 'dummy.mean.IFS-NEMO_ICON_ERA5.tprate.indian_ocean'
+
+
+@pytest.mark.aqua
+def test_save_netcdf(output_saver):
+    """Test saving a netCDF file."""
+    # Create a simple xarray dataset
+    data = xr.Dataset({'data': (('x', 'y'), [[1, 2], [3, 4]])})
+
+    # Test saving netCDF file without additional parameters
+    path = output_saver.save_netcdf(dataset=data, diagnostic_product='mean')
+    assert path == './netcdf/dummy.mean.lumi-phase2.MSWEP.past.nc'
+
+    #path = output_saver.save_netcdf(dataset=data, diagnostic_product='mean', path='./')
+    #assert path == './dummy.mean.lumi-phase2.MSWEP.past.nc'
+
+  
