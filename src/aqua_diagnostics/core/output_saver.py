@@ -4,9 +4,7 @@ import xarray as xr
 from aqua.logger import log_configure, log_history
 from aqua.util import add_pdf_metadata, add_png_metadata, update_metadata
 
-
-
-class OutputSaver_NEW:
+class OutputSaver:
     """
     Class to manage saving outputs, including NetCDF, PDF, and PNG files, with
     customized naming based on provided parameters and metadata.

@@ -2,7 +2,7 @@ import pytest
 import xarray as xr
 import matplotlib.pyplot as plt
 from aqua.logger import log_configure
-from aqua.util import OutputSaver_NEW, open_image
+from aqua.diagnostics.core import OutputSaver
 
 # Initialize the logger for the tests
 log_configure(log_level='DEBUG', log_name='OutputSaverTest')
@@ -11,7 +11,7 @@ log_configure(log_level='DEBUG', log_name='OutputSaverTest')
 # Fixture for OutputSaver instance
 @pytest.fixture
 def output_saver():
-    return OutputSaver_NEW(diagnostic='dummy', model='MSWEP', exp='past',
+    return OutputSaver(diagnostic='dummy', model='MSWEP', exp='past',
                        catalog='lumi-phase2', loglevel='DEBUG')
 
 @pytest.mark.aqua
