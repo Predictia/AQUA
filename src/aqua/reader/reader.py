@@ -179,8 +179,9 @@ class Reader(FixerMixin, TimStatMixin):
                                   rebuild=rebuild, reader_kwargs=reader_kwargs)
         
         # init the fldstat modules. if areas are not available, will issue a warning
+        cell_area = self.src_grid_area.cell_area if areas else None
         self.src_fldstat = FldStat(
-            self.src_grid_area.cell_area, grid_name=self.src_grid_name,
+            cell_area, grid_name=self.src_grid_name,
             horizontal_dims=self.src_space_coord, loglevel=self.loglevel
             )
         self.tgt_fldstat = None
