@@ -202,10 +202,10 @@ class sshVariability():
         """
         if self.data_ref is not None and self.ref_std is None:
             self.logger.info("Computing std of %s ssh for the provided timespan", self.name_ref)
-            self.ref_std.std(axis=0)
+            self.ref_std = self.data_ref.std(axis=0)
         if self.model_data is not None and self.model_std is None:
             self.logger.info("Computing std of %s ssh for the provided timespan", self.model_name)
-            self.model_std.std(axis=0)
+            self.model_std = self.data_model.std(axis=0)
 
     def run(self):
         self.compute_std()

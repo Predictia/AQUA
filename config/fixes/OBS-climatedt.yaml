@@ -259,3 +259,9 @@ fixer_name:
                 src_units: frac
                 units: frac
     
+    AVISO:
+      convention: eccodes
+      data_model: false 
+      vars:
+          zos:
+             source: adt
