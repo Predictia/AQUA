@@ -63,9 +63,20 @@ class PlotTimeseries:
         # self.ref_dict = {'monthly': self.ref_monthly_data, 'annual': self.ref_annual_data}
         # self.std_dict = {'monthly': self.std_monthly_data, 'annual': self.std_annual_data}
 
+        # Data info:
+        self.catalogs = None
+        self.models = None
+        self.exps = None
+        self.ref_catalogs = None
+        self.ref_models = None
+        self.ref_exps = None
+        self.std_startdate = None
+        self.std_enddate = None
+
     def run(self, region: str = None, outputdir: str = './'):
 
         self.logger.info('Running PlotTimeseries')
+        self.get_data_info()
         self.set_data_labels()
         self.set_ref_label()
         description = self.set_description(region=region)
@@ -73,6 +84,39 @@ class PlotTimeseries:
         self.save_plot(fig, description=description,
                       region=region, outputdir=outputdir)
         self.logger.info('PlotTimeseries completed successfully')
+
+    def get_data_info(self):
+        """
+        We extract the data needed for labels, description etc
+        from the data arrays attributes.
+
+        The attributes are:
+        - AQUA_catalog
+        - AQUA_model
+        - AQUA_exp
+        """
+        for data in [self.monthly_data, self.annual_data]:
+            if data is not None:
+                # Make a list from the data array attributes
+                self.catalogs = [d.AQUA_catalog for d in data]
+                self.models = [d.AQUA_model for d in data]
+                self.exps = [d.AQUA_exp for d in data]
+                break
+        
+        for ref in [self.ref_monthly_data, self.ref_annual_data]:
+            if ref is not None:
+                # Make a list from the data array attributes
+                self.ref_catalogs = [d.AQUA_catalog for d in ref]
+                self.ref_models = [d.AQUA_model for d in ref]
+                self.ref_exps = [d.AQUA_exp for d in ref]
+                break
+        
+        for std in [self.std_monthly_data, self.std_annual_data]:
+            if std is not None:
+                # Make a list from the data array attributes
+                self.std_startdate = std[0].time[0].strftime('%Y-%m-%d')
+                self.std_enddate = std[0].time[-1].strftime('%Y-%m-%d')
+                break
 
     def set_data_labels(self):
         return
