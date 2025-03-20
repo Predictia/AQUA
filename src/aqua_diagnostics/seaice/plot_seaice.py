@@ -120,7 +120,6 @@ class PlotSeaIce:
             return datain
         else:
             self.logger.error(f"Invalid data type: {type(datain)}. Expected xr.Dataset, list of xr.Dataset, or None.")
-            raise ValueError( f"Invalid data type: {type(datain)}. Expected xr.Dataset, list of xr.Dataset, or None.")
 
     def _get_region_name_in_datarray(self, da: xr.DataArray) -> str:
         """Get the region variable from the dataset or derive it from the variable name."""
