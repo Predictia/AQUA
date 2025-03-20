@@ -119,7 +119,8 @@ class PlotSeaIce:
         elif datain is None or (isinstance(datain, list) and all(isinstance(ds, xr.Dataset) for ds in datain)):
             return datain
         else:
-            self.logger.error(f"Invalid data type: {type(datain)}. Expected xr.Dataset, list of xr.Dataset, or None.")
+            self.logger.debug(f"Check data type: {type(datain)}. Expected xr.Dataset, list of xr.Dataset, or None.")
+            return datain
 
     def _get_region_name_in_datarray(self, da: xr.DataArray) -> str:
         """Get the region variable from the dataset or derive it from the variable name."""
@@ -173,6 +174,10 @@ class PlotSeaIce:
                 continue
             
             for dataset in dataset_list:
+                if dataset is None:  # Skip None entries
+                    self.logger.warning("Warning: Found dataset as None in dataset_list during repacking data, skipping...")
+                    continue
+
                 method = dataset.attrs.get("AQUA_method", "Unknown")
 
                 # process each data variable in the dataset
