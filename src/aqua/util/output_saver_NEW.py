@@ -57,7 +57,7 @@ class OutputSaver_NEW:
         parts = [str(value) for value in parts_dict.values() if value is not None]
         
         # Join all parts with underscores
-        filename = '_'.join(parts)
+        filename = '.'.join(parts)
         
         self.logger.debug(f"Generated filename: {filename}")
         return filename

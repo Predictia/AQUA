@@ -19,12 +19,12 @@ def test_generate_name(output_saver):
     """Test the generation of output filenames with and without additional parameters."""
     # Test filename generation without additional parameters
     filename = output_saver.generate_name(diagnostic_product='mean', var='tprate')
-    assert filename == 'dummy_mean_lumi-phase2_MSWEP_past_tprate'
+    assert filename == 'dummy.mean.lumi-phase2.MSWEP.past.tprate'
 
     # Test filename generation with extra keys
     extra_keys = {
         'catalog_2': 'lumi-phase3', 'model_2': 'ERA5', 'exp_2': 'era5', 'region': 'indian_ocean'
     }
     filename = output_saver.generate_name(diagnostic_product='mean', var='tprate', extra_keys=extra_keys)
-    assert filename == 'dummy_mean_lumi-phase2_MSWEP_past_tprate_lumi-phase3_ERA5_era5_indian_ocean' 
+    assert filename == 'dummy.mean.lumi-phase2.MSWEP.past.tprate.lumi-phase3.ERA5.era5.indian_ocean' 
 
