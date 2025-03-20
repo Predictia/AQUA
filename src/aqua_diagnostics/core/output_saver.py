@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import os
 import xarray as xr
 from aqua.logger import log_configure, log_history
-from aqua.util import add_pdf_metadata, add_png_metadata, update_metadata
+from aqua.util import create_folder, add_pdf_metadata, add_png_metadata, update_metadata
 
 class OutputSaver:
     """
@@ -20,33 +20,40 @@ class OutputSaver:
         self.outdir = outdir
         self.rebuild = rebuild
 
-        self.log_level = loglevel
-        self.logger = log_configure(log_level=self.log_level, log_name='OutputSaver')
+        self.loglevel = loglevel
+        self.logger = log_configure(log_level=self.loglevel, log_name='OutputSaver')
 
-    def generate_name(self, diagnostic_product: str, var: str, 
-                  extra_keys: dict = None) -> str:
+    def generate_name(self, diagnostic_product: str, extra_keys: dict = None) -> str:
         """
         Generate a filename based on provided parameters and additional user-defined keywords,
         including precise time intervals.
 
         Args:
             diagnostic_product (str, optional): Product of the diagnostic analysis.
-            var (str, optional): Variable of interest.
             extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
 
         Returns:
             str: A string representing the generated filename.
         """
-        
+
+        # Use extra_keys to override model if provided
+        model_value = extra_keys.pop('model', self.model) if extra_keys else self.model
+
+        # Convert list of models to an underscore-separated string
+        if isinstance(model_value, list):
+            model_value = '_'.join(model_value)
+    
+        # Check if multiple models are specified
+        is_multimodel = model_value == "multi" or ('_' in model_value if model_value else False)
+
         parts_dict = {
             'diagnostic': self.diagnostic,
             'diagnostic_product': diagnostic_product,
-            'catalog': self.catalog,
-            'model': self.model,
-            'exp': self.exp,
-            'var': var
+            'catalog': self.catalog if not is_multimodel else None,
+            'model': model_value,
+            'exp': self.exp if not is_multimodel else None,
         }
-        
+
         # Add additional filename keys if provided
         if extra_keys:
             parts_dict.update(extra_keys)
@@ -54,21 +61,20 @@ class OutputSaver:
         # Remove None values
         parts = [str(value) for value in parts_dict.values() if value is not None]
         
-        # Join all parts with underscores
+        # Join all parts 
         filename = '.'.join(parts)
-        
+
         self.logger.debug(f"Generated filename: {filename}")
         return filename
 
 
-    def save_pdf(self, fig: plt.Figure, diagnostic_product: str, var: str, extra_keys: dict = None):
+    def save_pdf(self, fig: plt.Figure, diagnostic_product: str, extra_keys: dict = None):
         """
         Save a Matplotlib figure as a PDF file with a generated filename.
 
         Args:
             fig (plt.Figure): The Matplotlib figure to save.
             diagnostic_product (str): Product of the diagnostic analysis.
-            var (str): Variable of interest.
             extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
         """
         filename = self.generate_name(diagnostic_product, var, extra_keys) + '.pdf'
@@ -95,7 +101,7 @@ class OutputSaver:
         self.logger.info(f"Saved PNG: {filepath}")
 
     
-    def save_netcdf(self, dataset: xr.Dataset, diagnostic_product: str, var: str, extra_keys: dict = None):
+    def save_netcdf(self, dataset: xr.Dataset, diagnostic_product: str, extra_keys: dict = None):
         """
         Save an xarray Dataset as a NetCDF file with a generated filename.
 
@@ -105,8 +111,14 @@ class OutputSaver:
             var (str): Variable of interest.
             extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
         """
-        filename = self.generate_name(diagnostic_product, var, extra_keys) + '.nc'
-        filepath = os.path.join(self.outdir, filename)
+        filename = self.generate_name(diagnostic_product, extra_keys) + '.nc'
+        
+        folder = os.path.join(self.outdir, 'netcdf')
+        create_folder(folder=str(folder), loglevel=self.loglevel)
+        filepath = os.path.join(folder, filename)
         
         dataset.to_netcdf(filepath)
         self.logger.info(f"Saved NetCDF: {filepath}")
+        return filepath
+
+
