@@ -10,7 +10,7 @@ from aqua.util import area_selection
 class FldStat():
     """AQUA class for field statitics"""
 
-    def __init__(self, area, horizontal_dims=None, grid_name=None, loglevel='WARNING'):
+    def __init__(self, area=None, horizontal_dims=None, grid_name=None, loglevel='WARNING'):
         """
         Initialize the FldStat.
 
@@ -22,6 +22,9 @@ class FldStat():
         self.loglevel = loglevel
         self.logger = log_configure(log_level=loglevel, log_name='FldStat')
         self.area = area
+        if horizontal_dims is None:
+            self.logger.warning("No horizontal dimensions provided, will try to guess from data when provided!")
+        self.horizontal_dims = horizontal_dims
 
         if self.area is None:
             self.logger.warning("No area provided, no weighted area can be provided.")
@@ -30,11 +33,7 @@ class FldStat():
         # safety checks
         if not isinstance(area, (xr.DataArray, xr.Dataset)):
             raise ValueError("Area must be an xarray DataArray or Dataset.")
-        
-        # TODO: add a guess with smmregrid GridInspector
-        if horizontal_dims is None:
-            self.logger.warning("No horizontal dimensions provided, will try to guess from data when provided!")
-        self.horizontal_dims = horizontal_dims
+
         self.logger.debug('Space coordinates are %s', self.horizontal_dims)
         self.grid_name = grid_name
 
@@ -66,6 +65,7 @@ class FldStat():
             if len(data_gridtype) > 1:
                 raise ValueError("Multiple grid types found in the data, please provide horizontal_dims!")
             self.horizontal_dims = data_gridtype[0].horizontal_dims
+            self.logger.debug('Horizontal dimensions guessed from data are %s', self.horizontal_dims)
 
         #if area is not provided, return the raw mean
         if self.area is None:
@@ -74,6 +74,9 @@ class FldStat():
         # align dimensions of area and data
         self.area = self.align_area_dimensions(data)
 
+        # verify that coordinates are aligned
+        self.area = self._check_coords_alignment(data)
+
         if lon_limits is not None or lat_limits is not None:
             data = area_selection(data, lon=lon_limits, lat=lat_limits,
                                   loglevel=self.loglevel, **kwargs)
@@ -81,30 +84,6 @@ class FldStat():
         # cleaning coordinates which have "multiple" coordinates in their own definition
         # grid_area = self._clean_spourious_coords(grid_area, name = "area")
         # data = self._clean_spourious_coords(data, name = "data")
-
-        # check if coordinates are aligned
-        try:
-            xr.align(self.area, data, join='exact')
-        except ValueError as err:
-            raise ValueError('Coordinates are not aligned!') from err
-            # # check in the dimensions what is wrong
-            # for coord in grid_area.coords:
-            #     if coord in space_coord:
-            #         xcoord = data.coords[coord]
-
-            #         # first case: shape different
-            #         if len(grid_area[coord]) != len(xcoord):
-            #             raise ValueError(f'{coord} has different shape between area files and your dataset.'
-            #                              'If using the LRA, try setting the regrid=r100 option') from err
-            #         # shape are ok, but coords are different
-            #         if not grid_area[coord].equals(xcoord):
-            #             # if they are fine when sorted, there is a sorting mismatch
-            #             if grid_area[coord].sortby(coord).equals(xcoord.sortby(coord)):
-            #                 self.logger.warning('%s is sorted in different way between area files and your dataset. Flipping it!',
-            #                                     coord)
-            #                 grid_area = grid_area.reindex({coord: list(reversed(grid_area[coord]))})
-            #             else:
-            #                 raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
 
         self.logger.debug('Computing the weighted average over  %s', self.horizontal_dims)
         out = data.weighted(weights=self.area.fillna(0)).mean(dim=self.horizontal_dims)
@@ -122,7 +101,7 @@ class FldStat():
 
         # verify that horizontal dimensions area the same in the two datasets.
         # If not, try to rename them. Use gridtype to get the horizontal dimensions
-        # TODO: "rgrid" is not a default dimension in smmregrid, it should be added. 
+        # TODO: "rgrid" is not a default dimension in smmregrid, it should be added.
         area_gridtype = GridInspector(self.area, extra_dims={"horizontal": ["rgrid"]}).get_grid_info()
         area_horizontal_dims = area_gridtype[0].horizontal_dims
 
@@ -140,5 +119,29 @@ class FldStat():
         matching_dims = {a: d for a, d in zip(area_horizontal_dims, self.horizontal_dims) if self.area.sizes[a] == data.sizes[d]}
         self.logger.info("Area dimensions has been renamed with %s",  matching_dims)
         return self.area.rename(matching_dims)
+    
+    def _check_coords_alignment(self, data):
+        """
+        Check if the coordinates of the area and data are aligned.
+        If they are not aligned, try to flip the coordinates.
+        """
+        for coord in self.area.coords:
+            if coord in data.coords:
+                area_coord = self.area[coord]
+                data_coord = data[coord]
+
+                # Check shape mismatch
+                if len(area_coord) != len(data_coord):
+                    raise ValueError(f"{coord} has different shapes between area and data. Consider regridding.")
+
+                # Check coordinate values mismatch
+                if not area_coord.equals(data_coord):
+                    if area_coord.sortby(coord).equals(data_coord.sortby(coord)):
+                        self.logger.warning("%s is sorted differently. Flipping coordinates.", coord)
+                        self.area = self.area.reindex({coord: list(reversed(area_coord))})
+                    else:
+                        raise ValueError(f"{coord} has a mismatch in coordinate values!")
+                    
+        return self.area
 
 
