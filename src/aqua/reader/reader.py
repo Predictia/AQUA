@@ -103,9 +103,13 @@ class Reader(FixerMixin, TimStatMixin):
         # Preprocessing function
         self.preproc = preproc
 
+        # init the areas and dimensions
         self.grid_area = None
         self.src_grid_area = None
         self.tgt_grid_area = None
+        self.src_space_coord = None
+        self.tgt_space_coord = None
+        self.vert_coord = None
 
         if streaming:
             self.streamer = Streaming(startdate=startdate,
@@ -236,6 +240,7 @@ class Reader(FixerMixin, TimStatMixin):
             if not self.regridder.cdo:
                 areas = False
                 regrid = False
+
 
         # generate source areas
         if areas:
