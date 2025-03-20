@@ -122,6 +122,7 @@ class FldStat():
 
         # verify that horizontal dimensions area the same in the two datasets.
         # If not, try to rename them. Use gridtype to get the horizontal dimensions
+        # TODO: "rgrid" is not a default dimension in smmregrid, it should be added. 
         area_gridtype = GridInspector(self.area, extra_dims={"horizontal": ["rgrid"]}).get_grid_info()
         area_horizontal_dims = area_gridtype[0].horizontal_dims
 
