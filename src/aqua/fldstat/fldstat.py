@@ -120,9 +120,9 @@ class FldStat():
         If the area and data have different number of horizontal dimensions, try to rename them.
         """
 
-        # verify that horizontal dimensions area the same in the two datasets. 
+        # verify that horizontal dimensions area the same in the two datasets.
         # If not, try to rename them. Use gridtype to get the horizontal dimensions
-        area_gridtype = GridInspector(self.area).get_grid_info()
+        area_gridtype = GridInspector(self.area, extra_dims={"horizontal": ["rgrid"]}).get_grid_info()
         area_horizontal_dims = area_gridtype[0].horizontal_dims
 
         if set(area_horizontal_dims) == set(self.horizontal_dims):
@@ -132,7 +132,7 @@ class FldStat():
         if len(area_horizontal_dims) != len(self.horizontal_dims):
             raise ValueError("Area and data have different number of horizontal dimensions!")
 
-        # check if area and data have the same horizontal dimensions        
+        # check if area and data have the same horizontal dimensions
         self.logger.warning("Area %s and data %s have different horizontal dimensions! Renaming them!",
                             area_horizontal_dims, self.horizontal_dims)
         # create a dictionary for renaming matching dimensions have the same length
