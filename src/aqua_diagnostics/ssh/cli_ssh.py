@@ -78,67 +78,50 @@ def main():
     logger.debug(f"Data read from Catalog: {catalog_data}; Model: {model_data}; Exp: {exp_data}; Source: {source_data}; Regrid: {regrid}")
     logger.debug(f"Observations read from Catalog: {catalog_obs}; Model: {model_obs}; Exp: {exp_obs}; Source: {source_obs}; Regrid: {regrid}")
 
-    # If nworkers is not provided, use the value from the config
-    #if nworkers is None:
-    #    nworkers = config['dask_cluster']['n_workers']
-
-    #nworkers = config.get('nworkers', None)
-    #nworkers = config['dask_cluster']['n_workers']
+    # Initialize the Dask cluster
     nworkers = get_arg(args, 'nworkers', None)
-    cluster = get_arg(args, 'cluster', None)
-    private_cluster = False
-    if nworkers or cluster:
-        if not cluster:
-            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
-            logger.info(f"Initializing private cluster {cluster.scheduler_address} with {nworkers} workers.")
-            private_cluster = True
+    config_cluster = get_arg(args, 'cluster', None)
+    # If nworkers is not provided, use the value from the config
+    if nworkers is None or config_cluster is None:
+        config_cluster = config['cluster'].copy()
+    if nworkers is not None:
+        config_cluster['nworkers'] = nworkers
+    cluster = LocalCluster(n_workers=config_cluster['nworkers'], threads_per_worker=1)
+    #cluster = LocalCluster(n_workers=config['cluster']['nworkers'], threads_per_worker=1)
+    client = Client(cluster)
+    # Get the Dask dashboard URL
+    logger.info("Dask Dashboard URL: %s", client.dashboard_link)
+    workers = client.scheduler_info()["workers"]
+    worker_count = len(workers)
+    total_memory = format_bytes(
+        sum(w["memory_limit"] for w in workers.values() if w["memory_limit"]))
+    # total_memory = format_bytes(
+    #     sum(config["dask_cluster"]["memory_limit"] for w in workers.values() if "memory_limit" in config["dask_cluster"]))
+    memory_text = f"Workers={worker_count}, Memory={total_memory}"
+    logger.info(memory_text)
+
+    # Retrieve model data and handle potential errors
+    try:
+        reader = Reader(catalog=catalog_data, model=model_data, exp=exp_data, source=source_data,
+                        startdate=startdate_data, enddate=enddate_data, regrid=regrid, loglevel=loglevel)
+        data = reader.retrieve(var=variable)
+        data = data[variable]
+        if regrid:
+            data = reader.regrid(data)
         else:
-            logger.info(f"Connecting to cluster {cluster}.")
-        client = Client(cluster)
-    else:
-        client = None
-    ## Initialize the Dask cluster
-    #cluster_config = config['dask_cluster'].copy()
-    #if nworkers is not None:
-    #    cluster_config['n_workers'] = nworkers
-    #cluster = dd.LocalCluster(**cluster_config)
-    #client = dd.Client(cluster)
-    ## Get the Dask dashboard URL
-    #logger.info("Dask Dashboard URL: %s", client.dashboard_link)
+            logger.warning(
+            "No regridding applied. Data is in native grid, "
+            "this could lead to errors in the ssh variability calculation if the data is not in the same grid as the reference data."
+            )
 
-    # logger.info(f"Dask Dashboard URL: {client.dashboard_link}")
-
-    #workers = client.scheduler_info()["workers"]
-    #worker_count = len(workers)
-    #total_memory = format_bytes(
-    #    sum(w["memory_limit"] for w in workers.values() if w["memory_limit"]))
-    ## total_memory = format_bytes(
-    ##     sum(config["dask_cluster"]["memory_limit"] for w in workers.values() if "memory_limit" in config["dask_cluster"]))
-    #memory_text = f"Workers={worker_count}, Memory={total_memory}"
-    #logger.info(memory_text)
-
-    ## Retrieve model data and handle potential errors
-    #try:
-    #    reader = Reader(catalog=catalog_data, model=model_data, exp=exp_data, source=source_data,
-    #                    startdate=startdate_data, enddate=enddate_data, regrid=regrid, loglevel=loglevel)
-    #    data = reader.retrieve(var=variable)
-    #    data = data[variable]
-    #    if regrid:
-    #        data = reader.regrid(data)
-    #    else:
-    #        logger.warning(
-    #        "No regridding applied. Data is in native grid, "
-    #        "this could lead to errors in the ssh variability calculation if the data is not in the same grid as the reference data."
-    #        )
-
-    #except Exception as e:
-    #    logger.error(f"No model data found: {e}")
-    #    sys.exit("SSH diagnostic terminated.")
+    except Exception as e:
+        logger.error(f"No model data found: {e}")
+        sys.exit("SSH diagnostic terminated.")
         
     # Retrieve observational data and handle potential errors
     try:
         reader_obs = Reader(catalog=catalog_obs, model=model_obs, exp=exp_obs, source=source_obs,
-                            startdate=startdate_obs, enddate=enddate_obs, regrid=regrid, loglevel=loglevel)
+                            startdate=startdate_obs, enddate=enddate_obs, regrid=regrid, loglevel=loglevel,fix=True)
         data_obs = reader_obs.retrieve(var=variable)
         print(data_obs)
         data_obs = data_obs[variable]
@@ -156,17 +139,17 @@ def main():
         sys.exit("SSH diagnostic terminated.")
     
     #ssh_std = sshVariability(variable=variable, data_ref=
+    logger.info("Finished SSH diagnostic.")
+    # Close the Dask client and cluster
+    client.close()
+    cluster.close()
+    #if client:
+    #    client.close()
+    #    cluster.close()
+    #    logger.debug("Dask client closed.")
 
-    ## Close the Dask client and cluster
-    #client.close()
-    #cluster.close()
-    if client:
-        client.close()
-        logger.debug("Dask client closed.")
 
-    if private_cluster:
-        cluster.close()
-        logger.debug("Dask cluster closed.")
+
 
 if __name__ == '__main__':
     main()

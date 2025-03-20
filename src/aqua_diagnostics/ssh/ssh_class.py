@@ -43,7 +43,7 @@ class sshVariability():
         self.region_selection = plot_options.get('region_selection',False)
         self.fig_format = plot_options.get('fig_format',False)
         self.contours = plot_options.get('contours',None)
-        self.regrid = plot_options.get('regrid',None)
+        #self.regrid = plot_options.get('regrid',None)
         # Region selection
         region = kwargs.get('sub_region', {})
         self.region_name = region.get('name','Unknown')

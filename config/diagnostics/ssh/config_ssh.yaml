@@ -4,11 +4,11 @@ variable: 'zos'
 # Models for which sea surface height (SSH) variability is to be evaluated.
 data:
   catalog: null
-  model: ICON
+  model: IFS-FESOM
   exp: ssp370
-  source: daily-hpz10-oce2d
+  source: lra-r100-monthly
   #zoom: 10
-  #regrid: 'r100'
+  regrid: 'r100'
   startdate: '2020-01-01'
   enddate:  '2020-03-30'
 
@@ -18,13 +18,13 @@ obs:
   model: AVISO
   exp: ssh-L4
   source: daily
-  #regrid: 'r100'
+  regrid: 'r100'
   startdate: '2020-01-01'
   enddate: '2020-01-30'
 
 # These are options to adjust subplots visualizations.
 plot_options:
-  regrid: 'r100'
+  #regrid: 'r100'
   scale_min: 0.1
   scale_max: 0.4
   cmap: viridis
@@ -50,8 +50,8 @@ mask_options:
 outputdir: /projappl/project_465000454/sunnyjal/AQUA/diagnostics/ssh/output/
 
 # This is the current dask configuration which works for the inputs above. It could be adjusted based on the system this application is run.
-dask_cluster:
-  n_workers: 8
+cluster:
+  nworkers: 8
   threads_per_worker: 1
   memory_limit: 30e9
 
