@@ -1,8 +1,11 @@
 """AQUA class for field statitics"""
 import xarray as xr
 
+from smmregrid import GridInspector
+
 from aqua.logger import log_configure, log_history
 from aqua.util import area_selection
+
 
 class FldStat():
     """AQUA class for field statitics"""
@@ -30,8 +33,7 @@ class FldStat():
         
         # TODO: add a guess with smmregrid GridInspector
         if horizontal_dims is None:
-            self.logger.warning("No horizontal dimensions provided, using default ['lon', 'lat'].")
-            horizontal_dims = ['lon', 'lat']
+            self.logger.warning("No horizontal dimensions provided, will try to guess from data when provided!")
         self.horizontal_dims = horizontal_dims
         self.logger.debug('Space coordinates are %s', self.horizontal_dims)
         self.grid_name = grid_name
@@ -58,8 +60,19 @@ class FldStat():
         if not isinstance(data, (xr.DataArray, xr.Dataset)):
             raise ValueError("Data must be an xarray DataArray or Dataset.")
 
+        # if horizontal_dims is not provided, try to guess it
+        if self.horizontal_dims is None:
+            data_gridtype = GridInspector(data).get_grid_info()
+            if len(data_gridtype) > 1:
+                raise ValueError("Multiple grid types found in the data, please provide horizontal_dims!")
+            self.horizontal_dims = data_gridtype[0].horizontal_dims
+
+        #if area is not provided, return the raw mean
         if self.area is None:
             return data.mean(dim=self.horizontal_dims)
+        
+        # align dimensions of area and data
+        self.area = self.align_area_dimensions(data)
 
         if lon_limits is not None or lat_limits is not None:
             data = area_selection(data, lon=lon_limits, lat=lat_limits,
@@ -100,3 +113,31 @@ class FldStat():
             log_history(data, f"Spatially averaged by fldmean from {self.grid_name} grid")
 
         return out
+    
+    def align_area_dimensions(self, data):
+        """
+        Align the area dimensions with the data dimensions.
+        If the area and data have different number of horizontal dimensions, try to rename them.
+        """
+
+        # verify that horizontal dimensions area the same in the two datasets. 
+        # If not, try to rename them. Use gridtype to get the horizontal dimensions
+        area_gridtype = GridInspector(self.area).get_grid_info()
+        area_horizontal_dims = area_gridtype[0].horizontal_dims
+
+        if set(area_horizontal_dims) == set(self.horizontal_dims):
+            return self.area
+
+        # check if area and data have the same number of horizontal dimensions
+        if len(area_horizontal_dims) != len(self.horizontal_dims):
+            raise ValueError("Area and data have different number of horizontal dimensions!")
+
+        # check if area and data have the same horizontal dimensions        
+        self.logger.warning("Area %s and data %s have different horizontal dimensions! Renaming them!",
+                            area_horizontal_dims, self.horizontal_dims)
+        # create a dictionary for renaming matching dimensions have the same length
+        matching_dims = {a: d for a, d in zip(area_horizontal_dims, self.horizontal_dims) if self.area.sizes[a] == data.sizes[d]}
+        self.logger.info("Area dimensions has been renamed with %s",  matching_dims)
+        return self.area.rename(matching_dims)
+
+
