@@ -119,7 +119,7 @@ class PlotTimeseries:
                 break
 
     def set_data_labels(self):
-        return
+        for 
 
     def set_ref_label(self):
         return
@@ -150,15 +150,35 @@ class PlotTimeseries:
         return
     
     def _check_data_length(self):
-        """Check if all data arrays have the same length."""
+        """
+        Check if all data arrays have the same length.
+        Does the same for the reference data.
+        If not, raise a ValueError.
+        
+        Return:
+            data_length (int): Length of the data arrays.
+            ref_length (int): Length of the reference data arrays.
+        """
+        data_length = 0
+        ref_length = 0
+
         if self.monthly_data and self.annual_data:
             if len(self.monthly_data) != len(self.annual_data):
                 raise ValueError('Monthly and annual data list must have the same length')
+            else:
+                data_length = len(self.monthly_data)
         
         if self.ref_monthly_data and self.ref_annual_data:
             if len(self.ref_monthly_data) != len(self.ref_annual_data):
                 raise ValueError('Reference monthly and annual data list must have the same length')
+            else:
+                ref_length = len(self.ref_monthly_data)
             
         if self.std_monthly_data and self.std_annual_data:
             if len(self.std_monthly_data) != len(self.std_annual_data):
                 raise ValueError('Standard deviation monthly and annual data list must have the same length')
+            else:
+                if len(self.std_monthly_data) != ref_length:
+                    raise ValueError('Standard deviation monthly and annual data list must have the same length as reference data')
+
+        return data_length, ref_length
