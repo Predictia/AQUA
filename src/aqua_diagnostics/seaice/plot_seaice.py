@@ -196,7 +196,8 @@ class PlotSeaIce:
 
         # convert the nested defaultdicts to plain dictionaries recursively
         repacked_dict = defaultdict_to_dict(repacked_defdict)
-
+        
+        self.logger.info("Sea ice data repacked")
         return repacked_dict
     
     def _gen_str_from_attributes(self, datain: xr.DataArray | None) -> str:
@@ -317,6 +318,8 @@ class PlotSeaIce:
 
     def plot_seaice_timeseries(self, save_pdf=True, save_png=True, **kwargs):
         """ Plot data by iterating over dict and calling plot_timeseries"""
+        self.logger.info("Plotting sea ice timeseries")
+
         # iterate over the methods in the dictionary
         for method, region_dict in self.repacked_dict.items():
             self.logger.info(f"Processing method: {method}")
@@ -327,6 +330,8 @@ class PlotSeaIce:
             fig, axes = plt.subplots(nrows=self.num_regions, ncols=1, figsize=(10, 4 * self.num_regions), squeeze=False)
             # flatten the axes array for easier iteration when there's only one column
             axes = axes.flatten()
+
+            self.logger.debug("Start looping over sea ice regions")
             
             for region_idx, (ax, (region, data_dict)) in enumerate(zip(axes, region_dict.items())):
                 self.logger.info(f"Processing region: {region}")
@@ -367,9 +372,13 @@ class PlotSeaIce:
             
             plt.tight_layout()
 
+            self.logger.debug(f"Plotting of all regions for method '{method}' completed")
+
             # save figure            
             if save_png or save_pdf:
-
+                self.logger.debug(f"Saving figure as format(s): {', '.join(fmt for fmt, save in [('PNG', save_png), 
+                                                                                                 ('PDF', save_pdf)] 
+                                                                                                 if save)}")
                 # store description
                 metadata = {"Description": self._description}
 
