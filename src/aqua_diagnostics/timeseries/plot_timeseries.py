@@ -57,13 +57,13 @@ class PlotTimeseries:
         self.std_monthly_data = to_list(std_monthly_data)
         self.std_annual_data = to_list(std_annual_data)
 
-        self._check_data_length()
+        self.len_data, self.len_ref = self._check_data_length()
 
         # self.data_dict = {'monthly': self.monthly_data, 'annual': self.annual_data}
         # self.ref_dict = {'monthly': self.ref_monthly_data, 'annual': self.ref_annual_data}
         # self.std_dict = {'monthly': self.std_monthly_data, 'annual': self.std_annual_data}
 
-        # Data info:
+        # Data info initialized as empty
         self.catalogs = None
         self.models = None
         self.exps = None
@@ -72,15 +72,17 @@ class PlotTimeseries:
         self.ref_exps = None
         self.std_startdate = None
         self.std_enddate = None
+        # Filling them
+        self.get_data_info()
 
     def run(self, region: str = None, outputdir: str = './'):
 
         self.logger.info('Running PlotTimeseries')
-        self.get_data_info()
-        self.set_data_labels()
-        self.set_ref_label()
+        data_label = self.set_data_labels()
+        ref_label = self.set_ref_label()
         description = self.set_description(region=region)
-        fig, _ = self.plot_timeseries()
+        fig, _ = self.plot_timeseries(data_labels=data_label,
+                                      ref_label=ref_label)
         self.save_plot(fig, description=description,
                       region=region, outputdir=outputdir)
         self.logger.info('PlotTimeseries completed successfully')
@@ -119,19 +121,45 @@ class PlotTimeseries:
                 break
 
     def set_data_labels(self):
-        for 
+        """
+        Set the data labels for the plot.
+        The labels are extracted from the data arrays attributes.
+        """
+        data_labels = []
+        for i in range(self.len_data):
+            label = f'{self.models[i]} {self.exps[i]}'
+            data_labels.append(label)
+        
+        return data_labels
 
     def set_ref_label(self):
-        return
+        """
+        Set the reference label for the plot.
+        The label is extracted from the reference data arrays attributes.
+        """
+        ref_label = []
+        for i in range(self.len_ref):
+            label = f'{self.ref_models[i]} {self.ref_exps[i]}'
+            ref_label.append(label)
+
+        # Convert to string if only one reference data
+        if len(ref_label) == 1:
+            ref_label = ref_label[0]
+        
+        return ref_label
 
     def set_description(self, region: str = None):
+
         description = 'Time series '
         if region is not None:
             description += f'for region {region} '
+
+        for i in range(self.len_data):
+            description += f'for {self.catalogs[i]} {self.models[i]} {self.exps[i]} '
         
         return description
 
-    def plot_timeseries(self):
+    def plot_timeseries(self, data_labels=None, ref_label=None):
         
         fig, ax = plot_timeseries(monthly_data=self.monthly_data,
                             ref_monthly_data=self.ref_monthly_data,
@@ -139,7 +167,8 @@ class PlotTimeseries:
                             annual_data=self.annual_data,
                             ref_annual_data=self.ref_annual_data,
                             std_annual_data=self.std_annual_data,
-                            data_labels=self.data_labels,
+                            data_labels=data_labels,
+                            ref_label=ref_label,
                             return_fig=True,
                             ref_label=self.ref_label, loglevel=self.loglevel)
         
