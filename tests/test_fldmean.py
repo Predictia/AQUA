@@ -21,6 +21,12 @@ class TestFldModule():
         fldmodule = FldStat(loglevel='debug')
         assert fldmodule.fldmean(data)['2t'].size == 2
 
+        #reader = Reader(catalog='ci', model='IFS', exp='test-tco79', 
+        #                source='long', regrid='r100', rebuild=True)
+        #data = reader.retrieve()
+        #reverted = data.reindex({'lat': list(reversed(data.coords['lat']))})
+        #assert fldmodule.fldmean(reverted.isel==0))['2t'].size == 2
+
 @pytest.mark.aqua
 class TestFldmean():
     """Test class for fldmean"""

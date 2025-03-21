@@ -133,6 +133,10 @@ class FldStat():
                 area_coord = self.area[coord]
                 data_coord = data[coord]
 
+                # verify coordinates has the same sizes
+                if len(area_coord) != len(data_coord):
+                    raise ValueError(f"{coord} has a mismatch in length!")
+
                 # Check coordinate values mismatch: use numpy as it is faster and focus on values
                 if not np.array_equal(area_coord.values, data_coord.values):
                     if np.array_equal(area_coord.sortby(coord).values, data_coord.sortby(coord).values):
