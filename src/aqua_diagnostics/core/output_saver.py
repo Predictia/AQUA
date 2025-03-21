@@ -77,14 +77,18 @@ class OutputSaver:
             diagnostic_product (str): Product of the diagnostic analysis.
             extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
         """
-        filename = self.generate_name(diagnostic_product, var, extra_keys) + '.pdf'
-        filepath = os.path.join(self.outdir, filename)
+        filename = self.generate_name(diagnostic_product, extra_keys) + '.pdf'
+                
+        folder = os.path.join(self.outdir, 'pdf')
+        create_folder(folder=str(folder), loglevel=self.loglevel)
+        filepath = os.path.join(folder, filename)
         
         fig.savefig(filepath, format='pdf', bbox_inches='tight')
         self.logger.info(f"Saved PDF: {filepath}")
+        return filepath
 
 
-    def save_png(self, fig: plt.Figure, diagnostic_product: str, var: str, extra_keys: dict = None):
+    def save_png(self, fig: plt.Figure, diagnostic_product: str, extra_keys: dict = None):
         """
         Save a Matplotlib figure as a PNG file with a generated filename.
 
@@ -94,11 +98,15 @@ class OutputSaver:
             var (str): Variable of interest.
             extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
         """
-        filename = self.generate_name(diagnostic_product, var, extra_keys) + '.png'
-        filepath = os.path.join(self.outdir, filename)
+        filename = self.generate_name(diagnostic_product, extra_keys) + '.png'
+        
+        folder = os.path.join(self.outdir, 'png')
+        create_folder(folder=str(folder), loglevel=self.loglevel)
+        filepath = os.path.join(folder, filename)
         
         fig.savefig(filepath, format='png', dpi=300, bbox_inches='tight')
         self.logger.info(f"Saved PNG: {filepath}")
+        return filepath
 
     
     def save_netcdf(self, dataset: xr.Dataset, diagnostic_product: str, extra_keys: dict = None):

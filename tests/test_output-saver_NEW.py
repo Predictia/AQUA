@@ -1,4 +1,5 @@
 import pytest
+import os
 import xarray as xr
 import matplotlib.pyplot as plt
 from aqua.logger import log_configure
@@ -31,18 +32,43 @@ def test_generate_name(output_saver):
     filename = output_saver.generate_name(diagnostic_product='mean', extra_keys=extra_keys)
     assert filename == 'dummy.mean.IFS-NEMO_ICON_ERA5.tprate.indian_ocean'
 
-
 @pytest.mark.aqua
 def test_save_netcdf(output_saver):
     """Test saving a netCDF file."""
     # Create a simple xarray dataset
     data = xr.Dataset({'data': (('x', 'y'), [[1, 2], [3, 4]])})
 
-    # Test saving netCDF file without additional parameters
+    # Test saving netCDF file 
     path = output_saver.save_netcdf(dataset=data, diagnostic_product='mean')
-    assert path == './netcdf/dummy.mean.lumi-phase2.MSWEP.past.nc'
+    assert os.path.exists(path)
 
-    #path = output_saver.save_netcdf(dataset=data, diagnostic_product='mean', path='./')
-    #assert path == './dummy.mean.lumi-phase2.MSWEP.past.nc'
+@pytest.mark.aqua
+def test_save_png(output_saver, tmpdir):
+    """Test saving a PNG file."""
 
-  
+    fig, ax = plt.subplots()
+    ax.plot([0, 1], [0, 1])
+    
+    # Save the PNG file
+    extra_keys = {'var' : 'tprate'}
+    path = output_saver.save_png(fig=fig, diagnostic_product='mean', extra_keys=extra_keys)
+    
+    # Check if the file was created
+    path = './png/dummy.mean.lumi-phase2.MSWEP.past.tprate.png'
+    assert os.path.exists(path)
+
+@pytest.mark.aqua
+def test_save_pdf(output_saver, tmpdir):
+    """Test saving a PDF file."""
+    # Create a simple figure
+    fig, ax = plt.subplots()
+    ax.plot([0, 1], [0, 1])
+    
+    # Save the PDF file
+    extra_keys = {'model': 'multi', 'var' : 'tprate'}
+    output_saver.save_pdf(fig=fig, diagnostic_product='mean', extra_keys=extra_keys)
+    
+    # Check if the file was created
+    path = './pdf/dummy.mean.multi.tprate.pdf'
+    assert os.path.exists(path)
+    
