@@ -18,13 +18,19 @@ lines.solid_capstyle: round
 
 # Seaborn darkgrid parameters
 #axes.facecolor: EAEAF2
-#axes.edgecolor: white
 #axes.linewidth: 0
 #grid.color: white
-xtick.major.size: 0
+#xtick.major.size: 0
 ytick.major.size: 0
-xtick.minor.size: 0
-ytick.minor.size: 0
+#xtick.minor.size: 0
+ytick.minor.size: 0 
+
+axes.spines.bottom: True  
+axes.spines.top: False    
+axes.spines.left: False   
+axes.spines.right: False  
+axes.edgecolor: silver    
+axes.linewidth: 0.8       
 
 # Custom
 font.sans-serif: Ubuntu, Luxi Sans, Overpass, Helvetica, Helvetica Neue, Arial, Liberation Sans, DejaVu Sans, Bitstream Vera Sans, sans-serif
