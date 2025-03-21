@@ -9,7 +9,7 @@ Unreleased in the current development version (target v0.14.1):
 
 AQUA core complete list:
 - Matplotlib styles can be set in the configuration file (#1729)
-- Graphics refactoring for timeseries plot functions (#1729)
+- Graphics refactoring for timeseries plot functions (#1729, #1841)
 - Major refactor of the regrid options, with new modular `Regridder()` class replacing `Regrid()` mixin (#1768)
 - Refactor of the `retrieve_plain()` function with contextmanager and smmregrid GridInspector (#1768)
 
