@@ -64,6 +64,22 @@ class SeaIce(Diagnostic):
         # check region file and defined regions 
         self.load_regions(regions_file=regions_file, regions=regions)
 
+    @classmethod
+    def load_region_file(cls, regions_file=None):
+        """ Loads region definitions from a .yaml configuration file and sets the regions.
+            If no regions are provided, it uses all available regions from the configuration.
+        Args:
+            regions_file (str): Full path to the region file. If None, a default path is used.
+        Returns:
+            dict: Parsed YAML content with region definitions.
+        """
+        # determine the region file path if not provided
+        if regions_file is None:
+            folderpath = ConfigPath().get_config_dir()
+            regions_file = os.path.join(folderpath, 'diagnostics', 'seaice', 'config', 'regions_definition.yaml')
+
+        return load_yaml(infile=regions_file)
+
     def load_regions(self, regions_file=None, regions=None):
         """ Loads region definitions from a .yaml configuration file and sets the regions.
             If no regions are provided, it uses all available regions from the configuration.
@@ -71,13 +87,8 @@ class SeaIce(Diagnostic):
             regions_file (str): Full path to the region file. If None, a default path is used.
             regions (list): A region or list of str with regions name to load. If None, all regions are used.
         """
-        # determine the region file path if not provided
-        if regions_file is None:
-            folderpath = ConfigPath().get_config_dir()
-            regions_file = os.path.join(folderpath, 'diagnostics', 'seaice', 'config', 'regions_definition.yaml')
-
         # load the region file
-        self.regions_definition = load_yaml(infile=regions_file)
+        self.regions_definition = self.__class__.load_region_file(regions_file=regions_file)
 
         # check if specific regions were provided
         if regions is None:
