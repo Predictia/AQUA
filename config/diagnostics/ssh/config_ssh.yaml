@@ -9,8 +9,8 @@ data:
   source: lra-r100-monthly
   #zoom: 10
   regrid: 'r100'
-  startdate: '2020-01-01'
-  enddate:  '2020-03-30'
+  startdate: '2021-01-01'
+  enddate:  '2021-01-30'
 
 # This is the reference model against which other models are compared.
 obs:
@@ -19,8 +19,8 @@ obs:
   exp: ssh-L4
   source: daily
   regrid: 'r100'
-  startdate: '2020-01-01'
-  enddate: '2020-01-30'
+  startdate: '2021-01-01'
+  enddate: '2021-01-30'
 
 # These are options to adjust subplots visualizations.
 plot_options:
@@ -47,7 +47,7 @@ mask_options:
   southern_boundary_latitude: -62
 
 # Please specify the path to the directory where the outputs should be saved. If output directory/ folder does not exist, another directory called output will be created in your current working directory.
-outputdir: /projappl/project_465000454/sunnyjal/AQUA/diagnostics/ssh/output/
+outputdir: /scratch/project_465000454/maqsood
 
 # This is the current dask configuration which works for the inputs above. It could be adjusted based on the system this application is run.
 cluster:

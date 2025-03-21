@@ -64,11 +64,11 @@ def main():
     enddate_obs = config['obs'].get('enddate')
 
     outputdir = get_arg(args, 'outputdir', config['outputdir'])
+
+    # TODO: Implement these features 
     #rebuild = config['output'].get("rebuild")
-    #filename_keys = config['output'].get("filename_keys")
+    #filename = config['output'].get("filename")
     #save_netcdf = config['output'].get("save_netcdf")
-    #save_pdf = config['output'].get("save_pdf")
-    #save_png = config['output'].get("save_png")
     #dpi = config['output'].get("dpi")
 
     variable = config['variable']
@@ -138,7 +138,8 @@ def main():
         logger.error(f"No observation data found: {e}")
         sys.exit("SSH diagnostic terminated.")
     
-    #ssh_std = sshVariability(variable=variable, data_ref=
+    ssh_std = sshVariability(variable=variable, data_ref=data_obs, data_model=data, name_ref=model_obs, name_model=model_data, exp_ref=exp_obs, exp_model=exp_data, startdate_model=startdate_data, enddate_model=enddate_data, startdate_ref=startdate_obs, enddate_ref=enddate_obs, outputdir=outputdir)
+    ssh_std.run()
     logger.info("Finished SSH diagnostic.")
     # Close the Dask client and cluster
     client.close()
