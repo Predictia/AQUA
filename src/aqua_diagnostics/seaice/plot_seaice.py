@@ -324,7 +324,10 @@ class PlotSeaIce:
 
         # iterate over the methods in the dictionary
         for method, region_dict in self.repacked_dict.items():
-            self.logger.info(f"Processing method: {method}")
+
+            self.method = method
+
+            self.logger.info(f"Processing method: {self.method}")
 
             self.num_regions = len(region_dict)
 
@@ -367,27 +370,36 @@ class PlotSeaIce:
                                           **kwargs)
 
                 # after plotting, append text about what we did:
-                self._update_description(method, region, data_dict, region_idx)
+                self._update_description(self.method, region, data_dict, region_idx)
 
                 # optionally, customize the subplot (e.g., add a title)
-                ax.set_title(f"Sea ice {method}: region {region}")
+                ax.set_title(f"Sea ice {self.method}: region {region}")
             
             plt.tight_layout()
 
-            self.logger.debug(f"Plotting of all regions for method '{method}' completed")
+            self.logger.debug(f"Plotting of all regions for method '{self.method}' completed")
+
+            # store description
+            metadata = {"Description": self._description}
 
             # save figure            
-            if save_png or save_pdf:
-                self.logger.debug(f"Saving figure as format(s): {', '.join(fmt for fmt, save in [('PNG', save_png), 
-                                                                                                 ('PDF', save_pdf)] 
-                                                                                                 if save)}")
-                # store description
-                metadata = {"Description": self._description}
+            self.save_fig(fig, save_png, save_pdf, 
+                            metadata=metadata,
+                            region_dict=region_dict)
 
-                # create outputsaver object
-                output_saver = OutputSaver(diagnostic='PlotSeaIce', catalog=self.catalog, model=self.model, exp=self.exp,
-                                           diagnostic_product=f"seaice_{method}_{'_'.join(region_dict.keys())}",
-                                           loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild)
+    def save_fig(self,fig,
+                 save_png: bool, save_pdf: bool,
+                 metadata: dict = None,
+                 region_dict: dict = None):
 
-            if save_pdf: output_saver.save_pdf(fig=fig, path=self.outdir, metadata=metadata)
-            if save_png: output_saver.save_png(fig=fig, path=self.outdir, metadata=metadata)
+        if save_png or save_pdf:
+            self.logger.debug(f"Saving figure as format(s): {', '.join(fmt for fmt, flag in [('PNG', save_png), 
+                                                                                             ('PDF', save_pdf)] 
+                                                                                             if flag)}")
+            # create outputsaver object
+            output_saver = OutputSaver(diagnostic='PlotSeaIce', catalog=self.catalog, model=self.model, exp=self.exp,
+                                        diagnostic_product=f"seaice_{self.method}_{'_'.join(region_dict.keys())}",
+                                        loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild)
+
+        if save_pdf: output_saver.save_pdf(fig=fig, path=self.outdir, metadata=metadata)
+        if save_png: output_saver.save_png(fig=fig, path=self.outdir, metadata=metadata)
