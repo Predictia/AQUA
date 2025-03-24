@@ -12,49 +12,35 @@ from aqua.util import create_folder, coord_names, area_selection
 from aqua import Reader, plot_single_map
 from aqua.logger import log_configure
 
-class sshVariability():
-    def __init__(self, variable=None, data_ref=None, data_model=None, name_ref=None, name_model=None, exp_ref=None, exp_model=None, startdate_model=None, enddate_model=None, startdate_ref=None, enddate_ref=None, outputdir=None, loglevel='WARNING', **kwargs):
+class sshVariabilityCompute():
+    def __init__(self, data=None, variable=None, catalog=None, model=None, exp=None, source=None, startdate=None, enddate=None, regrid=None, outputdir=None, loglevel='WARNING'):
         """
         Initialize the sshVariability.
 
+        This class is designed to load an xarray.Dataset and computes std. It can load either load data using the Reader class or takes in input xarray.Dataset and regrids it using the Reader.regrid method. It then returns the xarray.Dataset. 
         Args:
+            variable (str): Variable name
+            catalog (str): catalog 
+            data: xarray.Dataset 
+            model (str): Name of the data
+            exp (str): Name of the experiment
+            source (str): the source
+            startdate (str): Start date 
+            enddate  (str): End date 
+            regrid (str): Regrid option for regridding
+            outputdir (str): output directory
+            loglevel (str): Default WARNING
         """
-        self.variable = variable
-        self.data_ref = data_ref
-        self.data_model = data_model
-        self.ref_name = name_ref
-        self.model_name = name_model
-        self.ref_exp = exp_ref
-        self.model_exp = exp_model
-        self.startdate_model = startdate_model or pd.to_datetime(data_model.time[0].values).strftime('%Y-%m-%d')
-        self.enddate_model = enddate_model or pd.to_datetime(data_model.time[-1].values).strftime('%Y-%m-%d')
-        self.startdate_ref = startdate_ref or pd.to_datetime(data_ref.time[0].values).strftime('%Y-%m-%d')
-        self.enddate_ref = enddate_ref or pd.to_datetime(data_ref.time[-1].values).strftime('%Y-%m-%d')
+        self.catalog = catalog
+        self.model = model
+        self.exp = exp
+        self.source = source 
+        self.regrid = regrid
+        self.startdate = startdate
+        self.enddate = enddate
         self.outputdir = outputdir + "/ssh"
-        self.logger = log_configure(log_level=loglevel, log_name='SSH Variability')
-        # Plot options
-        plot_options = kwargs.get('plot_options',{})
-        self.scale_min = plot_options.get('scale_min',0.1)
-        self.scale_max = plot_options.get('scale_max',0.4)
-        self.cmap = plot_options.get('cmap','viridis')
-        self.difference_plots = plot_options.get('difference_plots',False)
-        self.region_selection = plot_options.get('region_selection',False)
-        self.fig_format = plot_options.get('fig_format','png')
-        self.contours = plot_options.get('contours',0)
-        #self.regrid = plot_options.get('regrid',None)
-        # Region selection
-        region = kwargs.get('sub_region', {})
-        self.region_name = region.get('name','Agulhas')
-        self.region_lon_lim = region.get('lon_lim',[5,50])
-        self.region_lat_lim = region.get('lat_lim',[-10,-50])
-        # Retrieve the masking flags and boundary latitudes from the configuration, Specific to ICON
-        mask_options = kwargs.get('mask_options',{})
-        self.mask_northern_boundary = mask_options.get("mask_northern_boundary", True)
-        self.mask_southern_boundary = mask_options.get("mask_southern_boundary", True)
-        self.northern_boundary_latitude = mask_options.get("northern_boundary_latitude", 70)
-        self.southern_boundary_latitude = mask_options.get("southern_boundary_latitude", -62)
-        self.ref_std = None
-        self.model_std = None
+        self.logger = log_configure(log_level=loglevel, log_name='SSH Variability Computation')
+        self.data = data 
 
     def save_netcdf(self):
         """
@@ -65,16 +51,112 @@ class sshVariability():
         os.makedirs(file_type_folder, exist_ok=True)
 
         # Set the output file path
-        if self.ref_std is not None:
-            output_file = os.path.join(file_type_folder, f"{self.name_ref}_{self.exp_ref}_{self.startdate_ref}_to_{self.enddate_ref}_std.nc")
-            self.ref_std.to_netcdf(output_file)
-        if self.model_std is not None:
-            output_file = os.path.join(file_type_folder, f"{self.name_model}_{self.exp_model}_{self.startdate_model}_to_{self.enddate_model}_std.nc")
-            self.model_std.to_netcdf(output_file)
+        if self.data is not None:
+            output_file = os.path.join(file_type_folder, f"{self.model}_{self.exp}_{self.startdate}_to_{self.enddate}_std.nc")
+            self.data.to_netcdf(output_file)
+        else:
+            self.logger.error("The data can not be saved")
 
-    def plot_std(self, data_std, model_name, exp_name, startdate, enddate, contours=21):
+    def run(self):
+        # Retrieve model data and handle potential errors
+        try:
+            reader = Reader(catalog=self.catalog, model=self.model, exp=self.exp, source=self.source,
+                            startdate=self.startdate, enddate=self.enddate, regrid=self.regrid)
+            if self.data is not None and self.regrid:
+                self.data = reader.regrid(self.data)
+            elif self.data is not None and self.regrid is None:
+                self.logger(f"Precomputed data for {self.model} may not be reggrid correctly. This could lead to errors in the ssh variabilty calculation")
+            else:
+                data = reader.retrieve(var=self.variable)
+                data = data[self.variable]
+                self.data = data.std(axis=0)
+                if self.regrid:
+                    self.data = reader.regrid(self.data)
+                    self.save_netcdf()
+                else:
+                    self.logger.warning(
+                    "No regridding applied. Data is in native grid, "
+                    "this could lead to errors in the ssh variability calculation if the data is not in the same grid as the reference data."
+                    )
+
+        except Exception as e:
+            self.logger.error(f"No model data found: {e}")
+            sys.exit("SSH diagnostic terminated.")
+
+        return self.data
+
+
+class sshVariabilityPlot():
+    def __init__(self, variable=None, data_ref=None, data_model=None, name_ref=None, name_model=None, exp_ref=None, source_ref=None, source_obs=None, source_model=None, startdate_model=None, enddate_model=None, startdate_ref=None, enddate_ref=None, outputdir=None, loglevel='WARNING', **kwargs):
+        """
+        Initialize the sshVariability.
+
+        Args:
+            variable (str): Variable name
+            data_ref: xarray.Dataset of the obeservational data
+            data_model: xarray.Dataset of the model data
+            name_ref (str): Name of the observational data
+            name_model (str): Name of the model data
+            exp_ref (str): Name of the obervational experiment
+            exp_model (str): Name of the model experiment
+            startdate_ref (str): Start date obs. 
+            enddate_ref (str): End date obs.
+            startdate_model (str): Start date model
+            enddate_model (str): End date model
+            outputdir (str): output directory
+            loglevel (str): Default WARNING
+        """
+        self.variable = variable
+        self.data_ref = data_ref
+        self.data_model = data_model
+        self.name_ref = name_ref
+        self.name_model = name_model
+        self.exp_ref = exp_ref
+        self.exp_model = exp_model
+        self.source_obs = source_obs
+        self.source_model = source_model
+        self.startdate_model = startdate_model or pd.to_datetime(data_model.time[0].values).strftime('%Y-%m-%d')
+        self.enddate_model = enddate_model or pd.to_datetime(data_model.time[-1].values).strftime('%Y-%m-%d')
+        self.startdate_ref = startdate_ref or pd.to_datetime(data_ref.time[0].values).strftime('%Y-%m-%d')
+        self.enddate_ref = enddate_ref or pd.to_datetime(data_ref.time[-1].values).strftime('%Y-%m-%d')
+        self.outputdir = outputdir + "/ssh"
+        self.logger = log_configure(log_level=loglevel, log_name='SSH Variability')
+        # Plot options with default options. New values can be defined in the config file
+        plot_options = kwargs.get('plot_options',{})
+        self.scale_min = plot_options.get('scale_min',0.1)
+        self.scale_max = plot_options.get('scale_max',0.4)
+        self.cmap = plot_options.get('cmap','viridis')
+        self.difference_plots = plot_options.get('difference_plots',False)
+        self.region_selection = plot_options.get('region_selection',False)
+        #self.fig_format = plot_options.get('fig_format','png')
+        self.contours = plot_options.get('contours',0)
+        #self.dpi = plot_option.get('dpi',300)
+        # Region selection. New values can be defined in the config file
+        region = kwargs.get('sub_region', {})
+        self.region_name = region.get('name','Agulhas')
+        self.lon_lim = region.get('lon_lim',[5,50])
+        self.lat_lim = region.get('lat_lim',[-10,-50])
+        # Retrieve the masking flags and boundary latitudes from the configuration, Specific to ICON
+        mask_options = kwargs.get('mask_options',{})
+        self.mask_northern_boundary = mask_options.get("mask_northern_boundary", True)
+        self.mask_southern_boundary = mask_options.get("mask_southern_boundary", True)
+        self.northern_boundary_latitude = mask_options.get("northern_boundary_latitude", 70)
+        self.southern_boundary_latitude = mask_options.get("southern_boundary_latitude", -62)
+
+
+    def plot_std(self, data_std, model_name, exp_name, source_name, startdate, enddate, contours=21):
         """
         Visualize the SSH variability using Cartopy.
+
+        Args:
+            data_std: xarray.Dataset as input to be plotted.
+            The following Args are used for the title in the plot
+            model_name (str): Name of the Dataset.
+            exp_name (str): Name of the experiment.
+            source (str): source defined in the catalog file
+            startdate (str): start date
+            enddate (str): end date
+            contours (int): Number of contours for plot (default: 21). If 0 or None the pcolormesh is used.
         """
         fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
         # Apply masking if the model is "ICON" and the flags are enabled with boundary latitudes provided
@@ -95,14 +177,14 @@ class sshVariability():
             contf = ax.pcolormesh(data_std[lonname].values, data_std[latname].values, data_std,
                                   transform=ccrs.PlateCarree(), 
                                   vmin=self.scale_min, vmax=self.scale_max, cmap=self.cmap)
-        ax.set_title(f"{model_name}")
+        ax.set_title(f"SSH Variability for {model_name} {exp_name} {source_name} {startdate} to {enddate}") ### here add further data in the tiltle 
         ax.coastlines()               
         
         # Add a colorbar for each subplot
         cbar = fig.colorbar(contf, ax=ax, orientation='vertical', shrink=0.9)
         cbar.set_label('SSH Variability (m)')
         #fig.tight_layout()
-        filename = model_name + "_" + exp_name
+        filename = model_name + "_" + exp_name + "_" + source_name
         self.save_plot(filename, fig)
 
     def plot_std_diff(self, contours=21):
@@ -114,31 +196,31 @@ class sshVariability():
         """
         fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
         #to remove large fill values
-        #ref_std = xr.where(self.ref_std < 100, self.ref_std, np.nan)
-        if self.ref_std is not None and self.model_std is not None:
+        data_ref = xr.where(self.data_ref < 100, self.data_ref, np.nan)
+        if self.data_ref is not None and self.data_model is not None:
             #to remove large fill values
-            ref_std = xr.where(self.ref_std < 100, self.ref_std, np.nan)
-            diff_data = ref_std - self.model_std
+            data_ref = xr.where(self.data_ref < 100, self.data_ref, np.nan)
+            diff_data = data_ref - self.data_model
         else:
-            Print("ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            Print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ERROR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
-        if "ICON" in self.model_name:
+        if "ICON" in self.name_model:
             if self.mask_northern_boundary and self.northern_boundary_latitude:
                 diff_data = diff_data.where(data.lat < self.northern_boundary_latitude)
             if self.mask_southern_boundary and self.southern_boundary_latitude:
                 diff_data = diff_data.where(data.lat > self.southern_boundary_latitude)
 
-        lonname, latname = coord_names(self.model_std)
+        lonname, latname = coord_names(self.data_model)
 
         if contours:
-            lon, lat = np.meshgrid(self.model_std[lonname].values, self.model_std[latname].values)
+            lon, lat = np.meshgrid(self.data_model[lonname].values, self.data_model[latname].values)
             levels = np.linspace(-0.4, 0.4, contours)
 
             contf = ax.contourf(lon, lat, diff_data, transform=ccrs.PlateCarree(), 
                                 levels=levels, extend='both',
                                 cmap='RdBu', transform_first=True)
         else:
-            contf = ax.pcolormesh(self.model_std[lonname], self.model_std[latname], diff_data,
+            contf = ax.pcolormesh(self.data_model[lonname], self.data_model[latname], diff_data,
                                 transform=ccrs.PlateCarree(),
                                 vmin=-0.4,
                                 vmax=0.4,
@@ -151,13 +233,14 @@ class sshVariability():
         cbar = fig.colorbar(contf, ax=ax, orientation='vertical', shrink=0.9)
         cbar.set_label('SSH Variability Difference (m)')
         #fig.tight_layout()
-        filename = "difference_plot_" + self.model_name + "-" + self.ref_name
+        filename = "difference_plot_" + self.name_model + "-" + self.name_ref
         self.save_plot(filename, fig)
 
-    def region_selection(self, data, model_name,exp_name):
-    
+    def subregion_plot(self,data, model_name, exp_name):
+        """
+        Plotting the subregion and saving as pdf and png
+        """
         fig = plt.figure(figsize=(12, 8))
-        
         # Apply masking if necessary
         if "ICON" in model_name and self.mask_northern_boundary and self.northern_boundary_latitude:
             data = data.where(data.lat < self.northern_boundary_latitude)
@@ -167,53 +250,68 @@ class sshVariability():
         ssh_sel = area_selection(data, lon=self.lon_lim, lat=self.lat_lim, drop=True)
             
         ax = fig.add_subplot(1, 1, 1)
-
-        file_type_folder = os.path.join(self.outputdir,self.fig_format)
+        
+        # pdf plot
+        file_type_folder = os.path.join(self.outputdir,"pdf")
         os.makedirs(file_type_folder, exist_ok=True)
             
         plot_single_map(ssh_sel, ax=ax, title=f"{self.region_name} - {model_name}", 
                         vmin=self.scale_min, vmax=self.scale_max, 
                         cmap=self.cmap, save=True,
-                        outputdir=save_path,
-                        filename=f"ssh_{model_name}_{exp_name}_region_selection.plot.{self.fig_format}",
-                        format=self.fig_format)
+                        outputdir=file_type_folder,
+                        filename=f"SSH_{model_name}_{exp_name}_region_selection.plot.pdf",
+                        format='pdf')
+        # png plot
+        file_type_folder = os.path.join(self.outputdir,"png")
+        os.makedirs(file_type_folder, exist_ok=True)
+            
+        plot_single_map(ssh_sel, ax=ax, title=f"{self.region_name} - {model_name}", 
+                        vmin=self.scale_min, vmax=self.scale_max, 
+                        cmap=self.cmap, save=True,
+                        outputdir=file_type_folder,
+                        filename=f"SSH_{model_name}_{exp_name}_region_selection.plot.png",
+                        format='png')
 
 
     def save_plot(self, filename, fig):
         """
-        Saves the subplots as a PDF image file.
+        Saves the plots as a pdf and png image file.
         """
-        self.logger.info("Saving figure to %s",self.fig_format)
-        file_type_folder = os.path.join(self.outputdir, self.fig_format)
+        # Saving plot a pdf
+        self.logger.info("Saving figure to pdf")
+        file_type_folder = os.path.join(self.outputdir, "pdf")
         self.logger.debug(f"Saving figure to {file_type_folder}")
-        file_type_folder = os.path.join(self.outputdir, self.fig_format)
+        file_type_folder = os.path.join(self.outputdir, "pdf")
         os.makedirs(file_type_folder, exist_ok=True)
         output_file = os.path.join(file_type_folder, filename)
-
+        output_file = output_file + '.pdf'
         # Save the figure as a PDF file. fig.savefig() or plt.savefig() should accomplish the same task of saving the figure to a file. (DPI = dots per inch)
-        fig.savefig(output_file, format=self.fig_format)
-
-    def compute_std(self):
-        """
-        Compute std for the model and reference data 
-        """
-        if self.data_ref is not None and self.ref_std is None:
-            self.logger.info("Computing std of %s ssh for the provided timespan", self.ref_name)
-            self.ref_std = self.data_ref.std(axis=0)
-        if self.data_model is not None and self.model_std is None:
-            self.logger.info("Computing std of %s ssh for the provided timespan", self.model_name)
-            self.model_std = self.data_model.std(axis=0)
+        fig.savefig(output_file, format='pdf')
+        
+        # Saving plot a png
+        self.logger.info("Saving figure to png")
+        file_type_folder = os.path.join(self.outputdir, "png")
+        self.logger.debug(f"Saving figure to {file_type_folder}")
+        file_type_folder = os.path.join(self.outputdir, "png")
+        os.makedirs(file_type_folder, exist_ok=True)
+        output_file = os.path.join(file_type_folder, filename)
+        output_file = output_file + '.png'
+        # Save the figure as a PDF file. fig.savefig() or plt.savefig() should accomplish the same task of saving the figure to a file. (DPI = dots per inch)
+        fig.savefig(output_file, format='png')
 
     def run(self):
-        self.compute_std()
-        if self.ref_std is not None:
-            self.plot_std(self.ref_std, self.ref_name, self.ref_exp, self.startdate_ref, self.enddate_ref, contours=21)
-            #self.region_selection(self.ref_std, self.ref_name,self.ref_name)
-        if self.model_std is not None:
-            self.plot_std(self.model_std, self.model_name, self.model_name, self.startdate_model, self.enddate_model, contours=21)
-            #self.region_selection(self.model_std, self.name_model,self.exp_model)
+        # Plotting the ssh variability for observations
+        if self.data_ref is not None:
+            self.plot_std(self.data_ref, self.name_ref, self.exp_ref, self.startdate_ref, self.enddate_ref, contours=21)
+            if self.region_selection:
+                self.subregion_plot(self.data_ref, self.name_ref, self.exp_ref)
+
+        # Plotting the ssh variability for model data
+        if self.data_model is not None:
+            self.plot_std(self.data_model, self.name_model, self.exp_model, self.startdate_model, self.enddate_model, contours=21)
+            if  self.region_selection:
+                self.subregion_plot(self.data_model, self.name_model, self.exp_model)
+
         # Plot the difference between the Reference std and Model std
-        self.save_netcdf()
-        print("###########################3")
-        #self.plot_std_diff(contours=21)
-        #print(self.ref_std)
+        if self.difference_plots:
+            self.plot_std_diff(contours=21)
