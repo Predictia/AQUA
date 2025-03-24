@@ -103,7 +103,7 @@ def main():
     # Else use the sshVariabilityCompute Class
 
     # Retrieve observational data and handle potential errors
-    data_obs_path = f"{outputdir}/ssh/netcdf/{model_obs}_{exp_obs}_ssh-L4_{startdate_obs}_to_{enddate_obs}_std.nc"
+    data_obs_path = f"{outputdir}/ssh/netcdf/{model_obs}_{exp_obs}_{source_obs}_{startdate_obs}_to_{enddate_obs}_std.nc"
     try:
         std_obs = xr.open_dataarray(data_obs_path)
     except:
@@ -112,7 +112,7 @@ def main():
         std_obs = ssh_std_obs.run()
 
     # Retrieve model data and handle potential errors
-    data_model_path = f"{outputdir}/ssh/netcdf/{model_data}_{exp_data}_ssh-L4_{startdate_data}_to_{enddate_data}_std.nc"
+    data_model_path = f"{outputdir}/ssh/netcdf/{model_data}_{exp_data}_{source_data}_{startdate_data}_to_{enddate_data}_std.nc"
     try:
         std_data = xr.open_dataarray(data_model_path)
     except:

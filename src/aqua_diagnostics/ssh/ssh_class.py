@@ -31,6 +31,7 @@ class sshVariabilityCompute():
             outputdir (str): output directory
             loglevel (str): Default WARNING
         """
+        self.variable = variable
         self.catalog = catalog
         self.model = model
         self.exp = exp
@@ -52,7 +53,7 @@ class sshVariabilityCompute():
 
         # Set the output file path
         if self.data is not None:
-            output_file = os.path.join(file_type_folder, f"{self.model}_{self.exp}_{self.startdate}_to_{self.enddate}_std.nc")
+            output_file = os.path.join(file_type_folder, f"{self.model}_{self.exp}_{self.source}_{self.startdate}_to_{self.enddate}_std.nc")
             self.data.to_netcdf(output_file)
         else:
             self.logger.error("The data can not be saved")
@@ -87,7 +88,7 @@ class sshVariabilityCompute():
 
 
 class sshVariabilityPlot():
-    def __init__(self, variable=None, data_ref=None, data_model=None, name_ref=None, name_model=None, exp_ref=None, source_ref=None, source_obs=None, source_model=None, startdate_model=None, enddate_model=None, startdate_ref=None, enddate_ref=None, outputdir=None, loglevel='WARNING', **kwargs):
+    def __init__(self, variable=None, data_ref=None, data_model=None, name_ref=None, name_model=None, exp_ref=None, exp_model=None, source_ref=None, source_obs=None, source_model=None, startdate_model=None, enddate_model=None, startdate_ref=None, enddate_ref=None, outputdir=None, loglevel='WARNING', **kwargs):
         """
         Initialize the sshVariability.
 
