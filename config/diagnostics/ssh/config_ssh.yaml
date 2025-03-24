@@ -1,6 +1,6 @@
 
 variable: 'zos'
-
+regrid: 'r100'
 # Models for which sea surface height (SSH) variability is to be evaluated.
 data:
   catalog: null
@@ -8,9 +8,9 @@ data:
   exp: ssp370
   source: lra-r100-monthly
   #zoom: 10
-  regrid: 'r100'
+  #regrid: 'r100'
   startdate: '2021-01-01'
-  enddate:  '2021-01-30'
+  enddate:  '2021-01-07'
 
 # This is the reference model against which other models are compared.
 obs:
@@ -18,20 +18,20 @@ obs:
   model: AVISO
   exp: ssh-L4
   source: daily
-  regrid: 'r100'
+  #regrid: 'r100'
   startdate: '2021-01-01'
-  enddate: '2021-01-30'
+  enddate: '2021-01-07'
 
 # These are options to adjust subplots visualizations.
 plot_options:
   #regrid: 'r100'
   scale_min: 0.1
   scale_max: 0.4
-  cmap: viridis
-  difference_plots: False
-  region_selection: False
-  fig_format: png
-  contours: 0  # Number of contours for the contour plot. If not set (or 0) then pcolormesh is used
+  cmap: "viridis"
+  difference_plots: True
+  region_selection: True
+  #fig_format: png
+  contours: 21  # Number of contours for the contour plot. If not set (or 0) then pcolormesh is used
  
 sub_region : 
   name: Agulhas

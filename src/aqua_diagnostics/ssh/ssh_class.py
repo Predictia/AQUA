@@ -88,7 +88,7 @@ class sshVariabilityCompute():
 
 
 class sshVariabilityPlot():
-    def __init__(self, variable=None, data_ref=None, data_model=None, name_ref=None, name_model=None, exp_ref=None, exp_model=None, source_ref=None, source_obs=None, source_model=None, startdate_model=None, enddate_model=None, startdate_ref=None, enddate_ref=None, outputdir=None, loglevel='WARNING', **kwargs):
+    def __init__(self, variable=None, data_ref=None, data_model=None, name_ref=None, name_model=None, exp_ref=None, exp_model=None, source_ref=None, source_model=None, startdate_model=None, enddate_model=None, startdate_ref=None, enddate_ref=None, outputdir=None, loglevel='WARNING', **kwargs):
         """
         Initialize the sshVariability.
 
@@ -114,7 +114,7 @@ class sshVariabilityPlot():
         self.name_model = name_model
         self.exp_ref = exp_ref
         self.exp_model = exp_model
-        self.source_obs = source_obs
+        self.source_ref = source_ref
         self.source_model = source_model
         self.startdate_model = startdate_model or pd.to_datetime(data_model.time[0].values).strftime('%Y-%m-%d')
         self.enddate_model = enddate_model or pd.to_datetime(data_model.time[-1].values).strftime('%Y-%m-%d')
@@ -145,7 +145,7 @@ class sshVariabilityPlot():
         self.southern_boundary_latitude = mask_options.get("southern_boundary_latitude", -62)
 
 
-    def plot_std(self, data_std, model_name, exp_name, source_name, startdate, enddate, contours=21):
+    def plot_std(self, data_std=None, model_name=None, exp_name=None, source_name=None, startdate=None, enddate=None, contours=21):
         """
         Visualize the SSH variability using Cartopy.
 
@@ -159,7 +159,7 @@ class sshVariabilityPlot():
             enddate (str): end date
             contours (int): Number of contours for plot (default: 21). If 0 or None the pcolormesh is used.
         """
-        fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
+        fig, ax = plt.subplots(figsize=(12, 6),subplot_kw={'projection': ccrs.PlateCarree()})
         # Apply masking if the model is "ICON" and the flags are enabled with boundary latitudes provided
         if "ICON" in model_name and self.mask_northern_boundary and self.northern_boundary_latitude:
             data_std = data_std.where(data.lat < self.northern_boundary_latitude)
@@ -184,7 +184,13 @@ class sshVariabilityPlot():
         # Add a colorbar for each subplot
         cbar = fig.colorbar(contf, ax=ax, orientation='vertical', shrink=0.9)
         cbar.set_label('SSH Variability (m)')
-        #fig.tight_layout()
+        fig.tight_layout()
+        if model_name is None:
+            model_name = "model"
+        if exp_name is None:
+            exp_name = "exp"
+        if source_name is None:
+            source_name = "source"
         filename = model_name + "_" + exp_name + "_" + source_name
         self.save_plot(filename, fig)
 
@@ -195,7 +201,7 @@ class sshVariabilityPlot():
         Args:
             contours (int): Number of contours for plot (default: 21). If 0 or None the pcolormesh is used.
         """
-        fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
+        fig, ax = plt.subplots(figsize=(12, 6), subplot_kw={'projection': ccrs.PlateCarree()})
         #to remove large fill values
         data_ref = xr.where(self.data_ref < 100, self.data_ref, np.nan)
         if self.data_ref is not None and self.data_model is not None:
@@ -233,11 +239,11 @@ class sshVariabilityPlot():
         # Add a colorbar for each subplot
         cbar = fig.colorbar(contf, ax=ax, orientation='vertical', shrink=0.9)
         cbar.set_label('SSH Variability Difference (m)')
-        #fig.tight_layout()
+        fig.tight_layout()
         filename = "difference_plot_" + self.name_model + "-" + self.name_ref
         self.save_plot(filename, fig)
 
-    def subregion_plot(self,data, model_name, exp_name):
+    def subregion_plot(self,data=None, model_name=None, exp_name=None):
         """
         Plotting the subregion and saving as pdf and png
         """
@@ -303,13 +309,13 @@ class sshVariabilityPlot():
     def run(self):
         # Plotting the ssh variability for observations
         if self.data_ref is not None:
-            self.plot_std(self.data_ref, self.name_ref, self.exp_ref, self.startdate_ref, self.enddate_ref, contours=21)
+            self.plot_std(self.data_ref, self.name_ref, self.exp_ref, self.source_ref, self.startdate_ref, self.enddate_ref, contours=21)
             if self.region_selection:
                 self.subregion_plot(self.data_ref, self.name_ref, self.exp_ref)
 
         # Plotting the ssh variability for model data
         if self.data_model is not None:
-            self.plot_std(self.data_model, self.name_model, self.exp_model, self.startdate_model, self.enddate_model, contours=21)
+            self.plot_std(self.data_model, self.name_model, self.exp_model, self.source_model, self.startdate_model, self.enddate_model, contours=21)
             if  self.region_selection:
                 self.subregion_plot(self.data_model, self.name_model, self.exp_model)
 

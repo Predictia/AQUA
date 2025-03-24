@@ -4,10 +4,10 @@ from .global_biases import GlobalBiases
 from .radiation import Radiation
 from .ensemble import EnsembleTimeseries, EnsembleLatLon, EnsembleZonal
 from .ecmean import PerformanceIndices, GlobalMean
-from .ssh import sshVariability
+from .ssh import sshVariabilityCompute, sshVariabilityPlot
 __all__ = ["Teleconnection",
            "GregoryPlot", "SeasonalCycle", "Timeseries", 
            "GlobalBiases",
            "Radiation", 
            "EnsembleTimeseries", "EnsembleLatLon", "EnsembleZonal",
-           "GlobalMean", "PerformanceIndices","sshVariability"]
+           "GlobalMean", "PerformanceIndices", "sshVariabilityCompute", "sshVariablityPlot"]

@@ -4,7 +4,7 @@ import os
 import argparse
 from dask.distributed import Client, LocalCluster
 import pandas as pd
-
+import xarray as xr
 import dask.distributed as dd
 from dask.utils import format_bytes
 
@@ -12,7 +12,7 @@ from aqua.util import load_yaml, get_arg, OutputSaver, ConfigPath, to_list
 from aqua import Reader
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.logger import log_configure
-from aqua.diagnostics import sshVariability
+from aqua.diagnostics.ssh import sshVariabilityCompute, sshVariabilityPlot
 
 def parse_arguments(args):
     """Parse command line arguments for Global Biases CLI."""
@@ -64,8 +64,10 @@ def main():
     enddate_obs = config['obs'].get('enddate')
 
     outputdir = get_arg(args, 'outputdir', config['outputdir'])
+    plot_options = config.get("plot_options", {})
+    mask_options = config.get("mask_options", {})
+    sub_region = config.get("sub_region", {})
 
-    # TODO: Implement these features 
     #rebuild = config['output'].get("rebuild")
     #filename = config['output'].get("filename")
     #save_netcdf = config['output'].get("save_netcdf")
@@ -100,57 +102,35 @@ def main():
     memory_text = f"Workers={worker_count}, Memory={total_memory}"
     logger.info(memory_text)
 
-    # Retrieve model data and handle potential errors
-    try:
-        reader = Reader(catalog=catalog_data, model=model_data, exp=exp_data, source=source_data,
-                        startdate=startdate_data, enddate=enddate_data, regrid=regrid, loglevel=loglevel)
-        data = reader.retrieve(var=variable)
-        data = data[variable]
-        if regrid:
-            data = reader.regrid(data)
-        else:
-            logger.warning(
-            "No regridding applied. Data is in native grid, "
-            "this could lead to errors in the ssh variability calculation if the data is not in the same grid as the reference data."
-            )
+    # Try loading the precomputed std as xarray.Dataset
+    # Else use the sshVariabilityCompute Class
 
-    except Exception as e:
-        logger.error(f"No model data found: {e}")
-        sys.exit("SSH diagnostic terminated.")
-        
     # Retrieve observational data and handle potential errors
+    data_obs_path = f"{outputdir}/ssh/netcdf/{model_obs}_{exp_obs}_{source_obs}_{startdate_obs}_to_{enddate_obs}_std.nc"
     try:
-        reader_obs = Reader(catalog=catalog_obs, model=model_obs, exp=exp_obs, source=source_obs,
-                            startdate=startdate_obs, enddate=enddate_obs, regrid=regrid, loglevel=loglevel,fix=True)
-        data_obs = reader_obs.retrieve(var=variable)
-        print(data_obs)
-        data_obs = data_obs[variable]
+        std_obs = xr.open_dataarray(data_obs_path)
+    except:
+        logger.info("Preecomputed sshVariability data for %s does not exist. Therefore computing it now", model_obs)
+        ssh_std_obs = sshVariabilityCompute(variable=variable, catalog=catalog_obs, model=model_obs, exp=exp_obs, source=source_obs, startdate=startdate_obs, enddate=enddate_obs, regrid=regrid, outputdir=outputdir, loglevel=loglevel) 
+        std_obs = ssh_std_obs.run()
 
-        if regrid:
-            data_obs = reader_obs.regrid(data_obs)
-        else:
-            logger.warning(
-            "No regridding applied. Data is in native grid, "
-            "this could lead to errors in the ssh variability calculation if the data is not in the same grid as the model data."
-            )
+    # Retrieve model data and handle potential errors
+    data_model_path = f"{outputdir}/ssh/netcdf/{model_data}_{exp_data}_{source_data}_{startdate_data}_to_{enddate_data}_std.nc"
+    try:
+        std_data = xr.open_dataarray(data_model_path)
+    except:
+        logger.info("Preecomputed sshVariability data for %s does not exist. Therefore computing it now", model_data)
+        ssh_std_data = sshVariabilityCompute(variable=variable, catalog=catalog_data, model=model_data, exp=exp_data, source=source_data, startdate=startdate_data, enddate=enddate_data, regrid=regrid, outputdir=outputdir, loglevel=loglevel) 
+        std_data = ssh_std_data.run()
 
-    except Exception as e:
-        logger.error(f"No observation data found: {e}")
-        sys.exit("SSH diagnostic terminated.")
-    
-    ssh_std = sshVariability(variable=variable, data_ref=data_obs, data_model=data, name_ref=model_obs, name_model=model_data, exp_ref=exp_obs, exp_model=exp_data, startdate_model=startdate_data, enddate_model=enddate_data, startdate_ref=startdate_obs, enddate_ref=enddate_obs, outputdir=outputdir)
-    ssh_std.run()
+    # SSH variability Plotting
+    ssh_plot = sshVariabilityPlot(variable=variable, data_ref=std_obs, data_model=std_data, name_ref=model_obs, name_model=model_data, exp_ref=exp_obs, exp_model=exp_data, source_ref=source_obs, source_model=source_data, startdate_model=startdate_data, enddate_model=enddate_data, startdate_ref=startdate_obs, enddate_ref=enddate_obs, outputdir=outputdir, plot_options=plot_options, sub_region=sub_region, mask_options=mask_options)
+    ssh_plot.run()
+
     logger.info("Finished SSH diagnostic.")
     # Close the Dask client and cluster
     client.close()
     cluster.close()
-    #if client:
-    #    client.close()
-    #    cluster.close()
-    #    logger.debug("Dask client closed.")
-
-
-
 
 if __name__ == '__main__':
     main()
