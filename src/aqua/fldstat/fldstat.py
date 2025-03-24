@@ -65,12 +65,14 @@ class FldStat():
             data_gridtype = GridInspector(data).get_grid_info()
             if len(data_gridtype) > 1:
                 raise ValueError("Multiple grid types found in the data, please provide horizontal_dims!")
-            self.horizontal_dims = data_gridtype[0].horizontal_dims
-            self.logger.debug('Horizontal dimensions guessed from data are %s', self.horizontal_dims)
+            horizontal_dims = data_gridtype[0].horizontal_dims
+            self.logger.debug('Horizontal dimensions guessed from data are %s', horizontal_dims)
+        else:
+            horizontal_dims = self.horizontal_dims
 
         #if area is not provided, return the raw mean
         if self.area is None:
-            return data.mean(dim=self.horizontal_dims)
+            return data.mean(dim=horizontal_dims)
         
         # align dimensions naming of area to match data
         self.area = self.align_area_dimensions(data)
@@ -86,8 +88,8 @@ class FldStat():
         # grid_area = self._clean_spourious_coords(grid_area, name = "area")
         # data = self._clean_spourious_coords(data, name = "data")
 
-        self.logger.debug('Computing the weighted average over  %s', self.horizontal_dims)
-        out = data.weighted(weights=self.area.fillna(0)).mean(dim=self.horizontal_dims)
+        self.logger.debug('Computing the weighted average over  %s', horizontal_dims)
+        out = data.weighted(weights=self.area.fillna(0)).mean(dim=horizontal_dims)
 
         if self.grid_name is not None:
             log_history(data, f"Spatially averaged by fldmean from {self.grid_name} grid")
