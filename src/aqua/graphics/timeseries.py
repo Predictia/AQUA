@@ -164,8 +164,9 @@ def plot_seasonalcycle(data=None,
         fig, ax (tuple): tuple containing the figure and axis objects
     """
     logger = log_configure(loglevel, 'PlotSeasonalCycle')
-    fig_size = kwargs.get('figsize', (6, 4))
-    fig, ax = plt.subplots(1, 1, figsize=fig_size)
+    if fig is None and ax is None:
+        fig_size = kwargs.get('figsize', (6, 4))
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
     monthsNumeric = range(0, 13 + 1)  # Numeric months
     monthsNames = ["", "J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D", ""]
