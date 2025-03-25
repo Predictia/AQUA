@@ -159,6 +159,7 @@ class sshVariabilityPlot():
             enddate (str): end date
             contours (int): Number of contours for plot (default: 21). If 0 or None the pcolormesh is used.
         """
+        self.logger.info(f'Plotting std for: {model_name}.')
         fig, ax = plt.subplots(figsize=(12, 6),subplot_kw={'projection': ccrs.PlateCarree()})
         # Apply masking if the model is "ICON" and the flags are enabled with boundary latitudes provided
         if "ICON" in model_name and self.mask_northern_boundary and self.northern_boundary_latitude:
@@ -201,6 +202,7 @@ class sshVariabilityPlot():
         Args:
             contours (int): Number of contours for plot (default: 21). If 0 or None the pcolormesh is used.
         """
+        self.logger.info(f'Plotting the difference in std between: {self.name_model} and {self.name_ref}.')
         fig, ax = plt.subplots(figsize=(12, 6), subplot_kw={'projection': ccrs.PlateCarree()})
         #to remove large fill values
         data_ref = xr.where(self.data_ref < 100, self.data_ref, np.nan)
@@ -209,7 +211,7 @@ class sshVariabilityPlot():
             data_ref = xr.where(self.data_ref < 100, self.data_ref, np.nan)
             diff_data = data_ref - self.data_model
         else:
-            Print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ERROR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            raise ValueError("Data is missing for for plotting the difference std plot")
 
         if "ICON" in self.name_model:
             if self.mask_northern_boundary and self.northern_boundary_latitude:
@@ -247,6 +249,7 @@ class sshVariabilityPlot():
         """
         Plotting the subregion and saving as pdf and png
         """
+        self.logger.info(f'Plotting the sub-region plots: {model_name}.')
         fig = plt.figure(figsize=(12, 8))
         # Apply masking if necessary
         if "ICON" in model_name and self.mask_northern_boundary and self.northern_boundary_latitude:
