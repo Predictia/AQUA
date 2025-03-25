@@ -1,7 +1,10 @@
 import pytest
 import argparse
 from unittest.mock import patch
-from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_cluster
+from aqua import Reader
+from aqua.diagnostics.core import template_parse_arguments, load_diagnostic_config
+from aqua.diagnostics.core import open_cluster, close_cluster, merge_config_args
+from aqua.diagnostics.core import convert_data_units
 
 loglevel = 'DEBUG'
 
@@ -26,6 +29,9 @@ def test_template_parse_arguments():
     assert args.outputdir == "test_outputdir"
     assert args.cluster == "test_cluster"
     assert args.nworkers == 2
+
+    with pytest.raises(ValueError):
+        load_diagnostic_config(diagnostic='pippo', args=args, loglevel=loglevel)
 
 @pytest.mark.aqua
 @patch("aqua.diagnostics.core.util.Client")
@@ -53,3 +59,58 @@ def test_cluster(mock_cluster, mock_client):
     assert private_cluster is False
 
     close_cluster(client, cluster, private_cluster)
+
+
+@pytest.mark.aqua
+def test_load_diagnostic_config():
+    """Test the load_diagnostic_config function"""
+    parser = argparse.ArgumentParser()
+    parser = template_parse_arguments(parser)
+    args = parser.parse_args(["--loglevel", "DEBUG"])
+    ts_dict = load_diagnostic_config(diagnostic='timeseries',
+                                     default_config='config_timeseries_atm.yaml',
+                                     args=args, loglevel=loglevel)
+
+    assert ts_dict['models'] == [{'catalog': None, 'exp': None, 'model': None, 'source': 'lra-r100-monthly'}]
+
+
+@pytest.mark.aqua
+def test_merge_config_args():
+    """Test the merge_config_args function"""
+    parser = argparse.ArgumentParser()
+    parser = template_parse_arguments(parser)
+    args = parser.parse_args(["--loglevel", "DEBUG", "--catalog", "test_catalog", "--model", "test_model",
+                              "--exp", "test_exp", "--source", "test_source", "--outputdir", "test_outputdir"])
+
+    ts_dict = {'datasets': [{'catalog': None, 'model': None, 'exp': None, 'source': 'lra-r100-monthly'}],
+               'references': [{'catalog': 'obs', 'model': 'ERA5', 'exp': 'era5', 'source': 'monthly'}],
+               'output': {'outputdir': './'}}
+
+    merged_config = merge_config_args(config=ts_dict, args=args, loglevel=loglevel)
+
+    assert merged_config['datasets'] == [{'catalog': 'test_catalog', 'exp': 'test_exp',
+                                          'model': 'test_model', 'source': 'test_source'}]
+    assert merged_config['output']['outputdir'] == 'test_outputdir'
+
+
+@pytest.mark.aqua
+def test_convert_data_units():
+    """Test the check_data function"""
+    data = Reader(catalog='ci', model='ERA5', exp='era5-hpz3', source='monthly', loglevel=loglevel).retrieve()
+    initial_units = data['tprate'].attrs['units']
+
+    # Dataset test
+    data_test = convert_data_units(data=data, var='tprate', units='mm/day', loglevel=loglevel)
+    assert data_test['tprate'].attrs['units'] == 'mm/day'
+
+    # DataArray test
+    data = data['tprate']
+    data_test = convert_data_units(data=data, var='tprate', units='mm/day', loglevel=loglevel)
+    # We don't test values since this is done in the test_fixer.py
+    assert data_test.attrs['units'] == 'mm/day'
+    assert f"Converting units of tprate: from {initial_units} to mm/day" in data_test.attrs['history']
+
+    # Test with no conversion to be done
+    data_test = convert_data_units(data=data, var='tprate', units=initial_units, loglevel=loglevel)
+    assert data_test.attrs['units'] == initial_units
+    assert f"Converting units of tprate: from {initial_units} to mm/day" not in data_test.attrs['history']

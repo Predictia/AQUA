@@ -64,6 +64,21 @@ Under the cli folder, upon updating the config file and running the cli_ocean3d.
 
     python cli_ocean3d.py --model <model> --exp <experiment> --source <source> 
 
+
+The CLI accepts the following arguments:
+
+- ``--catalog``: the catalog to analyze.
+- ``--model``: the model to analyze.
+- ``--exp``: the experiment to analyze.
+- ``--source``: the source to analyze.
+- ``--config``: path to the configuration file.
+- ``--cluster``: run the diagnostic on a dask cluster already existing (used by aqua-analysis).
+- ``-l`` or ``--loglevel``: log level for the logger. Default is WARNING.
+- ``-n`` or ``--nworkers``: number of dask workers for parallel computation.
+- ``--outputdir``: path to the output folder.
+- ``--regrid``: Target grid for regridding.
+
+
 Prepare the o3d request
 ---------------------------
 

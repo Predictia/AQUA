@@ -154,11 +154,6 @@ Creating Custom Diagnostics
 AQUA allows users to create custom diagnostics to suit their specific needs. 
 Custom diagnostics can be implemented as Python functions or classes and integrated into AQUA's diagnostic framework.
 
-To support the development of new diagnostic, a `dummy diagnostic <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/dummy/README.md>`_
-has been introduced into the code to support future development and serve as starting point. 
-This includes multiple template files and demo code, ranging from the creation 
-of a proper README up to a command line interface tool, going through the documentation, notebook and tests.
-
 Standards for new diagnostics
 +++++++++++++++++++++++++++++
 
@@ -167,6 +162,8 @@ In this section we provide some guidelines for the development of new diagnostic
 .. toctree::
    :maxdepth: 1
 
+   guidelines/class_structure
    guidelines/output_management
    guidelines/configuration_files
    guidelines/default_parser
+   guidelines/core_functions

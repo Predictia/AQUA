@@ -46,7 +46,8 @@ Given the character of the computation required, the standard approach is to use
 interface (CLI) which is available from the console with the subcommand ``aqua lra``
 
 The configuration of the CLI is done via a YAML file that can be build from the ``lra_config.tmpl``, available in the ``.aqua/templates/lra`` folder after the installation.
-This includes the target resolution, the target frequency, the temporary directory and the directory where you want to store the obtained LRA.
+This includes the target resolution, the target frequency, the name and the boundaries of a possible subselection, the temporary directory and the directory where you want to store the obtained LRA.
+SLURM options as well as the number of workers can be set up with the configuration file.
 
 Most importantly, you have to edit the entries of the ``data`` dictionary, which follows the model-exp-source 3-level hierarchy.
 On top of that you must specify the variables you want to produce under the ``vars`` key.

@@ -1,21 +1,58 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ## [Unreleased]
 
-Unreleased in the current development version (target v0.14):
+Unreleased in the current development version (target v0.14.1):
 
 AQUA core complete list:
+- Matplotlib styles can be set in the configuration file (#1729)
+- Graphics refactoring for timeseries plot functions (#1729, #1841)
+- Major refactor of the regrid options, with new modular `Regridder()` class replacing `Regrid()` mixin (#1768)
+- Refactor of the `retrieve_plain()` function with contextmanager and smmregrid GridInspector (#1768)
+
+## [v0.14.0]
+
+Main changes are:
+- AQUA is now open source
+- Documentation is now available on ReadTheDocs
+- Attributes added by AQUA are now "AQUA_" prefixed
+- A core diagnostic class has been introduced
+
+Removed:
+- Support for python==3.9 has been dropped.
+- Generators option from the Reader has been removed.
+
+Workflow modifications:
+- `aqua_analysis.py`: all the config files are used from the `AQUA_CONFIG` folder. This allows individual run modification kept in the `AQUA_CONFIG` folder for reproducibility.
+- `makes_contents.py`: can now take a config file as an argument to generate the `content.yaml` file.
+- `push_analysis.sh`: now has an option to rsync the figures to a specified location. Extra flags have been added (see Dashboard section in the documentation).
+
+AQUA core complete list:
+- Updated AQUA development container to micromamba 2.0.7 (#1834)
+- Updated base container to eccodes 2.40 (#1833)
+- Added Healpix zoom 7 grid for ICON R02B08 native oceanic grid (#1823)
+- Remove generators from Reader (#1791)
+- Fix tcc grib code and add some cmor codes in the convention file (#1800)
+- Add a regrid option to cli of relevant diagnostics (#1792)
+- Limit estimation of time for weight generation only to regular lon/lat grids (#1786)
+- LRA generation can operate spatial subsection (#1711)
+- Attributes added by AQUA are now "AQUA_" prefixed (#1790)
+- Remove zarr pin (#1794)
+- Dropping support for python==3.9 (#1778, #1797)
+- Reader intake-xarray sources can select a coder for time decoding (#1778)
+- Document use of AQUA on ECMWF HPC2020 (#1782)
+- Added history logging for lat-lon in area selection (#1479)
 - Cleaner workflow and pytest/coverage configuration (#1755, #1758)
 - catalog, model, exp, source info are now stored in the DataArray attributes (#1753)
 - Avoid infinite hanging during bridge access (#1733, #1738)
 - Enable dependabot to monitor dependencies every month (#1748)
 - `eccodes` bump to 2.40.0 (#1747)
-- Integrate codecov to monitor coverage and test analytics and remove old bot (#1736, #1737, #1755)
+- Integrate codecov to monitor coverage and test analytics and remove old bot (#1736, #1737, #1755, #1819)
 - Reinitialize `GSVRetriever` instance only when needed (#1733)
-- Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732, #1743)
+- Enable the option to read FDB data info from file, and refactor start/end hpc/bridge dates handling (#1732, #1743, #1762)
 - Fix `push_analysis.sh` options and `aqua_analysis.py` config paths (#1723, #1754)
 - Enable zip compression for LRA yearly files (#1726)
 - Enable publication of documentation on ReadTheDocs (#1699, #1716)
@@ -26,6 +63,13 @@ AQUA core complete list:
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
 
 AQUA diagnostics complete list:
+- Ocean3d: Tests for the Ocean3d diagnostic (#1780)
+- Diagnostic core: A common function to check and convert variable units is provided as `convert_data_units()` (#1806)
+- Ocean3d: Bug fix to regridding of observations in cli (#1811)
+- Diagnostic core: the `retrieve()` method uses internally a `_retrieve()` method that returns instead of updating attributes (#1763)
+- Diagnostic core: documentation about class and config file structure (#1790)
+- Diagnostic core: A common function to load the diagnostic config file is provided (#1750)
+- Global bias: add test (#1675)
 - Diagnostic core: Add additional command-line arguments for configuration and processing options (#1745)
 - Global bias: Handling plev and using scientific notation in contour plots (#1649)
 - Ecmean: Fix net surface radiative flux and wind stresses in ecmean (#1696)
@@ -833,7 +877,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.1...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.14.0...HEAD
+[v0.14.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.1...v0.14.0
 [v0.13.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.0...v0.13.1
 [v0.13.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-beta...v0.13.0
 [v0.13-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-alpha...v0.13-beta

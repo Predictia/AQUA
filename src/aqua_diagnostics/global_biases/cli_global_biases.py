@@ -25,6 +25,7 @@ def parse_arguments(args):
     parser.add_argument('--source', type=str, help='Source name')
     parser.add_argument('--outputdir', type=str, help='Output directory')
     parser.add_argument("--cluster", type=str, required=False, help="dask cluster address")
+    parser.add_argument("--regrid", type=str, required=False, help="Regrid the source data to a specified grid")
 
     return parser.parse_args(args)
 
@@ -85,8 +86,10 @@ def main():
     seasons_bool = config['diagnostic_attributes'].get('seasons', False)
     seasons_stat = config['diagnostic_attributes'].get('seasons_stat', 'mean')
     vertical = config['diagnostic_attributes'].get('vertical', False)
-    regrid = config['diagnostic_attributes'].get('regrid', None)
+    regrid = get_arg(args, 'regrid', config['diagnostic_attributes'].get('regrid'))
 
+    logger.debug(f"Data read from Catalog: {catalog_data}; Model: {model_data}; Exp: {exp_data}; Source: {source_data}; Regrid: {regrid}")
+    logger.debug(f"Observations read from Catalog: {catalog_obs}; Model: {model_obs}; Exp: {exp_obs}; Source: {source_obs}; Regrid: {regrid}")
 
     # Retrieve data and handle potential errors
     try:

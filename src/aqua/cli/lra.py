@@ -88,12 +88,16 @@ def lra_execute(args):
     # mandatory arguments
     resolution = config['target']['resolution']
     frequency = config['target']['frequency']
+
+    # optional arguments
+    region = config['target'].get('region', None)
+    catalog = config['target'].get('catalog', None)
+    
+    # assig paths
     paths = config['paths']
     outdir = paths['outdir']
     tmpdir = paths['tmpdir']
 
-    # optional main catalog switch
-    catalog = config['target'].get('catalog', None)
 
     # options
     loglevel = config['options'].get('loglevel', 'WARNING')
@@ -115,11 +119,13 @@ def lra_execute(args):
     lra_cli(args=args, config=config, catalog=catalog, resolution=resolution,
             frequency=frequency, fix=fix,
             outdir=outdir, tmpdir=tmpdir, loglevel=loglevel,
+            region=region,
             definitive=definitive, overwrite=overwrite, rebuild=rebuild,
             default_workers=default_workers,
             monitoring=monitoring, do_zarr=do_zarr, verify_zarr=verify_zarr, only_catalog=only_catalog)
 
 def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, loglevel,
+            region=None,
             definitive=False, overwrite=False,
             rebuild=False, monitoring=False,
             default_workers=1, do_zarr=False, verify_zarr=False,
@@ -128,6 +134,26 @@ def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, l
     Running the default LRA from CLI, looping on all the configuration model/exp/source/var combination
     Optional feature for each source can be defined as `zoom`, `workers` and `realizations`
     Options for dry run and overwriting, as well as monitoring and zarr creation, are available
+
+    Args:
+        args: argparse arguments
+        config: configuration dictionary
+        catalog: catalog to be processed
+        resolution: resolution of the LRA
+        frequency: frequency of the LRA
+        fix: fixer option
+        outdir: output directory
+        tmpdir: temporary directory
+        loglevel: log level
+        region: region to be processed
+        definitive: bool flag to create definitive files
+        overwrite: bool flag to overwrite existing files
+        rebuild: bool flag to rebuild the areas and weights
+        default_workers: default number of workers
+        monitoring: bool flag to enable the dask monitoring
+        do_zarr: bool flag to create zarr
+        verify_zarr: bool flag to verify zarr
+        only_catalog: bool flag to only update the catalog
     """
 
     models = to_list(get_arg(args, 'model', config['data']))
@@ -170,6 +196,7 @@ def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, l
                                         frequency=frequency, fix=fix,
                                         outdir=outdir, tmpdir=tmpdir,
                                         nproc=workers, loglevel=loglevel,
+                                        region=region,
                                         definitive=definitive, overwrite=overwrite,
                                         rebuild=rebuild,
                                         performance_reporting=monitoring,

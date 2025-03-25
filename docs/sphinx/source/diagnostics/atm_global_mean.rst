@@ -80,15 +80,17 @@ The diagnostic can be run from the command line interface (CLI) by running the f
 
 Additionally the CLI can be run with the following optional arguments:
 
-- ``--config``, ``-c``: Path to the configuration file.
-- ``--nworkers``, ``-n``: Number of workers to use for parallel processing.
-- ``--loglevel``, ``-l``: Logging level. Default is ``WARNING``.
 - ``--catalog``: Catalog to use for the analysis. It can be defined in the config file.
 - ``--model``: Model to analyse. It can be defined in the config file.
 - ``--exp``: Experiment to analyse. It can be defined in the config file.
 - ``--source``: Source to analyse. It can be defined in the config file.
-- ``--outputdir``: Output directory for the plots.
+
 - ``--cluster``: Dask cluster address.
+- ``--config``, ``-c``: Path to the configuration file.
+- ``--loglevel``, ``-l``: Logging level. Default is ``WARNING``.
+- ``--nworkers``, ``-n``: Number of workers to use for parallel processing.
+- ``--outputdir``: Output directory for the plots.
+- ``--regrid``: Target grid for regridding.
 
 
 Config file structure

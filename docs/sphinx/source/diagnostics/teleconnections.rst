@@ -108,14 +108,15 @@ The CLI accepts the following arguments:
 - ``--model``: the model to analyze.
 - ``--exp``: the experiment to analyze.
 - ``--source``: the source to analyze.
-- ``--ref``: activate the reference run.
 - ``-c`` or ``--config``: path to the configuration file.
-- ``--interface``: path to the interface file.
-- ``--outputdir``: path to the output folder.
-- ``-n`` or ``--nworkers``: number of dask workers for parallel computation.
-- ``-d`` or ``--dry``: dry run, no files are written.
-- ``-l`` or ``--loglevel``: log level for the logger. Default is WARNING.
 - ``--cluster``: run the diagnostic on a dask cluster already existing (used by aqua-analysis).
+- ``-d`` or ``--dry``: dry run, no files are written.
+- ``--interface``: path to the interface file.
+- ``-l`` or ``--loglevel``: log level for the logger. Default is WARNING.
+- ``-n`` or ``--nworkers``: number of dask workers for parallel computation.
+- ``--outputdir``: path to the output folder.
+- ``--ref``: activate the reference run.
+- ``--regrid``: Target grid for regridding.
 
 Configuration file structure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

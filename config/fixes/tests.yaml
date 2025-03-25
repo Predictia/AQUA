@@ -90,3 +90,6 @@ fixer_name:
                 attributes:
                     description: "Top thermal radiation originally found in the dataset and decumulated"
     
+    test-fesom-3d:
+        convention: eccodes
+        delete: [healpix]

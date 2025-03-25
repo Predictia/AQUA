@@ -28,6 +28,8 @@ class Diagnostic():
         """
 
         self.logger = log_configure(log_name='Diagnostic', log_level=loglevel)
+
+        self.loglevel = loglevel
         self.catalog = catalog
         self.model = model
         self.exp = exp
@@ -51,20 +53,13 @@ class Diagnostic():
             var (str): The variable to be retrieved. If None, all variables will be retrieved.
 
         Attributes:
-            self.data: The data retrieved from the model.
+            self.data: The data retrieved from the model. If return_data is True, the data will be returned.
             self.catalog: The catalog used to retrieve the data if no catalog was provided.
         """
-
-        self.reader = Reader(catalog=self.catalog, model=self.model, exp=self.exp, source=self.source,
-                             regrid=self.regrid, startdate=self.startdate, enddate=self.enddate)
-
-        if self.catalog is None:
-            self.catalog = self.reader.catalog
-
-        self.data = self.reader.retrieve(var=var)
-
-        if self.regrid is not None:
-            self.data = self.reader.regrid(self.data)
+        self.data, self.reader, self.catalog = self._retrieve(model=self.model, exp=self.exp, source=self.source,
+                                                              var=var, catalog=self.catalog, startdate=self.startdate,
+                                                              enddate=self.enddate, regrid=self.regrid,
+                                                              loglevel=self.logger.level)
 
     def save_netcdf(self, data, diagnostic: str, diagnostic_product: str = None,
                     default_path: str = '.', rebuild: bool = True, **kwargs):
@@ -89,3 +84,42 @@ class Diagnostic():
                                   model=self.model, exp=self.exp, loglevel=self.logger.level)
 
         outputsaver.save_netcdf(dataset=data, **kwargs)
+
+    @staticmethod
+    def _retrieve(model: str, exp: str, source: str, var: str = None, catalog: str = None,
+                  startdate: str = None, enddate: str = None, regrid: str = None,
+                  loglevel: str = 'WARNING'):
+        """
+        Static method to retrieve data and return everything instead of updating class
+        attributes. Used internally by the retrieve method
+
+        Args:
+            model (str): model of the dataset to retrieve.
+            exp (str): exp of the dataset to retrieve.
+            source (str): source of the dataset to retrieve.
+            var (str or list): variable to retrieve. If None all are retrieved.
+            catalog (str): catalog of the dataset to retrieve.
+            startdate (str): The start date of the data to be retrieved.
+                             If None, all available data will be retrieved.
+            enddate (str): The end date of the data to be retrieved.
+                           If None, all available data will be retrieved.
+            regrid (str): The target grid to be used for regridding. If None, no regridding will be done.
+            loglevel (str): The log level to be used. Default is 'WARNING'.
+
+        Returns:
+            data (xarray Dataset or DataArray): The data retrieved from the model.
+            reader (aqua.Reader): The reader object used to retrieve the data.
+            catalog (str): The catalog used to retrieve the data.
+        """
+        reader = Reader(catalog=catalog, model=model, exp=exp, source=source,
+                        regrid=regrid, startdate=startdate, enddate=enddate, loglevel=loglevel)
+
+        data = reader.retrieve(var=var)
+
+        if catalog is None:
+            catalog = reader.catalog
+
+        if regrid is not None:
+            data = reader.regrid(data)
+
+        return data, reader, catalog

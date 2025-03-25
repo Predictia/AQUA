@@ -110,21 +110,16 @@ class TestGsv():
     def test_reader(self) -> None:
         """Simple test, to check that catalog access works and reads correctly"""
 
-        reader = Reader(model="IFS", exp="test-fdb", source="fdb", chunks="D",
-                        stream_generator=True, loglevel=loglevel)
+        reader = Reader(model="IFS", exp="test-fdb", source="fdb", loglevel=loglevel)
         data = reader.retrieve(startdate='20080101T1200', enddate='20080101T1200', var='t')
-        assert isinstance(data, types.GeneratorType), 'Reader does not return iterator'
-        dd = next(data)
-        assert dd.t.GRIB_paramId == 130, 'Wrong GRIB param in data'
+        assert data.t.GRIB_paramId == 130, 'Wrong GRIB param in data'
 
     def test_reader_novar(self) -> None:
         """Simple test, to check that catalog access works and reads correctly, no var"""
 
-        reader = Reader(model="IFS", exp="test-fdb", source="fdb",
-                        stream_generator=True, loglevel=loglevel)
+        reader = Reader(model="IFS", exp="test-fdb", source="fdb", loglevel=loglevel)
         data = reader.retrieve()
-        dd = next(data)
-        assert dd.t.GRIB_paramId == 130, 'Wrong GRIB param in data'
+        assert data.t.GRIB_paramId == 130, 'Wrong GRIB param in data'
 
     def test_reader_xarray(self) -> None:
         """Reading directly into xarray"""
@@ -133,7 +128,7 @@ class TestGsv():
         data = reader.retrieve()
         assert isinstance(data, xr.Dataset), "Does not return a Dataset"
         assert data.t.mean().data == pytest.approx(279.3509), "Field values incorrect"
-
+        
     def test_reader_paramid(self) -> None:
         """
         Reading with the variable paramid, we use '130' instead of 't'
@@ -229,7 +224,9 @@ class TestGsv():
 
     def test_fdb_from_file(self) -> None:
         """
-        Reading fdb dates from a file
+        Reading fdb dates from a file.
+        First test with a file that contains both data and bridge dates.
+        Second test with a file that contains only data dates.
         """
         source = GSVSource(DEFAULT_GSV_PARAMS['request'],  "20080101", "20080101",
                            metadata={'fdb_home': FDB_HOME, 'fdb_home_bridge': FDB_HOME,
@@ -240,3 +237,11 @@ class TestGsv():
         assert source.data_end_date == '19900103T2300'
         assert source.bridge_start_date == '19900101T0000'
         assert source.bridge_end_date == '19900102T2300'
+
+        source = GSVSource(DEFAULT_GSV_PARAMS['request'],  "20080101", "20080101",
+                           metadata={'fdb_home': FDB_HOME, 'fdb_home_bridge': FDB_HOME,
+                                     'fdb_info_file': 'tests/catgen/fdb_info_hpc-only.yaml'},
+                            loglevel=loglevel)
+        
+        assert source.data_start_date == '19900101T0000'
+        assert source.data_end_date == '19900103T2300'

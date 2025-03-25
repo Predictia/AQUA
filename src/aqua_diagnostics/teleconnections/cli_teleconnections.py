@@ -52,6 +52,8 @@ def parse_arguments(cli_args):
                         required=False)
     parser.add_argument('--source', type=str, help='source name',
                         required=False)
+    parser.add_argument('--regrid', type=str, help='regrid target grid',
+                        required=False)
     parser.add_argument('--outputdir', type=str, help='output directory',
                         required=False)
     parser.add_argument('--interface', type=str, help='interface to use',
@@ -158,6 +160,10 @@ if __name__ == '__main__':
     models[0]['exp'] = get_arg(args, 'exp', models[0]['exp'])
     models[0]['source'] = get_arg(args, 'source', models[0]['source'])
 
+    # regrid is optional and overrides all models
+    for mod in models:
+        mod['regrid'] = get_arg(args, 'regrid', mod.get('regrid'))
+
     for telec in teleclist:
         logger.info('Running %s teleconnection', telec)
         # Getting generic configs
@@ -172,7 +178,7 @@ if __name__ == '__main__':
             model_ref = ref_config.get('model', 'ERA5')
             exp_ref = ref_config.get('exp', 'era5')
             source_ref = ref_config.get('source', 'monthly')
-            regrid = ref_config.get('regrid', None)
+            regrid = get_arg(args, 'regrid', ref_config.get('regrid', None))
             freq = ref_config.get('freq', None)
             logger.debug("setup: %s %s %s %s %s",
                          model_ref, exp_ref, source_ref, regrid, freq)

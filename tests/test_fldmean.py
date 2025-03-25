@@ -57,9 +57,10 @@ class TestFldmean():
                         regrid='r200', loglevel=loglevel)
         data = reader.retrieve()
         data = reader.regrid(data)
-        avg = reader.fldmean(data['2t'],  lon_limits=[-30, 50], lat_limits=[-30, -90]).values
-        assert avg.shape == (2,)
-        assert avg[0] == pytest.approx(285.131484)
+        avg = reader.fldmean(data['2t'],  lon_limits=[-30, 50], lat_limits=[-30, -90])
+        assert "Area selection: lat=[-90, -30], lon=[330, 50]" in avg.history
+        assert avg.values.shape == (2,)
+        assert avg.values[0] == pytest.approx(285.131484)
 
     def test_fldmean_healpix_selection_lat_only(self):
         """Fldmean test for FESOM with area selection, only lat"""
