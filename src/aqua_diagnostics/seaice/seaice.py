@@ -243,11 +243,33 @@ class SeaIce(Diagnostic):
 
         return computed_data_std
 
-    def _compute_extent(self, threshold: float = 0.15, var: str = 'siconc', calc_std_freq: str = None):
+    def _compute_seasonal_cycle(self, monthly_data):
+        """ Converts monthly data into a seasonal cycle by grouping over calendar months
+        and computing the mean across the time dimension.
+        Args:
+            monthly_data (xarray.DataArray or list of xarray.DataArray): 
+                Monthly time series data to be converted to seasonal cycles.
+                If a list is provided, the operation is applied to each item in the list.
+        Returns:
+            xarray.DataArray or list of xarray.DataArray:
+                The seasonal cycle(s), where each output DataArray has dimensions 
+                grouped by calendar month and averaged over time. Returns 
+                `None` if input is `None`.
+        """
+        if monthly_data is None:
+            return None
+        if isinstance(monthly_data, list):
+            return [da.groupby('time.month').mean('time') for da in monthly_data]
+        else:
+            return monthly_data.groupby('time.month').mean('time')
+
+    def _compute_extent(self, threshold: float = 0.15, var: str = 'siconc', 
+                        calc_std_freq: str = None, get_seasonal_cycle: bool = False):
         """ Compute sea ice extent by integrating sea ice concentration data over specified regions.
         The sea ice extent is calculated by applying a threshold to the sea ice concentration variable
         and summing the masked data over the regional spatial dimension. If a standard deviation 
         calculation frequency (`calc_std_freq`) is provided, the standard deviation of the extent is also computed.
+        It also derives the seasonal cycle (monthly climatology) of the computed extent values and std.
         Args:
             threshold (float, optional): 
                 The threshold value for sea ice concentration above which a grid cell is considered 
@@ -257,6 +279,9 @@ class SeaIce(Diagnostic):
             calc_std_freq (str, optional): 
                 The frequency for computing the standard deviation of sea ice extent across time (i.e., 'monthly', 'annual'). 
                 If None, standard deviation is not computed. Default is None.
+            get_seasonal_cycle (bool, optional):
+                If True, the output extent (and standard deviation if computed) is converted into a 
+                seasonal cycle i.e. a monthly climatology. Defaults to False.
         Returns:
             xr.Dataset or Tuple[xr.Dataset, xr.Dataset]: 
                 - If `calc_std_freq` is None, returns a dataset containing the integrated sea ice extent.
@@ -286,11 +311,15 @@ class SeaIce(Diagnostic):
 
             # integrate the seaice masked data ci_mask over the regional spatial dimension to compute sea ice extent
             seaice_extent = self.integrate_seaice_masked_data(ci_mask, 'extent', region)
+            log_history(seaice_extent, "Method used for seaice computation: 'extent'")
+
+            if get_seasonal_cycle:
+                seaice_extent = self._compute_seasonal_cycle(seaice_extent)
+                log_history(seaice_extent, "Data converted to seasonal means, grouped by month.")
 
             # add attributes and history
             seaice_extent = self.add_seaice_attrs(seaice_extent, 'extent', region, self.startdate, self.enddate)
-            log_history(seaice_extent, "Method used for seaice computation: 'extent'")
-
+            
             regional_extents.append(seaice_extent)
         
             # compute standard deviation if frequency is provided
@@ -298,10 +327,17 @@ class SeaIce(Diagnostic):
 
                 seaice_std_extent = self._calculate_std(seaice_extent, calc_std_freq)
 
+                log_history(seaice_std_extent, f"Method used for standard deviation seaice computation: extent")
+
+                if get_seasonal_cycle:
+                    seaice_std_extent = self._compute_seasonal_cycle(seaice_std_extent)
+
+                    log_history(seaice_std_extent, f"Standard deviation data with method 'extent' converted to seasonal means")
+
                 # update attributes and history
                 seaice_std_extent = self.add_seaice_attrs(seaice_std_extent, 'extent', region,
                                                           self.startdate, self.enddate, std_flag=True)
-                log_history(seaice_std_extent, f"Method used for standard deviation seaice computation: extent")
+                self.logger.debug("Attributes updated")                    
 
                 regional_extents_std.append(seaice_std_extent)
                 
@@ -315,7 +351,8 @@ class SeaIce(Diagnostic):
         # return a tuple if standard deviation was computed, otherwise just the extent
         return (self.extent, self.extent_std) if calc_std_freq else self.extent
 
-    def _compute_volume(self, var: str = 'sithick', calc_std_freq: str = None):
+    def _compute_volume(self, var: str = 'sithick', 
+                        calc_std_freq: str = None, get_seasonal_cycle: bool = False):
         """Compute sea ice volume by integrating computed data over specified regions."""
 
         # retrieve data with Diagnostic method
@@ -338,10 +375,14 @@ class SeaIce(Diagnostic):
 
             # integrate the seaice masked data sivol_mask over the regional spatial dimension to compute sea ice volume
             seaice_volume = self.integrate_seaice_masked_data(sivol_mask, 'volume', region)
+            log_history(seaice_volume, f"Method used for seaice computation: 'volume'")
+
+            if get_seasonal_cycle:
+                seaice_volume = self._compute_seasonal_cycle(seaice_volume)
+                log_history(seaice_volume, "Data converted to seasonal means, grouped by month.")
 
             # add attributes and history
             seaice_volume = self.add_seaice_attrs(seaice_volume, 'volume', region, self.startdate, self.enddate)
-            log_history(seaice_volume, f"Method used for seaice computation: 'volume'")
 
             regional_volumes.append(seaice_volume)
 
@@ -350,10 +391,17 @@ class SeaIce(Diagnostic):
                 
                 seaice_std_volume = self._calculate_std(seaice_volume, calc_std_freq)
 
+                log_history(seaice_std_volume, f"Method used for standard deviation seaice computation: volume")
+
+                if get_seasonal_cycle:
+                    seaice_std_volume = self._compute_seasonal_cycle(seaice_std_volume)
+
+                    log_history(seaice_std_volume, f"Standard deviation data with method 'volume' converted to seasonal means")
+
                 # update attributes and history
                 seaice_std_volume = self.add_seaice_attrs(seaice_std_volume, 'volume', region, 
                                                           self.startdate, self.enddate, std_flag=True)
-                log_history(seaice_std_volume, f"Method used for standard deviation seaice computation: volume")
+                self.logger.debug("Attributes updated")                    
 
                 regional_volumes_std.append(seaice_std_volume)
 
@@ -374,7 +422,7 @@ class SeaIce(Diagnostic):
             method (str): The method to compute sea ice metrics. Options are 'extent' or 'volume'.
             Kwargs:
                 - threshold (float): The threshold value for which sea ice fraction is considered. Default is 0.15.
-                - var (str): The variable to be used for computation. Default is 'sithick'.
+                - var (str): The variable to be used for computation. Default is 'sithick' or 'siconc'.
         Returns:
             xr.DataArray or xr.Dataset: The computed sea ice metric. A Dataset is returned if multiple regions are requested."""
 
