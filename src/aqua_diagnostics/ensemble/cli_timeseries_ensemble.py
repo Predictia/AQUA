@@ -13,7 +13,7 @@ import xarray as xr
 from dask.distributed import Client, LocalCluster
 import numpy as np
 
-from aqua.util import load_yaml, get_arg
+from aqua.util import load_yaml, get_arg, ConfigPath
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.logger import log_configure
 from aqua import Reader
@@ -185,9 +185,15 @@ if __name__ == '__main__':
         logger.info(f"Running with {nworkers} dask distributed workers.")
 
     # Load configuration file
-    file = get_arg(args, "config", "config_timeseries_ensemble.yaml")
+    configdir = ConfigPath(loglevel=loglevel).configdir
+    default_config = os.path.join(configdir, "diagnostics", "ensemble",
+                                  "config_timeseries_ensemble.yaml")
+    file = get_arg(args, "config", default_config)
     logger.info(f"Reading configuration file {file}")
     config = load_yaml(file)
+    #file = get_arg(args, "config", "config_timeseries_ensemble.yaml")
+    #logger.info(f"Reading configuration file {file}")
+    #config = load_yaml(file)
 
     variable = config['variable']
     logger.info(f"Plotting {variable} timeseries")
