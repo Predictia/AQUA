@@ -12,7 +12,7 @@ import gc
 import xarray as xr
 from dask.distributed import Client, LocalCluster
 import numpy as np
-
+import pandas as pd
 from aqua.util import load_yaml, get_arg, ConfigPath
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.logger import log_configure
@@ -141,11 +141,11 @@ def retrieve_data(variable=None, models=None, exps=None, sources=None, startdate
     
     if startdate != None:
         istartdate = max(startdate_list)
-        startdate = np.datetime64(startdate)
+        startdate = pd.to_datetime(startdate) 
         startdate = max(istartdate, startdate)
     if enddate != None:
         ienddate = min(enddate_list)
-        enddate = np.datetime64(enddate)
+        enddate = pd.to_datetime(enddate)
         enddate = min(ienddate, enddate)
     if startdate == None:        
         startdate = max(startdate_list)

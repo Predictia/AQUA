@@ -73,9 +73,6 @@ class EnsembleTimeseries():
         if self.pdf_save is False:
             self.logger.info("Figure will not be saved")
         self.netcdf_save = True
-        if self.netcdf_save is False:
-            self.logger.info("netCDF file will not be saved")
-
 
     def ensemble_mean(self, dataset):
         """

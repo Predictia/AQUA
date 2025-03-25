@@ -90,7 +90,7 @@ def retrieve_data(region=None,variable=None, models=None, exps=None, sources=Non
     merged dataset.
 
     Args:
-        region (str): The rregion variable to retrieve data for. Defaults to None. Example: 'atlantic'
+        region (str): The region variable to retrieve data for. Defaults to None. Example: 'atlantic'
         variable (str): The variable to retrieve data for. Default to None. Example 'so', 'thetao'
         models (list): A list of model names. Each model corresponds to an 
             experiment and source in the `exps` and `sources` lists, respectively. 
