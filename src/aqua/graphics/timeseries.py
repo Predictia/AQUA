@@ -146,6 +146,8 @@ def plot_seasonalcycle(data=None,
                        ref_label: str = None,
                        grid=True,
                        loglevel: str = 'WARNING',
+                       fig: plt.Figure = None,
+                       ax: plt.Axes = None,
                        **kwargs):
     """ Plot the seasonal cycle of the data and the reference data.
 
