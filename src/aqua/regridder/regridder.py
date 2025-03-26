@@ -342,6 +342,9 @@ class Regridder():
                     self.logger.info(
                         "Generating weights for %s grid: %s", tgt_grid_name, vertical_dim)
                     
+                if smm_vertical_dim:
+                    self.logger.warning("Mask-changing vertical dimension identified, weights generation might take a few!")
+                    
                 # smmregrid call
                 #TODO: here or better in smmregird, we could use GridInspect to get the grid info
                 # and reduce the dimensionality of the input data.
