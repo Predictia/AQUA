@@ -17,6 +17,8 @@ class FldStat():
 
         Args:
             area (str): The area to calculate the statistics for.
+            horizontal_dims (list): The horizontal dimensions of the data.
+            grid_name (str, optional): The name of the grid, used for logging history.
             loglevel (str): The logging level.
         """
 
@@ -137,16 +139,20 @@ class FldStat():
                 # verify coordinates has the same sizes
                 if len(area_coord) != len(data_coord):
                     raise ValueError(f"{coord} has a mismatch in length!")
+                
+                # Fast check if coordinates are already aligned
+                if np.array_equal(area_coord, data_coord):
+                    continue
 
-                # Check coordinate values mismatch: use numpy as it is faster and focus on values
-                if not np.array_equal(area_coord.values, data_coord.values):
-                    if np.array_equal(area_coord.sortby(coord).values, data_coord.sortby(coord).values):
-                #if not area_coord.equals(data_coord):
-                #    if area_coord.sortby(coord).equals(data_coord.sortby(coord)):
-                        self.logger.warning("%s is sorted differently. Flipping coordinates.", coord)
-                        self.area = self.area.reindex({coord: list(reversed(area_coord))})
-                    else:
-                        raise ValueError(f"{coord} has a mismatch in coordinate values!")
+                # Fast check for reversed coordinates
+                if np.array_equal(area_coord[::-1], data_coord):
+                    self.logger.warning("Reversing coordinate '%s' for alignment.", coord)
+                    self.area = self.area.isel({coord: slice(None, None, -1)})
+                    continue
+
+                # Fall back to more comprehensive (slow) check using sorting
+                if not np.array_equal(np.sort(area_coord), np.sort(data_coord)):
+                    raise ValueError(f"Mismatch in values for coordinate '{coord}'.")
                     
         return self.area
 
