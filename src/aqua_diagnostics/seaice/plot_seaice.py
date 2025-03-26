@@ -312,17 +312,26 @@ class PlotSeaIce:
             self.std_label_str = f" Reference data std is evaluated from {std_sdate} to {std_edate}."
         else:
             self.std_label_str = ''
+
+        # --- generate plot type name
+        if hasattr(self, "plot_type") and self.plot_type:
+            if self.plot_type == 'seasonal_cycle':
+                pl_type = 'Seasonal cycle of the '
+            elif self.plot_type == 'timeseries':
+                pl_type = 'Time series of the '
+            else:
+                pl_type = ''
                 
         # finally build the string caption (dynamically)
-        self._description = ('Time series of the Sea ice {} integrated over {}. {}{}{}').format(method, self.region_str, 
-                                                                                                self.model_labels_str,
-                                                                                                self.ref_label_str, self.std_label_str)
+        self._description = ('{}Sea ice {} integrated over {}. {}{}{}').format(pl_type, method, 
+                                                                                       self.region_str, self.model_labels_str,
+                                                                                       self.ref_label_str, self.std_label_str)
 
-    def regions_type_plotter(self, region_dict, plot_type='timeseries', **kwargs):
-        """ Loops over each region in region_dict and plots data either as a timeseries or a seasonal cycle.
+    def regions_type_plotter(self, region_dict, **kwargs):
+        """ Loops over each region in region_dict and plots data either as a timeseries or a seasonal cycle
+        depending on plot_type attribute.
         Args:
             region_dict : dict. Dictionary of regions and their associated data.
-            plot_type : str, optional. Either 'timeseries' or 'seasonal_cycle'. Defaults to 'timeseries'.
             **kwargs : dict. Additional keyword arguments passed on to the underlying plotting function.
         Returns:
             (fig, axes) : tuple. The figure and axes objects.
@@ -330,7 +339,7 @@ class PlotSeaIce:
 
         self.num_regions = len(region_dict)
 
-        fig_height = 6 if plot_type == 'seasonal_cycle' else 10
+        fig_height = 6 if self.plot_type == 'seasonal_cycle' else 10
 
         # create a figure and an array of axes for each region
         fig, axes = plt.subplots(nrows=self.num_regions, ncols=1, 
@@ -353,28 +362,28 @@ class PlotSeaIce:
 
             # create labels
             if monthly_models is not None:
-                data_labels = [self._gen_labelname(da) for da in monthly_models]
+                self.data_labels = [self._gen_labelname(da) for da in monthly_models]
             else:
-                data_labels = None
-            ref_label = self._gen_labelname(monthly_ref)
-            std_label = self._gen_labelname(monthly_std)
+                self.data_labels = None
+            self.ref_label = self._gen_labelname(monthly_ref)
+            self.std_label = self._gen_labelname(monthly_std)
 
             # call the appropriate plotting function
-            if plot_type == 'timeseries':
+            if self.plot_type == 'timeseries':
                 fig, ax = plot_timeseries(monthly_data=monthly_models,
                                           annual_data=annual_models,
                                           ref_monthly_data=monthly_ref,
                                           ref_annual_data=annual_ref,
                                           std_monthly_data=monthly_std,
                                           std_annual_data=annual_std,
-                                          data_labels=data_labels,
-                                          ref_label=ref_label,
+                                          data_labels=self.data_labels,
+                                          ref_label=self.ref_label,
                                           std_label=None,  # don't plot std in legend
                                           fig=fig,
                                           ax=ax,
                                           **kwargs)
 
-            elif plot_type == 'seasonal_cycle':
+            elif self.plot_type == 'seasonal_cycle':
                 fig, ax = plot_seasonalcycle(data=monthly_models,
                                              ref_data=monthly_ref,
                                              std_data=monthly_std,
@@ -385,7 +394,7 @@ class PlotSeaIce:
                                              ax=ax,
                                              **kwargs)
             else:
-                raise ValueError(f"Unknown plot_type function name: {plot_type}")
+                raise ValueError(f"Unknown plot_type function name: {self.plot_type}")
 
             # update description
             self._update_description(self.method, region, data_dict, region_idx)
@@ -404,12 +413,13 @@ class PlotSeaIce:
         save_png (bool, optional): Whether to save the figure as a PNG. Defaults to True.
         **kwargs: Additional keyword arguments passed to the region-specific plotting function 
         """
+        self.plot_type = plot_type
 
-        self.logger.info(f"Plotting sea ice {plot_type}")
+        self.logger.info(f"Plotting sea ice {self.plot_type}")
 
         valid_type_plots = ['timeseries', 'seasonal_cycle']
 
-        if plot_type not in valid_type_plots:
+        if self.plot_type not in valid_type_plots:
             raise ValueError(f"Invalid plot_type. Allowed plots are: {valid_type_plots}")
 
         # iterate over the methods in the dictionary
@@ -420,7 +430,7 @@ class PlotSeaIce:
             self.logger.info(f"Processing method: {self.method}")
 
             # plot per-region using loop on the same fig
-            fig, axes = self.regions_type_plotter(region_dict, plot_type=plot_type, **kwargs)
+            fig, axes = self.regions_type_plotter(region_dict, **kwargs)
             
             plt.tight_layout()
             self.logger.info(f"Plotting of all regions for method '{self.method}' completed")
@@ -430,18 +440,17 @@ class PlotSeaIce:
             self.logger.debug(f"Description: {self._description}")
 
             # save figure            
-            self.save_fig(fig, save_png, save_pdf, plot_type,
+            self.save_fig(fig, save_png, save_pdf,
                             metadata=metadata,
                             region_dict=region_dict)
 
-    def save_fig(self, fig, save_png: bool, save_pdf: bool, plot_type: str,
+    def save_fig(self, fig, save_png: bool, save_pdf: bool,
                  metadata: dict = None, region_dict: dict = None):
         """Save a matplotlib figure in PNG and/or PDF format with associated metadata.
         Args:
             fig (matplotlib.figure.Figure): The figure object to be saved.
             save_png (bool): Whether to save the figure as a PNG file.
             save_pdf (bool): Whether to save the figure as a PDF file.
-            plot_type (str): The type of plot being saved, used for naming the output.
             metadata (dict, optional): Metadata such as description to be saved. Defaults to None.
             region_dict (dict, optional): Dictionary of regions plotted. Used to generate output filename. Defaults to None.
         """
@@ -451,7 +460,7 @@ class PlotSeaIce:
                                                                                              if flag)}")
             # create outputsaver object
             output_saver = OutputSaver(diagnostic='PlotSeaIce', catalog=self.catalog, model=self.model, exp=self.exp,
-                                        diagnostic_product=f"seaice_{plot_type}_{self.method}_{'_'.join(region_dict.keys())}",
+                                        diagnostic_product=f"seaice_{self.plot_type}_{self.method}_{'_'.join(region_dict.keys())}",
                                         loglevel=self.loglevel, default_path=self.outdir, rebuild=self.rebuild)
 
         if save_pdf: output_saver.save_pdf(fig=fig, path=self.outdir, metadata=metadata)
