@@ -39,8 +39,7 @@ class FldStat():
 
         self.logger.debug('Horizontal dimensions are %s', self.horizontal_dims)
         self.grid_name = grid_name
-
-        
+       
     def fldmean(self, data, lon_limits=None, lat_limits=None, **kwargs):
         """
         Perform a weighted global average.
@@ -123,7 +122,7 @@ class FldStat():
         matching_dims = {a: d for a, d in zip(area_horizontal_dims, self.horizontal_dims) if self.area.sizes[a] == data.sizes[d]}
         self.logger.info("Area dimensions has been renamed with %s",  matching_dims)
         return self.area.rename(matching_dims)
-    
+
     def align_area_coordinates(self, data):
         """
         Check if the coordinates of the area and data are aligned.
@@ -144,15 +143,13 @@ class FldStat():
                 if np.array_equal(area_coord, data_coord):
                     continue
 
-                # Fast check for reversed coordinates
+                # Fast check for reversed coordinates: use slicing
                 if np.array_equal(area_coord[::-1], data_coord):
                     self.logger.warning("Reversing coordinate '%s' for alignment.", coord)
                     self.area = self.area.isel({coord: slice(None, None, -1)})
                     continue
 
-                # Fall back to more comprehensive (slow) check using sorting
-                if not np.array_equal(np.sort(area_coord), np.sort(data_coord)):
-                    raise ValueError(f"Mismatch in values for coordinate '{coord}'.")
+                raise ValueError(f"Mismatch in values for coordinate '{coord}' between data and areas.")
                     
         return self.area
 
