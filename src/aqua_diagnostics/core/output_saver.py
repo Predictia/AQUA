@@ -37,7 +37,7 @@ class OutputSaver:
         """
 
         # Use extra_keys to override model if provided
-        model_value = extra_keys.pop('model', self.model) if extra_keys else self.model
+        model_value = extra_keys.get('model', self.model) if extra_keys else self.model
 
         # Convert list of models to an underscore-separated string
         if isinstance(model_value, list):
@@ -56,7 +56,8 @@ class OutputSaver:
 
         # Add additional filename keys if provided
         if extra_keys:
-            parts_dict.update(extra_keys)
+            filtered_keys = {key: value for key, value in extra_keys.items() if key != 'model'}
+            parts_dict.update(filtered_keys)
         
         # Remove None values
         parts = [str(value) for value in parts_dict.values() if value is not None]
@@ -68,7 +69,28 @@ class OutputSaver:
         return filename
 
 
-    def save_pdf(self, fig: plt.Figure, diagnostic_product: str, extra_keys: dict = None):
+    def save_netcdf(self, dataset: xr.Dataset, diagnostic_product: str, extra_keys: dict = None):
+            """
+            Save an xarray Dataset as a NetCDF file with a generated filename.
+
+            Args:
+                dataset (xr.Dataset): The xarray Dataset to save.
+                diagnostic_product (str): Product of the diagnostic analysis.
+                extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
+            """
+            filename = self.generate_name(diagnostic_product, extra_keys) + '.nc'
+            
+            folder = os.path.join(self.outdir, 'netcdf')
+            create_folder(folder=str(folder), loglevel=self.loglevel)
+            filepath = os.path.join(folder, filename)
+            
+            dataset.to_netcdf(filepath)
+
+            self.logger.info(f"Saved NetCDF: {filepath}")
+            return filepath
+
+
+    def save_pdf(self, fig: plt.Figure, diagnostic_product: str, extra_keys: dict = None,  metadata: dict = None):
         """
         Save a Matplotlib figure as a PDF file with a generated filename.
 
@@ -76,6 +98,7 @@ class OutputSaver:
             fig (plt.Figure): The Matplotlib figure to save.
             diagnostic_product (str): Product of the diagnostic analysis.
             extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
+            metadata (dict, optional): Additional metadata to include in the PDF file.
         """
         filename = self.generate_name(diagnostic_product, extra_keys) + '.pdf'
                 
@@ -84,20 +107,38 @@ class OutputSaver:
         filepath = os.path.join(folder, filename)
         
         fig.savefig(filepath, format='pdf', bbox_inches='tight')
+
+         # Adding metadata
+        base_metadata = {
+            'diagnostic': self.diagnostic,
+            'diagnostic_product': diagnostic_product
+            }
+        
+        processed_extra_keys = {
+                    key: (",".join(map(str, value)) if isinstance(value, list) else str(value))
+                    for key, value in extra_keys.items()
+                }
+
+        base_metadata.update(processed_extra_keys)
+        metadata = update_metadata(base_metadata, metadata)
+        add_pdf_metadata(filepath, metadata, loglevel=self.loglevel)
+
         self.logger.info(f"Saved PDF: {filepath}")
         return filepath
 
 
-    def save_png(self, fig: plt.Figure, diagnostic_product: str, extra_keys: dict = None):
+    def save_png(self, fig: plt.Figure, diagnostic_product: str, extra_keys: dict = None,  metadata: dict = None):
         """
         Save a Matplotlib figure as a PNG file with a generated filename.
 
         Args:
             fig (plt.Figure): The Matplotlib figure to save.
             diagnostic_product (str): Product of the diagnostic analysis.
-            var (str): Variable of interest.
             extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
+            metadata (dict, optional): Additional metadata to include in the PNG file.
         """
+        self.logger.info(f"extra_keys: {extra_keys}")
+
         filename = self.generate_name(diagnostic_product, extra_keys) + '.png'
         
         folder = os.path.join(self.outdir, 'png')
@@ -105,28 +146,24 @@ class OutputSaver:
         filepath = os.path.join(folder, filename)
         
         fig.savefig(filepath, format='png', dpi=300, bbox_inches='tight')
+
+        # Adding metadata
+        base_metadata = {
+            'diagnostic': self.diagnostic,
+            'diagnostic_product': diagnostic_product
+            }
+        
+        processed_extra_keys = {
+                    key: (",".join(map(str, value)) if isinstance(value, list) else str(value))
+                    for key, value in extra_keys.items()
+                }
+
+        base_metadata.update(processed_extra_keys)
+        metadata = update_metadata(base_metadata, metadata)
+        add_png_metadata(filepath, metadata, loglevel=self.loglevel)
+
         self.logger.info(f"Saved PNG: {filepath}")
         return filepath
 
     
-    def save_netcdf(self, dataset: xr.Dataset, diagnostic_product: str, extra_keys: dict = None):
-        """
-        Save an xarray Dataset as a NetCDF file with a generated filename.
-
-        Args:
-            dataset (xr.Dataset): The xarray Dataset to save.
-            diagnostic_product (str): Product of the diagnostic analysis.
-            var (str): Variable of interest.
-            extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
-        """
-        filename = self.generate_name(diagnostic_product, extra_keys) + '.nc'
-        
-        folder = os.path.join(self.outdir, 'netcdf')
-        create_folder(folder=str(folder), loglevel=self.loglevel)
-        filepath = os.path.join(folder, filename)
-        
-        dataset.to_netcdf(filepath)
-        self.logger.info(f"Saved NetCDF: {filepath}")
-        return filepath
-
-
+    
