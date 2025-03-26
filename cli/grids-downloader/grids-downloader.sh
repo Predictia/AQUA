@@ -50,6 +50,8 @@ fi
 # outputdir="/work/bb1153/b382075/aqua/grids"
 # for Leonardo
 # outputdir="/leonardo_work/DestE_330_24/AQUA/grids"
+# for HPC202
+# outputdir="/ec/res4/hpcperm/ccjh/aqua_data/grids"
 
 log_message INFO "Creating output directory $outputdir"
 mkdir -p $outputdir
