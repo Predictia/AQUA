@@ -434,8 +434,8 @@ class SeaIce(Diagnostic):
 
         # check if the method is valid and call the corresponding function if so
         if method not in methods:
-                valid_methods = ', '.join(f"'{key}'" for key in methods.keys())
-                raise ValueError(f"Invalid method '{method}'. Please choose from: [ {valid_methods} ]")
+                valid_methods = list(methods.keys())
+                raise ValueError(f"Invalid method '{method}'. Please choose from: {valid_methods}")
         else:
             # call the function associated with the method
             return methods[method](*args, **kwargs)
