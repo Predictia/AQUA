@@ -37,7 +37,7 @@ if [ $# -eq 0 ]; then
 fi
 
 if [[ $model == "all" ]] ; then
-	models=("EN4" "ERA5" "FESOM" "HealPix" "ICON" "IFS" "lonlat" "NEMO" "OSI-SAF" "PSC" "WOA18")
+	models=("EN4" "ERA5" "FESOM" "HealPix" "ICON" "IFS" "lonlat" "NEMO" "OSI-SAF" "PSC" "WOA18" "WAGHC")
 else
 	models=( $model ) 	
 fi
