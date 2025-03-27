@@ -19,6 +19,9 @@ class PlotTimeseries:
         Any subset of frequency can be provided, however the order and length
         of the list of data arrays must be the same for each frequency.
 
+        Note: Currently, only monthly and annual data are supported.
+        Additionally, only one reference data array is supported for each frequency.
+
         Args:
             hourly_data (list): List of hourly data arrays.
             daily_data (list): List of daily data arrays.
@@ -79,16 +82,29 @@ class PlotTimeseries:
         # Filling them
         self.get_data_info()
 
-    def run(self, region: str = None, outputdir: str = './'):
+    def run(self, var: str, units: str = None, region: str = None, outputdir: str = './',
+            rebuild: bool = True, dpi: int = 300, format: str = 'png'):
+        """
+        Run the PlotTimeseries class.
+
+        Args:
+            var (str): Variable name to be used in the title and description.
+            units (str): Units of the variable to be used in the title.
+            region (str): Region to be used in the title and description.
+            outputdir (str): Output directory to save the plot.
+            rebuild (bool): If True, rebuild the plot even if it already exists.
+            dpi (int): Dots per inch for the plot.
+            format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
+        """
 
         self.logger.info('Running PlotTimeseries')
         data_label = self.set_data_labels()
         ref_label = self.set_ref_label()
         description = self.set_description(region=region)
-        fig, _ = self.plot_timeseries(data_labels=data_label,
-                                      ref_label=ref_label)
-        self.save_plot(fig, description=description,
-                       region=region, outputdir=outputdir)
+        title = self.set_title(region=region, var=var, units=units)
+        fig, _ = self.plot_timeseries(data_labels=data_label, ref_label=ref_label, title=title)
+        self.save_plot(fig, var=var, description=description, region=region, rebuild=rebuild,
+                       outputdir=outputdir, dpi=dpi, format=format)
         self.logger.info('PlotTimeseries completed successfully')
 
     def get_data_info(self):
@@ -131,6 +147,9 @@ class PlotTimeseries:
         """
         Set the data labels for the plot.
         The labels are extracted from the data arrays attributes.
+
+        Returns:
+            data_labels (list): List of data labels for the plot.
         """
         data_labels = []
         for i in range(self.len_data):
@@ -143,6 +162,9 @@ class PlotTimeseries:
         """
         Set the reference label for the plot.
         The label is extracted from the reference data arrays attributes.
+
+        Returns:
+            ref_label (str): Reference label for the plot.
         """
         ref_label = []
         for i in range(self.len_ref):
@@ -158,7 +180,14 @@ class PlotTimeseries:
     def set_title(self, region: str = None, var: str = None, units: str = None):
         """
         Set the title for the plot.
-        The title is extracted from the data arrays attributes.
+
+        Args:
+            region (str): Region to be used in the title.
+            var (str): Variable name to be used in the title.
+            units (str): Units of the variable to be used in the title.
+
+        Returns:
+            title (str): Title for the plot.
         """
         title = 'Time series '
         if var is not None:
@@ -176,6 +205,18 @@ class PlotTimeseries:
         return title
 
     def set_description(self, region: str = None):
+        """
+        Set the caption for the plot.
+        The caption is extracted from the data arrays attributes and the
+        reference data arrays attributes.
+        The caption is stored as 'Description' in the metadata dictionary.
+
+        Args:
+            region (str): Region to be used in the caption.
+        
+        Returns:
+            description (str): Caption for the plot.
+        """
 
         description = 'Time series '
         if region is not None:
@@ -196,7 +237,18 @@ class PlotTimeseries:
         return description
 
     def plot_timeseries(self, data_labels=None, ref_label=None, title=None):
+        """
+        Plot the time series data.
 
+        Args:
+            data_labels (list): List of data labels.
+            ref_label (str): Reference label.
+            title (str): Title of the plot.
+
+        Returns:
+            fig (matplotlib.figure.Figure): Figure object.
+            ax (matplotlib.axes.Axes): Axes object.
+        """
         fig, ax = plot_timeseries(monthly_data=self.monthly_data,
                                   ref_monthly_data=self.ref_monthly_data,
                                   std_monthly_data=self.std_monthly_data,
@@ -213,6 +265,19 @@ class PlotTimeseries:
 
     def save_plot(self, fig, var: str, description: str = None, region: str = None, rebuild: bool = True,
                   outputdir: str = './', dpi: int = 300, format: str = 'png'):
+        """
+        Save the plot to a file.
+
+        Args:
+            fig (matplotlib.figure.Figure): Figure object.
+            var (str): Variable name to be used in the title and description.
+            description (str): Description of the plot.
+            region (str): Region to be used in the title and description.
+            rebuild (bool): If True, rebuild the plot even if it already exists.
+            outputdir (str): Output directory to save the plot.
+            dpi (int): Dots per inch for the plot.
+            format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
+        """
         outputsaver = OutputSaver(diagnostic='timeseries',
                                   catalog=self.catalogs[0],
                                   model=self.models[0],
