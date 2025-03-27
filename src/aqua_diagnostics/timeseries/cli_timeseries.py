@@ -17,6 +17,7 @@ from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_
 from aqua.diagnostics.core import load_diagnostic_config, merge_config_args
 from aqua.diagnostics.timeseries.util_cli import load_var_config
 from aqua.diagnostics.timeseries import Timeseries, SeasonalCycles, Gregory
+from aqua.diagnostics.timeseries import PlotTimeseries
 
 
 def parse_arguments(args):
@@ -102,6 +103,30 @@ if __name__ == '__main__':
                             ts_ref[i] = Timeseries(**init_args, **reference_args)
                             ts_ref[i].run(**run_args)
 
+                    # Plot the timeseries
+                    if save_pdf or save_png:
+                        logger.info(f"Plotting Timeseries diagnostic for variable {var} in region {region if region else 'global'}")
+                        plot_args = {'monthly_data': [ts[i].monthly for i in range(len(ts))],
+                                     'annual_data': [ts[i].annual for i in range(len(ts))],
+                                     'ref_monthly_data': [ts_ref[i].monthly for i in range(len(ts_ref))],
+                                     'ref_annual_data': [ts_ref[i].annual for i in range(len(ts_ref))],
+                                     'std_monthly_data': [ts[i].std_monthly for i in range(len(ts))],
+                                     'std_annual_data': [ts[i].std_annual for i in range(len(ts))],
+                                     'loglevel': loglevel}
+                        plot_ts = PlotTimeseries(**init_args)
+                        data_label = plot_ts.set_data_labels()
+                        ref_label = plot_ts.set_ref_label()
+                        description = plot_ts.set_description(region=region)
+                        title = plot_ts.set_title(var=var, region=region, units=var_config.get('units'))
+                        fig, _ = plot_ts.plot_timeseries(data_labels=data_label, ref_labels=ref_label, title=title)
+
+                        if save_pdf:
+                            plot_ts.save_plot(fig, var=var, description=description, region=region, outputdir=outputdir,
+                                              dpi=dpi, rebuild=rebuild, format='pdf')
+                        if save_png:
+                            plot_ts.save_plot(fig, var=var, description=description, region=region, outputdir=outputdir,
+                                              dpi=dpi, rebuild=rebuild, format='png')
+
             for var in config_dict['diagnostics']['timeseries'].get('formulae', []):
                 var_config, regions = load_var_config(config_dict, var)
                 logger.info(f"Running Timeseries diagnostic for variable {var} with config {var_config}")
@@ -141,6 +166,30 @@ if __name__ == '__main__':
                                               'regrid': reference.get('regrid', regrid)}
                             ts_ref[i] = Timeseries(**init_args, **reference_args)
                             ts_ref[i].run(**run_args)
+
+                    # Plot the timeseries
+                    if save_pdf or save_png:
+                        logger.info(f"Plotting Timeseries diagnostic for variable {var} in region {region if region else 'global'}")
+                        plot_args = {'monthly_data': [ts[i].monthly for i in range(len(ts))],
+                                     'annual_data': [ts[i].annual for i in range(len(ts))],
+                                     'ref_monthly_data': [ts_ref[i].monthly for i in range(len(ts_ref))],
+                                     'ref_annual_data': [ts_ref[i].annual for i in range(len(ts_ref))],
+                                     'std_monthly_data': [ts[i].std_monthly for i in range(len(ts))],
+                                     'std_annual_data': [ts[i].std_annual for i in range(len(ts))],
+                                     'loglevel': loglevel}
+                        plot_ts = PlotTimeseries(**init_args)
+                        data_label = plot_ts.set_data_labels()
+                        ref_label = plot_ts.set_ref_label()
+                        description = plot_ts.set_description(region=region)
+                        title = plot_ts.set_title(var=var, region=region, units=var_config.get('units'))
+                        fig, _ = plot_ts.plot_timeseries(data_labels=data_label, ref_labels=ref_label, title=title)
+
+                        if save_pdf:
+                            plot_ts.save_plot(fig, var=var, description=description, region=region, outputdir=outputdir,
+                                              dpi=dpi, rebuild=rebuild, format='pdf')
+                        if save_png:
+                            plot_ts.save_plot(fig, var=var, description=description, region=region, outputdir=outputdir,
+                                              dpi=dpi, rebuild=rebuild, format='png')
 
     # SeasonalCycles diagnostic
     if 'seasonalcycles' in config_dict['diagnostics']:
