@@ -114,6 +114,9 @@ class Timeseries(BaseMixin):
         if extend:
             data = self._extend_data(data=data, freq=str_freq, center_time=center_time)
 
+        if self.region is not None:
+            data.attrs['region'] = self.region
+
         if str_freq == 'hourly':
             self.hourly = data
         elif str_freq == 'daily':
