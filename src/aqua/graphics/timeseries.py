@@ -57,10 +57,10 @@ def plot_timeseries(monthly_data=None,
 
 
     if monthly_data is not None:
-        plot_monthly_data(ax, monthly_data, data_labels, logger, lw=1.7)
+        plot_monthly_data(ax, monthly_data, data_labels, logger, lw=3)
 
     if annual_data is not None:
-        plot_annual_data(ax, annual_data, data_labels, logger, lw=1.7)
+        plot_annual_data(ax, annual_data, data_labels, logger, lw=3)
 
     if ref_monthly_data is not None:
         plot_ref_monthly_data(ax, ref_monthly_data, std_monthly_data, ref_label, logger, lw=0.8)
@@ -70,8 +70,6 @@ def plot_timeseries(monthly_data=None,
     
     ax.legend(fontsize='small')
     ax.grid(True, axis="y", linestyle='-', color='silver', alpha=0.8)
-    for spine in plt.gca().spines.values():
-        spine.set_visible(False)
 
     title = kwargs.get('title', None)
     if title:
@@ -86,7 +84,6 @@ def plot_seasonalcycle(data=None,
                        data_labels: list = None,
                        ref_label: str = None,
                        style: str = None,
-                       grid=True,
                        loglevel: str = 'WARNING',
                        **kwargs):
     """
@@ -99,7 +96,6 @@ def plot_seasonalcycle(data=None,
         data_labels (list of str): labels for the data
         ref_label (str): label for the reference data
         style (str): style to use for the plot. By default the schema specified in the configuration file is used.
-        grid (bool): if True, plot grid
         loglevel (str): logging level
 
     Keyword Arguments:
@@ -138,7 +134,7 @@ def plot_seasonalcycle(data=None,
     if ref_data is not None:
         try:
             ref_data = _extend_cycle(ref_data, loglevel)
-            ref_data.plot(ax=ax, label=ref_label, color='black', lw=3)
+            ref_data.plot(ax=ax, label=ref_label, color='black', lw=0.8)
             if std_data is not None:
                 std_data = _extend_cycle(std_data, loglevel)
                 std_data.compute()
@@ -154,10 +150,7 @@ def plot_seasonalcycle(data=None,
     ax.set_xticklabels(monthsNames)
     ax.set_xlim(0.5, 12.5)
     ax.set_axisbelow(True)
-
-    if grid:
-        ax.grid(True, axis="both")
-
+    ax.grid(True, axis="y", linestyle='-', color='silver', alpha=0.8)
     title = kwargs.get('title', None)
     if title is not None:
         ax.set_title(title, fontsize=13, fontweight='bold')

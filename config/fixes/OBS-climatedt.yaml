@@ -259,3 +259,19 @@ fixer_name:
                 src_units: frac
                 units: frac
     
+    WAGHC:
+        convention: eccodes
+        data_model: false
+        coords:
+            lat:
+                source: latitude
+            lon:
+                source: longitude
+        vars:
+            tos:
+                source: temperature
+                src_units: C
+            sos:   
+                source: salinity
+                src_units: psu
+    

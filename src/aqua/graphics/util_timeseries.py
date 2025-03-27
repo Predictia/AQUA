@@ -55,7 +55,7 @@ def plot_annual_data(ax, annual_data, data_labels, logger, lw=1.5):
             logger.debug(f"Error plotting annual data: {e}")
 
 
-def plot_ref_monthly_data(ax, ref_monthly_data, std_monthly_data, ref_label, logger, lw=0.6):
+def plot_ref_monthly_data(ax, ref_monthly_data, std_monthly_data, ref_label, logger, lw=0.8):
     """
     Plot reference monthly data on the given axis.
 
@@ -84,7 +84,7 @@ def plot_ref_monthly_data(ax, ref_monthly_data, std_monthly_data, ref_label, log
         logger.debug(f"Error plotting monthly std data: {e}")
 
 
-def plot_ref_annual_data(ax, ref_annual_data, std_annual_data, ref_label, logger, lw=0.6):
+def plot_ref_annual_data(ax, ref_annual_data, std_annual_data, ref_label, logger, lw=0.8):
     """
     Plot reference annual data on the given axis.
 
