@@ -118,7 +118,9 @@ class PlotSeaIce:
         elif isinstance(datain, xr.Dataset):
             # if a single Dataset is passed, wrap it in a list
             return [datain]
-        elif datain is None or (isinstance(datain, list) and all(isinstance(ds, xr.Dataset) for ds in datain)):
+        elif isinstance(datain, list):
+            if all((ds is None or isinstance(ds, xr.Dataset)) for ds in datain):
+                return datain
             return datain
         else:
             self.logger.error(f"Check data type: {type(datain)}. Expected xr.Dataset, list of xr.Dataset, or None.")
@@ -387,8 +389,8 @@ class PlotSeaIce:
                 fig, ax = plot_seasonalcycle(data=monthly_models,
                                              ref_data=monthly_ref,
                                              std_data=monthly_std,
-                                             data_labels=data_labels,
-                                             ref_label=ref_label,
+                                             data_labels=self.data_labels,
+                                             ref_label=self.ref_label,
                                              std_label=None,
                                              fig=fig,
                                              ax=ax,
