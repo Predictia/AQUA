@@ -2,8 +2,8 @@
 
 import logging
 import types
-import datetime
 import xarray as xr
+import pandas as pd
 import warnings
 
 
@@ -148,7 +148,7 @@ def _log_history(data, msg):
     """
 
     if isinstance(data, (xr.DataArray, xr.Dataset)):
-        now = datetime.datetime.now()
+        now = pd.Timestamp.now()
         date_now = now.strftime("%Y-%m-%d %H:%M:%S")
         hist = data.attrs.get("history", "")
 
