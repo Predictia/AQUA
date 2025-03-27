@@ -255,18 +255,20 @@ class PlotTimeseries:
             else:
                 data_length = len(self.monthly_data)
 
-        if self.ref_monthly_data and self.ref_annual_data:
-            # TODO: remove when support to list is implemented
-            if len(to_list(self.ref_monthly_data)) != len(to_list(self.ref_annual_data)):
-                raise ValueError('Reference monthly and annual data list must have the same length')
-            else:
-                ref_length = len(self.ref_monthly_data)
+        if self.ref_monthly_data is not None or self.ref_annual_data is not None:
+            ref_length = 1
+        # # TODO: uncomment when support to list is implemented
+        # if self.ref_monthly_data and self.ref_annual_data:
+        #     if len(self.ref_monthly_data) != len(self.ref_annual_data):
+        #         raise ValueError('Reference monthly and annual data list must have the same length')
+        #     else:
+        #         ref_length = len(self.ref_monthly_data)
 
-        if self.std_monthly_data and self.std_annual_data:
-            if len(to_list(self.std_monthly_data)) != len(to_list(self.std_annual_data)):
-                raise ValueError('Standard deviation monthly and annual data list must have the same length')
-            else:
-                if len(self.std_monthly_data) != ref_length:
-                    raise ValueError('Standard deviation monthly and annual data list must have the same length as reference data')
+        # if self.std_monthly_data and self.std_annual_data:
+        #     if len(self.std_monthly_data) != len(self.std_annual_data):
+        #         raise ValueError('Standard deviation monthly and annual data list must have the same length')
+        #     else:
+        #         if len(self.std_monthly_data) != ref_length:
+        #             raise ValueError('Standard deviation monthly and annual data list must have the same length as reference data')
 
         return data_length, ref_length
