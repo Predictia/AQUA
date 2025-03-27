@@ -156,26 +156,6 @@ the internal state of the streaming process.
 
 If we want to reset the state of the streaming process, we can call the ``reset_stream()`` method.
 
-Iterator streaming
-^^^^^^^^^^^^^^^^^^
-
-Another possibility to deal with data streaming is to use the argument
-``stream_generator=True`` in the Reader initialization:
-
-.. code-block:: python
-
-    reader = Reader(model="IFS", exp= "tco2559-ng5", source="ICMGG_atm2d",
-                    stream_generator = 'True', aggregation = 'monthly')
-    data_gen = reader.retrieve()
-    
-``data_gen`` is now a generator object that yields the requested one-month-long chunks of data
-(See :ref:`iterators` for more info).
-We can do operations with them by iterating on the generator object like:
-
-.. code-block:: python
-
-    for data in data_gen:
-        # Do something with the data
 
 .. _accessors:
 
@@ -278,7 +258,26 @@ This can be used as well to log the history of the operations performed on the d
 Graphic tools
 -------------
 
-The *aqua.graphics* module provides a set of simple functions to easily plot the result of analysis done within AQUA.
+The ``aqua.graphics`` module provides a set of simple functions to easily plot the result of analysis done within AQUA.
+
+Plot styles
+^^^^^^^^^^^
+
+AQUA supports in the available graphical functions the matplotlib styles.
+A default for the plot appearance is present in the ``aqua.mplstyle`` file (in ``config/styles``), 
+and this includes all the default settings for the plot functions.
+This file can be modified to change the default appearance of the plots. 
+
+
+Other styles can be created following the `matplotlib guidelines <https://matplotlib.org/stable/users/explain/customizing.html#defining-your-own-style>`_.
+The style can be set automatically by setting the ``style`` keyword in the ``config-aqua.yaml`` file generated during the code installation (see :ref:`getting_started`).
+The new file should be placed in the same folder as the default one (it may need to run ``aqua install`` again).
+It is also possible to set the style only for a single plot by using the ``style`` keyword in the plotting functions.
+Finally, other than file-based styles, it is possible to set the style from the `list of available <https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html>`_ styles in matplotlib.
+
+.. warning::
+
+    Not all the functions in the ``aqua.graphics`` module are using the style file yet.
 
 Single map
 ^^^^^^^^^^
