@@ -142,6 +142,10 @@ class BaseMixin(Diagnostic):
         data = data.sel(time=slice(self.std_startdate, self.std_enddate))
         data = data.groupby(freq_dict[str_freq]['groupdby']).std('time')
 
+        # Store start and end dates for the standard deviation
+        data.attrs['std_startdate'] = self.std_startdate
+        data.attrs['std_enddate'] = self.std_enddate
+
         # Assign the data to the correct attribute based on frequency
         if str_freq == 'hourly':
             self.std_hourly = data

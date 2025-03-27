@@ -4,7 +4,7 @@ from aqua.util import to_list
 
 
 class PlotTimeseries:
-    def __init__(self,hourly_data=None, daily_data=None,
+    def __init__(self, hourly_data=None, daily_data=None,
                  monthly_data=None, annual_data=None,
                  ref_hourly_data=None, ref_daily_data=None,
                  ref_monthly_data=None, ref_annual_data=None,
@@ -41,7 +41,7 @@ class PlotTimeseries:
                      std_hourly_data, std_daily_data]:
             if data is not None:
                 self.logger.warning('Hourly and daily data are not yet supported, they will be ignored')
-        
+
         # self.hourly_data = to_list(hourly_data)
         # self.daily_data = to_list(daily_data)
         self.monthly_data = to_list(monthly_data)
@@ -84,7 +84,7 @@ class PlotTimeseries:
         fig, _ = self.plot_timeseries(data_labels=data_label,
                                       ref_label=ref_label)
         self.save_plot(fig, description=description,
-                      region=region, outputdir=outputdir)
+                       region=region, outputdir=outputdir)
         self.logger.info('PlotTimeseries completed successfully')
 
     def get_data_info(self):
@@ -104,7 +104,7 @@ class PlotTimeseries:
                 self.models = [d.AQUA_model for d in data]
                 self.exps = [d.AQUA_exp for d in data]
                 break
-        
+
         for ref in [self.ref_monthly_data, self.ref_annual_data]:
             if ref is not None:
                 # Make a list from the data array attributes
@@ -112,13 +112,14 @@ class PlotTimeseries:
                 self.ref_models = [d.AQUA_model for d in ref]
                 self.ref_exps = [d.AQUA_exp for d in ref]
                 break
-        
-        for std in [self.std_monthly_data, self.std_annual_data]:
-            if std is not None:
-                # Make a list from the data array attributes
-                self.std_startdate = std[0].time[0].strftime('%Y-%m-%d')
-                self.std_enddate = std[0].time[-1].strftime('%Y-%m-%d')
-                break
+
+        for std_list in [self.std_monthly_data, self.std_annual_data]:
+            if std_list is not None:
+                for std in std_list:
+                    # Make a list from the data array attributes
+                    self.std_startdate = std.std_startdate if std.std_startdate is not None else None
+                    self.std_enddate = std.std_enddate if std.std_enddate is not None else None
+                    break
 
     def set_data_labels(self):
         """
@@ -129,7 +130,7 @@ class PlotTimeseries:
         for i in range(self.len_data):
             label = f'{self.models[i]} {self.exps[i]}'
             data_labels.append(label)
-        
+
         return data_labels
 
     def set_ref_label(self):
@@ -145,7 +146,7 @@ class PlotTimeseries:
         # Convert to string if only one reference data
         if len(ref_label) == 1:
             ref_label = ref_label[0]
-        
+
         return ref_label
 
     def set_description(self, region: str = None):
@@ -156,34 +157,43 @@ class PlotTimeseries:
 
         for i in range(self.len_data):
             description += f'for {self.catalogs[i]} {self.models[i]} {self.exps[i]} '
-        
+
+        for i in range(self.len_ref):
+            if self.ref_models[i] == 'ERA5':
+                description += f'with reference {self.ref_models[i]} '
+            else:
+                description += f'with reference {self.ref_models[i]} {self.ref_exps[i]} '
+
+        if self.std_startdate is not None and self.std_enddate is not None:
+            description += f'with standard deviation from {self.std_startdate} to {self.std_enddate} '
+
         return description
 
     def plot_timeseries(self, data_labels=None, ref_label=None):
-        
+
         fig, ax = plot_timeseries(monthly_data=self.monthly_data,
-                            ref_monthly_data=self.ref_monthly_data,
-                            std_monthly_data=self.std_monthly_data,
-                            annual_data=self.annual_data,
-                            ref_annual_data=self.ref_annual_data,
-                            std_annual_data=self.std_annual_data,
-                            data_labels=data_labels,
-                            ref_label=ref_label,
-                            return_fig=True,
-                            ref_label=self.ref_label, loglevel=self.loglevel)
-        
+                                  ref_monthly_data=self.ref_monthly_data,
+                                  std_monthly_data=self.std_monthly_data,
+                                  annual_data=self.annual_data,
+                                  ref_annual_data=self.ref_annual_data,
+                                  std_annual_data=self.std_annual_data,
+                                  data_labels=data_labels,
+                                  ref_label=ref_label,
+                                  return_fig=True,
+                                  loglevel=self.loglevel)
+
         return fig, ax
-    
+
     def save_plot(self, fig, description: str = None,
                   region: str = None, outputdir: str = './'):
         return
-    
+
     def _check_data_length(self):
         """
         Check if all data arrays have the same length.
         Does the same for the reference data.
         If not, raise a ValueError.
-        
+
         Return:
             data_length (int): Length of the data arrays.
             ref_length (int): Length of the reference data arrays.
@@ -196,13 +206,13 @@ class PlotTimeseries:
                 raise ValueError('Monthly and annual data list must have the same length')
             else:
                 data_length = len(self.monthly_data)
-        
+
         if self.ref_monthly_data and self.ref_annual_data:
             if len(self.ref_monthly_data) != len(self.ref_annual_data):
                 raise ValueError('Reference monthly and annual data list must have the same length')
             else:
                 ref_length = len(self.ref_monthly_data)
-            
+
         if self.std_monthly_data and self.std_annual_data:
             if len(self.std_monthly_data) != len(self.std_annual_data):
                 raise ValueError('Standard deviation monthly and annual data list must have the same length')
