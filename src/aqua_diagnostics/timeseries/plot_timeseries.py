@@ -1,6 +1,6 @@
 from aqua.graphics import plot_timeseries
 from aqua.logger import log_configure
-from aqua.util import to_list
+from aqua.util import to_list, OutputSaver
 
 
 class PlotTimeseries:
@@ -24,23 +24,31 @@ class PlotTimeseries:
             daily_data (list): List of daily data arrays.
             monthly_data (list): List of monthly data arrays.
             annual_data (list): List of annual data arrays.
-            ref_hourly_data (list): List of reference hourly data arrays.
-            ref_daily_data (list): List of reference daily data arrays.
-            ref_monthly_data (list): List of reference monthly data arrays.
-            ref_annual_data (list): List of reference annual data arrays.
-            std_hourly_data (list): List of standard deviation hourly data arrays.
-            std_daily_data (list): List of standard deviation daily data arrays.
-            std_monthly_data (list): List of standard deviation monthly data arrays.
-            std_annual_data (list): List of standard deviation annual data arrays.
+            ref_hourly_data (xr.DataArray): Reference hourly data array.
+            ref_daily_data (xr.DataArray): Reference daily data array.
+            ref_monthly_data (xr.DataArray): Reference monthly data array.
+            ref_annual_data (xr.DataArray): Reference annual data array.
+            std_hourly_data (xr.DataArray): Standard deviation hourly data array.
+            std_daily_data (xr.DataArray): Standard deviation daily data array.
+            std_monthly_data (xr.DataArray): Standard deviation monthly data array.
+            std_annual_data (xr.DataArray): Standard deviation annual data array.
             loglevel (str): Logging level. Default is 'WARNING'.
         """
         self.loglevel = loglevel
         self.logger = log_configure(self.loglevel, 'PlotTimeseries')
 
+        # TODO: support hourly and daily data
         for data in [hourly_data, daily_data, ref_hourly_data, ref_daily_data,
                      std_hourly_data, std_daily_data]:
             if data is not None:
                 self.logger.warning('Hourly and daily data are not yet supported, they will be ignored')
+
+        # TODO: support ref list
+        for ref in [ref_hourly_data, ref_daily_data, ref_monthly_data, ref_annual_data,
+                    std_hourly_data, std_daily_data, std_monthly_data, std_annual_data]:
+            if isinstance(ref, list):
+                self.logger.warning('List of reference data is not yet supported, only the first element will be used')
+                ref = ref[0]
 
         # self.hourly_data = to_list(hourly_data)
         # self.daily_data = to_list(daily_data)
@@ -49,19 +57,15 @@ class PlotTimeseries:
 
         # self.ref_hourly_data = to_list(ref_hourly_data)
         # self.ref_daily_data = to_list(ref_daily_data)
-        self.ref_monthly_data = to_list(ref_monthly_data)
-        self.ref_annual_data = to_list(ref_annual_data)
+        self.ref_monthly_data = ref_monthly_data
+        self.ref_annual_data = ref_annual_data
 
         # self.std_hourly_data = to_list(std_hourly_data)
         # self.std_daily_data = to_list(std_daily_data)
-        self.std_monthly_data = to_list(std_monthly_data)
-        self.std_annual_data = to_list(std_annual_data)
+        self.std_monthly_data = std_monthly_data
+        self.std_annual_data = std_annual_data
 
         self.len_data, self.len_ref = self._check_data_length()
-
-        # self.data_dict = {'monthly': self.monthly_data, 'annual': self.annual_data}
-        # self.ref_dict = {'monthly': self.ref_monthly_data, 'annual': self.ref_annual_data}
-        # self.std_dict = {'monthly': self.std_monthly_data, 'annual': self.std_annual_data}
 
         # Data info initialized as empty
         self.catalogs = None
@@ -96,6 +100,8 @@ class PlotTimeseries:
         - AQUA_catalog
         - AQUA_model
         - AQUA_exp
+        - std_startdate
+        - std_enddate
         """
         for data in [self.monthly_data, self.annual_data]:
             if data is not None:
@@ -149,6 +155,26 @@ class PlotTimeseries:
 
         return ref_label
 
+    def set_title(self, region: str = None, var: str = None, units: str = None):
+        """
+        Set the title for the plot.
+        The title is extracted from the data arrays attributes.
+        """
+        title = 'Time series '
+        if var is not None:
+            title += f'for {var} '
+
+        if units is not None:
+            title += f'[{units}] '
+
+        if region is not None:
+            title += f'[{region}] '
+
+        if self.len_data == 1:
+            title += f'for {self.catalogs[0]} {self.models[0]} {self.exps[0]} '
+
+        return title
+
     def set_description(self, region: str = None):
 
         description = 'Time series '
@@ -169,7 +195,7 @@ class PlotTimeseries:
 
         return description
 
-    def plot_timeseries(self, data_labels=None, ref_label=None):
+    def plot_timeseries(self, data_labels=None, ref_label=None, title=None):
 
         fig, ax = plot_timeseries(monthly_data=self.monthly_data,
                                   ref_monthly_data=self.ref_monthly_data,
@@ -179,14 +205,36 @@ class PlotTimeseries:
                                   std_annual_data=self.std_annual_data,
                                   data_labels=data_labels,
                                   ref_label=ref_label,
+                                  title=title,
                                   return_fig=True,
                                   loglevel=self.loglevel)
 
         return fig, ax
 
-    def save_plot(self, fig, description: str = None,
-                  region: str = None, outputdir: str = './'):
-        return
+    def save_plot(self, fig, var: str, description: str = None, region: str = None, rebuild: bool = True,
+                  outputdir: str = './', dpi: int = 300, format: str = 'png'):
+        outputsaver = OutputSaver(diagnostic='timeseries',
+                                  catalog=self.catalogs[0],
+                                  model=self.models[0],
+                                  exp=self.exps[0],
+                                  default_path=outputdir,
+                                  rebuild=rebuild,
+                                  loglevel=self.loglevel)
+
+        metadata = {"Description": description}
+        save_dict = {'metadata': metadata,
+                     'diagnostic_product': 'timeseries',
+                     'var': var,
+                     'dpi': dpi}
+        if region is not None:
+            save_dict.update({'region': region})
+
+        if format == 'png':
+            outputsaver.save_png(fig, **save_dict)
+        elif format == 'pdf':
+            outputsaver.save_pdf(fig, **save_dict)
+        else:
+            raise ValueError(f'Format {format} not supported. Use png or pdf.')
 
     def _check_data_length(self):
         """
@@ -208,13 +256,14 @@ class PlotTimeseries:
                 data_length = len(self.monthly_data)
 
         if self.ref_monthly_data and self.ref_annual_data:
-            if len(self.ref_monthly_data) != len(self.ref_annual_data):
+            # TODO: remove when support to list is implemented
+            if len(to_list(self.ref_monthly_data)) != len(to_list(self.ref_annual_data)):
                 raise ValueError('Reference monthly and annual data list must have the same length')
             else:
                 ref_length = len(self.ref_monthly_data)
 
         if self.std_monthly_data and self.std_annual_data:
-            if len(self.std_monthly_data) != len(self.std_annual_data):
+            if len(to_list(self.std_monthly_data)) != len(to_list(self.std_annual_data)):
                 raise ValueError('Standard deviation monthly and annual data list must have the same length')
             else:
                 if len(self.std_monthly_data) != ref_length:
