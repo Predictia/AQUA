@@ -243,6 +243,9 @@ class AquaFDBGenerator:
             self.config.get("description")
             or f'"{self.model} {self.config["exp"]} {self.config["data_start_date"][:4]}, '
             f'grids: {self.atm_grid} {self.ocean_grid}"' )
+        
+        # Set the stream based on the frequency
+        stream = 'clmn' if profile['frequency'] == 'monthly' else 'clte'
 
         kwargs = {
             "dp_version": self.dp_version,
@@ -253,6 +256,7 @@ class AquaFDBGenerator:
             "num_of_realizations": self.num_of_realizations,
             "levels": levels_values,
             "levtype": profile["levtype"],
+            "stream": stream,
             "variables": profile["variables"],
             "param": profile["variables"][0],
             "time": time_dict['time'],
