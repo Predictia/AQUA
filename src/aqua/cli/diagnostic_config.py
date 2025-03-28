@@ -106,6 +106,11 @@ diagnostic_config = {
             'target_path': 'diagnostics/seaice/config'
         },
         {
+            'config_file': 'config_seaice.yaml',
+            'source_path': 'config/diagnostics/seaice',
+            'target_path': 'diagnostics/seaice/config'
+        },
+        {
             'config_file': 'config_Concentration.yaml',
             'source_path': 'diagnostics/seaice/cli',
             'target_path': 'diagnostics/seaice/cli'
