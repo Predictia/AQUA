@@ -1,9 +1,10 @@
 from aqua.graphics import plot_timeseries
 from aqua.logger import log_configure
-from aqua.util import to_list, OutputSaver
+from aqua.util import to_list
+from .base import PlotBaseMixin
 
 
-class PlotTimeseries:
+class PlotTimeseries(PlotBaseMixin):
     def __init__(self, hourly_data=None, daily_data=None,
                  monthly_data=None, annual_data=None,
                  ref_hourly_data=None, ref_daily_data=None,
@@ -37,7 +38,7 @@ class PlotTimeseries:
             std_annual_data (xr.DataArray): Standard deviation annual data array.
             loglevel (str): Logging level. Default is 'WARNING'.
         """
-        self.loglevel = loglevel
+        super().__init__(loglevel=loglevel)
         self.logger = log_configure(self.loglevel, 'PlotTimeseries')
 
         # TODO: support hourly and daily data
@@ -70,15 +71,6 @@ class PlotTimeseries:
 
         self.len_data, self.len_ref = self._check_data_length()
 
-        # Data info initialized as empty
-        self.catalogs = None
-        self.models = None
-        self.exps = None
-        self.ref_catalogs = None
-        self.ref_models = None
-        self.ref_exps = None
-        self.std_startdate = None
-        self.std_enddate = None
         # Filling them
         self.get_data_info()
 
@@ -143,40 +135,6 @@ class PlotTimeseries:
                     self.std_enddate = std.std_enddate if std.std_enddate is not None else None
                     break
 
-    def set_data_labels(self):
-        """
-        Set the data labels for the plot.
-        The labels are extracted from the data arrays attributes.
-
-        Returns:
-            data_labels (list): List of data labels for the plot.
-        """
-        data_labels = []
-        for i in range(self.len_data):
-            label = f'{self.models[i]} {self.exps[i]}'
-            data_labels.append(label)
-
-        return data_labels
-
-    def set_ref_label(self):
-        """
-        Set the reference label for the plot.
-        The label is extracted from the reference data arrays attributes.
-
-        Returns:
-            ref_label (str): Reference label for the plot.
-        """
-        ref_label = []
-        for i in range(self.len_ref):
-            label = f'{self.ref_models[i]} {self.ref_exps[i]}'
-            ref_label.append(label)
-
-        # Convert to string if only one reference data
-        if len(ref_label) == 1:
-            ref_label = ref_label[0]
-
-        return ref_label
-
     def set_title(self, region: str = None, var: str = None, units: str = None):
         """
         Set the title for the plot.
@@ -189,19 +147,7 @@ class PlotTimeseries:
         Returns:
             title (str): Title for the plot.
         """
-        title = 'Time series '
-        if var is not None:
-            title += f'for {var} '
-
-        if units is not None:
-            title += f'[{units}] '
-
-        if region is not None:
-            title += f'[{region}] '
-
-        if self.len_data == 1:
-            title += f'for {self.catalogs[0]} {self.models[0]} {self.exps[0]} '
-
+        title = super().set_title(region=region, var=var, units=units, diagnostic='Time series')
         return title
 
     def set_description(self, region: str = None):
@@ -217,23 +163,7 @@ class PlotTimeseries:
         Returns:
             description (str): Caption for the plot.
         """
-
-        description = 'Time series '
-        if region is not None:
-            description += f'for region {region} '
-
-        for i in range(self.len_data):
-            description += f'for {self.catalogs[i]} {self.models[i]} {self.exps[i]} '
-
-        for i in range(self.len_ref):
-            if self.ref_models[i] == 'ERA5':
-                description += f'with reference {self.ref_models[i]} '
-            else:
-                description += f'with reference {self.ref_models[i]} {self.ref_exps[i]} '
-
-        if self.std_startdate is not None and self.std_enddate is not None:
-            description += f'with standard deviation from {self.std_startdate} to {self.std_enddate} '
-
+        description = super().set_description(region=region, diagnostic='Time series')
         return description
 
     def plot_timeseries(self, data_labels=None, ref_label=None, title=None):
@@ -278,28 +208,9 @@ class PlotTimeseries:
             dpi (int): Dots per inch for the plot.
             format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
         """
-        outputsaver = OutputSaver(diagnostic='timeseries',
-                                  catalog=self.catalogs[0],
-                                  model=self.models[0],
-                                  exp=self.exps[0],
-                                  default_path=outputdir,
-                                  rebuild=rebuild,
-                                  loglevel=self.loglevel)
-
-        metadata = {"Description": description}
-        save_dict = {'metadata': metadata,
-                     'diagnostic_product': 'timeseries',
-                     'var': var,
-                     'dpi': dpi}
-        if region is not None:
-            save_dict.update({'region': region})
-
-        if format == 'png':
-            outputsaver.save_png(fig, **save_dict)
-        elif format == 'pdf':
-            outputsaver.save_pdf(fig, **save_dict)
-        else:
-            raise ValueError(f'Format {format} not supported. Use png or pdf.')
+        super().save_plot(fig=fig, var=var, description=description,
+                          region=region, rebuild=rebuild,
+                          outputdir=outputdir, dpi=dpi, format=format, diagnostic='timeseries')
 
     def _check_data_length(self):
         """
