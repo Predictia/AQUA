@@ -213,7 +213,7 @@ class PlotTimeseries:
 
         Args:
             region (str): Region to be used in the caption.
-        
+
         Returns:
             description (str): Caption for the plot.
         """
