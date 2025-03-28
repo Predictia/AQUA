@@ -17,7 +17,7 @@ from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_
 from aqua.diagnostics.core import load_diagnostic_config, merge_config_args
 from aqua.diagnostics.timeseries.util_cli import load_var_config
 from aqua.diagnostics.timeseries import Timeseries, SeasonalCycles, Gregory
-from aqua.diagnostics.timeseries import PlotTimeseries
+from aqua.diagnostics.timeseries import PlotTimeseries, PlotSeasonalCycles
 
 
 def parse_arguments(args):
@@ -113,7 +113,7 @@ if __name__ == '__main__':
                                      'std_monthly_data': [ts[i].std_monthly for i in range(len(ts))],
                                      'std_annual_data': [ts[i].std_annual for i in range(len(ts))],
                                      'loglevel': loglevel}
-                        plot_ts = PlotTimeseries(**init_args)
+                        plot_ts = PlotTimeseries(**plot_args)
                         data_label = plot_ts.set_data_labels()
                         ref_label = plot_ts.set_ref_label()
                         description = plot_ts.set_description(region=region)
@@ -177,7 +177,7 @@ if __name__ == '__main__':
                                      'std_monthly_data': [ts[i].std_monthly for i in range(len(ts))],
                                      'std_annual_data': [ts[i].std_annual for i in range(len(ts))],
                                      'loglevel': loglevel}
-                        plot_ts = PlotTimeseries(**init_args)
+                        plot_ts = PlotTimeseries(**plot_args)
                         data_label = plot_ts.set_data_labels()
                         ref_label = plot_ts.set_ref_label()
                         description = plot_ts.set_description(region=region)
@@ -236,6 +236,27 @@ if __name__ == '__main__':
                                               'regrid': reference.get('regrid', regrid)}
                             sc_ref[i] = SeasonalCycles(**init_args, **reference_args)
                             sc_ref[i].run(**run_args)
+
+                    # Plot the seasonal cycles
+                    if save_pdf or save_png:
+                        logger.info(f"Plotting SeasonalCycles diagnostic for variable {var} in region {region if region else 'global'}") # noqa
+                        plot_args = {'monthly_data': [sc[i].monthly for i in range(len(sc))],
+                                     'ref_monthly_data': [sc_ref[i].monthly for i in range(len(sc_ref))],
+                                     'std_monthly_data': [sc[i].std_monthly for i in range(len(sc))],
+                                     'loglevel': loglevel}
+                        plot_sc = PlotSeasonalCycles(**plot_args)
+                        data_label = plot_sc.set_data_labels()
+                        ref_label = plot_sc.set_ref_label()
+                        description = plot_sc.set_description(region=region)
+                        title = plot_sc.set_title(var=var, region=region, units=var_config.get('units'))
+                        fig, _ = plot_sc.plot_seasonalcycles(data_labels=data_label, ref_labels=ref_label, title=title)
+
+                        if save_pdf:
+                            plot_sc.save_plot(fig, var=var, description=description, region=region, outputdir=outputdir,
+                                              dpi=dpi, rebuild=rebuild, format='pdf')
+                        if save_png:
+                            plot_sc.save_plot(fig, var=var, description=description, region=region, outputdir=outputdir,
+                                              dpi=dpi, rebuild=rebuild, format='png')
 
     if 'gregory' in config_dict['diagnostics']:
         if config_dict['diagnostics']['gregory']['run']:
