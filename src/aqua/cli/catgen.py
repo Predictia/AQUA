@@ -23,7 +23,7 @@ def catgen_parser(parser=None):
     if parser is None:
         parser = argparse.ArgumentParser(description='AQUA FDB entries generator')
 
-    parser.add_argument("-p", "--portfolio", help="Type of Data Portfolio utilized (production/reduced)")
+    parser.add_argument("-p", "--portfolio", help="Type of Data Portfolio utilized (full/reduced/minimal)")
     parser.add_argument('-c', '--config', type=str, help='yaml configuration file', required=True)
     parser.add_argument('-l', '--loglevel', type=str, help='loglevel', default='INFO')
 
@@ -55,11 +55,6 @@ class AquaFDBGenerator:
         self.ocean_grid = self.config.get("ocean_grid") 
         self.atm_grid = self.config.get("atm_grid")
         self.num_of_realizations = int(self.config.get("num_of_realizations", 1))
-
-        #safety check
-        if (data_portfolio == 'production' and self.resolution not in ['production', 'lowres', 'develop'] or
-            data_portfolio == 'reduced' and self.resolution not in ['intermediate']):
-            raise KeyError(f'Wrong match between data portfolio {data_portfolio} and data resolution {self.resolution}')
 
         # portfolio
         self.logger.info("Running FDB catalog generator for %s portfolio for model %s", data_portfolio, self.model)
@@ -407,7 +402,7 @@ class AquaFDBGenerator:
 def catgen_execute(args):
     """Useful wrapper for the FDB catalog generator class"""
 
-    dp_version = get_arg(args, 'portfolio', 'production')
+    dp_version = get_arg(args, 'portfolio', 'full')
     config_file = get_arg(args, 'config', 'config.yaml')
     loglevel = get_arg(args, 'loglevel', 'INFO')
 
