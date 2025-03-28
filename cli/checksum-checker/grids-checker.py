@@ -8,7 +8,7 @@ from aqua.util.checksum import generate_checksums, verify_checksums
 
 # default grids to be scanned by the grids-checker tool
 GRIDS_FOLDERS = ['EN4', 'ERA5', 'FESOM', 'HealPix', 'ICON', 'IFS', 'lonlat',
-                 'NEMO', 'OSI-SAF', 'PSC', 'WOA18']
+                 'NEMO', 'OSI-SAF', 'PSC', 'WOA18', 'WAGHC']
 
 
 
