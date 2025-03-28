@@ -3,7 +3,7 @@ import xarray as xr
 
 from aqua.exceptions import NoDataError
 from aqua.logger import log_configure
-from aqua.util import ConfigPath
+from aqua.util import ConfigPath,  OutputSaver
 from aqua.util import frequency_string_to_pandas
 from aqua.util import load_yaml, eval_formula, convert_units
 from aqua.diagnostics.core import Diagnostic, start_end_dates
@@ -270,3 +270,153 @@ class BaseMixin(Diagnostic):
             raise ValueError('Frequency %s not recognized' % freq)
 
         return str_freq
+
+
+class PlotBaseMixin():
+
+    def __init__(self, loglevel: str = 'WARNING'):
+
+        # Data info initalized as empty
+        self.loglevel = loglevel
+        self.catalogs = None
+        self.models = None
+        self.exps = None
+        self.ref_catalogs = None
+        self.ref_models = None
+        self.ref_exps = None
+        self.std_startdate = None
+        self.std_enddate = None
+
+    def set_data_labels(self):
+        """
+        Set the data labels for the plot.
+        The labels are extracted from the data arrays attributes.
+
+        Returns:
+            data_labels (list): List of data labels for the plot.
+        """
+        data_labels = []
+        for i in range(self.len_data):
+            label = f'{self.models[i]} {self.exps[i]}'
+            data_labels.append(label)
+
+        return data_labels
+
+    def set_ref_label(self):
+        """
+        Set the reference label for the plot.
+        The label is extracted from the reference data arrays attributes.
+
+        Returns:
+            ref_label (str): Reference label for the plot.
+        """
+        ref_label = []
+        for i in range(self.len_ref):
+            label = f'{self.ref_models[i]} {self.ref_exps[i]}'
+            ref_label.append(label)
+
+        # Convert to string if only one reference data
+        if len(ref_label) == 1:
+            ref_label = ref_label[0]
+
+        return ref_label
+
+    def set_title(self, region: str = None, var: str = None, units: str = None, diagnostic: str = None):
+        """
+        Set the title for the plot.
+
+        Args:
+            region (str): Region to be used in the title.
+            var (str): Variable name to be used in the title.
+            units (str): Units of the variable to be used in the title.
+            diagnostic (str): Diagnostic name to be used in the title.
+
+        Returns:
+            title (str): Title for the plot.
+        """
+        title = f'{diagnostic} '
+        if var is not None:
+            title += f'for {var} '
+
+        if units is not None:
+            title += f'[{units}] '
+
+        if region is not None:
+            title += f'[{region}] '
+
+        if self.len_data == 1:
+            title += f'for {self.catalogs[0]} {self.models[0]} {self.exps[0]} '
+
+        return title
+
+    def set_description(self, region: str = None, diagnostic: str = None):
+        """
+        Set the caption for the plot.
+        The caption is extracted from the data arrays attributes and the
+        reference data arrays attributes.
+        The caption is stored as 'Description' in the metadata dictionary.
+
+        Args:
+            region (str): Region to be used in the caption.
+            diagnostic (str): Diagnostic name to be used in the caption.
+
+        Returns:
+            description (str): Caption for the plot.
+        """
+
+        description = f'{diagnostic} '
+        if region is not None:
+            description += f'for region {region} '
+
+        for i in range(self.len_data):
+            description += f'for {self.catalogs[i]} {self.models[i]} {self.exps[i]} '
+
+        for i in range(self.len_ref):
+            if self.ref_models[i] == 'ERA5':
+                description += f'with reference {self.ref_models[i]} '
+            else:
+                description += f'with reference {self.ref_models[i]} {self.ref_exps[i]} '
+
+        if self.std_startdate is not None and self.std_enddate is not None:
+            description += f'with standard deviation from {self.std_startdate} to {self.std_enddate} '
+
+        return description
+
+    def save_plot(self, fig, var: str, description: str = None, region: str = None, rebuild: bool = True,
+                  outputdir: str = './', dpi: int = 300, format: str = 'png', diagnostic: str = None):
+        """
+        Save the plot to a file.
+
+        Args:
+            fig (matplotlib.figure.Figure): Figure object.
+            var (str): Variable name to be used in the title and description.
+            description (str): Description of the plot.
+            region (str): Region to be used in the title and description.
+            rebuild (bool): If True, rebuild the plot even if it already exists.
+            outputdir (str): Output directory to save the plot.
+            dpi (int): Dots per inch for the plot.
+            format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
+            diagnostic (str): Diagnostic name to be used in the filename as diagnostic_product.
+        """
+        outputsaver = OutputSaver(diagnostic='timeseries',
+                                  catalog=self.catalogs[0],
+                                  model=self.models[0],
+                                  exp=self.exps[0],
+                                  default_path=outputdir,
+                                  rebuild=rebuild,
+                                  loglevel=self.loglevel)
+
+        metadata = {"Description": description}
+        save_dict = {'metadata': metadata,
+                     'diagnostic_product': diagnostic,
+                     'var': var,
+                     'dpi': dpi}
+        if region is not None:
+            save_dict.update({'region': region})
+
+        if format == 'png':
+            outputsaver.save_png(fig, **save_dict)
+        elif format == 'pdf':
+            outputsaver.save_pdf(fig, **save_dict)
+        else:
+            raise ValueError(f'Format {format} not supported. Use png or pdf.')
