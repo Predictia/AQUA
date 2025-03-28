@@ -105,7 +105,7 @@ if __name__ == '__main__':
 
                     # Plot the timeseries
                     if save_pdf or save_png:
-                        logger.info(f"Plotting Timeseries diagnostic for variable {var} in region {region if region else 'global'}")
+                        logger.info(f"Plotting Timeseries diagnostic for variable {var} in region {region if region else 'global'}") # noqa
                         plot_args = {'monthly_data': [ts[i].monthly for i in range(len(ts))],
                                      'annual_data': [ts[i].annual for i in range(len(ts))],
                                      'ref_monthly_data': [ts_ref[i].monthly for i in range(len(ts_ref))],
@@ -169,7 +169,7 @@ if __name__ == '__main__':
 
                     # Plot the timeseries
                     if save_pdf or save_png:
-                        logger.info(f"Plotting Timeseries diagnostic for variable {var} in region {region if region else 'global'}")
+                        logger.info(f"Plotting Timeseries diagnostic for variable {var} in region {region if region else 'global'}") # noqa
                         plot_args = {'monthly_data': [ts[i].monthly for i in range(len(ts))],
                                      'annual_data': [ts[i].annual for i in range(len(ts))],
                                      'ref_monthly_data': [ts_ref[i].monthly for i in range(len(ts_ref))],
