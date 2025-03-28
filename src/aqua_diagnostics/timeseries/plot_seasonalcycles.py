@@ -39,29 +39,28 @@ class PlotSeasonalCycles(PlotBaseMixin):
 
     def run(self, var: str, units: str = None, region: str = None, outputdir: str = './',
             rebuild: bool = True, dpi: int = 300, format: str = 'png'):
-        # """
-        # Run the PlotTimeseries class.
+        """
+        Run the PlotTimeseries class.
 
-        # Args:
-        #     var (str): Variable name to be used in the title and description.
-        #     units (str): Units of the variable to be used in the title.
-        #     region (str): Region to be used in the title and description.
-        #     outputdir (str): Output directory to save the plot.
-        #     rebuild (bool): If True, rebuild the plot even if it already exists.
-        #     dpi (int): Dots per inch for the plot.
-        #     format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
-        # """
+        Args:
+            var (str): Variable name to be used in the title and description.
+            units (str): Units of the variable to be used in the title.
+            region (str): Region to be used in the title and description.
+            outputdir (str): Output directory to save the plot.
+            rebuild (bool): If True, rebuild the plot even if it already exists.
+            dpi (int): Dots per inch for the plot.
+            format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
+        """
 
-        # self.logger.info('Running PlotTimeseries')
-        # data_label = self.set_data_labels()
-        # ref_label = self.set_ref_label()
-        # description = self.set_description(region=region)
-        # title = self.set_title(region=region, var=var, units=units)
-        # fig, _ = self.plot_timeseries(data_labels=data_label, ref_label=ref_label, title=title)
-        # self.save_plot(fig, var=var, description=description, region=region, rebuild=rebuild,
-        #                outputdir=outputdir, dpi=dpi, format=format)
-        # self.logger.info('PlotTimeseries completed successfully')
-        pass
+        self.logger.info('Running PlotSeasonalCycles')
+        data_label = self.set_data_labels()
+        ref_label = self.set_ref_label()
+        description = self.set_description(region=region)
+        title = self.set_title(region=region, var=var, units=units)
+        fig, _ = self.plot_seasonalcycles(data_labels=data_label, ref_label=ref_label, title=title)
+        self.save_plot(fig, var=var, description=description, region=region, rebuild=rebuild,
+                       outputdir=outputdir, dpi=dpi, format=format)
+        self.logger.info('PlotSeasonalCycles completed successfully')
 
     def get_data_info(self):
         """
