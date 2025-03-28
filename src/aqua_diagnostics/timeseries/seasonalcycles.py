@@ -62,16 +62,16 @@ class SeasonalCycles(BaseMixin):
         """
         self.logger.info("Running SeasonalCycles for %s", var)
         self.retrieve(var=var, formula=formula, long_name=long_name, units=units, standard_name=standard_name)
-        
+
         # Notice that if you compute after, self.monthly will be the seasonal cycle
         # and the compute_std routine will fail
         if std:
             self.compute_std(freq='monthly', exclude_incomplete=exclude_incomplete, center_time=center_time,
                              box_brd=box_brd)
-        
+
         self.logger.info("Computing the seasonal cycles")
         self.compute(exclude_incomplete=exclude_incomplete, center_time=center_time, box_brd=box_brd)
-            
+
         self.save_netcdf(diagnostic='seasonalcycles', freq='monthly', outputdir=outputdir, rebuild=rebuild)
 
     def compute(self, exclude_incomplete: bool = True, center_time: bool = True,
@@ -91,7 +91,7 @@ class SeasonalCycles(BaseMixin):
                                    lon_limits=self.lon_limits, lat_limits=self.lat_limits)
         data = self.reader.timmean(data, freq='MS', exclude_incomplete=exclude_incomplete,
                                    center_time=center_time)
-        
+
         data = data.groupby('time.month').mean('time')
-        
+
         self.monthly = data
