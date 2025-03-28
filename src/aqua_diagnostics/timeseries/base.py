@@ -10,7 +10,6 @@ from aqua.diagnostics.core import Diagnostic, start_end_dates
 
 
 class BaseMixin(Diagnostic):
-    """Region selection mixin class. Used by """
     def __init__(self, catalog: str = None, model: str = None,
                  exp: str = None, source: str = None,
                  regrid: str = None,
@@ -273,9 +272,13 @@ class BaseMixin(Diagnostic):
 
 
 class PlotBaseMixin():
-
     def __init__(self, loglevel: str = 'WARNING'):
+        """
+        Initialize the PlotBaseMixin class.
 
+        Args:
+            loglevel (str): The log level to be used. Default is 'WARNING'.
+        """
         # Data info initalized as empty
         self.loglevel = loglevel
         self.catalogs = None
