@@ -1,6 +1,9 @@
-"""Gregory plot module."""
+"""Gregory module."""
+import xarray as xr
 from aqua.util import eval_formula
-from aqua.diagnostics.core import Diagnostic
+from aqua.diagnostics.core import Diagnostic, convert_data_units
+
+xr.set_options(keep_attrs=True)
 
 
 class Gregory(Diagnostic):
@@ -41,6 +44,7 @@ class Gregory(Diagnostic):
     def run(self, freq: list = ['monthly', 'annual'],
             t2m: bool = True, net_toa: bool = True, std: bool = False,
             t2m_name: str = '2t', net_toa_name: str = 'tnlwrf+tnswrf',
+            t2m_units: str = 'degC',
             exclude_incomplete: bool = True, outputdir: str = './',
             rebuild: bool = True):
         """Run the Gregory Plot."""
@@ -48,9 +52,10 @@ class Gregory(Diagnostic):
 
         self.logger.info(f'Computing the Gregory Plot for the {freq} frequency.')
         if t2m:
-            self.compute_t2m(freq=freq, std=std,
+            self.compute_t2m(freq=freq, std=std, units=t2m_units, var=t2m_name,
                              exclude_incomplete=exclude_incomplete)
         if net_toa:
+            # TODO: If needed add the units conversion for net_toa
             self.compute_net_toa(freq=freq, std=std,
                                  exclude_incomplete=exclude_incomplete)
 
@@ -79,16 +84,19 @@ class Gregory(Diagnostic):
             self.net_toa = eval_formula(mystring=net_toa_name, xdataset=data)
 
     def compute_t2m(self, freq: list = ['monthly', 'annual'], std: bool = False,
-                    exclude_incomplete=True):
+                    var: str = '2t', units: str = 'degC', exclude_incomplete=True):
         """
         Compute the 2m temperature data.
 
         Args:
             freq (list): The frequency of the data to be computed. Default is ['monthly', 'annual'].
             std (bool): Whether to compute the standard deviation. Default is False.
+            units (str): The units of the data. Default is 'degC'.
             exclude_incomplete (bool): Whether to exclude incomplete timespans. Default is True.
         """
         t2m = self.reader.fldmean(self.t2m)
+        if units:
+            t2m = convert_data_units(data=t2m, var=var, units=units, loglevel=self.loglevel)
 
         if 'monthly' in freq:
             self.t2m_monthly = self.reader.timmean(t2m, freq='MS', exclude_incomplete=exclude_incomplete)
