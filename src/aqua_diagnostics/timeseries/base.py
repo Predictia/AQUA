@@ -10,6 +10,7 @@ from aqua.diagnostics.core import Diagnostic, start_end_dates
 
 
 class BaseMixin(Diagnostic):
+    """The BaseMixin class is used for the Timeseries and the SeasonalCycles classes."""
     def __init__(self, catalog: str = None, model: str = None,
                  exp: str = None, source: str = None,
                  regrid: str = None,
@@ -40,13 +41,14 @@ class BaseMixin(Diagnostic):
         super().__init__(catalog=catalog, model=model, exp=exp, source=source, regrid=regrid,
                          loglevel=loglevel)
 
-        self.logger = log_configure(log_level=loglevel, log_name='TimeSeries')
+        self.logger = log_configure(log_level=loglevel, log_name='BaseTimeseries')
 
         # We want to make sure we retrieve the required amount of data with a single Reader instance
         self.startdate, self.enddate = start_end_dates(startdate=startdate, enddate=enddate,
                                                        start_std=std_startdate, end_std=std_enddate)
         self.std_startdate = self.startdate if std_startdate is None else std_startdate
         self.std_enddate = self.enddate if std_enddate is None else std_enddate
+        self.logger.debug(f"Start date: {self.startdate}, End date: {self.enddate}")
 
         # Set the region based on the region name or the lon and lat limits
         self._set_region(region=region, lon_limits=lon_limits, lat_limits=lat_limits)
@@ -81,12 +83,10 @@ class BaseMixin(Diagnostic):
             self.data = eval_formula(mystring=var, xdataset=self.data)
             if self.data is None:
                 self.logger.error('Error evaluating formula %s', var)
-                raise NoDataError('Error evaluating formula %s' % var)
         else:
             super().retrieve(var=var)
             if self.data is None:
                 self.logger.error('Error retrieving variable %s', var)
-                raise NoDataError('Error retrieving variable %s' % var)
             # Get the xr.DataArray to be aligned with the formula code
             self.data = self.data[var]
 
@@ -223,6 +223,7 @@ class BaseMixin(Diagnostic):
             self.lon_limits = lon_limits
             self.lat_limits = lat_limits
             self.region = None
+            self.logger.debug('No region provided, using lon_limits: %s, lat_limits: %s', lon_limits, lat_limits)
 
     def _check_data(self, var: str, units: str):
         """
@@ -266,12 +267,12 @@ class BaseMixin(Diagnostic):
             str_freq = 'annual'
         else:
             self.logger.error('Frequency %s not recognized', freq)
-            raise ValueError('Frequency %s not recognized' % freq)
 
         return str_freq
 
 
 class PlotBaseMixin():
+    """PlotBaseMixin class is used for the PlotTimeseries and the PlotSeasonalcycles classes."""
     def __init__(self, loglevel: str = 'WARNING'):
         """
         Initialize the PlotBaseMixin class.
@@ -303,6 +304,7 @@ class PlotBaseMixin():
             label = f'{self.models[i]} {self.exps[i]}'
             data_labels.append(label)
 
+        self.logger.debug('Data labels: %s', data_labels)
         return data_labels
 
     def set_ref_label(self):
@@ -322,6 +324,7 @@ class PlotBaseMixin():
         if len(ref_label) == 1:
             ref_label = ref_label[0]
 
+        self.logger.debug('Reference label: %s', ref_label)
         return ref_label
 
     def set_title(self, region: str = None, var: str = None, units: str = None, diagnostic: str = None):
@@ -350,6 +353,7 @@ class PlotBaseMixin():
         if self.len_data == 1:
             title += f'for {self.catalogs[0]} {self.models[0]} {self.exps[0]} '
 
+        self.loggger.debug('Title: %s', title)
         return title
 
     def set_description(self, region: str = None, diagnostic: str = None):
@@ -383,6 +387,7 @@ class PlotBaseMixin():
         if self.std_startdate is not None and self.std_enddate is not None:
             description += f'with standard deviation from {self.std_startdate} to {self.std_enddate} '
 
+        self.logger.debug('Description: %s', description)
         return description
 
     def save_plot(self, fig, var: str, description: str = None, region: str = None, rebuild: bool = True,
