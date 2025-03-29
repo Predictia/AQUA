@@ -5,6 +5,7 @@ from .base import PlotBaseMixin
 
 
 class PlotTimeseries(PlotBaseMixin):
+    """Class to plot time series data."""
     def __init__(self, hourly_data=None, daily_data=None,
                  monthly_data=None, annual_data=None,
                  ref_hourly_data=None, ref_daily_data=None,
@@ -118,22 +119,25 @@ class PlotTimeseries(PlotBaseMixin):
                 self.models = [d.AQUA_model for d in data]
                 self.exps = [d.AQUA_exp for d in data]
                 break
+        self.logger.debug(f'Catalogs: {self.catalogs}')
+        self.logger.debug(f'Models: {self.models}')
+        self.logger.debug(f'Experiments: {self.exps}')
 
+        # TODO: support ref list
         for ref in [self.ref_monthly_data, self.ref_annual_data]:
             if ref is not None:
-                # Make a list from the data array attributes
-                self.ref_catalogs = [d.AQUA_catalog for d in ref]
-                self.ref_models = [d.AQUA_model for d in ref]
-                self.ref_exps = [d.AQUA_exp for d in ref]
+                self.ref_catalogs = ref.AQUA_catalog
+                self.ref_models = ref.AQUA_model
+                self.ref_exps = ref.AQUA_exp
                 break
+        self.logger.debug(f'Reference: {self.ref_catalogs} {self.ref_models} {self.ref_exps}')
 
-        for std_list in [self.std_monthly_data, self.std_annual_data]:
-            if std_list is not None:
-                for std in std_list:
-                    # Make a list from the data array attributes
-                    self.std_startdate = std.std_startdate if std.std_startdate is not None else None
-                    self.std_enddate = std.std_enddate if std.std_enddate is not None else None
-                    break
+        for std in [self.std_monthly_data, self.std_annual_data]:
+            if std is not None:
+                self.std_startdate = std.std_startdate if std.std_startdate is not None else None
+                self.std_enddate = std.std_enddate if std.std_enddate is not None else None
+                break
+        self.logger.debug(f'Standard deviation dates: {self.std_startdate} - {self.std_enddate}')
 
     def set_title(self, region: str = None, var: str = None, units: str = None):
         """
