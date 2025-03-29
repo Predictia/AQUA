@@ -1,7 +1,6 @@
 """Timeseries class for retrieve and netcdf saving of a single experiment"""
 import xarray as xr
 from aqua.util import to_list, frequency_string_to_pandas, time_to_string
-
 from .util import loop_seasonalcycle, center_time_str
 from .base import BaseMixin
 
@@ -96,17 +95,16 @@ class Timeseries(BaseMixin):
                                 Default is True
         """
         if freq is None:
-            self.logger.error('Frequency not provided')
-            raise ValueError('Frequency not provided')
+            self.logger.error('Frequency not provided, cannot compute mean')
+            return
 
         freq = frequency_string_to_pandas(freq)
         str_freq = self._str_freq(freq)
 
         self.logger.info('Computing %s mean', str_freq)
-        data = self.data
 
         # Field and time average
-        data = self.reader.fldmean(data, box_brd=box_brd,
+        data = self.reader.fldmean(self.data, box_brd=box_brd,
                                    lon_limits=self.lon_limits, lat_limits=self.lat_limits)
         data = self.reader.timmean(data, freq=freq, exclude_incomplete=exclude_incomplete,
                                    center_time=center_time)
