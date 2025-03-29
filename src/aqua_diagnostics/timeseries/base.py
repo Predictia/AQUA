@@ -126,7 +126,7 @@ class BaseMixin(Diagnostic):
         freq_dict = {'hourly': {'data': self.hourly, 'groupdby': 'time.hour'},
                      'daily': {'data': self.daily, 'groupdby': 'time.dayofyear'},
                      'monthly': {'data': self.monthly, 'groupdby': 'time.month'},
-                     'annual': {'data': self.annual, 'groupdby': 'time.year'}}
+                     'annual': {'data': self.annual, 'groupdby': None}}
 
         # If possible we use the data already computed
         if isinstance(freq_dict[str_freq]['data'], xr.DataArray):
@@ -139,7 +139,10 @@ class BaseMixin(Diagnostic):
             data = self.reader.timmean(data, freq=freq, exclude_incomplete=exclude_incomplete,
                                        center_time=center_time)
         data = data.sel(time=slice(self.std_startdate, self.std_enddate))
-        data = data.groupby(freq_dict[str_freq]['groupdby']).std('time')
+        if freq_dict[str_freq]['groupdby'] is not None:
+            data = data.groupby(freq_dict[str_freq]['groupdby']).std('time')
+        else:  # For annual data, we compute the std over all years
+            data = data.std('time')
 
         # Store start and end dates for the standard deviation
         data.attrs['std_startdate'] = self.std_startdate
@@ -317,8 +320,10 @@ class PlotBaseMixin():
         """
         ref_label = []
         for i in range(self.len_ref):
-            label = f'{self.ref_models[i]} {self.ref_exps[i]}'
+            label = f'{self.ref_models[i] if isinstance(self.ref_models, list) else self.ref_models}'
+            label += f' {self.ref_exps[i] if isinstance(self.ref_exps, list) else self.ref_exps}'
             ref_label.append(label)
+        self.logger.debug('Reference labels: %s', ref_label)
 
         # Convert to string if only one reference data
         if len(ref_label) == 1:
@@ -353,7 +358,7 @@ class PlotBaseMixin():
         if self.len_data == 1:
             title += f'for {self.catalogs[0]} {self.models[0]} {self.exps[0]} '
 
-        self.loggger.debug('Title: %s', title)
+        self.logger.debug('Title: %s', title)
         return title
 
     def set_description(self, region: str = None, diagnostic: str = None):
