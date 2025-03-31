@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
-
-from aqua.graphics import ConfigStyle, plot_gregory_monthly
+from aqua.graphics import ConfigStyle, plot_gregory_monthly, plot_gregory_annual
 from aqua.logger import log_configure
 from aqua.util import to_list
 from .base import PlotBaseMixin
@@ -57,6 +56,8 @@ class PlotGregory(PlotBaseMixin):
         ax_monthly = None
         ax_annual = None
 
+        freq_dict = {'monthly': ax_monthly, 'annual': ax_annual}
+
         if 'monthly' in freq and 'annual' in freq:
             fig, (ax_monthly, ax_annual) = plt.subplots(1, 2, figsize=(12, 6))
         elif 'monthly' in freq and 'annual' not in freq:
@@ -71,11 +72,24 @@ class PlotGregory(PlotBaseMixin):
         if ax_annual:
             fig, ax_annual = self.plot_annual(fig, ax_annual)
 
+        # We extract the handles and labels from each axis
+        # since the labels are defined in the plotting function
+        handles, labels = [], []
+        for f in freq:
+            ax = freq_dict[f]
+            if ax is not None:
+                h_for, l_for = ax.get_legend_handles_labels()
+                handles.extend(h_for)
+                labels.extend(l_for)
+
+        # Create a single legend at the bottom
+        fig.legend(handles, labels, loc="lower center", ncol=2)
+
+        # Adjust layout to make space
+        fig.subplots_adjust(bottom=0.2)
+
         if title:
             fig.suptitle(title)
-
-        # # Add a legend below the plot
-        # fig.legend(loc='lower center', ncol=3, fontsize='small', bbox_to_anchor=(0.5, -0.05))
 
         return fig
 
@@ -92,6 +106,13 @@ class PlotGregory(PlotBaseMixin):
         return fig, ax
 
     def plot_annual(self, fig, ax):
+        fig, ax = plot_gregory_annual(t2m_annual_data=self.annual_data['t2m'],
+                                      net_toa_annual_data=self.annual_data['net_toa'],
+                                      t2m_annual_ref=self.annual_ref['t2m'],
+                                      net_toa_annual_ref=self.annual_ref['net_toa'],
+                                      t2m_std=self.std_dict['annual']['t2m'],
+                                      net_toa_std=self.std_dict['annual']['net_toa'],
+                                      fig=fig, ax=ax, loglevel=self.loglevel)
         return fig, ax
 
     def get_data_info(self):
