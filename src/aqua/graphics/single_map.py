@@ -9,21 +9,21 @@ Author: Matteo Nurisso
 Date: Feb 2024
 """
 import cartopy.crs as ccrs
-import cartopy.mpl.ticker as cticker
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 
 from aqua.logger import log_configure
-from aqua.util import create_folder, check_coordinates
-from aqua.util import add_cyclic_lon, evaluate_colorbar_limits
+from aqua.util import add_cyclic_lon, evaluate_colorbar_limits, create_folder
 from aqua.util import cbar_get_label, set_map_title
 from aqua.util import coord_names, set_ticks, ticks_round
+from .styles import ConfigStyle
 
 
 def plot_single_map(data: xr.DataArray,
-                    save=False,
                     contour=True, sym=False,
+                    proj: ccrs.Projection = ccrs.PlateCarree(),
+                    style=None,
                     figsize=(11, 8.5),
                     nlevels=11, outputdir=".",
                     vmin=None, vmax=None,
@@ -81,17 +81,11 @@ def plot_single_map(data: xr.DataArray,
         ValueError: If data is not a DataArray.
     """
     logger = log_configure(loglevel, 'plot_single_map')
+    ConfigStyle(style=style)
 
     # We load in memory the data, to avoid problems with dask
     logger.info("Loading data in memory")
     data = data.load(keep_attrs=True)
-
-    plt.rcParams.update({
-    'axes.labelsize': 13,  # X and Y axis labels
-    'xtick.labelsize': 12,  # X-axis tick labels
-    'ytick.labelsize': 12,  # Y-axis tick labels
-    'axes.titlesize': 14,   # Title size
-    })
 
     cycling = kwargs.get('cyclic_lon', True)
     if cycling:
@@ -102,11 +96,14 @@ def plot_single_map(data: xr.DataArray,
             logger.debug("Cannot add cyclic longitude: %s", e)
             logger.warning("Cyclic longitude can be set to False with the cyclic_lon kwarg")
 
-    proj = ccrs.PlateCarree()
-
-    logger.debug("Setting figsize to %s", figsize)
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111, projection=proj)
+
+    # For certain projections, we may need to set the extent
+    extent = kwargs.get('extent', None)
+    if extent:
+        logger.debug("Setting extent to %s", extent)
+        ax.set_extent(extent, ccrs.PlateCarree())
 
     # Evaluate vmin and vmax if not given
     if vmin is None or vmax is None:
@@ -119,41 +116,45 @@ def plot_single_map(data: xr.DataArray,
     if contour:
         levels = np.linspace(vmin, vmax, nlevels + 1)
 
-    # Get the coordinate names
-    lon_name, lat_name = coord_names(data)
-
     # Plot the data
     if contour:
-        # grid lon and lat
-        lon, lat = np.meshgrid(data[lon_name], data[lat_name])
-
-        transform_first = kwargs.get('transform_first', False)
-        cs = ax.contourf(lon, lat, data, cmap=cmap,
-                         transform=proj, levels=levels,
-                         extend='both',
-                         transform_first=transform_first)
+        transform_first = kwargs.get('transform_first', True)
+        cs = data.plot.contourf(ax=ax,
+                                transform=ccrs.PlateCarree(),
+                                cmap=cmap,
+                                vmin=vmin, vmax=vmax,
+                                levels=levels,
+                                extend='both',
+                                transform_first=transform_first,
+                                add_colorbar=False)
     else:
-        cs = ax.pcolormesh(data[lon_name], data[lat_name], data, cmap=cmap,
-                           transform=proj, vmin=vmin, vmax=vmax)
+        cs = data.plot.pcolormesh(ax=ax,
+                                  transform=ccrs.PlateCarree(),
+                                  cmap=cmap,
+                                  vmin=vmin, vmax=vmax,
+                                  add_colorbar=False)
 
     logger.debug("Adding coastlines")
     ax.coastlines()
 
-    if gridlines:
-        logger.debug("Adding gridlines")
-        ax.gridlines()
+    # TODO: To reimplement, we need a meshgrid for this
+    # if gridlines:
+    #     logger.debug("Adding gridlines")
+    #     ax.gridlines()
 
     # Longitude labels
     # Evaluate the longitude ticks
-    nxticks = kwargs.get('nxticks', 7)
-    nyticks = kwargs.get('nyticks', 7)
-    ticks_rounding = kwargs.get('ticks_rounding', None)
-    if ticks_rounding:
-        logger.debug("Setting ticks rounding to %s", ticks_rounding)
+    if proj == ccrs.PlateCarree():
+        lon_name, lat_name = coord_names(data)
+        nxticks = kwargs.get('nxticks', 7)
+        nyticks = kwargs.get('nyticks', 7)
+        ticks_rounding = kwargs.get('ticks_rounding', None)
+        if ticks_rounding:
+            logger.debug("Setting ticks rounding to %s", ticks_rounding)
 
-    fig, ax = set_ticks(data=data, fig=fig, ax=ax, nticks=(nxticks, nyticks),
-                        ticks_rounding=ticks_rounding, lon_name=lon_name,
-                        lat_name=lat_name, proj=proj, loglevel=loglevel)
+        fig, ax = set_ticks(data=data, fig=fig, ax=ax, nticks=(nxticks, nyticks),
+                            ticks_rounding=ticks_rounding, lon_name=lon_name,
+                            lat_name=lat_name, proj=proj, loglevel=loglevel)
 
     # Adjust the location of the subplots on the page to make room for the colorbar
     fig.subplots_adjust(bottom=0.25, top=0.9, left=0.05, right=0.95,
@@ -197,36 +198,11 @@ def plot_single_map(data: xr.DataArray,
         logger.debug("Setting title to %s", title)
         ax.set_title(title)
 
-    # Saving
-    if save:
-        logger.debug("Saving figure to %s", outputdir)
-        create_folder(outputdir, loglevel=loglevel)
-        filename = kwargs.get('filename', 'map')
-        plot_format = kwargs.get('format', 'pdf')
-        if filename.endswith(plot_format):
-            logger.debug("Format already set in the filename")
-        else:
-            filename = f"{filename}.{plot_format}"
-        logger.debug("Setting filename to %s", filename)
-
-        logger.info("Saving figure as %s/%s", outputdir, filename)
-        if contour:
-            dpi = kwargs.get('dpi', 300)
-        else:
-            dpi = kwargs.get('dpi', 100)
-            if dpi == 100:
-                logger.info("Setting dpi to 100 by default, use dpi kwarg to change it")
-
-        fig.savefig('{}/{}'.format(outputdir, filename),
-                    dpi=dpi, bbox_inches='tight')
-
     if display is False:
         logger.debug("Display is set to False, closing figure")
         plt.close(fig)
 
-    if return_fig:
-        logger.debug("Returning figure and axes")
-        return fig, ax
+    return fig, ax
 
 
 def plot_single_map_diff(data: xr.DataArray,
