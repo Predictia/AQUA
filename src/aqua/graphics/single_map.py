@@ -24,13 +24,10 @@ def plot_single_map(data: xr.DataArray,
                     contour=True, sym=False,
                     proj: ccrs.Projection = ccrs.PlateCarree(),
                     style=None,
-                    figsize=(11, 8.5),
-                    nlevels=11, outputdir=".",
+                    figsize=(11, 8.5), nlevels=11,
                     vmin=None, vmax=None,
                     cmap='RdBu_r',
-                    gridlines=False,
                     display=True,
-                    return_fig=False,
                     loglevel='WARNING',
                     **kwargs):
     """
@@ -38,35 +35,27 @@ def plot_single_map(data: xr.DataArray,
 
     Args:
         data (xr.DataArray):       Data to plot.
-        save (bool, optional):     If True, save the figure. Defaults to False.
-        contour (bool, optional):  If True, plot a contour map,
-                                   otherwise a pcolormesh.
+        contour (bool, optional):  If True, plot a contour map, otherwise a pcolormesh.
                                    Defaults to True.
+        sym (bool, optional):      If True, set the colorbar to be symmetrical. Defaults to False.
+        proj (cartopy.crs.Projection, optional): Projection to use. Defaults to PlateCarree.
+        style (str, optional):     Style to use. Defaults to None (aqua style).
         figsize (tuple, optional): Figure size. Defaults to (11, 8.5).
-        nlevels (int, optional):   Number of levels for the contour map.
-                                   Defaults to 11.
-        outputdir (str, optional): Output directory. Defaults to ".".
+        nlevels (int, optional):   Number of levels for the contour map. Defaults to 11.
         vmin (float, optional):    Minimum value for the colorbar.
                                    Defaults to None.
         vmax (float, optional):    Maximum value for the colorbar.
                                    Defaults to None.
         cmap (str, optional):      Colormap. Defaults to 'RdBu_r'.
-        gridlines (bool, optional): If True, plot gridlines. Defaults to False.
         display (bool, optional):  If True, display the figure. Defaults to True.
-        return_fig (bool, optional): If True, return the figure (fig, ax). Defaults to False.
         loglevel (str, optional):  Log level. Defaults to 'WARNING'.
 
     Keyword Args:
         title (str, optional):       Title of the figure. Defaults to None.
-        transform_first (bool, optional): If True, transform the data before
-                                          plotting. Defaults to False.
+        transform_first (bool, optional): If True, transform the data before plotting. Defaults to True.
         cbar_label (str, optional):  Colorbar label. Defaults to None.
-        dpi (int, optional):         Dots per inch. Defaults to 100 for pcolormesh
-                                     and 300 for contour plots.
         model (str, optional):       Model name. Defaults to None.
         exp (str, optional):         Experiment name. Defaults to None.
-        filename (str, optional):    Filename. Defaults to 'map'.
-        format (str, optional):      Format of the figure. Defaults to 'pdf'.
         nxticks (int, optional):     Number of x ticks. Defaults to 7.
         nyticks (int, optional):     Number of y ticks. Defaults to 7.
         ticks_rounding (int, optional):  Number of digits to round the ticks.
@@ -74,22 +63,21 @@ def plot_single_map(data: xr.DataArray,
                                          2 if min-max < 1.
         cbar_ticks_rounding (int, optional): Number of digits to round the colorbar ticks.
                                             Default is no rounding.
-        cyclic_lon (bool, optional): If True, add cyclic longitude.
-        return_fig (bool, optional): If True, return the figure (fig, ax). Defaults to False.
+        cyclic_lon (bool, optional): If True, add cyclic longitude. Defaults to True.
 
-    Raises:
-        ValueError: If data is not a DataArray.
+    Returns:
+        tuple: Figure and axes.
     """
     logger = log_configure(loglevel, 'plot_single_map')
     ConfigStyle(style=style)
 
     # We load in memory the data, to avoid problems with dask
-    logger.info("Loading data in memory")
+    logger.debug("Loading data in memory")
     data = data.load(keep_attrs=True)
 
     cycling = kwargs.get('cyclic_lon', True)
     if cycling:
-        logger.info("Adding cyclic longitude")
+        logger.debug("Adding cyclic longitude")
         try:
             data = add_cyclic_lon(data)
         except Exception as e:
@@ -255,9 +243,9 @@ def plot_single_map_diff(data: xr.DataArray,
     if np.allclose(diff_map, 0):
         logger.warning("The difference map is zero or constant, skipping contour plot.")
         contour = False  # Disable contour
-        
+
     return_main_fig = kwargs.get('return_fig', False)
-    
+
     for key in ['return_fig', 'contour']:
         kwargs.pop(key, None) 
 
@@ -278,7 +266,6 @@ def plot_single_map_diff(data: xr.DataArray,
         except Exception as e:
             logger.error("Cannot add cyclic longitude: %s", e)
             logger.warning("Cyclic longitude can be set to False with the cyclic_lon kwarg")
-
 
     if contour:
         logger.info("Plotting the map as contour")
