@@ -47,3 +47,7 @@ Please look at the `cli` folder to have access to the AQUA command line tools.
 ## Contributing guide
 
 Please refer to the [Guidelines for Contributors](https://github.com/DestinE-Climate-DT/AQUA/blob/main/CONTRIBUTING.md) if you want to join AQUA team!
+
+## License
+
+AQUA is distributed as open source software under Apache 2.0 License. The copyright owner is the European Union, represented by the European Commission. The development of AQUA has been funded by the European Union through Contract `DE_340_CSC - Destination Earth Programme Climate Adaptation Digital Twin (Climate DT)`. Further info can be found at https://destine.ecmwf.int/ and https://destination-earth.eu/
