@@ -1,7 +1,6 @@
 import os
 import xarray as xr
 
-from aqua.exceptions import NoDataError
 from aqua.logger import log_configure
 from aqua.util import ConfigPath,  OutputSaver
 from aqua.util import frequency_string_to_pandas
