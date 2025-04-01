@@ -4,6 +4,8 @@ Module to identify the nature of coordinates of an Xarray object.
 import xarray as xr
 from metpy.units import units
 
+from aqua.logger import log_configure
+
 LATITUDE = ["latitude", "lat", "nav_lat"]
 LONGITUDE = ["longitude", "lon", "nav_lon"]
 TIME = ["time", "valid_time"]
@@ -30,10 +32,13 @@ class CoordIdentifier():
     by inspecting the attributes of the coordinates provided by the user.
     """
 
-    def __init__(self, coords):
+    def __init__(self, coords, loglevel='WARNING'):
         """
         Constructor of the CoordIdentifier class.
         """
+        self.loglevel = loglevel
+        self.logger = log_configure(self.loglevel, 'CoordIdentifier')
+
         if not isinstance(coords, xr.Coordinates):
             raise TypeError("coords must be an Xarray Coordinates object.")
         self.coords = coords
@@ -52,7 +57,7 @@ class CoordIdentifier():
         Identify the coordinates of the Xarray object.
         """
         for name, coord in self.coords.items():
-            print(name)
+            self.logger.debug("Identifying coordinate: %s", name)
             if not self.coord_dict["latitude"] and self._identify_latitude(coord):
                     self.coord_dict["latitude"] = self._get_horizontal_attributes(coord)
             if not self.coord_dict["longitude"] and self._identify_longitude(coord):
