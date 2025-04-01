@@ -1,7 +1,24 @@
 """Utility for the sea ice plotting module"""
 
+import os
 from aqua.logger import log_configure
 from collections import defaultdict
+from aqua.util import load_yaml, ConfigPath
+
+def load_region_file(regions_file=None):
+    """ Loads region definitions from a .yaml configuration file and sets the regions.
+        If no regions are provided, it uses all available regions from the configuration.
+    Args:
+        regions_file (str): Full path to the region file. If None, a default path is used.
+    Returns:
+        dict: Parsed YAML content with region definitions.
+    """
+    # determine the region file path if not provided
+    if regions_file is None:
+        folderpath = ConfigPath().get_config_dir()
+        regions_file = os.path.join(folderpath, 'diagnostics', 'seaice', 'config', 'regions_definition.yaml')
+
+    return load_yaml(infile=regions_file)
 
 def defaultdict_to_dict(d):
     """Recursively converts a defaultdict to a normal dict."""

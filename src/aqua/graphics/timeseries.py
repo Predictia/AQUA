@@ -22,8 +22,6 @@ def plot_timeseries(monthly_data=None,
                     fig: plt.Figure = None,
                     ax: plt.Axes = None,
                     loglevel: str = 'WARNING',
-                    fig: plt.Figure = None,
-                    ax: plt.Axes = None,
                     **kwargs):
     """
     monthly_data and annual_data are list of xr.DataArray

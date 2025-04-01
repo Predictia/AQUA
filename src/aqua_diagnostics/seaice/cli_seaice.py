@@ -132,7 +132,7 @@ if __name__ == '__main__':
                         continue
                     
                     # Call class method
-                    regions_dict = SeaIce.load_region_file()
+                    regions_dict = load_region_file()
 
                     domain_ref = reference.get('domain', None)
 
