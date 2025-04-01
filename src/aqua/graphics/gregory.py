@@ -40,6 +40,14 @@ def plot_gregory_monthly(t2m_monthly_data, net_toa_monthly_data,
     ConfigStyle(style=style, loglevel=loglevel)
     rcParams['text.usetex'] = False  # Disable LaTeX rendering for speed
 
+    # We load the data for speed
+    t2m_monthly_data = to_list(t2m_monthly_data)
+    net_toa_monthly_data = to_list(net_toa_monthly_data)
+    t2m_monthly_data = [t2m_monthly_data[i].load() for i in range(len(t2m_monthly_data))]
+    net_toa_monthly_data = [net_toa_monthly_data[i].load() for i in range(len(net_toa_monthly_data))]
+    t2m_monthly_ref = t2m_monthly_ref.load() if t2m_monthly_ref is not None else None
+    net_toa_monthly_ref = net_toa_monthly_ref.load() if net_toa_monthly_ref is not None else None
+
     labels = to_list(labels) if labels else [None for _ in range(len(t2m_monthly_data))]
 
     if fig is None and ax is None:
@@ -65,7 +73,7 @@ def plot_gregory_monthly(t2m_monthly_data, net_toa_monthly_data,
     if set_axis_limits:
         # We set a fixed x and y range but then we expand it if data
         # goes beyond the limits
-        t2m_list = to_list(t2m_monthly_data) + to_list(t2m_ref) if ref else to_list(t2m_monthly_data)
+        t2m_list = t2m_monthly_data + to_list(t2m_ref) if ref else t2m_monthly_data
         t2m_min, t2m_max = evaluate_colorbar_limits(t2m_list, sym=False)
         t2m_min = min(t2m_min, min(t2m_ref.values))
         t2m_max = max(t2m_max, max(t2m_ref.values))
@@ -74,7 +82,7 @@ def plot_gregory_monthly(t2m_monthly_data, net_toa_monthly_data,
         t2m_max = max(t2m_max, 16.5)
         t2m_max = t2m_max + 0.5
 
-        net_toa_list = to_list(net_toa_monthly_data) + to_list(net_toa_ref) if ref else to_list(net_toa_monthly_data)
+        net_toa_list = net_toa_monthly_data + to_list(net_toa_ref) if ref else net_toa_monthly_data
         toa_min, toa_max = evaluate_colorbar_limits(net_toa_list, sym=False)
         toa_min = min(toa_min, min(net_toa_ref.values))
         toa_max = max(toa_max, max(net_toa_ref.values))
@@ -146,6 +154,16 @@ def plot_gregory_annual(t2m_annual_data, net_toa_annual_data,
 
     labels = to_list(labels) if labels else [None for _ in range(len(t2m_annual_data))]
 
+    # We load the data for speed
+    t2m_annual_data = to_list(t2m_annual_data)
+    net_toa_annual_data = to_list(net_toa_annual_data)
+    t2m_annual_data = [t2m_annual_data[i].load() for i in range(len(t2m_annual_data))]
+    net_toa_annual_data = [net_toa_annual_data[i].load() for i in range(len(net_toa_annual_data))]
+    t2m_annual_ref = t2m_annual_ref.load() if t2m_annual_ref is not None else None
+    net_toa_annual_ref = net_toa_annual_ref.load() if net_toa_annual_ref is not None else None
+    t2m_std = t2m_std.load() if t2m_std is not None else None
+    net_toa_std = net_toa_std.load() if net_toa_std is not None else None
+
     if fig is None and ax is None:
         logger.debug("Creating new figure and axis")
         fig, ax = plt.subplots(1, 1, figsize=(6, 6))
@@ -161,15 +179,13 @@ def plot_gregory_annual(t2m_annual_data, net_toa_annual_data,
     if set_axis_limits:
         # We set a fixed x and y range but then we expand it if data
         # goes beyond the limits
-        t2m_list = to_list(t2m_annual_data)
-        t2m_min, t2m_max = evaluate_colorbar_limits(t2m_list, sym=False)
+        t2m_min, t2m_max = evaluate_colorbar_limits(t2m_annual_data, sym=False)
         t2m_min = min(t2m_min, 13.5)
         t2m_min = t2m_min - 0.5
         t2m_max = max(t2m_max, 14.5)
         t2m_max = t2m_max + 0.5
 
-        net_toa_list = to_list(net_toa_annual_data)
-        toa_min, toa_max = evaluate_colorbar_limits(net_toa_list, sym=False)
+        toa_min, toa_max = evaluate_colorbar_limits(net_toa_annual_data, sym=False)
         toa_min = min(toa_min, -1.5)
         toa_min = toa_min - 0.5
         toa_max = max(toa_max, 1.5)
@@ -196,9 +212,9 @@ def plot_gregory_annual(t2m_annual_data, net_toa_annual_data,
     if ref:
         t2m_mean = t2m_annual_ref.mean(dim='time')
         net_toa_mean = net_toa_annual_ref.mean(dim='time')
-        ax.axhspan(net_toa_mean - 2.*net_toa_std, net_toa_mean + 2.*net_toa_std,
-                   color="lightgreen", alpha=0.3, label='r"2$\sigma$ band"')
-        ax.axvspan(t2m_mean - 2.*t2m_std, t2m_mean + 2.*t2m_std,
+        ax.axhspan(net_toa_mean - net_toa_std, net_toa_mean + net_toa_std,
+                   color="lightgreen", alpha=0.3, label='r"$\sigma$ band"')
+        ax.axvspan(t2m_mean - t2m_std, t2m_mean + t2m_std,
                    color="lightgreen", alpha=0.3)
 
     return fig, ax
