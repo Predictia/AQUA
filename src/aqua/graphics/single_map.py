@@ -22,40 +22,34 @@ from .styles import ConfigStyle
 
 def plot_single_map(data: xr.DataArray,
                     contour=True, sym=False,
-                    proj: ccrs.Projection = ccrs.PlateCarree(),
-                    style=None,
-                    figsize=(11, 8.5), nlevels=11,
-                    vmin=None, vmax=None,
-                    cmap='RdBu_r',
-                    display=True,
-                    loglevel='WARNING',
-                    **kwargs):
+                    proj: ccrs.Projection = ccrs.Robinson(), extent=None,
+                    style=None, figsize=(11, 8.5), nlevels=11,
+                    vmin=None, vmax=None, cmap='RdBu_r', cbar_label=None,
+                    title=None, transform_first=True, cyclic_lon=True,
+                    loglevel='WARNING',  **kwargs):
     """
-    Plot contour or pcolormesh map of a single variable.
+    Plot contour or pcolormesh map of a single variable. By default the contour map is plotted.
 
     Args:
-        data (xr.DataArray):       Data to plot.
-        contour (bool, optional):  If True, plot a contour map, otherwise a pcolormesh.
-                                   Defaults to True.
-        sym (bool, optional):      If True, set the colorbar to be symmetrical. Defaults to False.
+        data (xr.DataArray):         Data to plot.
+        contour (bool, optional):    If True, plot a contour map, otherwise a pcolormesh. Defaults to True.
+        sym (bool, optional):        If True, set the colorbar to be symmetrical. Defaults to False.
         proj (cartopy.crs.Projection, optional): Projection to use. Defaults to PlateCarree.
-        style (str, optional):     Style to use. Defaults to None (aqua style).
-        figsize (tuple, optional): Figure size. Defaults to (11, 8.5).
-        nlevels (int, optional):   Number of levels for the contour map. Defaults to 11.
-        vmin (float, optional):    Minimum value for the colorbar.
-                                   Defaults to None.
-        vmax (float, optional):    Maximum value for the colorbar.
-                                   Defaults to None.
-        cmap (str, optional):      Colormap. Defaults to 'RdBu_r'.
-        display (bool, optional):  If True, display the figure. Defaults to True.
-        loglevel (str, optional):  Log level. Defaults to 'WARNING'.
-
-    Keyword Args:
+        extent (list, optional):     Extent of the map to limit the projection. Defaults to None.
+        style (str, optional):       Style to use. Defaults to None (aqua style).
+        figsize (tuple, optional):   Figure size. Defaults to (11, 8.5).
+        nlevels (int, optional):     Number of levels for the contour map. Defaults to 11.
+        vmin (float, optional):      Minimum value for the colorbar. Defaults to None.
+        vmax (float, optional):      Maximum value for the colorbar.
+                                     Defaults to None.
+        cmap (str, optional):        Colormap. Defaults to 'RdBu_r'.
+        cbar_label (str, optional):  Colorbar label. Defaults to None.
         title (str, optional):       Title of the figure. Defaults to None.
         transform_first (bool, optional): If True, transform the data before plotting. Defaults to True.
-        cbar_label (str, optional):  Colorbar label. Defaults to None.
-        model (str, optional):       Model name. Defaults to None.
-        exp (str, optional):         Experiment name. Defaults to None.
+        cyclic_lon (bool, optional): If True, add cyclic longitude. Defaults to True.
+        loglevel (str, optional):    Log level. Defaults to 'WARNING'.
+
+    Keyword Args:
         nxticks (int, optional):     Number of x ticks. Defaults to 7.
         nyticks (int, optional):     Number of y ticks. Defaults to 7.
         ticks_rounding (int, optional):  Number of digits to round the ticks.
@@ -63,7 +57,6 @@ def plot_single_map(data: xr.DataArray,
                                          2 if min-max < 1.
         cbar_ticks_rounding (int, optional): Number of digits to round the colorbar ticks.
                                             Default is no rounding.
-        cyclic_lon (bool, optional): If True, add cyclic longitude. Defaults to True.
 
     Returns:
         tuple: Figure and axes.
@@ -71,24 +64,21 @@ def plot_single_map(data: xr.DataArray,
     logger = log_configure(loglevel, 'plot_single_map')
     ConfigStyle(style=style)
 
-    # We load in memory the data, to avoid problems with dask
+    # We load in memory the data, to speed up the plotting, Dask is slow with matplotlib
     logger.debug("Loading data in memory")
     data = data.load(keep_attrs=True)
 
-    cycling = kwargs.get('cyclic_lon', True)
-    if cycling:
+    if cyclic_lon:
         logger.debug("Adding cyclic longitude")
         try:
             data = add_cyclic_lon(data)
         except Exception as e:
-            logger.debug("Cannot add cyclic longitude: %s", e)
-            logger.warning("Cyclic longitude can be set to False with the cyclic_lon kwarg")
+            logger.error("Cannot add cyclic longitude: %s", e)
 
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111, projection=proj)
 
     # For certain projections, we may need to set the extent
-    extent = kwargs.get('extent', None)
     if extent:
         logger.debug("Setting extent to %s", extent)
         ax.set_extent(extent, ccrs.PlateCarree())
@@ -106,7 +96,6 @@ def plot_single_map(data: xr.DataArray,
 
     # Plot the data
     if contour:
-        transform_first = kwargs.get('transform_first', True)
         cs = data.plot.contourf(ax=ax,
                                 transform=ccrs.PlateCarree(),
                                 cmap=cmap,
@@ -151,13 +140,10 @@ def plot_single_map(data: xr.DataArray,
     # Add a colorbar axis at the bottom of the graph
     cbar_ax = fig.add_axes([0.1, 0.15, 0.8, 0.02])
 
-    cbar_label = cbar_get_label(data,
-                                cbar_label=kwargs.get('cbar_label', None),
-                                loglevel=loglevel)
+    cbar_label = cbar_get_label(data, cbar_label=kwargs.get('cbar_label', None), loglevel=loglevel)
     logger.debug("Setting colorbar label to %s", cbar_label)
 
-    cbar = fig.colorbar(cs, cax=cbar_ax, orientation='horizontal',
-                        label=cbar_label)
+    cbar = fig.colorbar(cs, cax=cbar_ax, orientation='horizontal', label=cbar_label)
 
     # Make tick of colorbar simmetric if sym=True
     cbar_ticks_rounding = kwargs.get('cbar_ticks_rounding', None)
@@ -177,18 +163,11 @@ def plot_single_map(data: xr.DataArray,
     ax.set_ylabel('Latitude [deg]')
 
     # Set title
-    title = set_map_title(data, title=kwargs.get('title', None),
-                          model=kwargs.get('model', None),
-                          exp=kwargs.get('exp', None),
-                          loglevel=loglevel)
+    title = set_map_title(data, title=kwargs.get('title', None), loglevel=loglevel)
 
     if title:
         logger.debug("Setting title to %s", title)
         ax.set_title(title)
-
-    if display is False:
-        logger.debug("Display is set to False, closing figure")
-        plt.close(fig)
 
     return fig, ax
 
