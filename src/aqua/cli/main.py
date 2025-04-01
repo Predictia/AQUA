@@ -439,9 +439,24 @@ class AquaConsole():
 
     def _github_explore(self):
         try:
-            fs = fsspec.filesystem("github",
-                                    org="DestinE-Climate-DT",
-                                    repo="Climate-DT-catalog")
+            # Detect if running in GitHub Actions
+            is_github_actions = os.getenv("GITHUB_ACTIONS") == "true"
+            token = os.getenv("GITHUB_TOKEN")  # Get GitHub token
+
+            # Use authentication only when running inside GitHub Actions
+            if is_github_actions and token:
+                auth_kwargs = {"username": "github-actions", "token": token}
+                self.logger.info("Using authenticated access to GitHub API.")
+            else:
+                auth_kwargs = {}
+                self.logger.info("Running without authentication. Rate limits may apply.")
+
+            fs = fsspec.filesystem(
+                "github",
+                org="DestinE-Climate-DT",
+                repo="Climate-DT-catalog",
+                **auth_kwargs  # Apply authentication if available
+            )
             self.logger.info('Accessed remote repository https://github.com/DestinE-Climate-DT/Climate-DT-catalog')
         except HTTPError:
             self.logger.error('Permission issues in accessing Climate-DT catalog, please contact AQUA maintainers')
