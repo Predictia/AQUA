@@ -41,49 +41,63 @@ class PlotGregory(PlotBaseMixin):
         self.ref_dict = {'monthly': self.monthly_ref, 'annual': self.annual_ref}
         self.std_dict = {'monthly': None, 'annual': self.annual_std}
 
+        self.len_data = self._check_data_length()
+        self.logger.debug(f'Length of data: {self.len_data}')
         self.get_data_info()
 
-    def plot(self, freq=['monthly', 'annual'], title: str = None, style: str = 'aqua'):
+    def plot(self, freq=['monthly', 'annual'], title: str = None, 
+             data_labels: list = None, ref_label: str = None, style: str = 'aqua'):
         """
         Plot the data
 
         Args:
             freq: List of frequency for plotting. Default is ['monthly', 'annual']
             title: Title of the plot. Default is None
+            data_labels: List of labels for the data. Default is None
+            ref_label: Label for the reference data. Default is None
             style: Style of the plot. Default is 'aqua'
         """
         ConfigStyle(style=style)
         ax_monthly = None
         ax_annual = None
 
-        freq_dict = {'monthly': ax_monthly, 'annual': ax_annual}
-
         if 'monthly' in freq and 'annual' in freq:
             fig, (ax_monthly, ax_annual) = plt.subplots(1, 2, figsize=(12, 6))
+            mon_label = data_labels
+            ann_label = None
         elif 'monthly' in freq and 'annual' not in freq:
             fig, ax_monthly = plt.subplots(1, 1, figsize=(6, 6))
+            mon_label = data_labels
+            ann_label = None
         elif 'annual' in freq and 'monthly' not in freq:
             fig, ax_annual = plt.subplots(1, 1, figsize=(6, 6))
+            mon_label = None
+            ann_label = data_labels
         else:
             raise ValueError('Invalid frequency for plotting, allowed values are "monthly" and "annual"')
 
         if ax_monthly:
-            fig, ax_monthly = self.plot_monthly(fig, ax_monthly)
+            fig, ax_monthly = self.plot_monthly(fig, ax_monthly,
+                                                data_labels=mon_label,
+                                                ref_label=ref_label)
         if ax_annual:
-            fig, ax_annual = self.plot_annual(fig, ax_annual)
+            fig, ax_annual = self.plot_annual(fig, ax_annual, data_labels=ann_label)
 
         # We extract the handles and labels from each axis
         # since the labels are defined in the plotting function
-        handles, labels = [], []
+        handles_common, labels_common = [], []
         for f in freq:
-            ax = freq_dict[f]
+            if f == 'monthly':
+                ax = ax_monthly
+            elif f == 'annual':
+                ax = ax_annual
             if ax is not None:
                 h_for, l_for = ax.get_legend_handles_labels()
-                handles.extend(h_for)
-                labels.extend(l_for)
+                handles_common.extend(h_for)
+                labels_common.extend(l_for)
 
         # Create a single legend at the bottom
-        fig.legend(handles, labels, loc="lower center", ncol=2)
+        fig.legend(handles_common, labels_common, loc="lower center", ncol=2)
 
         # Adjust layout to make space
         fig.subplots_adjust(bottom=0.2)
@@ -94,25 +108,71 @@ class PlotGregory(PlotBaseMixin):
         return fig
 
     def set_title(self):
+        """Set the title for the plot"""
         title = 'Gregory Plot '
+
+        for i, model in enumerate(self.models):
+            title += f'{model}'
+            title += f' {self.exps[i]}'
+
         return title
 
-    def plot_monthly(self, fig, ax):
+    def set_ref_label(self):
+        """Set the reference label for the plot"""
+        # TODO: Improve this to avoid the Try/Except
+        try:
+            ref_label = f"{self.ref_models["t2m"]} {self.ref_exps["t2m"]}"
+            ref_label += f" {self.ref_models["net_toa"]} {self.ref_exps["net_toa"]}"
+        except KeyError:
+            ref_label = None
+
+        return ref_label
+
+    def plot_monthly(self, fig: plt.Figure, ax: plt.Axes,
+                     data_labels: list = None, ref_label: str = None):
+        """
+        Plot the monthly data
+
+        Args:
+            fig: Figure object
+            ax: Axes object
+            data_labels: List of labels for the data. Default is None
+            ref_label: Label for the reference data. Default is None
+
+        Returns:
+            fig: Figure object
+            ax: Axes object
+        """
         fig, ax = plot_gregory_monthly(t2m_monthly_data=self.monthly_data['t2m'],
                                        net_toa_monthly_data=self.monthly_data['net_toa'],
                                        t2m_monthly_ref=self.monthly_ref['t2m'],
                                        net_toa_monthly_ref=self.monthly_ref['net_toa'],
-                                       fig=fig, ax=ax, loglevel=self.loglevel)
+                                       fig=fig, ax=ax, loglevel=self.loglevel,
+                                       labels=data_labels, ref_label=ref_label)
         return fig, ax
 
-    def plot_annual(self, fig, ax):
+    def plot_annual(self, fig: plt.Figure, ax: plt.Axes,
+                    data_labels: list = None):
+        """
+        Plot the annual data
+
+        Args:
+            fig: Figure object
+            ax: Axes object
+            data_labels: List of labels for the data. Default is None
+
+        Returns:
+            fig: Figure object
+            ax: Axes object
+        """
         fig, ax = plot_gregory_annual(t2m_annual_data=self.annual_data['t2m'],
                                       net_toa_annual_data=self.annual_data['net_toa'],
                                       t2m_annual_ref=self.annual_ref['t2m'],
                                       net_toa_annual_ref=self.annual_ref['net_toa'],
                                       t2m_std=self.std_dict['annual']['t2m'],
                                       net_toa_std=self.std_dict['annual']['net_toa'],
-                                      fig=fig, ax=ax, loglevel=self.loglevel)
+                                      fig=fig, ax=ax, loglevel=self.loglevel,
+                                      labels=data_labels)
         return fig, ax
 
     def get_data_info(self):
@@ -160,3 +220,18 @@ class PlotGregory(PlotBaseMixin):
         self.ref_catalogs = {'t2m': t2m_catalog, 'net_toa': net_toa_catalog}
         self.ref_models = {'t2m': t2m_model, 'net_toa': net_toa_model}
         self.ref_exps = {'t2m': t2m_exp, 'net_toa': net_toa_exp}
+
+    def _check_data_length(self):
+        """
+        Check that the length of monthly and annual data is the same
+        and returns the value
+        """
+        len_data = None
+        for freq, data in self.data_dict.items():
+            for var, d in data.items():
+                if len(d) > 0:
+                    if len_data is None:
+                        len_data = len(d)
+                    elif len_data != len(d):
+                        raise ValueError(f'Length of {var} {freq} data is not the same')
+        return len_data

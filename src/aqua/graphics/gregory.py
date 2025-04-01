@@ -103,7 +103,7 @@ def plot_gregory_monthly(t2m_monthly_data, net_toa_monthly_data,
         ax.plot(t2m_monthly, net_toa_monthly, label=labels[i], marker='o')
     if ref:
         ax.plot(t2m_ref, net_toa_ref, label=ref_label, marker='o', color='black', zorder=3)
-        ax.scatter(t2m_ref, net_toa_ref, color='black', s=100, zorder=3)
+        ax.scatter(t2m_ref, net_toa_ref, color='black', s=150, zorder=3)
 
         # Optimized text rendering
         for m, x, y in zip(range(1, 13), t2m_ref.values[:-1], net_toa_ref.values[:-1]):
@@ -213,7 +213,7 @@ def plot_gregory_annual(t2m_annual_data, net_toa_annual_data,
         t2m_mean = t2m_annual_ref.mean(dim='time')
         net_toa_mean = net_toa_annual_ref.mean(dim='time')
         ax.axhspan(net_toa_mean - net_toa_std, net_toa_mean + net_toa_std,
-                   color="lightgreen", alpha=0.3, label='r"$\sigma$ band"')
+                   color="lightgreen", alpha=0.3, label="$\sigma$ band")
         ax.axvspan(t2m_mean - t2m_std, t2m_mean + t2m_std,
                    color="lightgreen", alpha=0.3)
 
