@@ -2,7 +2,6 @@
 import os
 import eccodes
 from packaging import version
-from ruamel.yaml import YAML
 from aqua.logger import log_configure
 from aqua.exceptions import NoEcCodesShortNameError
 
