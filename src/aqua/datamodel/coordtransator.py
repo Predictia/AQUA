@@ -1,33 +1,59 @@
 """Module to transform coordinates of an Xarray object."""
 
 import xarray as xr
+from metpy.units import units
 from aqua.logger import log_configure
 from .coordidentifier import CoordIdentifier
 
 
+# Function to get the conversion factor
+def units_conversion_factor(from_unit_str, to_unit_str):
+    """
+    Get the conversion factor between two units.
+    """
+    from_unit = units(from_unit_str)
+    to_unit = units(to_unit_str)
+    return from_unit.to(to_unit).magnitude 
 
+# default target coords. 
+# name, direction, positive and units are checked 
+# other attributes can be added
 TGT_COORDS = {
     "latitude": {
         "name": "lat",
+        "standard_name": "latitude",
+        "long_name": "latitude",
         "direction": "decreasing",
+        "units": "degrees_north",
+        "axis": "Y",
     },
     "longitude": {
         "name": "lon",
+        "standard_name": "longitude",
+        "long_name": "longitude",
         "direction": "increasing",
+        "units": "degrees_east",
+        "axis": "X"
+    },
+    "isobaric": {
+        "name": "plev",
+        "standard_name": "air_pressure",
+        "long_name": "pressure",
+        "positive": "down",
+        "units": "hPa",
+        "axis": "Z",
+    },
+    "depth": {
+        "name": "depth",
+        "standard_name": "depth",
+        "long_name": "depth below sea level",
+        "positive": "down",
+        "units": "m",
+        "axis": "Z"
     }
 }
 
-ATTR_LIST = {
-    "latitude": {
-        "axis": "Y"
-    },
-    "longitude": {
-        "axis": "X"
-    },
-    "time": {
-        "axis": "T"
-    }
-}
+
 
 class CoordTransator():
     """
@@ -39,14 +65,19 @@ class CoordTransator():
     def __init__(self, data, loglevel='WARNING'):
         """
         Constructor of the CoordTransator class.
+
+        Args:
+            data (xr.Dataset or xr.DataArray): Xarray Dataset or DataArray object.
+            loglevel (str, optional): Log level. Defaults to 'WARNING'.
         """
         if not isinstance(data, (xr.Dataset, xr.DataArray)):
             raise TypeError("data must be an Xarray Dataset or DataArray object.")
         self.loglevel = loglevel
         self.logger = log_configure(self.loglevel, 'CoordTransator')
+
         self.data = data
+
         self.src_coords = CoordIdentifier(data.coords).identify_coords()
-        #self.logger.info("Source coordinates: %s", self.src_coords)
         self.tgt_coords = None
         self.gridtype = self._info_grid(data.coords)
         self.logger.info("Grid type: %s", self.gridtype)
@@ -54,15 +85,20 @@ class CoordTransator():
     def _info_grid(self, coords):
         """
         Identify the grid type of the Xarray object.
-        Regular, Curvilinear or Unstructured can be identified.
+        Args: 
+            coords (xr.Coordinates): Coordinates of the Xarray object.
+        Returns:
+            str: The grid type of the Xarray object. 
+            It can be Regular, Curvilinear or Unstructured.
         """
 
-        latname = self.src_coords.get('latitude', {}).get('name', None)
-        lonname = self.src_coords.get('longitude', {}).get('name', None)
-        if not latname in coords or not lonname in coords:
+        lonname = self.src_coords.get('latitude')
+        latname = self.src_coords.get('longitude')
+        if lonname is None or latname is None:
             return "Unknown"
-        lat = coords[latname]
-        lon = coords[lonname]
+
+        lat = coords[latname.get('name')]
+        lon = coords[lonname.get('name')]
         if lon.ndim == 2 and lat.ndim == 2:
             return "Curvilinear"
         if lon.dims != lat.dims:
@@ -71,13 +107,13 @@ class CoordTransator():
     
     def transform_coords(self, tgt_coords=None):
         """
-        Trasforma le coordinate dell'oggetto Xarray.
+        Transform the coordinates of the Xarray object.
 
         Args:
-            tgt_coords (dict, optional): Dizionario delle coordinate target. Defaults to None.
+            tgt_coords (dict, optional): Target coordinates dictionary. Defaults to None.
 
         Returns:
-            xr.Dataset or xr.DataArray: Il dataset o dataarray trasformato.
+            xr.Dataset or xr.DataArray: The transformed dataset or dataarray.
         """
         if tgt_coords is None:
             self.logger.info("No target coordinates provided. Using default coordinates.")
@@ -89,12 +125,15 @@ class CoordTransator():
         data = self.data
 
         for coord in self.tgt_coords:
-            tgt_coord = self.tgt_coords[coord]
             if coord in self.src_coords and self.src_coords[coord]:
-                src_coord = self.src_coords[coord]      
+                tgt_coord = self.tgt_coords[coord]
+                src_coord = self.src_coords[coord]
+                self.logger.info("Analysing coordinate: %s", coord)
+                #self.logger.info("Transforming coordinate %s to %s", src_coord, tgt_coord)
                 data = self.rename_coordinate(data, src_coord, tgt_coord)
                 data = self.reverse_coordinate(data, src_coord, tgt_coord)
-                data = self.assign_attributes(data, coord, tgt_coord)
+                data = self.convert_units(data, src_coord, tgt_coord)
+                data = self.assign_attributes(data, tgt_coord)
             else:
                 self.logger.warning("Coordinate %s not found in source coordinates.", coord)
 
@@ -103,6 +142,13 @@ class CoordTransator():
     def rename_coordinate(self, data, src_coord, tgt_coord):
         """
         Rename coordinate if necessary.
+
+        Args:
+            data (xr.Dataset or xr.DataArray): The Xarray object.
+            src_coord (dict): Source coordinate dictionary.
+            tgt_coord (dict): Target coordinate dictionary.
+        Returns:
+            xr.Dataset or xr.DataArray: The Xarray object with renamed coordinate.
         """
         if src_coord['name'] != tgt_coord['name']:
             self.logger.info("Renaming coordinate %s to %s",
@@ -113,11 +159,21 @@ class CoordTransator():
     def reverse_coordinate(self, data, src_coord, tgt_coord):
         """
         Reverse coordinate if necessary.
+
+        Args:
+            data (xr.Dataset or xr.DataArray): The Xarray object.
+            src_coord (dict): Source coordinate dictionary.
+            tgt_coord (dict): Target coordinate dictionary.
+        
+        Returns:
+            xr.Dataset or xr.DataArray: The Xarray object with possibly reversed coordinate.
         """
+        if 'direction' not in tgt_coord:
+            return data
         if tgt_coord['direction'] not in ["increasing", "decreasing"]:
-            raise ValueError("tgt_coord['direction'] must be 'increasing' or 'decreasing'.")
+            raise ValueError(f"tgt direction must be 'increasing' or 'decreasing', not  {tgt_coord['direction']}")
         if src_coord['direction'] not in ["increasing", "decreasing"]:
-            self.logger.warning("src_coord['direction'] is not 'increasing' or 'decreasing'. Disabling reverse")
+            self.logger.warning("src direction is not 'increasing' or 'decreasing', but %s. Disabling reverse!", src_coord['direction'])
             return data
         if src_coord['direction'] != tgt_coord['direction']:
             if self.gridtype == "Regular":
@@ -128,14 +184,33 @@ class CoordTransator():
                 self.logger.warning("Cannot reverse coordinate %s. Grid type is %s.",
                                     tgt_coord['name'], self.gridtype)
         return data
+    
+    def convert_units(self, data, src_coord, tgt_coord):
+        """
+        Convert units of the coordinate.
+        """
+        if 'units' not in tgt_coord:
+            self.logger.warning("%s not found. Disabling unit conversion.", tgt_coord['name'])
+            return data
+        if 'units' not in src_coord:
+            self.logger.warning("%s not found. Disabling unit conversion.", src_coord['name'])
+            return data
+        if src_coord['units'] != tgt_coord['units']:
+            self.logger.info("Converting units of coordinate %s from %s to %s",
+                            src_coord['name'], src_coord['units'], tgt_coord['units'])
+            factor = units_conversion_factor(src_coord['units'], tgt_coord['units'])
+            data = data.assign_coords({tgt_coord['name']: data[tgt_coord['name']]*factor})
+            data[tgt_coord['name']].attrs['units'] = tgt_coord['units']
+        return data
 
-    def assign_attributes(self, data, coord, tgt_coord):
+    def assign_attributes(self, data, tgt_coord):
         """
         Assign attributes to the coordinate.
         """
-        for attr in ATTR_LIST[coord]:
-            if attr not in data.coords[tgt_coord['name']].attrs:
-                self.logger.info("Adding attribute %s to coordinate %s", attr, tgt_coord['name'])
-                data.coords[tgt_coord['name']].attrs[attr] = ATTR_LIST[coord][attr]
+        for key, value in tgt_coord.items():
+            if key not in['name', 'units', 'positive', 'direction']:
+                if key not in data.coords[tgt_coord['name']].attrs:
+                    self.logger.info("Adding attribute %s to coordinate %s", key, tgt_coord['name'])
+                    data.coords[tgt_coord['name']].attrs[key] = value
         return data
     
