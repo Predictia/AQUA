@@ -42,7 +42,7 @@ class PlotGregory(PlotBaseMixin):
         self.std_dict = {'monthly': None, 'annual': self.annual_std}
 
         self.len_data = self._check_data_length()
-        self.logger.debug(f'Length of data: {self.len_data}')
+        self.logger.debug(f'Number of dataset: {self.len_data}')
         self.get_data_info()
 
     def plot(self, freq=['monthly', 'annual'], title: str = None, 
@@ -127,6 +127,20 @@ class PlotGregory(PlotBaseMixin):
             ref_label = None
 
         return ref_label
+
+    def set_description(self):
+        """Set the description for the plot"""
+        description = 'Gregory Plot'
+        for i, model in enumerate(self.models):
+            description += f' {model}'
+            description += f' {self.exps[i]}'
+        if self.ref_models['t2m'] is not None or self.ref_models['net_toa'] is not None:
+            description += ' using as a reference'
+        if self.ref_models['t2m'] is not None:
+            description += f' {self.ref_models["t2m"]} {self.ref_exps["t2m"]} (2 m temperature)'
+        if self.ref_models['net_toa'] is not None:
+            description += f' {self.ref_models["net_toa"]} {self.ref_exps["net_toa"]} (net TOA).'
+        return description
 
     def plot_monthly(self, fig: plt.Figure, ax: plt.Axes,
                      data_labels: list = None, ref_label: str = None):

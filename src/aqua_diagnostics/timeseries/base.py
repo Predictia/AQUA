@@ -394,7 +394,7 @@ class PlotBaseMixin():
         self.logger.debug('Description: %s', description)
         return description
 
-    def save_plot(self, fig, var: str, description: str = None, region: str = None, rebuild: bool = True,
+    def save_plot(self, fig, var: str = None, description: str = None, region: str = None, rebuild: bool = True,
                   outputdir: str = './', dpi: int = 300, format: str = 'png', diagnostic: str = None):
         """
         Save the plot to a file.
@@ -421,8 +421,9 @@ class PlotBaseMixin():
         metadata = {"Description": description}
         save_dict = {'metadata': metadata,
                      'diagnostic_product': diagnostic,
-                     'var': var,
                      'dpi': dpi}
+        if var is not None:
+            save_dict.update({'var': var})
         if region is not None:
             save_dict.update({'region': region})
 
