@@ -150,7 +150,7 @@ def _init_get_eccodes_attr():
             A dictionary containing param, long_name, units, short_name
         """
         logger = log_configure(log_level=loglevel, log_name='eccodes')
-        nonlocal shortname, paramid, name, cfname, cfvarname, units
+        nonlocal shortname, paramid, name, cfname, cfvarname, units # noqa F824
 
         if isinstance(sn, int) or (isinstance(sn, str) and sn.isdigit()):
             sn = f'var{sn}'
@@ -221,7 +221,7 @@ def init_get_eccodes_shortname():
         Returns:
             A string containing the short_name
         """
-        nonlocal shortname, paramid
+        nonlocal shortname, paramid # noqa F824
 
         if not str(var).isdigit():
             return var
