@@ -296,7 +296,7 @@ class Regridder():
             loglevel=self.loglevel
         ).areas(target=bool(grid_name))
 
-    def weights(self, tgt_grid_name, regrid_method=DEFAULT_GRID_METHOD, nproc=1,
+    def weights(self, tgt_grid_name, regrid_method=None, nproc=1,
                 rebuild=False, reader_kwargs=None):
         """
         Load or generate regridding weights calling smmregrid
@@ -311,6 +311,8 @@ class Regridder():
         """
 
         # define regrid method
+        default_regrid_method = self.src_grid_dict.get('regrid_method', DEFAULT_GRID_METHOD)
+        regrid_method = regrid_method if regrid_method else default_regrid_method
         if regrid_method is not DEFAULT_GRID_METHOD:
             self.logger.info("Regrid method: %s", regrid_method)
 

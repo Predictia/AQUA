@@ -229,7 +229,7 @@ class Reader(FixerMixin, TimStatMixin):
             # generate source areas and expose them in the reader
             self.src_grid_area = self.regridder.areas(rebuild=rebuild, reader_kwargs=reader_kwargs)
             if self.fix:
-                # TODO: this should include the latitudes flipping fix. 
+                # TODO: this should include the latitudes flipping fix.
                 # TODO: No check is done on the areas coords vs data coords
                 self.src_grid_area = self._fix_area(self.src_grid_area)
 
@@ -239,6 +239,7 @@ class Reader(FixerMixin, TimStatMixin):
             self.regridder.weights(
                 rebuild=rebuild,
                 tgt_grid_name=self.tgt_grid_name,
+                regrid_method=self.regrid_method,
                 reader_kwargs=reader_kwargs)
 
         # generate destination areas, expost them and the associated space coordinates
