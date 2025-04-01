@@ -2,6 +2,19 @@
 Module to identify the nature of coordinates of an Xarray object.
 """
 
+from metpy.units import units
+
+# Define the target dimensionality (pressure)
+pressure_dim = units.pascal.dimensionality
+
+# Function to check if a unit is a pressure unit
+def is_isobaric(unit):
+    """Check if a unit is a pressure unit."""
+    if unit is None:
+        return False
+    if unit in units:
+        return units(unit).dimensionality == pressure_dim
+
 class CoordIdentifier():
     """
     Class to identify the nature of coordinates of an Xarray object.
@@ -9,7 +22,7 @@ class CoordIdentifier():
     by inspecting the attributes of the coordinates provided by the user.
     """
 
-    def __init__(self, coords):  
+    def __init__(self, coords):
         """
         Constructor of the CoordIdentifier class.
         """
@@ -19,36 +32,39 @@ class CoordIdentifier():
         self.coord_dict = {
             "latitude": None,
             "longitude": None,
-            "time": None
+            "time": None,
+            "isobaric": None
         }
 
     def identify_coords(self):
         """
         Identify the coordinates of the Xarray object.
         """
-        for coord in self.coords:
+        for name, coord in self.coords.items():
             if not self.coord_dict["latitude"]:
-                if self._identify_latitude(self.coords[coord]):
-                    self.coord_dict["latitude"] = self._get_horizontal_attributes(coord)
+                if self._identify_latitude(coord):
+                    self.coord_dict["latitude"] = self._get_attributes(coord)
             if not self.coord_dict["longitude"]:
-                if self._identify_longitude(self.coords[coord]):
-                    self.coord_dict["longitude"] = self._get_horizontal_attributes(coord)
+                if self._identify_longitude(coord):
+                    self.coord_dict["longitude"] = self._get_attributes(coord)
+            if not self.coord_dict["isobaric"]:
+                if self._identify_isobaric(coord):
+                    self.coord_dict["isobaric"] = self._get_attributes(coord)
             if not self.coord_dict["time"]:
-                time = self._identify_time(coord)
+                time = self._identify_time(name)
                 if time:
                     self.coord_dict["time"] = time
 
         return self.coord_dict
     
-    def _get_horizontal_attributes(self, coord):
+    def _get_attributes(self, coord):
         """
         Get the attributes of the coordinate.
         """
-
-        coord_range = (self.coords[coord].values.min(),  self.coords[coord].values.max())
-        direction = "increasing" if coord_range[1] > coord_range[0] else "decreasing"
-        return {'name': coord,
-                'units': self.coords[coord].attrs.get('units', None),
+        coord_range = (coord.values.min(),  coord.values.max())
+        direction = "increasing" if coord.values[-1] > coord.values[0] else "decreasing"
+        return {'name': coord.name,
+                'units': coord.attrs.get('units', None),
                 'direction': direction,
                 'range': coord_range}      
 
@@ -57,7 +73,7 @@ class CoordIdentifier():
         """
         Identify the latitude coordinate of the Xarray object.
         """
-        if coord.name in ["latitude", "lat"]:
+        if coord.name in ["latitude", "lat", "nav_lat"]:
             return True
         if coord.attrs.get("axis") == "Y":
             return True
@@ -70,7 +86,7 @@ class CoordIdentifier():
         """
         Identify the longitude coordinate of the Xarray object.
         """
-        if coord.name in ["longitude", "lon"]:
+        if coord.name in ["longitude", "lon", "nav_lon"]:
             return True
         if coord.attrs.get("axis") == "X":
             return True
@@ -86,6 +102,17 @@ class CoordIdentifier():
         if coord in ["time", "valid_time"]:
             return coord
         return None
-
+    
+    @staticmethod
+    def _identify_isobaric(coord):
+        """
+        Identify the isobaric coordinate of the Xarray object.
+        """
+        if coord.name in ["plev"]:
+            return True
+        if is_isobaric(coord.attrs.get("units")):
+            return True
+        return False
+    
     
 
