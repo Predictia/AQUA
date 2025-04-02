@@ -106,9 +106,11 @@ def test_pdf_metadata():
     """Test the add_pdf_metadata function"""
     # Generate a test figure from a random xarray DataArray
     da = xr.DataArray(np.random.rand(18, 36), dims=['lat', 'lon'], coords={'lon': np.linspace(0, 360, 36),
-                                                                          'lat': np.linspace(-90, 90, 18)})
-    plot_single_map(da, title='Test', save=True, filename='test', format='pdf', loglevel=loglevel)
+                                                                           'lat': np.linspace(-90, 90, 18)})
+    fig, _ = plot_single_map(da, title='Test', save=True, filename='test', format='pdf',
+                             return_fig=True, loglevel=loglevel)
 
+    fig.savefig('./test.pdf')
     # Test the function
     add_pdf_metadata(filename='./test.pdf', metadata_value='Test',
                      metadata_name='/Test description', loglevel=loglevel)
