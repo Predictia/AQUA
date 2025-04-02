@@ -1,6 +1,6 @@
 import pytest
 import os
-
+import cartopy.crs as ccrs
 from aqua import Reader
 from aqua.graphics import plot_single_map, plot_single_map_diff
 from aqua.graphics import plot_timeseries, plot_seasonalcycle
@@ -23,6 +23,7 @@ class TestMaps:
         """
         plot_data = self.data["sst"].isel(time=0).aqua.regrid()
         fig, ax = plot_single_map(data=plot_data,
+                                  proj=ccrs.PlateCarree(),
                                   nlevels=5,
                                   vmin=-2.0,
                                   vmax=30.0,
