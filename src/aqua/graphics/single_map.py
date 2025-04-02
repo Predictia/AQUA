@@ -25,7 +25,8 @@ def plot_single_map(data: xr.DataArray,
                     proj: ccrs.Projection = ccrs.Robinson(), extent=None,
                     style=None, figsize=(11, 8.5), nlevels=11,
                     vmin=None, vmax=None, cmap='RdBu_r', cbar_label=None,
-                    title=None, transform_first=True, cyclic_lon=True,
+                    title=None, transform_first=False, cyclic_lon=True,
+                    return_fig=False,
                     loglevel='WARNING',  **kwargs):
     """
     Plot contour or pcolormesh map of a single variable. By default the contour map is plotted.
@@ -45,8 +46,9 @@ def plot_single_map(data: xr.DataArray,
         cmap (str, optional):        Colormap. Defaults to 'RdBu_r'.
         cbar_label (str, optional):  Colorbar label. Defaults to None.
         title (str, optional):       Title of the figure. Defaults to None.
-        transform_first (bool, optional): If True, transform the data before plotting. Defaults to True.
+        transform_first (bool, optional): If True, transform the data before plotting. Defaults to False.
         cyclic_lon (bool, optional): If True, add cyclic longitude. Defaults to True.
+        return_fig (bool, optional): If True, return the figure and axes. Defaults to False.
         loglevel (str, optional):    Log level. Defaults to 'WARNING'.
 
     Keyword Args:
@@ -96,14 +98,26 @@ def plot_single_map(data: xr.DataArray,
 
     # Plot the data
     if contour:
-        cs = data.plot.contourf(ax=ax,
-                                transform=ccrs.PlateCarree(),
-                                cmap=cmap,
-                                vmin=vmin, vmax=vmax,
-                                levels=levels,
-                                extend='both',
-                                transform_first=transform_first,
-                                add_colorbar=False)
+        try:
+            cs = data.plot.contourf(ax=ax,
+                                    transform=ccrs.PlateCarree(),
+                                    cmap=cmap,
+                                    vmin=vmin, vmax=vmax,
+                                    levels=levels,
+                                    extend='both',
+                                    transform_first=transform_first,
+                                    add_colorbar=False)
+        except ValueError as e:
+            logger.error("Cannot plot contourf: %s", e)
+            logger.warning(f"Trying with transform_first={not transform_first}")
+            cs = data.plot.contourf(ax=ax,
+                                    transform=ccrs.PlateCarree(),
+                                    cmap=cmap,
+                                    vmin=vmin, vmax=vmax,
+                                    levels=levels,
+                                    extend='both',
+                                    transform_first=not transform_first,
+                                    add_colorbar=False)
     else:
         cs = data.plot.pcolormesh(ax=ax,
                                   transform=ccrs.PlateCarree(),
@@ -163,13 +177,15 @@ def plot_single_map(data: xr.DataArray,
     ax.set_ylabel('Latitude [deg]')
 
     # Set title
-    title = set_map_title(data, title=kwargs.get('title', None), loglevel=loglevel)
+    title = set_map_title(data, title=title, loglevel=loglevel)
 
     if title:
         logger.debug("Setting title to %s", title)
         ax.set_title(title)
 
-    return fig, ax
+    if return_fig:
+        logger.debug("Returning figure and axes")
+        return fig, ax
 
 
 def plot_single_map_diff(data: xr.DataArray,
