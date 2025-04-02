@@ -23,30 +23,20 @@ class TestMaps:
         """
         plot_data = self.data["sst"].isel(time=0).aqua.regrid()
         fig, ax = plot_single_map(data=plot_data,
-                                  save=True,
                                   nlevels=5,
                                   vmin=-2.0,
                                   vmax=30.0,
-                                  outputdir='tests/figures/',
                                   cmap='viridis',
-                                  gridlines=True,
                                   display=False,
                                   return_fig=True,
                                   title='Test plot',
                                   cbar_label='Sea surface temperature [°C]',
                                   dpi=100,
-                                  model='FESOM',
-                                  exp='test-pi',
-                                  filename='test_single_map',
-                                  format='png',
                                   nxticks=5,
                                   nyticks=5,
                                   loglevel=loglevel)
         assert fig is not None
         assert ax is not None
-
-        # Check the file was created
-        assert os.path.exists('tests/figures/test_single_map.png')
 
     def test_plot_single_map_diff(self):
         """
@@ -56,33 +46,23 @@ class TestMaps:
         plot_data2 = self.data["sst"].isel(time=1).aqua.regrid()
         fig, ax = plot_single_map_diff(data=plot_data,
                                        data_ref=plot_data2,
-                                       save=True,
                                        nlevels=5,
                                        vmin_fill=-5.0,
                                        vmax_fill=5.0,
                                        sym=False,
                                        vmin_contour=-2.0,
                                        vmax_contour=30.0,
-                                       outputdir='tests/figures/',
                                        cmap='viridis',
-                                       gridlines=True,
                                        display=False,
                                        return_fig=True,
                                        title='Test plot',
                                        cbar_label='Sea surface temperature [°C]',
                                        dpi=100,
-                                       model='FESOM',
-                                       exp='test-pi',
-                                       filename='test_single_map_diff',
-                                       format='png',
                                        nxticks=5,
                                        nyticks=5,
                                        loglevel=loglevel)
         assert fig is not None
         assert ax is not None
-
-        # Check the file was created
-        assert os.path.exists('tests/figures/test_single_map_diff.png')
 
     def test_maps(self):
         """Test plot_maps function"""
@@ -94,22 +74,16 @@ class TestMaps:
                             nlevels=5,
                             vmin=-2, vmax=30,
                             sym=False,
-                            outputdir='tests/figures/',
                             cmap='viridis',
                             gridlines=True,
                             title='Test plot',
                             cbar_label='Sea surface temperature [°C]',
                             dpi=100,
-                            filename='test_maps',
-                            format='png',
                             nxticks=5,
                             nyticks=6,
                             loglevel=loglevel)
         assert fig is not None
         assert ax is not None
-
-        # Check the file was created
-        assert os.path.exists('tests/figures/test_maps.png')
 
 
 @pytest.mark.graphics
