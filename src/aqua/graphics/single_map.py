@@ -229,9 +229,12 @@ def plot_single_map_diff(data: xr.DataArray, data_ref: xr.DataArray,
     # Evaluate the difference
     diff_map = data - data_ref
 
+    if np.allclose(diff_map, 0):
+        logger.warning("The difference map is zero or constant, skipping contour plot.")
+        kwargs['contour'] = False
+
     fig, ax = plot_single_map(diff_map, cyclic_lon=cyclic_lon,
                               proj=proj, extent=extent,
-                              contour=kwargs.get('contour', True),
                               sym=sym, vmin=vmin_fill, vmax=vmax_fill,
                               loglevel=loglevel, return_fig=True, **kwargs)
 
