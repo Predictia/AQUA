@@ -26,8 +26,7 @@ def plot_single_map(data: xr.DataArray,
                     style=None, figsize=(11, 8.5), nlevels=11,
                     vmin=None, vmax=None, cmap='RdBu_r', cbar_label=None,
                     title=None, transform_first=False, cyclic_lon=True,
-                    return_fig=False,
-                    loglevel='WARNING',  **kwargs):
+                    return_fig=False, loglevel='WARNING',  **kwargs):
     """
     Plot contour or pcolormesh map of a single variable. By default the contour map is plotted.
 
@@ -188,15 +187,13 @@ def plot_single_map(data: xr.DataArray,
         return fig, ax
 
 
-def plot_single_map_diff(data: xr.DataArray,
-                         data_ref: xr.DataArray,
-                         vmin_fill=None, vmax_fill=None,
-                         vmin_contour=None, vmax_contour=None,
-                         save=False, display=True,
-                         sym_contour=False, sym=True,
-                         outputdir='.', filename='map.png',
-                         title=None, loglevel='WARNING',
-                         **kwargs):
+def plot_single_map_diff(data: xr.DataArray, data_ref: xr.DataArray,
+                         proj: ccrs.Projection = ccrs.Robinson(), extent: list = None,
+                         vmin_fill: float = None, vmax_fill: float = None,
+                         vmin_contour: float = None, vmax_contour: float = None,
+                         sym_contour: bool = False, sym: bool = True,
+                         cyclic_lon: bool = True, return_fig: bool = False,
+                         title: str = None, loglevel: str = 'WARNING', **kwargs):
     """
     Plot the difference of data-data_ref as map and add the data
     as a contour plot.
@@ -204,23 +201,23 @@ def plot_single_map_diff(data: xr.DataArray,
     Args:
         data (xr.DataArray):       Data to plot.
         data_ref (xr.DataArray):   Reference data to plot the difference.
+        proj (cartopy.crs.Projection, optional): Projection to use. Defaults to PlateCarree.
+        extent (list, optional):     Extent of the map to limit the projection. Defaults to None.
         vmin_fill (float, optional): Minimum value for the colorbar of the fill.
         vmax_fill (float, optional): Maximum value for the colorbar of the fill.
         vmin_contour (float, optional): Minimum value for the colorbar of the contour.
         vmax_contour (float, optional): Maximum value for the colorbar of the contour.
-        save (bool, optional):     If True, save the figure. Defaults to False.
-        display (bool, optional):  If True, display the figure. Defaults to True.
-        sym_contour (bool, optional): If True, set the contour levels to be symmetrical.
-                                      Default to False
-        sym (bool, optional):      If True, set the colorbar for the diff to be symmetrical.
-                                   Default to True
-        outputdir (str, optional): Output directory. Defaults to ".".
-        filename (str, optional):  Filename. Defaults to 'map.png'.
+        sym_contour (bool, optional): If True, set the contour levels to be symmetrical.  Default to False
+        sym (bool, optional):      If True, set the colorbar for the diff to be symmetrical. Default to True
         title (str, optional):     Title of the figure. Defaults to None.
+        cyclic_lon (bool, optional): If True, add cyclic longitude. Defaults to True.
+        return_fig (bool, optional): If True, return the figure and axes. Defaults to False.
         loglevel (str, optional):  Log level. Defaults to 'WARNING'.
         **kwargs:                  Keyword arguments for plot_single_map.
                                    Check the docstring of plot_single_map.
-                                   return_fig will be used to return the figure and axes.
+
+    Keyword Args:
+        contour (bool, optional):  Plot the difference as contour. False to plot a pcolormesh
 
     Raise:
         ValueError: If data or data_ref is not a DataArray.
@@ -228,92 +225,52 @@ def plot_single_map_diff(data: xr.DataArray,
     logger = log_configure(loglevel, 'plot_single_map_diff')
 
     if isinstance(data_ref, xr.DataArray) is False or isinstance(data, xr.DataArray) is False:
-        raise ValueError("data and data_ref must be a DataArray")
+        raise ValueError("Both data and data_ref must be an xarray.DataArray")
 
-    contour = kwargs.get('contour', True)
-
-    # Plot the difference
+    # Evaluate the difference
     diff_map = data - data_ref
 
-    if np.allclose(diff_map, 0):
-        logger.warning("The difference map is zero or constant, skipping contour plot.")
-        contour = False  # Disable contour
+    fig, ax = plot_single_map(diff_map, cyclic_lon=cyclic_lon,
+                              proj=proj, extent=extent,
+                              contour=kwargs.get('contour', True),
+                              sym=sym, vmin=vmin_fill, vmax=vmax_fill,
+                              loglevel=loglevel, return_fig=True, **kwargs)
 
-    return_main_fig = kwargs.get('return_fig', False)
+    logger.debug("Plotting the map")
+    data = data.load(keep_attrs=True)
 
-    for key in ['return_fig', 'contour']:
-        kwargs.pop(key, None) 
-
-    fig, ax = plot_single_map(diff_map, return_fig=True,
-                              contour=contour,  # Disable contour for the color map
-                              sym=sym,
-                              save=False, loglevel=loglevel,
-                              vmin=vmin_fill, vmax=vmax_fill,
-                              **kwargs)
-
-    logger.info("Plotting the map")
-
-    cyclic_lon = kwargs.get('cyclic_lon', True)
     if cyclic_lon:
-        logger.info("Adding cyclic longitude to the difference map")
+        logger.debug("Adding cyclic longitude to the difference map")
         try:
             data = add_cyclic_lon(data)
         except Exception as e:
             logger.error("Cannot add cyclic longitude: %s", e)
-            logger.warning("Cyclic longitude can be set to False with the cyclic_lon kwarg")
+            logger.warning("Cyclic longitude can be set to False with cyclic_lon")
 
-    if contour:
-        logger.info("Plotting the map as contour")
+    logger.debug("Plotting the map as contour")
 
-        # Evaluate vmin and vmax of the contour
-        if vmin_contour is None or vmax_contour is None:
-            vmin_contour, vmax_contour = evaluate_colorbar_limits(maps=[data],
-                                                                  sym=sym_contour)
-        else:
-            if sym_contour:
-                logger.warning("sym_contour=True, vmin_map and vmax_map given will be ignored")
-                vmin_contour, vmax_contour = evaluate_colorbar_limits(maps=[data],
-                                                                      sym=sym_contour)
+    # Evaluate vmin and vmax of the contour
+    if vmin_contour is None or vmax_contour is None:
+        vmin_contour, vmax_contour = evaluate_colorbar_limits(maps=[data], sym=sym_contour)
+    else:
+        if sym_contour:
+            logger.warning("sym_contour=True, vmin_map and vmax_map given will be ignored")
+            vmin_contour, vmax_contour = evaluate_colorbar_limits(maps=[data], sym=sym_contour)
 
-        logger.debug("Setting contour vmin to %s, vmax to %s", vmin_contour, vmax_contour)
+    logger.debug("Setting contour vmin to %s, vmax to %s", vmin_contour, vmax_contour)
 
-        ds = data.plot.contour(ax=ax,
-                               transform=ccrs.PlateCarree(),
-                               colors='k', levels=10,
-                               linewidths=0.5,
-                               vmin=vmin_contour, vmax=vmax_contour)
+    ds = data.plot.contour(ax=ax,
+                           transform=ccrs.PlateCarree(),
+                           vmin=vmin_contour, vmax=vmax_contour,
+                           levels=10, colors='k',
+                           linewidths=0.5)
 
-        fmt = {level: f"{level:.1e}" if (abs(level) < 0.1 or abs(level) > 1000) else f"{level:.1f}" for level in ds.levels}
-        ax.clabel(ds, fmt=fmt, fontsize=6, inline=True)
+    fmt = {level: f"{level:.1e}" if (abs(level) < 0.1 or abs(level) > 1000) else f"{level:.1f}" for level in ds.levels}
+    ax.clabel(ds, fmt=fmt, fontsize=6, inline=True)
 
     if title:
         logger.debug("Setting title to %s", title)
         ax.set_title(title)
 
-    if save:
-        logger.debug("Saving figure to %s", outputdir)
-        create_folder(outputdir, loglevel=loglevel)
-        plot_format = kwargs.get('format', 'pdf')
-        if filename.endswith('.png') or filename.endswith('.pdf'):
-            logger.debug("Format already set in the filename")
-        else:
-            filename = f"{filename}.{plot_format}"
-        logger.debug("Setting filename to %s", filename)
-
-        logger.info("Saving figure as %s/%s", outputdir, filename)
-        if contour:
-            dpi = kwargs.get('dpi', 300)
-        else:
-            dpi = kwargs.get('dpi', 100)
-            if dpi == 100:
-                logger.info("Setting dpi to 100 by default, use dpi kwarg to change it")
-
-        fig.savefig('{}/{}'.format(outputdir, filename),
-                    dpi=dpi, bbox_inches='tight')
-
-    if display is False:
-        logger.debug("Display is set to False, closing figure")
-        plt.close(fig)
-
-    if return_main_fig:
+    if return_fig:
         return fig, ax
