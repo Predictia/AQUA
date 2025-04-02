@@ -12,7 +12,6 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-
 from aqua.logger import log_configure
 from aqua.util import add_cyclic_lon, evaluate_colorbar_limits, create_folder
 from aqua.util import cbar_get_label, set_map_title
