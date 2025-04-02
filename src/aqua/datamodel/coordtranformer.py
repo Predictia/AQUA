@@ -23,7 +23,7 @@ TGT_COORDS = {
         "name": "lat",
         "standard_name": "latitude",
         "long_name": "latitude",
-        "direction": "decreasing",
+        "direction": "increasing",
         "units": "degrees_north",
         "axis": "Y",
     },
@@ -40,7 +40,7 @@ TGT_COORDS = {
         "standard_name": "air_pressure",
         "long_name": "pressure",
         "positive": "down",
-        "units": "hPa",
+        "units": "Pa",
         "axis": "Z",
     },
     "depth": {
@@ -162,11 +162,11 @@ class CoordTransformer():
                 self.logger.info("Renaming index %s to %s", index_name, new_index_name)
                 data = data.rename({index_name: new_index_name})
 
-            if tgt_coord['name'] in data.dims:
-                self.logger.info("Preserving original dimension %s and index.", src_coord['name'])
-                # unclear if this is fundamental
-                data = data.swap_dims({tgt_coord['name']: src_coord['name']})
-                #data = data.set_index({src_coord['name']: tgt_coord['name']})
+            # unclear if this is fundamental
+            # if tgt_coord['name'] in data.dims:
+            #   self.logger.info("Preserving original dimension %s and index.", src_coord['name'])
+            #   data = data.swap_dims({tgt_coord['name']: src_coord['name']})
+            #   data = data.set_index({src_coord['name']: tgt_coord['name']})
                 
             #data = data.rename({src_coord['name']: tgt_coord['name']})
             tgt_coord['bounds'] = f'{tgt_coord['name']}_bnds'
