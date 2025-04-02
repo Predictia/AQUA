@@ -45,11 +45,11 @@ class CoordIdentifier():
 
         # internal name definition for the coordinates
         self.coord_dict = {
-            "latitude": None,
-            "longitude": None,
-            "time": None,
-            "isobaric": None,
-            "depth": None
+            "latitude": [],
+            "longitude": [],
+            "time": [],
+            "isobaric": [],
+            "depth": []
         }
 
     def identify_coords(self):
@@ -58,20 +58,39 @@ class CoordIdentifier():
         """
         for name, coord in self.coords.items():
             self.logger.debug("Identifying coordinate: %s", name)
-            if not self.coord_dict["latitude"] and self._identify_latitude(coord):
-                    self.coord_dict["latitude"] = self._get_horizontal_attributes(coord)
-            if not self.coord_dict["longitude"] and self._identify_longitude(coord):
-                    self.coord_dict["longitude"] = self._get_horizontal_attributes(coord)
-            if not self.coord_dict["isobaric"] and self._identify_isobaric(coord):
-                    self.coord_dict["isobaric"] = self._get_vertical_attributes(coord)
-            if not self.coord_dict["depth"] and self._identify_depth(coord):
-                    self.coord_dict["depth"] = self._get_vertical_attributes(coord)
+            if self._identify_latitude(coord):
+                self.coord_dict["latitude"].append(self._get_horizontal_attributes(coord))
+            if self._identify_longitude(coord):
+                self.coord_dict["longitude"].append(self._get_horizontal_attributes(coord))
+            if self._identify_isobaric(coord):
+                self.coord_dict["isobaric"].append(self._get_vertical_attributes(coord))
+            if self._identify_depth(coord):
+                self.coord_dict["depth"].append(self._get_vertical_attributes(coord))
             # TODO: improve time detection
-            if not self.coord_dict["time"]:
-                time = self._identify_time(name)
-                if time:
-                    self.coord_dict["time"] = time
+            if self._identify_time(name):
+                self.coord_dict["time"].append({"name": name})
 
+        self.coord_dict = self._clean_coord_dict()
+
+        
+
+        return self.coord_dict
+    
+    def _clean_coord_dict(self):
+        """
+        Clean the coordinate dictionary.
+        Set to None the coordinates that are empty.
+        If multiple coordinates are found, keep only the first one and log an error
+        """
+        for key, value in self.coord_dict.items():
+            if len(value) == 0:
+                self.coord_dict[key] = None
+            elif len(value) == 1:
+                self.coord_dict[key] = value[0]
+            elif len(value) > 1:
+                self.logger.error("Multiple %s coordinates found: %s. Using the first one: %s",
+                                     key, [x['name'] for x in value], value[0]['name'])
+                self.coord_dict[key] = value[0]
         return self.coord_dict
     
     def _get_horizontal_attributes(self, coord):
@@ -81,9 +100,10 @@ class CoordIdentifier():
         coord_range = (coord.values.min(),  coord.values.max())
         direction = "increasing" if coord.values[-1] > coord.values[0] else "decreasing"
         return {'name': coord.name,
-                'units': coord.attrs.get('units', None),
+                'units': coord.attrs.get('units'),
                 'direction': direction,
-                'range': coord_range}    
+                'range': coord_range,
+                'bounds': coord.attrs.get('bounds')}    
 
     def _get_vertical_attributes(self, coord):
         """
@@ -91,13 +111,16 @@ class CoordIdentifier():
         """
         coord_range = (coord.values.min(),  coord.values.max())
         positive = coord.attrs.get('positive')
-        # TODO: check how set correctly the positive attribute
         if not positive:
-            positive = "down" if coord.values[0] > 0  else "up"
+            if is_isobaric(coord.attrs.get('units')):
+                positive = "down"
+            else:
+                positive = "down" if coord.values[0] > 0  else "up"
         return {'name': coord.name,
-                'units': coord.attrs.get('units', None),
+                'units': coord.attrs.get('units'),
                 'positive': positive,
-                'range': coord_range}  
+                'range': coord_range,
+                'bounds': coord.attrs.get('bounds')}  
 
     @staticmethod
     def _identify_latitude(coord):
@@ -105,6 +128,8 @@ class CoordIdentifier():
         Identify the latitude coordinate of the Xarray object.
         """
         if coord.name in LATITUDE:
+            return True
+        if coord.attrs.get("standard_name") == "latitude":
             return True
         if coord.attrs.get("axis") == "Y":
             return True
@@ -118,6 +143,8 @@ class CoordIdentifier():
         Identify the longitude coordinate of the Xarray object.
         """
         if coord.name in LONGITUDE:
+            return True
+        if coord.attrs.get("standard_name") == "longitude":
             return True
         if coord.attrs.get("axis") == "X":
             return True

@@ -13,10 +13,10 @@ def units_conversion_factor(from_unit_str, to_unit_str):
     """
     from_unit = units(from_unit_str)
     to_unit = units(to_unit_str)
-    return from_unit.to(to_unit).magnitude 
+    return from_unit.to(to_unit).magnitude
 
-# default target coords. 
-# name, direction, positive and units are checked 
+# default target coords.
+# name, direction, positive and units are checked
 # other attributes can be added
 TGT_COORDS = {
     "latitude": {
@@ -54,8 +54,7 @@ TGT_COORDS = {
 }
 
 
-
-class CoordTransator():
+class CoordTransformer():
     """
     Class to transform coordinates of an Xarray object.
     It aims at transforming the coordinates provided by the user into
@@ -85,6 +84,7 @@ class CoordTransator():
     def _info_grid(self, coords):
         """
         Identify the grid type of the Xarray object.
+        To be used to check if the axis direction has to be reversed. 
         Args: 
             coords (xr.Coordinates): Coordinates of the Xarray object.
         Returns:
@@ -154,6 +154,45 @@ class CoordTransator():
             self.logger.info("Renaming coordinate %s to %s",
                             src_coord['name'], tgt_coord['name'])
             data = data.rename({src_coord['name']: tgt_coord['name']})
+
+            # Ensure the AQUA dependent index is preserved
+            if f"idx_{src_coord['name']}" in data.coords:
+                index_name = f"idx_{src_coord['name']}"
+                new_index_name = f"idx_{tgt_coord['name']}"
+                self.logger.info("Renaming index %s to %s", index_name, new_index_name)
+                data = data.rename({index_name: new_index_name})
+
+            if tgt_coord['name'] in data.dims:
+                self.logger.info("Preserving original dimension %s and index.", src_coord['name'])
+                # unclear if this is fundamental
+                data = data.swap_dims({tgt_coord['name']: src_coord['name']})
+                #data = data.set_index({src_coord['name']: tgt_coord['name']})
+                
+            #data = data.rename({src_coord['name']: tgt_coord['name']})
+            tgt_coord['bounds'] = f'{tgt_coord['name']}_bnds'
+            data = self._rename_bounds(data, src_coord, tgt_coord)
+        return data
+    
+    def _rename_bounds(self, data, src_coord, tgt_coord):
+        """
+        Rename bounds if necessary.
+
+        Args:
+            data (xr.Dataset or xr.DataArray): The Xarray object.
+            src_coord (dict): Source coordinate dictionary.
+            tgt_coord (dict): Target coordinate dictionary.
+        
+        Returns:
+            xr.Dataset or xr.DataArray: The Xarray object with renamed bounds.
+        """
+        if src_coord['bounds'] is not None:
+            if src_coord['bounds'] in data:
+                self.logger.info("Renaming bounds %s to %s",
+                                src_coord['bounds'], tgt_coord['bounds'])
+                data = data.rename({src_coord['bounds']: tgt_coord['bounds']})
+                data[tgt_coord['name']].attrs['bounds'] = tgt_coord['bounds']
+            else:
+                self.logger.warning("Bounds %s not found in data.", src_coord['bounds'])
         return data
 
     def reverse_coordinate(self, data, src_coord, tgt_coord):
@@ -199,8 +238,25 @@ class CoordTransator():
             self.logger.info("Converting units of coordinate %s from %s to %s",
                             src_coord['name'], src_coord['units'], tgt_coord['units'])
             factor = units_conversion_factor(src_coord['units'], tgt_coord['units'])
-            data = data.assign_coords({tgt_coord['name']: data[tgt_coord['name']]*factor})
+            if factor != 0:
+                self.logger.warning("Conversion factor is: %s ", factor)
+                data = data.assign_coords({tgt_coord['name']: data[tgt_coord['name']]*factor})
+                tgt_coord['bounds'] = f'{tgt_coord['name']}_bnds'
+                data = self._convert_bounds(data, src_coord, tgt_coord, factor)
             data[tgt_coord['name']].attrs['units'] = tgt_coord['units']
+        return data
+    
+    def _convert_bounds(self, data, src_coord, tgt_coord, factor):
+        """
+        Convert units bounds of the coordinate.
+        """
+        if 'bounds' not in tgt_coord:
+            return data
+        if tgt_coord['bounds'] in data:
+            self.logger.info("Converting bounds of coordinate %s from %s to %s",
+                            src_coord['name'], src_coord['units'], tgt_coord['units'])
+            data[tgt_coord['bounds']] = data[tgt_coord['bounds']]*factor
+            data[tgt_coord['bounds']].attrs['units'] = tgt_coord['units']
         return data
 
     def assign_attributes(self, data, tgt_coord):
@@ -208,7 +264,7 @@ class CoordTransator():
         Assign attributes to the coordinate.
         """
         for key, value in tgt_coord.items():
-            if key not in['name', 'units', 'positive', 'direction']:
+            if key not in['name', 'units', 'positive', 'direction', 'bounds']:
                 if key not in data.coords[tgt_coord['name']].attrs:
                     self.logger.info("Adding attribute %s to coordinate %s", key, tgt_coord['name'])
                     data.coords[tgt_coord['name']].attrs[key] = value

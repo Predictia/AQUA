@@ -1,7 +1,7 @@
 from .coordidentifier import CoordIdentifier
-from .coordtransator import CoordTransator
+from .coordtranformer import CoordTransformer
 
 __all__ = [
     "CoordIdentifier",
-    "CoordTransator"
+    "CoordTransformer"
 ]
