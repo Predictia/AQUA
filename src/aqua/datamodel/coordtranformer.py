@@ -1,8 +1,11 @@
 """Module to transform coordinates of an Xarray object."""
 
+import os
 import xarray as xr
 from metpy.units import units
 from aqua.logger import log_configure
+from aqua.util import load_yaml
+from aqua import __path__ as pypath
 from .coordidentifier import CoordIdentifier
 
 
@@ -18,40 +21,8 @@ def units_conversion_factor(from_unit_str, to_unit_str):
 # default target coords.
 # name, direction, positive and units are checked
 # other attributes can be added
-TGT_COORDS = {
-    "latitude": {
-        "name": "lat",
-        "standard_name": "latitude",
-        "long_name": "latitude",
-        "direction": "increasing",
-        "units": "degrees_north",
-        "axis": "Y",
-    },
-    "longitude": {
-        "name": "lon",
-        "standard_name": "longitude",
-        "long_name": "longitude",
-        "direction": "increasing",
-        "units": "degrees_east",
-        "axis": "X"
-    },
-    "isobaric": {
-        "name": "plev",
-        "standard_name": "air_pressure",
-        "long_name": "pressure",
-        "positive": "down",
-        "units": "Pa",
-        "axis": "Z",
-    },
-    "depth": {
-        "name": "depth",
-        "standard_name": "depth",
-        "long_name": "depth below sea level",
-        "positive": "down",
-        "units": "m",
-        "axis": "Z"
-    }
-}
+data_yaml = load_yaml(os.path.join(pypath[0], "datamodel", "aqua.yaml"))
+TGT_COORDS = data_yaml.get('data_model')
 
 
 class CoordTransformer():
