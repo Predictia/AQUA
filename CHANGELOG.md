@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.14.1):
 
 AQUA core complete list:
+- Refactor time handling: replacement of `datetime` objects and of `pd.Timestamp` lists (#1828)
 - Fix the `regrid_method` option in the Reader (#1859)
 - Add a GitHub Token for downloading ClimateDT catalogs (#1855)
 - Ignore `nonlocal` complaints by flake8 (#1855)
