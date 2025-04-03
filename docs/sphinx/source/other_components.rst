@@ -289,6 +289,9 @@ before calling the function. The function will then plot the map of the variable
 if no other option is provided, will adapt colorbar, title and labels to the attributes
 of the input DataArray.
 
+The function is built on top of the ``cartopy`` and ``matplotlib`` libraries,
+and it is possible to customize the plot with many options, including a different projection.
+
 In the following example we plot an sst map from the first timestep of ERA5 reanalysis:
 
 .. code-block:: python
@@ -296,11 +299,10 @@ In the following example we plot an sst map from the first timestep of ERA5 rean
     from aqua import Reader, plot_single_map
 
     reader = Reader(model='ERA5', exp='era5', source='monthly')
-    sst = reader.retrieve(var=["sst"])
-    sst_plot = sst["sst"].isel(time=0)
+    tos = reader.retrieve(var=["tos"])
+    tos_plot = tos["tos"].isel(time=0)
 
-    plot_single_map(sst_plot, title="Example of a custom title", filename="example",
-                    outputdir=".", format="png", dpi=300, save=True)
+    plot_single_map(tos_plot, title="Example of a custom title")
 
 This will produce the following plot:
 
