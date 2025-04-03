@@ -229,14 +229,15 @@ def plot_single_map_diff(data: xr.DataArray, data_ref: xr.DataArray,
     # Evaluate the difference
     diff_map = data - data_ref
 
-    if np.allclose(diff_map, 0):
-        logger.warning("The difference map is zero or constant, skipping contour plot.")
-        kwargs['contour'] = False
-
-    fig, ax = plot_single_map(diff_map, cyclic_lon=cyclic_lon,
-                              proj=proj, extent=extent,
-                              sym=sym, vmin=vmin_fill, vmax=vmax_fill,
-                              loglevel=loglevel, return_fig=True, **kwargs)
+    if np.array_equal(np.nan_to_num(data.values), np.nan_to_num(data_ref.values)):
+        logger.warning("The values are exactly the same (ignoring NaNs), no difference to plot")
+        fig = plt.figure(figsize=kwargs.get('figsize', (11, 8.5)))
+        ax = fig.add_subplot(111, projection=proj)
+    else:
+        fig, ax = plot_single_map(diff_map, cyclic_lon=cyclic_lon,
+                                  proj=proj, extent=extent,
+                                  sym=sym, vmin=vmin_fill, vmax=vmax_fill,
+                                  loglevel=loglevel, return_fig=True, **kwargs)
 
     logger.debug("Plotting the map")
     data = data.load(keep_attrs=True)
