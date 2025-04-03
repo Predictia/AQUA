@@ -323,7 +323,7 @@ class AquaFDBGenerator:
                 'forcing': forcing,
                 'start': self.config['data_start_date'][:4], #year only
                 'dashboard': {
-                    'menu': self.config['menu'] if 'menu' in self.config and self.config['menu'] else self.config['exp'],
+                    'menu': self.config.get('menu') or self.config['exp'],
                     'resolution_id': resolution_id,
                     'note': self.config.get('note')
                 }
