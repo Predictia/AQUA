@@ -140,6 +140,11 @@ class AquaFDBGenerator:
                 'chunks': '6h' if levtype == 'pl' else 'D',
                 'savefreq': 'h'
             },
+            "6-hourly": {
+                'time': '0000',
+                'chunks': '6h',
+                'savefreq': 'h'
+            },
             "daily": {
                 'time': "0000",
                 'chunks': "D",
