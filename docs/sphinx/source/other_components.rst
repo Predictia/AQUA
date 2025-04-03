@@ -321,12 +321,12 @@ The function takes as input two xarray.DataArray, with a single timestep.
 The function will plot as colormap or contour filled map the difference between the two input DataArray (the first one minus the second one).
 Additionally a contour line map is plotted with the first input DataArray, to show the original data.
 
-.. figure:: figures/teleconnections_ENSO_correlation_IFS-NEMO_ssp370_lra-r100-monthly_ERA5.png
+.. figure:: figures/single_map_diff_example.png
     :align: center
     :width: 100%
 
     Example of a ``plot_single_map_diff()`` output done with the :ref:`teleconnections`.
-    The map shows the correlation for the ENSO teleconnection between IFS-NEMO scenario run and ERA5 reanalysis.
+    The map shows the correlation for the ENSO teleconnection between ICON historical run and ERA5 reanalysis.
 
 Time series
 ^^^^^^^^^^^
