@@ -17,7 +17,7 @@ class TestMaps:
                         regrid="r200", fix=False, loglevel=loglevel)
         self.data = reader.retrieve(var='sst')
 
-    def test_plot_single_map(self):
+    def test_plot_single_map(self, tmp_path):
         """
         Test the plot_single_map function
         """
@@ -39,7 +39,10 @@ class TestMaps:
         assert fig is not None
         assert ax is not None
 
-    def test_plot_single_map_diff(self):
+        fig.savefig(tmp_path / 'test_plot_single_map.png')
+        assert os.path.exists(tmp_path / 'test_plot_single_map.png')
+
+    def test_plot_single_map_diff(self, tmp_path):
         """
         Test the plot_single_map_diff function
         """
@@ -65,7 +68,10 @@ class TestMaps:
         assert fig is not None
         assert ax is not None
 
-    def test_maps(self):
+        fig.savefig(tmp_path / 'test_plot_single_map_diff.png')
+        assert os.path.exists(tmp_path / 'test_plot_single_map_diff.png')
+
+    def test_maps(self, tmp_path):
         """Test plot_maps function"""
         plot_data = self.data["sst"].isel(time=0).aqua.regrid()
         plot_data2 = self.data["sst"].isel(time=1).aqua.regrid()
@@ -86,12 +92,16 @@ class TestMaps:
         assert fig is not None
         assert ax is not None
 
+        fig.savefig(tmp_path / 'test_plot_maps.png')
+        assert os.path.exists(tmp_path / 'test_plot_maps.png')
+
 
 @pytest.mark.graphics
 class TestTimeseries:
     """Basic tests for the Timeseries functions"""
 
     def setup_method(self):
+        """Setup method to retrieve data for testing"""
         model = 'IFS'
         exp = 'test-tco79'
         source = 'teleconnections'
@@ -102,7 +112,8 @@ class TestTimeseries:
         self.t1 = data[var].isel(lat=1, lon=1)
         self.t2 = data[var].isel(lat=10, lon=10)
 
-    def test_plot_timeseries(self):
+    def test_plot_timeseries(self, tmp_path):
+        """Test the plot_timeseries function"""
         t1_yearly = self.reader.timmean(self.t1, freq='YS', center_time=True)
         t2_yearly = self.reader.timmean(self.t2, freq='YS', center_time=True)
 
@@ -115,12 +126,13 @@ class TestTimeseries:
         assert fig is not None
         assert ax is not None
 
-        fig.savefig('tests/figures/test_timeseries.png')
+        fig.savefig(tmp_path / 'test_plot_timeseries.png')
 
         # Check the file was created
-        assert os.path.exists('tests/figures/test_timeseries.png')
+        assert os.path.exists(tmp_path / 'test_plot_timeseries.png')
 
-    def test_plot_seasonalcycle(self):
+    def test_plot_seasonalcycle(self, tmp_path):
+        """Test the plot_seasonalcycle function"""
         t1_seasonal = self.t1.groupby('time.month').mean('time')
         t2_seasonal = self.t2.groupby('time.month').mean('time')
 
@@ -133,10 +145,10 @@ class TestTimeseries:
         assert fig is not None
         assert ax is not None
 
-        fig.savefig('tests/figures/test_seasonalcycle.png')
+        fig.savefig(tmp_path / 'test_seasonalcycle.png')
 
         # Check the file was created
-        assert os.path.exists('tests/figures/test_seasonalcycle.png')
+        assert os.path.exists(tmp_path / 'test_seasonalcycle.png')
 
 
 @pytest.mark.graphics
@@ -153,20 +165,21 @@ class TestHovmoller:
 
         self.data = data[var]
 
-    def test_plot_hovmoller(self):
+    def test_plot_hovmoller(self, tmp_path):
+        """Test the plot_hovmoller function"""
         fig, ax = plot_hovmoller(data=self.data,
                                  return_fig=True,
-                                 outputdir='tests/figures/',
+                                 outputdir=tmp_path,
                                  save=True,
                                  loglevel=loglevel)
 
         assert fig is not None
         assert ax is not None
-        assert os.path.exists('tests/figures/hovmoller.pdf')
+        assert os.path.exists(tmp_path / 'hovmoller.pdf')
 
         fig2, ax2 = plot_hovmoller(data=self.data,
                                    return_fig=True,
-                                   outputdir='tests/figures/',
+                                   outputdir=tmp_path,
                                    filename='test_hovmoller2.png',
                                    format='png',
                                    cmap='RdBu_r',
@@ -181,12 +194,12 @@ class TestHovmoller:
 
         assert fig2 is not None
         assert ax2 is not None
-        assert os.path.exists('tests/figures/test_hovmoller2.png')
+        assert os.path.exists(tmp_path / 'test_hovmoller2.png')
 
         plot_hovmoller(data=self.data,
                        return_fig=False,
                        contour=False,
-                       outputdir='tests/figures/',
+                       outputdir=tmp_path,
                        filename='test_hovmoller3',
                        format='png',
                        cmap='RdBu_r',
@@ -195,7 +208,7 @@ class TestHovmoller:
                        dpi=300,
                        loglevel=loglevel)
 
-        assert os.path.exists('tests/figures/test_hovmoller3.png')
+        assert os.path.exists(tmp_path / 'test_hovmoller3.png')
 
     def test_plot_hovmoller_error(self):
 
