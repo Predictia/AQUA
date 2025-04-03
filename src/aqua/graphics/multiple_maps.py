@@ -8,23 +8,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 import os
-
 from aqua.logger import log_configure
 from aqua.util import plot_box, add_cyclic_lon, set_ticks
 from aqua.util import coord_names, evaluate_colorbar_limits
 from aqua.util import cbar_get_label, create_folder
+from .styles import ConfigStyle
 
 
-def plot_maps(maps: list = None,
-              titles: list = None,
-              contour=True,
-              save=False, sym=False,
-              figsize=(11, 8.5),
-              nlevels=11, outputdir='.',
-              cmap='RdBu_r',
-              gridlines=False,
-              display=True,
-              loglevel='WARNING',
+def plot_maps(maps: list,
+              contour: bool = True, sym: bool = False,
+              proj: ccrs.Projection = ccrs.Robinson(), extent: list = None,
+              style=None, figsize=(11, 8.5),
+              vmin: float = None, vmax: float = None, nlevels: int = 11,
+              title: str = None, titles: list = None,
+              cmap='RdBu_r', cbar_label: str = None,
+              transform_first=False, cyclic_lon=True,
+              return_fig=False, loglevel='WARNING',
               **kwargs):
     """
     Plot multiple maps.
@@ -34,6 +33,7 @@ def plot_maps(maps: list = None,
 
     Args:
         maps (list):          list of xarray.DataArray objects
+        contour (bool,opt):   If True, plot a contour map, otherwise a pcolormesh. Defaults to True.
         titles (list,opt):    list of titles for the maps
         contour (bool,opt):   If True, plot a contour map,otherwise a pcolormesh. Defaults to True.
         save (bool,opt):      save the figure, default is False
@@ -218,26 +218,6 @@ def plot_maps(maps: list = None,
     # Add a super title
     if title is not None:
         fig.suptitle(title, fontsize=16)
-
-    # Save the figure
-    if save is True:
-        logger.debug('Saving figure to %s', outputdir)
-        create_folder(outputdir, loglevel=loglevel)
-        filename = kwargs.get('filename', 'maps')
-        plot_format = kwargs.get('format', 'pdf')
-        filename = f"{filename}.{plot_format}"
-
-        logger.info("Saving figure to %s/%s", outputdir, filename)
-
-        if contour:
-            dpi = kwargs.get('dpi', 300)
-        else:
-            dpi = kwargs.get('dpi', 100)
-            if dpi == 100:
-                logger.info("Setting dpi to 100 by default, use dpi kwarg to change it")
-
-        fig.savefig('{}/{}'.format(outputdir, filename),
-                    dpi=dpi, bbox_inches='tight')
 
     if display is False:
         logger.debug("Display is set to False, closing figure")
