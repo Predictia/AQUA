@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.14.1):
 
 AQUA core complete list:
+- Refactor time handling: replacement of `datetime` objects and of `pd.Timestamp` lists (#1828)
 - WOCE-ARGO ocean dataset grids and fixes added (#1846)
 - Upgrade of base container to FDB 5.15.11 (#1845)
 - Matplotlib styles can be set in the configuration file (#1729)
@@ -33,7 +34,6 @@ Workflow modifications:
 - `push_analysis.sh`: now has an option to rsync the figures to a specified location. Extra flags have been added (see Dashboard section in the documentation).
 
 AQUA core complete list:
-- Refactor Time Handling: replacement of datetime objects and of pd.Timestamp lists (#1828)
 - Updated AQUA development container to micromamba 2.0.7 (#1834)
 - Updated base container to eccodes 2.40 (#1833)
 - Added Healpix zoom 7 grid for ICON R02B08 native oceanic grid (#1823)
