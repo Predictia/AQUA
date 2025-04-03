@@ -24,17 +24,23 @@ class TestMaps:
         plot_data = self.data["sst"].isel(time=0).aqua.regrid()
         fig, ax = plot_single_map(data=plot_data,
                                   proj=ccrs.PlateCarree(),
+                                  contour=False,
+                                  extent=[-180, 180, -90, 90],
                                   nlevels=5,
                                   vmin=-2.0,
                                   vmax=30.0,
+                                  sym=True,
                                   cmap='viridis',
                                   display=False,
                                   return_fig=True,
+                                  transform_first=False,
                                   title='Test plot',
                                   cbar_label='Sea surface temperature [°C]',
                                   dpi=100,
                                   nxticks=5,
                                   nyticks=5,
+                                  ticks_rounding=1,
+                                  cbar_ticks_rounding=1,
                                   loglevel=loglevel)
         assert fig is not None
         assert ax is not None
@@ -56,6 +62,7 @@ class TestMaps:
                                        sym=False,
                                        vmin_contour=-2.0,
                                        vmax_contour=30.0,
+                                       sym_contour=True,
                                        cmap='viridis',
                                        display=False,
                                        return_fig=True,
@@ -70,6 +77,19 @@ class TestMaps:
 
         fig.savefig(tmp_path / 'test_plot_single_map_diff.png')
         assert os.path.exists(tmp_path / 'test_plot_single_map_diff.png')
+
+    def test_plot_single_map_no_diff(self):
+        """
+        Test the plot_single_map_diff function
+        """
+        plot_data = self.data["sst"].isel(time=0).aqua.regrid()
+        plot_data2 = plot_data.copy()
+
+        fig, ax = plot_single_map_diff(data=plot_data, return_fig=True,
+                                       data_ref=plot_data2, loglevel=loglevel)
+
+        assert fig is not None
+        assert ax is not None
 
     def test_maps(self, tmp_path):
         """Test plot_maps function"""
