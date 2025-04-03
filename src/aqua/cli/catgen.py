@@ -43,7 +43,7 @@ class AquaFDBGenerator:
         # get the templates and config files from the AQUA installation
         self.catgendir = os.path.join(ConfigPath().configdir, 'catgen')
         self.logger.debug("Reading configuration files from %s", self.catgendir)
-        self.template = self.load_jinja_template(os.path.join(self.catgendir, f"{data_portfolio}.j2"))
+        self.template = self.load_jinja_template(os.path.join(self.catgendir, "catalog_entry.j2"))
         self.matching_grids = load_yaml(os.path.join(self.catgendir, "matching_grids.yaml"))
 
         # config options
