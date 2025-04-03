@@ -102,7 +102,7 @@ def test_label():
 
 
 @pytest.mark.graphics
-def test_pdf_metadata():
+def test_pdf_metadata(tmp_path):
     """Test the add_pdf_metadata function"""
     # Generate a test figure from a random xarray DataArray
     da = xr.DataArray(np.random.rand(18, 36), dims=['lat', 'lon'], coords={'lon': np.linspace(0, 360, 36),
@@ -110,15 +110,16 @@ def test_pdf_metadata():
     fig, _ = plot_single_map(da, title='Test', filename='test', format='pdf',
                              return_fig=True, loglevel=loglevel)
 
-    fig.savefig('./test.pdf')
+    fig.savefig(tmp_path / 'test.pdf')
+    filename = str(tmp_path / 'test.pdf')
     # Test the function
-    add_pdf_metadata(filename='./test.pdf', metadata_value='Test',
+    add_pdf_metadata(filename=filename, metadata_value='Test',
                      metadata_name='/Test description', loglevel=loglevel)
-    add_pdf_metadata(filename='./test.pdf', metadata_value='Test caption',
+    add_pdf_metadata(filename=filename, metadata_value='Test caption',
                      loglevel=loglevel)
 
     # Open the PDF and check the metadata
-    pdf_reader = PdfReader("./test.pdf")
+    pdf_reader = PdfReader(filename)
     metadata = pdf_reader.metadata
 
     assert metadata['/Test description'] == 'Test', "Old metadata should be kept"
