@@ -314,6 +314,9 @@ class AquaFDBGenerator:
         main_yaml['sources'][self.config['exp']] = {
             'description': self.description,
             'metadata': {
+                'author': self.config['author'],
+                'maintainer': self.config.get('maintainer', 'not specified'),
+                'machine': self.config['machine'],
                 'expid': self.config['expver'],
                 'resolution_atm': self.atm_grid,
                 'resolution_oce': self.ocean_grid,
