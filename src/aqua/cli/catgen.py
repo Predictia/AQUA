@@ -47,6 +47,9 @@ class AquaFDBGenerator:
         self.matching_grids = load_yaml(os.path.join(self.catgendir, "matching_grids.yaml"))
 
         # config options
+        self.author = self.config.get('author')
+        if not self.author: 
+            raise ValueError("Please specify the author of the experiment")
         self.dp_dir_path = self.config["repos"]["data-portfolio_path"]
         self.catalog_dir_path = self.config["repos"]["Climate-DT-catalog_path"]
         self.model = self.config["model"].lower()
@@ -319,8 +322,8 @@ class AquaFDBGenerator:
         main_yaml['sources'][self.config['exp']] = {
             'description': self.description,
             'metadata': {
-                'author': self.config['author'],
-                'maintainer': self.config.get('maintainer', 'not specified'),
+                'author': self.author,
+                'maintainer': self.config.get('maintainer') or 'not specified',
                 'machine': self.config['machine'],
                 'expid': self.config['expver'],
                 'resolution_atm': self.atm_grid,
