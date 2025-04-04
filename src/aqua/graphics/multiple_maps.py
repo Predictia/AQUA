@@ -69,12 +69,9 @@ def plot_maps(maps: list,
     fig = plt.figure(figsize=figsize)
 
     # Evaluate min and max values for the common colorbar
-    if vmin is None or vmax is None:
+    if vmin is None or vmax is None or sym:
         vmin, vmax = evaluate_colorbar_limits(maps=maps, sym=sym)
-    else:
-        if sym:
-            logger.warning("sym=True, vmin and vmax given will be ignored")
-            vmin, vmax = evaluate_colorbar_limits(maps=maps, sym=sym)
+
     logger.debug("Setting vmin to %s, vmax to %s", vmin, vmax)
 
     for i in range(len(maps)):
@@ -190,20 +187,12 @@ def plot_maps_diff(maps: list,
     fig = plt.figure(figsize=figsize)
 
     # Evaluate min and max values for the common colorbar
-    if vmin_fill is None or vmax_fill is None:
+    if vmin_fill is None or vmax_fill is None or sym:
         vmin_fill, vmax_fill = evaluate_colorbar_limits(maps=diffs, sym=sym)
-    else:
-        if sym:
-            logger.warning("sym=True, vmin_fill and vmax_fill given will be ignored")
-            vmin_fill, vmax_fill = evaluate_colorbar_limits(maps=diffs, sym=sym)
     logger.debug("Setting vmin_fill to %s, vmax_fill to %s", vmin_fill, vmax_fill)
 
-    if vmin_contour is None or vmax_contour is None:
+    if vmin_contour is None or vmax_contour is None or sym_contour:
         vmin_contour, vmax_contour = evaluate_colorbar_limits(maps=maps, sym=sym_contour)
-    else:
-        if sym_contour:
-            logger.warning("sym_contour=True, vmin_contour and vmax_contour given will be ignored")
-            vmin_contour, vmax_contour = evaluate_colorbar_limits(maps=maps, sym=sym_contour)
     logger.debug("Setting vmin_contour to %s, vmax_contour to %s", vmin_contour, vmax_contour)
 
     for i in range(len(diffs)):
