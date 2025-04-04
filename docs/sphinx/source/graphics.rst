@@ -122,12 +122,27 @@ Multiple maps
 
 A function called ``plot_maps()`` is provided with many options to customize the plot.
 The function takes as input a list of xarray.DataArray, each one representing a map.
-It is built to plot multiple maps in a single figure, with a shared colorbar.
-This can be userdefined or evaluated automatically.
-Figsize can be adapted and the number of plots and their position is automatically evaluated.
+It is built on top of ``plot_single_map()`` with which it shares many options.
+The maps are plotted with the possibility to set individual titles and with a shared colorbar.
+Figsize is automatically adapted and the number of plots and their position is automatically evaluated.
 
 .. figure:: figures/maps_example.png
     :align: center
     :width: 100%
 
     Example of a ``plot_maps()`` output.
+
+Multiple maps with differences
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A function called ``plot_maps_diff()`` is provided with many options to customize the plot.
+The function is built as an expansion of the ``plot_maps()`` function, so that arguments and options are similar.
+The function takes as input two lists of xarray.DataArray, one called ``maps`` and the other ``maps_ref``.
+similarly to the ``plot_single_map_diff()`` function, the first list is plotted as contour lines and the difference
+between the two lists is plotted as filled contours.
+
+.. figure:: figures/maps_diff_example.png
+    :align: center
+    :width: 100%
+
+    Example of a ``plot_maps_diff()`` output.
