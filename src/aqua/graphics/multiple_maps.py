@@ -15,7 +15,7 @@ from .styles import ConfigStyle
 def plot_maps(maps: list,
               contour: bool = True, sym: bool = False,
               proj: ccrs.Projection = ccrs.Robinson(), extent: list = None,
-              style=None, figsize=(11, 8.5),
+              style=None, figsize: tuple = None,
               vmin: float = None, vmax: float = None, nlevels: int = 11,
               title: str = None, titles: list = None, cmap='RdBu_r', cbar_label: str = None,
               transform_first=False, cyclic_lon=True,
@@ -33,7 +33,7 @@ def plot_maps(maps: list,
         proj (cartopy.crs.Projection,opt): projection, default is ccrs.Robinson()
         extent (list,opt):    extent of the map, default is None
         style (str,opt):      style for the plot, default is the AQUA style
-        figsize (tuple,opt):  figure size, default is (11, 8.5)
+        figsize (tuple,opt):  figure size, default is (6,6) for each map. Here the full figure size is set.
         vmin (float,opt):     minimum value for the colorbar, default is None
         vmax (float,opt):     maximum value for the colorbar, default is None
         nlevels (int,opt):    number of levels for the colorbar, default is 11
@@ -51,7 +51,7 @@ def plot_maps(maps: list,
         ValueError: if nothing to plot, i.e. maps is None or not a list of xarray.DataArray
 
     Return:
-        fig, axs if more manipulations on the figure are needed, if return_fig=True
+        fig     if more manipulations on the figure are needed, if return_fig=True
     """
     logger = log_configure(loglevel, 'plot_maps')
     ConfigStyle(style=style, loglevel=loglevel)
@@ -63,8 +63,8 @@ def plot_maps(maps: list,
 
     # Generate the figure
     nrows, ncols = plot_box(len(maps))
-    logger.debug('Creating a %d x %d grid', nrows, ncols)
-    figsize = figsize if figsize is not None else ncols * (6, 6)[0], nrows * (6, 6)[1]
+    figsize = figsize if figsize is not None else (ncols * (6, 6)[0], nrows * (6, 6)[1])
+    logger.debug('Creating a %d x %d grid with figsize %s', nrows, ncols, figsize)
 
     fig = plt.figure(figsize=figsize)
 
@@ -166,7 +166,7 @@ def plot_maps_diff(maps: list,
         ValueError: if nothing to plot, i.e. maps, ref_maps is None or not a list of xarray.DataArray
 
     Return:
-        fig, axs if more manipulations on the figure are needed, if return_fig=True
+        fig     if more manipulations on the figure are needed, if return_fig=True
     """
     logger = log_configure(loglevel, 'plot_maps_diff')
     ConfigStyle(style=style, loglevel=loglevel)
@@ -184,8 +184,8 @@ def plot_maps_diff(maps: list,
 
     # Generate the figure
     nrows, ncols = plot_box(len(diffs))
-    logger.debug('Creating a %d x %d grid', nrows, ncols)
-    figsize = figsize if figsize is not None else ncols * (6, 6)[0], nrows * (6, 6)[1]
+    figsize = figsize if figsize is not None else (ncols * (6, 6)[0], nrows * (6, 6)[1])
+    logger.debug('Creating a %d x %d grid with figsize %s', nrows, ncols, figsize)
 
     fig = plt.figure(figsize=figsize)
 
