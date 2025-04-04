@@ -10,13 +10,18 @@ class OutputSaver:
     customized naming based on provided parameters and metadata.
     """
 
-    def __init__(self, diagnostic: str, catalog: str = None, model: str = None, exp: str = None,
+    def __init__(self, diagnostic: str, 
+                 catalog: str = None, model: str = None, exp: str = None,
+                 catalog_ref: str = None, model_ref: str = None, exp_ref: str = None,
                  outdir: str = '.', rebuild: bool = True, loglevel: str = 'WARNING',):
                  
         self.diagnostic = diagnostic
         self.catalog = catalog  
         self.model = model
         self.exp = exp
+        self.catalog_ref = catalog_ref  
+        self.model_ref = model_ref
+        self.exp_ref = exp_ref
         self.outdir = outdir
         self.rebuild = rebuild
 
@@ -25,6 +30,7 @@ class OutputSaver:
 
     def generate_name(self, diagnostic_product: str, 
                       catalog: str = None, model: str = None, exp: str = None,
+                      catalog_ref: str = None, model_ref: str = None, exp_ref: str = None,
                       extra_keys: dict = None) -> str:
         """
         Generate a filename based on provided parameters and additional user-defined keywords,
@@ -41,28 +47,39 @@ class OutputSaver:
         self.catalog = catalog or self.catalog
         self.model =  model or self.model
         self.exp = exp or self.exp
+        self.catalog_ref = catalog_ref or self.catalog_ref
+        self.model_ref =  model_ref or self.model_ref
+        self.exp_ref = exp_ref or self.exp_ref
 
         if not self.catalog or not self.model or not self.exp:
             raise ValueError("Catalog, model, and exp must be specified to generate a filename.")
 
-        # Convert list of models to an underscore-separated string
-        if isinstance(model_value, list):
-            model_value = '_'.join(model_value)
-    
-        # Check if multiple models are specified
-        is_multimodel = model_value == "multimodel" or ('_' in model_value if model_value else False)
+        # handle multimodel case
+        if isinstance(self.model, list):
+            model_value = "multimodel" if len(self.model) > 1 else self.model[0]
+        else:
+            model_value = self.model
+
+        # handle multiref case
+        if isinstance(self.model_ref, list):
+            model_ref_value = "multiref" if len(self.model_ref) > 1 else self.model_ref[0]
+        else:
+            model_ref_value = self.model_ref
 
         parts_dict = {
             'diagnostic': self.diagnostic,
             'diagnostic_product': diagnostic_product,
-            'catalog': self.catalog if not is_multimodel else None,
+            'catalog': self.catalog if model_value != "multimodel" else None,
             'model': model_value,
-            'exp': self.exp if not is_multimodel else None,
+            'exp': self.exp if model_value != "multimodel" else None,
+            'catalog_ref': self.catalog_ref if model_ref_value != "multiref" else None,
+            'model_ref': model_ref_value,
+            'exp_ref': self.exp_ref if model_ref_value != "multiref" else None,
         }
 
         # Add additional filename keys if provided
         if extra_keys:
-            filtered_keys = {key: value for key, value in extra_keys.items() if key != 'model'}
+            filtered_keys = {key: value for key, value in extra_keys.items()}
             parts_dict.update(filtered_keys)
         
         # Remove None values
