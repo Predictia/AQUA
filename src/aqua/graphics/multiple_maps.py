@@ -6,10 +6,8 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-import os
 from aqua.logger import log_configure
-from aqua.util import plot_box, add_cyclic_lon, set_ticks
-from aqua.util import coord_names, evaluate_colorbar_limits, cbar_get_label
+from aqua.util import plot_box, evaluate_colorbar_limits, cbar_get_label
 from .single_map import plot_single_map, plot_single_map_diff
 from .styles import ConfigStyle
 
@@ -19,11 +17,9 @@ def plot_maps(maps: list,
               proj: ccrs.Projection = ccrs.Robinson(), extent: list = None,
               style=None, figsize=(11, 8.5),
               vmin: float = None, vmax: float = None, nlevels: int = 11,
-              title: str = None, titles: list = None,
-              cmap='RdBu_r', cbar_label: str = None,
+              title: str = None, titles: list = None, cmap='RdBu_r', cbar_label: str = None,
               transform_first=False, cyclic_lon=True,
-              return_fig=False, loglevel='WARNING',
-              **kwargs):
+              return_fig=False, loglevel='WARNING', **kwargs):
     """
     Plot multiple maps.
     This is supposed to be used for maps to be compared together.
@@ -132,12 +128,10 @@ def plot_maps_diff(maps: list,
                    style=None, figsize=None,
                    vmin_fill: float = None, vmax_fill: float = None,
                    vmin_contour: float = None, vmax_contour: float = None,
-                   nlevels: int = 11,
-                   title: str = None, titles: list = None,
+                   nlevels: int = 11, title: str = None, titles: list = None,
                    cmap='RdBu_r', cbar_label: str = None,
                    transform_first=False, cyclic_lon=True,
-                   return_fig=False, loglevel='WARNING',
-                   **kwargs):
+                   return_fig=False, loglevel='WARNING', **kwargs):
     """
     Plot the difference of multiple maps. This is supposed to be used for maps to be compared together.
     Two lists of xarray.DataArray objects are expected

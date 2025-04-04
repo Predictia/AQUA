@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 from aqua.logger import log_configure
-from aqua.util import add_cyclic_lon, evaluate_colorbar_limits, create_folder
+from aqua.util import add_cyclic_lon, evaluate_colorbar_limits
 from aqua.util import cbar_get_label, set_map_title
 from aqua.util import coord_names, set_ticks, ticks_round
 from .styles import ConfigStyle
@@ -23,11 +23,11 @@ def plot_single_map(data: xr.DataArray,
                     contour=True, sym=False,
                     proj: ccrs.Projection = ccrs.Robinson(), extent=None,
                     style=None, figsize=(11, 8.5), nlevels=11,
-                    vmin=None, vmax=None, cmap='RdBu_r', 
+                    vmin=None, vmax=None, cmap='RdBu_r',
                     cbar: bool = True, cbar_label=None,
                     title=None, transform_first=False, cyclic_lon=True,
                     fig: plt.Figure = None, ax: plt.Axes = None,
-                    ax_pos: list = (1, 1, 1),
+                    ax_pos: tuple = (1, 1, 1),
                     return_fig=False, loglevel='WARNING',  **kwargs):
     """
     Plot contour or pcolormesh map of a single variable. By default the contour map is plotted.
