@@ -50,7 +50,7 @@ class OutputSaver:
             model_value = '_'.join(model_value)
     
         # Check if multiple models are specified
-        is_multimodel = model_value == "multi" or ('_' in model_value if model_value else False)
+        is_multimodel = model_value == "multimodel" or ('_' in model_value if model_value else False)
 
         parts_dict = {
             'diagnostic': self.diagnostic,
