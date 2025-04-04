@@ -10,11 +10,11 @@ class OutputSaver:
     customized naming based on provided parameters and metadata.
     """
 
-    def __init__(self, diagnostic: str, model: str, exp: str, catalog: str = None,
+    def __init__(self, diagnostic: str, catalog: str = None, model: str = None, exp: str = None,
                  outdir: str = '.', rebuild: bool = True, loglevel: str = 'WARNING',):
                  
         self.diagnostic = diagnostic
-        self.catalog = catalog  #MANDATORY OR NOT?
+        self.catalog = catalog  
         self.model = model
         self.exp = exp
         self.outdir = outdir
@@ -23,7 +23,9 @@ class OutputSaver:
         self.loglevel = loglevel
         self.logger = log_configure(log_level=self.loglevel, log_name='OutputSaver')
 
-    def generate_name(self, diagnostic_product: str, extra_keys: dict = None) -> str:
+    def generate_name(self, diagnostic_product: str, 
+                      catalog: str = None, model: str = None, exp: str = None,
+                      extra_keys: dict = None) -> str:
         """
         Generate a filename based on provided parameters and additional user-defined keywords,
         including precise time intervals.
@@ -36,8 +38,12 @@ class OutputSaver:
             str: A string representing the generated filename.
         """
 
-        # Use extra_keys to override model if provided
-        model_value = extra_keys.get('model', self.model) if extra_keys else self.model
+        self.catalog = catalog or self.catalog
+        self.model =  model or self.model
+        self.exp = exp or self.exp
+
+        if not self.catalog or not self.model or not self.exp:
+            raise ValueError("Catalog, model, and exp must be specified to generate a filename.")
 
         # Convert list of models to an underscore-separated string
         if isinstance(model_value, list):
