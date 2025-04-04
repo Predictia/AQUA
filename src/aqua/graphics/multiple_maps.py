@@ -63,7 +63,7 @@ def plot_maps(maps: list,
 
     # Generate the figure
     nrows, ncols = plot_box(len(maps))
-    figsize = figsize if figsize is not None else (ncols * (6, 6)[0], nrows * (6, 6)[1])
+    figsize = figsize if figsize is not None else (ncols*6, nrows*5 + 1)
     logger.debug('Creating a %d x %d grid with figsize %s', nrows, ncols, figsize)
 
     fig = plt.figure(figsize=figsize)
@@ -93,7 +93,7 @@ def plot_maps(maps: list,
                         wspace=0.1, hspace=0.5)
 
     # Add a colorbar axis at the bottom of the graph
-    cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.02])
+    cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.03])
 
     cbar_label = cbar_get_label(data=maps[0], cbar_label=cbar_label, loglevel=loglevel)
     logger.debug('Setting colorbar label to %s', cbar_label)
@@ -184,7 +184,7 @@ def plot_maps_diff(maps: list,
 
     # Generate the figure
     nrows, ncols = plot_box(len(diffs))
-    figsize = figsize if figsize is not None else (ncols * (6, 6)[0], nrows * (6, 6)[1])
+    figsize = figsize if figsize is not None else (ncols*6, nrows*5 + 1)
     logger.debug('Creating a %d x %d grid with figsize %s', nrows, ncols, figsize)
 
     fig = plt.figure(figsize=figsize)
@@ -223,7 +223,7 @@ def plot_maps_diff(maps: list,
                         wspace=0.1, hspace=0.5)
 
     # Add a colorbar axis at the bottom of the graph
-    cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.02])
+    cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.03])
 
     cbar_label = cbar_get_label(data=diffs[0], cbar_label=cbar_label, loglevel=loglevel)
     logger.debug('Setting colorbar label to %s', cbar_label)
