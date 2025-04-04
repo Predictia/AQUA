@@ -18,9 +18,7 @@ def units_conversion_factor(from_unit_str, to_unit_str):
     to_unit = units(to_unit_str)
     return from_unit.to(to_unit).magnitude
 
-# default target coords.
-# name, direction, positive and units are checked
-# other attributes can be added
+# default target coords
 data_yaml = load_yaml(os.path.join(pypath[0], "datamodel", "aqua.yaml"))
 TGT_COORDS = data_yaml.get('data_model')
 

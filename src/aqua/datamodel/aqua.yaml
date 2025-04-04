@@ -1,4 +1,6 @@
 # Basic data model for AQUA
+# name, direction, positive and units are checked
+# other attributes (e.g. standard_name, axis) can be added
 name: aqua
 description: "AQUA minimal data model"
 version: 1.0
