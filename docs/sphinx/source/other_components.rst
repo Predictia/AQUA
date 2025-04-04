@@ -258,7 +258,26 @@ This can be used as well to log the history of the operations performed on the d
 Graphic tools
 -------------
 
-The *aqua.graphics* module provides a set of simple functions to easily plot the result of analysis done within AQUA.
+The ``aqua.graphics`` module provides a set of simple functions to easily plot the result of analysis done within AQUA.
+
+Plot styles
+^^^^^^^^^^^
+
+AQUA supports in the available graphical functions the matplotlib styles.
+A default for the plot appearance is present in the ``aqua.mplstyle`` file (in ``config/styles``), 
+and this includes all the default settings for the plot functions.
+This file can be modified to change the default appearance of the plots. 
+
+
+Other styles can be created following the `matplotlib guidelines <https://matplotlib.org/stable/users/explain/customizing.html#defining-your-own-style>`_.
+The style can be set automatically by setting the ``style`` keyword in the ``config-aqua.yaml`` file generated during the code installation (see :ref:`getting_started`).
+The new file should be placed in the same folder as the default one (it may need to run ``aqua install`` again).
+It is also possible to set the style only for a single plot by using the ``style`` keyword in the plotting functions.
+Finally, other than file-based styles, it is possible to set the style from the `list of available <https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html>`_ styles in matplotlib.
+
+.. warning::
+
+    Not all the functions in the ``aqua.graphics`` module are using the style file yet.
 
 Single map
 ^^^^^^^^^^
@@ -270,6 +289,9 @@ before calling the function. The function will then plot the map of the variable
 if no other option is provided, will adapt colorbar, title and labels to the attributes
 of the input DataArray.
 
+The function is built on top of the ``cartopy`` and ``matplotlib`` libraries,
+and it is possible to customize the plot with many options, including a different projection.
+
 In the following example we plot an sst map from the first timestep of ERA5 reanalysis:
 
 .. code-block:: python
@@ -277,11 +299,10 @@ In the following example we plot an sst map from the first timestep of ERA5 rean
     from aqua import Reader, plot_single_map
 
     reader = Reader(model='ERA5', exp='era5', source='monthly')
-    sst = reader.retrieve(var=["sst"])
-    sst_plot = sst["sst"].isel(time=0)
+    tos = reader.retrieve(var=["tos"])
+    tos_plot = tos["tos"].isel(time=0)
 
-    plot_single_map(sst_plot, title="Example of a custom title", filename="example",
-                    outputdir=".", format="png", dpi=300, save=True)
+    plot_single_map(tos_plot, title="Example of a custom title")
 
 This will produce the following plot:
 
@@ -300,12 +321,12 @@ The function takes as input two xarray.DataArray, with a single timestep.
 The function will plot as colormap or contour filled map the difference between the two input DataArray (the first one minus the second one).
 Additionally a contour line map is plotted with the first input DataArray, to show the original data.
 
-.. figure:: figures/teleconnections_ENSO_correlation_IFS-NEMO_ssp370_lra-r100-monthly_ERA5.png
+.. figure:: figures/single_map_diff_example.png
     :align: center
     :width: 100%
 
     Example of a ``plot_single_map_diff()`` output done with the :ref:`teleconnections`.
-    The map shows the correlation for the ENSO teleconnection between IFS-NEMO scenario run and ERA5 reanalysis.
+    The map shows the correlation for the ENSO teleconnection between ICON historical run and ERA5 reanalysis.
 
 Time series
 ^^^^^^^^^^^

@@ -24,6 +24,7 @@ from .reader_utils import set_attrs
 # set default options for xarray
 xr.set_options(keep_attrs=True)
 
+
 class Reader(FixerMixin, TimStatMixin):
     """General reader for climate data."""
 
@@ -247,7 +248,7 @@ class Reader(FixerMixin, TimStatMixin):
             # generate source areas and expose them in the reader
             self.src_grid_area = self.regridder.areas(rebuild=rebuild, reader_kwargs=reader_kwargs)
             if self.fix:
-                # TODO: this should include the latitudes flipping fix. 
+                # TODO: this should include the latitudes flipping fix.
                 # TODO: No check is done on the areas coords vs data coords
                 self.src_grid_area = self._fix_area(self.src_grid_area)
 
@@ -257,6 +258,7 @@ class Reader(FixerMixin, TimStatMixin):
             self.regridder.weights(
                 rebuild=rebuild,
                 tgt_grid_name=self.tgt_grid_name,
+                regrid_method=self.regrid_method,
                 reader_kwargs=reader_kwargs)
 
         # generate destination areas, expost them and the associated space coordinates
@@ -503,6 +505,74 @@ class Reader(FixerMixin, TimStatMixin):
     #                             name, list(drop_coords))
     #     return data.drop_vars(drop_coords)
 
+    def fldmean(self, data, lon_limits=None, lat_limits=None, **kwargs):
+        """
+        Perform a weighted global average.
+        If a subset of the data is provided, the average is performed only on the subset.
+
+        Arguments:
+            data (xr.DataArray or xarray.DataDataset):  the input data
+            lon_limits (list, optional):  the longitude limits of the subset
+            lat_limits (list, optional):  the latitude limits of the subset
+
+        Kwargs:
+            - box_brd (bool,opt): choose if coordinates are comprised or not in area selection.
+                                  Default is True
+
+        Returns:
+            the value of the averaged field
+        """
+
+        # If these data have been regridded we should use
+        # the destination grid info
+        if self._check_if_regridded(data):
+            space_coord = self.tgt_space_coord
+            grid_area = self.tgt_grid_area.cell_area
+        else:
+            space_coord = self.src_space_coord
+            grid_area = self.src_grid_area.cell_area
+
+        if lon_limits is not None or lat_limits is not None:
+            data = area_selection(data, lon=lon_limits, lat=lat_limits,
+                                  loglevel=self.loglevel, **kwargs)
+        self.logger.debug('Space coordinates are %s', space_coord)
+        # cleaning coordinates which have "multiple" coordinates in their own definition
+        # grid_area = self._clean_spourious_coords(grid_area, name = "area")
+        # data = self._clean_spourious_coords(data, name = "data")
+
+        # HAVE TO ADD AN ERROR IF AREAS HAVE NOT THE SAME AREAS AS DATA
+
+        # check if coordinates are aligned
+        try:
+            xr.align(grid_area, data, join='exact')
+        except ValueError as err:
+            # check in the dimensions what is wrong
+            for coord in grid_area.coords:
+                if coord in space_coord:
+                    xcoord = data.coords[coord]
+
+                    # first case: shape different
+                    if len(grid_area[coord]) != len(xcoord):
+                        raise ValueError(f'{coord} has different shape between area files and your dataset.'
+                                         'If using the LRA, try setting the regrid=r100 option') from err
+                    # shape are ok, but coords are different
+                    if not grid_area[coord].equals(xcoord):
+                        # if they are fine when sorted, there is a sorting mismatch
+                        if grid_area[coord].sortby(coord).equals(xcoord.sortby(coord)):
+                            self.logger.warning('%s is sorted in different way between area files and your dataset. Flipping it!', # noqa E501
+                                                coord)
+                            grid_area = grid_area.reindex({coord: list(reversed(grid_area[coord]))})
+                        else:
+                            raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
+
+        out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
+
+        out.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
+
+        log_history(data, f"Spatially averaged from {self.src_grid_name} grid")
+
+        return out
+
     def _check_kwargs_parameters(self, main_parameters, intake_parameters):
         """
         Function to check if which parameters are included in the metadata of
@@ -582,7 +652,7 @@ class Reader(FixerMixin, TimStatMixin):
             raise ValueError('This is not an xarray object!')
 
         final = log_history(
-            final, f"Interpolated from original levels {data[vert_coord].values} {data[vert_coord].units} to level {levels} using {method} method.")
+            final, f"Interpolated from original levels {data[vert_coord].values} {data[vert_coord].units} to level {levels} using {method} method.") # noqa E501
 
         final.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
@@ -793,7 +863,7 @@ class Reader(FixerMixin, TimStatMixin):
                 chunks['time'] = self.aggregation
             if self.streaming and not self.aggregation:
                 self.logger.warning(
-                    "Aggregation is not set, using default time resolution for streaming. If you are asking for a longer chunks['time'] for GSV access, please set a suitable aggregation value")
+                    "Aggregation is not set, using default time resolution for streaming. If you are asking for a longer chunks['time'] for GSV access, please set a suitable aggregation value") # noqa E501
 
         if dask:
             if chunks:  # if the chunking or aggregation option is specified override that from the catalog
