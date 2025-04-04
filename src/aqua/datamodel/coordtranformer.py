@@ -203,6 +203,9 @@ class CoordTransformer():
         if 'units' not in src_coord:
             self.logger.warning("%s not found. Disabling unit conversion.", src_coord['name'])
             return data
+        if 'units' not in data[tgt_coord['name']].attrs:
+            self.logger.warning("%s not found in data. Disabling unit conversion.", tgt_coord['name'])
+            return data
         if src_coord['units'] != tgt_coord['units']:
             self.logger.info("Converting units of coordinate %s from %s to %s",
                             src_coord['name'], src_coord['units'], tgt_coord['units'])

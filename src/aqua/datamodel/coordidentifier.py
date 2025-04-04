@@ -185,8 +185,6 @@ class CoordIdentifier():
             return True
         if "depth" in coord.attrs.get("long_name", ""):
             return True
-        if coord.attrs.get("units") in ["m", "meters"]:
-            return True
         return False
     
     
