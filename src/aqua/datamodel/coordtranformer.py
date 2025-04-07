@@ -104,7 +104,7 @@ class CoordTransformer():
                 data = self.convert_units(data, src_coord, tgt_coord)
                 data = self.assign_attributes(data, tgt_coord)
             else:
-                self.logger.warning("Coordinate %s not found in source coordinates.", coord)
+                self.logger.info("Coordinate %s not found in source coordinates.", coord)
 
         return data
     
@@ -239,7 +239,7 @@ class CoordTransformer():
         for key, value in tgt_coord.items():
             if key not in['name', 'units', 'positive', 'direction', 'bounds']:
                 if key not in data.coords[tgt_coord['name']].attrs:
-                    self.logger.info("Adding attribute %s to coordinate %s", key, tgt_coord['name'])
+                    self.logger.debug("Adding attribute %s to coordinate %s", key, tgt_coord['name'])
                     data.coords[tgt_coord['name']].attrs[key] = value
         return data
     

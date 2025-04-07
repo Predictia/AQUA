@@ -72,8 +72,6 @@ class CoordIdentifier():
 
         self.coord_dict = self._clean_coord_dict()
 
-        
-
         return self.coord_dict
     
     def _clean_coord_dict(self):
