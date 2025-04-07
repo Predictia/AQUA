@@ -1,41 +1,41 @@
-"""Utilities to flip latitude coordinates if needed. DEPRECATED. """
+"""Utilities to flip latitude coordinates if needed."""
 
 # # List of latitude unit strings (the same used by cf2cdm)
 latitude_units = ["degrees_north", "degree_north", "degree_N", "degrees_N", "degreeN", "degreesN"]
 time_coords = ["time"]
 
-# def find_lat_dir(dataset):
-#     """
-#     Finds a latitude coordinate and returns its name and directions.
+def find_lat_dir(dataset):
+    """
+    Finds a latitude coordinate and returns its name and directions.
 
-#     Args:
-#         dataset (xarray.Dataset): Dataset to check
+    Args:
+        dataset (xarray.Dataset): Dataset to check
 
-#     Return:
-#         tuple: (latitude_coord, direction)
-#             latitude_coord (str): Name of the latitude coordinate
-#             direction (str): Direction of the latitude coordinate (increasing or decreasing)
-#     """
+    Return:
+        tuple: (latitude_coord, direction)
+            latitude_coord (str): Name of the latitude coordinate
+            direction (str): Direction of the latitude coordinate (increasing or decreasing)
+    """
 
-#     # Iterate through coordinates to find the latitude coordinate
-#     latitude_coord = None
-#     direction = None
+    # Iterate through coordinates to find the latitude coordinate
+    latitude_coord = None
+    direction = None
 
-#     for coord_name in dataset.coords:
-#         un = dataset.coords[coord_name].attrs.get('units')
-#         if un in latitude_units:
-#             latitude_coord = coord_name
-#             break
+    for coord_name in dataset.coords:
+        un = dataset.coords[coord_name].attrs.get('units')
+        if un in latitude_units:
+            latitude_coord = coord_name
+            break
 
-#     # If a latitude coordinate is found, determine its direction
-#     if latitude_coord is not None:
-#         latitude_values = dataset.coords[latitude_coord].values
-#         if latitude_values[0] < latitude_values[1]:
-#             direction = "increasing"
-#         else:
-#             direction = "decreasing"
+    # If a latitude coordinate is found, determine its direction
+    if latitude_coord is not None:
+        latitude_values = dataset.coords[latitude_coord].values
+        if latitude_values[0] < latitude_values[1]:
+            direction = "increasing"
+        else:
+            direction = "decreasing"
 
-#     return latitude_coord, direction
+    return latitude_coord, direction
 
 
 # def check_direction(dataset, coord, old_dir):
