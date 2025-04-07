@@ -16,7 +16,7 @@ class TimStat():
         self.loglevel = loglevel
         self.orig_freq = None
         self.logger = log_configure(loglevel, 'TimStat')
-    
+
 
     def timstat(self, data, stat='mean', freq=None, exclude_incomplete=False,
                 time_bounds=False, center_time=False):
@@ -28,6 +28,8 @@ class TimStat():
         frequency and the statistic computed over the time window.
         """
 
+        if stat not in ['mean', 'std', 'max', 'min']:
+            raise KeyError(f'{stat} is not a statistic supported by AQUA')
 
         resample_freq = frequency_string_to_pandas(freq)
 
@@ -105,9 +107,25 @@ class TimStat():
                 raise ValueError('Resampling cannot produce output for all time_bnds step!')
             log_history(out, f"time_bnds added by by AQUA time {stat}")
 
-        out.aqua.set_default(self)  # accessor linking
-
         return out
+    
+    def _add_time_bounds(self, data, resample_freq):
+
+        """
+        Add time bounds to the data
+        """
+
+        # Resample to the desired frequency
+        resample_data = data.resample(time=resample_freq)
+
+        # Create time bounds
+        time_bnds = xr.concat([resample_data.min(), resample_data.max()], dim='bnds').transpose()
+        time_bnds['time'] = data.time
+
+        # Add time bounds to the data
+        data = xr.merge([data, time_bnds])
+        return data
+
 
     def center_time_axis(self, avg_data, resample_freq):
         """

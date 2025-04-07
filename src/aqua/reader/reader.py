@@ -1024,48 +1024,37 @@ class Reader(FixerMixin):
                 if k not in ["time", "param", "step", "expver"]:
                     print("  %s: %s" % (k, v))
 
-    def timmean(self, data, freq=None, exclude_incomplete=False,
-                time_bounds=False, center_time=False):
+    def timstat(self, data, stat, freq=None, exclude_incomplete=False,
+             time_bounds=False, center_time=False):
         """
-        Exposed method for time averaging statistic. Wrapper for timstat()
+        Time averaging wrapper which is calling the timstat module
+
+        Args:
+            data (xr.DataArray or xarray.Dataset):  the input data
+            stat (str):  the statistical function to be applied
+            freq (str):  the frequency of the time average
+            exclude_incomplete (bool):  exclude incomplete time averages
+            time_bounds (bool):  produce time bounds after averaging
+            center_time (bool):  center time for averaging
         """
 
-        return self.timemodule.timstat(data, stat='mean', freq=freq, exclude_incomplete=exclude_incomplete,
-                            time_bounds=time_bounds, center_time=center_time)
+        data = self.timemodule.timstat(
+            data, stat=stat, freq=freq,
+            exclude_incomplete=exclude_incomplete,
+            time_bounds=time_bounds,
+            center_time=center_time)
+        data.aqua.set_default(self) #accessor linking
+        return data
+    
+    def timmean(self, data, **kwargs):
+        return self.timstat(data, stat='mean', **kwargs)
 
-    def timmax(self, data, freq=None, exclude_incomplete=False,
-               time_bounds=False, center_time=False):
-        """
-        Exposed method for time maximum statistic. Wrapper for timstat()
-        """
+    def timmax(self, data, **kwargs):
+        return self.timstat(data, stat='max', **kwargs)
+    
+    def timmin(self, data, **kwargs):
+       return self.timstat(data, stat='min', **kwargs)
+    
+    def timstd(self, data, **kwargs):
+       return self.timstat(data, stat='std', **kwargs)
 
-        return self.timemodule.timstat(data, stat='max', freq=freq, exclude_incomplete=exclude_incomplete,
-                            time_bounds=time_bounds, center_time=center_time)
-
-    def timmin(self, data, freq=None, exclude_incomplete=False,
-               time_bounds=False, center_time=False):
-        """
-        Exposed method for time maximum statistic. Wrapper for timstat()
-        """
-
-        return self.timemodule.timstat(data, stat='min', freq=freq, exclude_incomplete=exclude_incomplete,
-                            time_bounds=time_bounds, center_time=center_time)
-
-    def timstd(self, data, freq=None, exclude_incomplete=False,
-               time_bounds=False, center_time=False):
-        """
-        Exposed method for time standard deviation statistic. Wrapper for timstat()
-        """
-
-        return self.timemodule.timstat(data, stat='std', freq=freq, exclude_incomplete=exclude_incomplete,
-                            time_bounds=time_bounds, center_time=center_time)
-
-    def timstat(self, data, stat='mean', freq=None, exclude_incomplete=False,
-                 time_bounds=False, center_time=False):
-        """
-        Perform daily, monthly and yearly time statistics.
-        See timstat for more details.
-        """
-
-        return self.timemodule.timstat(data, stat=stat, freq=freq, exclude_incomplete=exclude_incomplete,
-                            time_bounds=time_bounds, center_time=center_time)
