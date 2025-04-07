@@ -120,12 +120,13 @@ class CoordTransformer():
             xr.Dataset or xr.DataArray: The Xarray object with renamed coordinate.
         """
         if src_coord['name'] != tgt_coord['name']:
+            original_coords = list(data.coords)
             self.logger.info("Renaming coordinate %s to %s",
                             src_coord['name'], tgt_coord['name'])
             data = data.rename({src_coord['name']: tgt_coord['name']})
 
             # Ensure the AQUA dependent index is preserved
-            if f"idx_{src_coord['name']}" in data.coords:
+            if f"idx_{src_coord['name']}" in original_coords:
                 index_name = f"idx_{src_coord['name']}"
                 new_index_name = f"idx_{tgt_coord['name']}"
                 self.logger.info("Renaming index %s to %s", index_name, new_index_name)
@@ -161,7 +162,7 @@ class CoordTransformer():
                 data = data.rename({src_coord['bounds']: tgt_coord['bounds']})
                 data[tgt_coord['name']].attrs['bounds'] = tgt_coord['bounds']
             else:
-                self.logger.warning("Bounds %s not found in data.", src_coord['bounds'])
+                self.logger.info("Bounds %s not found in data.", src_coord['bounds'])
         return data
 
     def reverse_coordinate(self, data, src_coord, tgt_coord):
@@ -189,7 +190,7 @@ class CoordTransformer():
                                 tgt_coord['name'], src_coord['direction'], tgt_coord['direction'])
                 data = data.isel({tgt_coord['name']: slice(None, None, -1)})
             else:
-                self.logger.warning("Cannot reverse coordinate %s. Grid type is %s.",
+                self.logger.info("Cannot reverse coordinate %s. Grid type is %s.",
                                     tgt_coord['name'], self.gridtype)
         return data
     
@@ -211,7 +212,7 @@ class CoordTransformer():
                             src_coord['name'], src_coord['units'], tgt_coord['units'])
             factor = units_conversion_factor(src_coord['units'], tgt_coord['units'])
             if factor != 0:
-                self.logger.warning("Conversion factor is: %s ", factor)
+                self.logger.info("Conversion factor is: %s ", factor)
                 data = data.assign_coords({tgt_coord['name']: data[tgt_coord['name']]*factor})
                 tgt_coord['bounds'] = f'{tgt_coord['name']}_bnds'
                 data = self._convert_bounds(data, src_coord, tgt_coord, factor)

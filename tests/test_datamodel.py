@@ -26,7 +26,7 @@ class TestDataModel():
     def test_basic_transform_vertical(self):
         """Basic test for the CoordTransformer class."""
 
-        reader = Reader(model="FESOM", exp="test-pi", source="original_3d") 
+        reader = Reader(model="FESOM", exp="test-pi", source="original_3d", fix=False) 
         data = reader.retrieve()
         new = CoordTransformer(data, loglevel='debug').transform_coords()
 
@@ -37,7 +37,7 @@ class TestDataModel():
     def test_basic_transform(self):
         """Basic test for the CoordTransformer class."""
 
-        reader = Reader(model="IFS", exp="test-tco79", source="long")
+        reader = Reader(model="IFS", exp="test-tco79", source="long", fix=False)
         data = reader.retrieve(var='2t')
         new = CoordTransformer(data, loglevel='debug').transform_coords()
 
