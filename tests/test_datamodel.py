@@ -3,7 +3,7 @@ import xarray as xr
 import numpy as np
 import pytest
 from aqua import Reader
-from aqua.datamodel import CoordTransformer
+from aqua.data_model import CoordTransformer
 
 @pytest.mark.aqua
 class TestDataModel():

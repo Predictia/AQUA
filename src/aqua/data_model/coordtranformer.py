@@ -19,7 +19,7 @@ def units_conversion_factor(from_unit_str, to_unit_str):
     return from_unit.to(to_unit).magnitude
 
 # default target coords
-data_yaml = load_yaml(os.path.join(pypath[0], "datamodel", "aqua.yaml"))
+data_yaml = load_yaml(os.path.join(pypath[0], "data_model", "aqua.yaml"))
 TGT_COORDS = data_yaml.get('data_model')
 
 
