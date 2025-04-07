@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.14.1):
 
 AQUA core complete list:
+- Introduce a `Timstat()` module independent from the `Reader()` (#1832)
 - Introduction of a internal AQUA data model able to guess coordinates and convert toward required target data convention definition (#1862)
 - Refactor of `plot_single_map()` and `plot_single_map_diff()` functions with projection support (#1854)
 - Refactor time handling: replacement of `datetime` objects and of `pd.Timestamp` lists (#1828)
