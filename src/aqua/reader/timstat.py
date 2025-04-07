@@ -12,10 +12,10 @@ class TimStat():
     Time statistic AQUA module
     """
 
-    def __init__(self, loglevel='INFO'):
+    def __init__(self, loglevel='WARNING'):
         self.loglevel = loglevel
         self.orig_freq = None
-        self.logger = log_configure(self, loglevel)
+        self.logger = log_configure(loglevel, 'TimStat')
     
 
     def timstat(self, data, stat='mean', freq=None, exclude_incomplete=False,

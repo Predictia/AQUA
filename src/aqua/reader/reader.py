@@ -250,7 +250,7 @@ class Reader(FixerMixin):
             self.tgt_space_coord = self.regridder.tgt_horizontal_dims
 
         # activste time statistics
-        self.timemodule = TimStat()
+        self.timemodule = TimStat(loglevel=self.loglevel)
 
     def retrieve(self, var=None, level=None,
                  startdate=None, enddate=None,
