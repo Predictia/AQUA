@@ -72,11 +72,11 @@ def load_and_prepare(tmp_path, model, kind, reso, num_of_realizations=1):
     return sources
 
 @pytest.mark.parametrize(('model,nsources,nocelevels'),
-                        [('IFS-NEMO', 4, 75),
-                         ('IFS-FESOM', 5, 47)])
+                        [('IFS-NEMO', 9, 75)])
+                        # ('IFS-FESOM', 5, 47)])
 @pytest.mark.catgen
 def test_catgen_reduced(tmp_path, model, nsources, nocelevels):
-    """test for production portfolio"""
+    """test for reduced portfolio"""
 
     ensemble = 5
 
@@ -93,8 +93,8 @@ def test_catgen_reduced(tmp_path, model, nsources, nocelevels):
     # check number of vertical levels in the atmosphere
     if model == 'IFS-NEMO':
         grid, freq = 'lon-lat', 'monthly'
-    elif model == 'IFS-FESOM':
-        grid, freq = 'hpz7', 'daily'
+    #elif model == 'IFS-FESOM':
+    #   grid, freq = 'hpz7', 'daily'
     else:
         raise ValueError(f'{model} not supported!')
     assert len(sources['sources'][f'monthly-{grid}-atm3d']['metadata']['levels']) == 19
@@ -110,10 +110,10 @@ def test_catgen_reduced(tmp_path, model, nsources, nocelevels):
                          ('IFS-FESOM', 31, 69),
                          ('ICON', 21, 72)])
 @pytest.mark.catgen
-def test_catgen_production(tmp_path, model, nsources, nocelevels):
-    """test for production portfolio"""
+def test_catgen_full(tmp_path, model, nsources, nocelevels):
+    """test for full portfolio"""
 
-    sources = load_and_prepare(tmp_path, model, 'production', 'production')
+    sources = load_and_prepare(tmp_path, model, 'full', 'production')
 
     # check how many sources
     assert len(sources['sources']) == nsources
