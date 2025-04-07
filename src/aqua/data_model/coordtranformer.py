@@ -189,10 +189,24 @@ class CoordTransformer():
                 self.logger.info("Reversing coordinate %s from %s to %s",
                                 tgt_coord['name'], src_coord['direction'], tgt_coord['direction'])
                 data = data.isel({tgt_coord['name']: slice(None, None, -1)})
+                # add an attribute for regridder evalution
+                data[tgt_coord['name']].attrs['flipped'] = 1
             else:
                 self.logger.info("Cannot reverse coordinate %s. Grid type is %s.",
                                     tgt_coord['name'], self.gridtype)
         return data
+    
+    def counter_reverse_coordinate(self, data, coord):
+        """
+        Flip back latitude if necessary
+        """
+
+        if 'flipped' in data.coords[coord].attrs:
+            self.logger.info("Flipping back coordinate %s", coord)
+            data = data.isel({coord: slice(None, None, -1)})
+            del data.coords[coord].attrs['flipped']
+        return data
+
     
     def convert_units(self, data, src_coord, tgt_coord):
         """
