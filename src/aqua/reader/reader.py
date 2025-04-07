@@ -14,6 +14,7 @@ from aqua.logger import log_configure, log_history
 from aqua.exceptions import NoDataError, NoRegridError
 from aqua.version import __version__ as aqua_version
 from aqua.regridder import Regridder
+from aqua.data_model import counter_reverse_coordinate
 import aqua.gsv
 
 from .streaming import Streaming
@@ -426,6 +427,8 @@ class Reader(FixerMixin, TimStatMixin):
 
         if self.tgt_grid_name is None:
             raise NoRegridError('regrid has not been initialized in the Reader, cannot perform any regrid.')
+        
+        data = counter_reverse_coordinate(data)
 
         out = self.regridder.regrid(data)
 
