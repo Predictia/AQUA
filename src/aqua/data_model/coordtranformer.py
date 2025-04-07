@@ -3,7 +3,7 @@
 import os
 import xarray as xr
 from metpy.units import units
-from aqua.logger import log_configure
+from aqua.logger import log_configure, log_history
 from aqua.util import load_yaml
 from aqua import __path__ as pypath
 from .coordidentifier import CoordIdentifier
@@ -21,6 +21,7 @@ def units_conversion_factor(from_unit_str, to_unit_str):
 # default target coords
 data_yaml = load_yaml(os.path.join(pypath[0], "data_model", "aqua.yaml"))
 TGT_COORDS = data_yaml.get('data_model')
+NAME = f'{data_yaml.get('name')} v{str(data_yaml.get('version'))}'
 
 
 class CoordTransformer():
@@ -74,12 +75,13 @@ class CoordTransformer():
             return "Regular"
         return "Unstructured"
     
-    def transform_coords(self, tgt_coords=None):
+    def transform_coords(self, tgt_coords=None, name=None):
         """
         Transform the coordinates of the Xarray object.
 
         Args:
             tgt_coords (dict, optional): Target coordinates dictionary. Defaults to None.
+            name (str, optional): Name of the target data model. Defaults to None.
 
         Returns:
             xr.Dataset or xr.DataArray: The transformed dataset or dataarray.
@@ -87,10 +89,11 @@ class CoordTransformer():
         if tgt_coords is None:
             self.logger.info("No target coordinates provided. Using default coordinates.")
             tgt_coords = TGT_COORDS
-        elif not isinstance(tgt_coords, dict):
-            raise TypeError("tgt_coords must be a dictionary.")
+            name = NAME
+        elif not isinstance(tgt_coords, dict) and not isinstance(name, str):
+            raise TypeError("tgt_coords must be a dictionary, name must be a string.")
         self.tgt_coords = tgt_coords
-
+        self.logger.info("Target data model: %s", name)
         data = self.data
 
         for coord in self.tgt_coords:
@@ -105,6 +108,8 @@ class CoordTransformer():
                 data = self.assign_attributes(data, tgt_coord)
             else:
                 self.logger.info("Coordinate %s not found in source coordinates.", coord)
+
+        log_history(data, f"Coordinates fixed toward {name} datamodel")
 
         return data
     
@@ -124,6 +129,8 @@ class CoordTransformer():
             self.logger.info("Renaming coordinate %s to %s",
                             src_coord['name'], tgt_coord['name'])
             data = data.rename({src_coord['name']: tgt_coord['name']})
+            log_history(data,
+                        f"Renamed coordinate {src_coord['name']} to {tgt_coord['name']} by datamodel")
 
             # Ensure the AQUA dependent index is preserved
             if f"idx_{src_coord['name']}" in original_coords:
@@ -191,6 +198,7 @@ class CoordTransformer():
                 data = data.isel({tgt_coord['name']: slice(None, None, -1)})
                 # add an attribute for regridder evalution
                 data[tgt_coord['name']].attrs['flipped'] = 1
+                log_history(data, f"Reversed coordinate {tgt_coord['name']} from {src_coord['direction']} to {tgt_coord['direction']} by datamodel")
             else:
                 self.logger.info("Cannot reverse coordinate %s. Grid type is %s.",
                                     tgt_coord['name'], self.gridtype)
@@ -219,6 +227,8 @@ class CoordTransformer():
                 data = data.assign_coords({tgt_coord['name']: data[tgt_coord['name']]*factor})
                 tgt_coord['bounds'] = f'{tgt_coord['name']}_bnds'
                 data = self._convert_bounds(data, src_coord, tgt_coord, factor)
+                log_history(data,
+                            f"Converted units of coordinate {src_coord['name']} from {src_coord['units']} to {tgt_coord['units']} by datamodel")
             data[tgt_coord['name']].attrs['units'] = tgt_coord['units']
         return data
     
