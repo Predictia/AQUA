@@ -196,17 +196,6 @@ class CoordTransformer():
                                     tgt_coord['name'], self.gridtype)
         return data
     
-    def counter_reverse_coordinate(self, data, coord):
-        """
-        Flip back latitude if necessary
-        """
-
-        if 'flipped' in data.coords[coord].attrs:
-            self.logger.info("Flipping back coordinate %s", coord)
-            data = data.isel({coord: slice(None, None, -1)})
-            del data.coords[coord].attrs['flipped']
-        return data
-
     
     def convert_units(self, data, src_coord, tgt_coord):
         """
@@ -257,3 +246,14 @@ class CoordTransformer():
                     data.coords[tgt_coord['name']].attrs[key] = value
         return data
     
+
+def counter_reverse_coordinate(data):
+    """
+    Flip back latitude if necessary
+    """
+
+    for coord in data.coords:
+        if 'flipped' in data.coords[coord].attrs:
+            data = data.isel({coord: slice(None, None, -1)})
+            del data.coords[coord].attrs['flipped']
+    return data
