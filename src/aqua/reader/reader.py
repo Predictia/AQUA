@@ -433,7 +433,7 @@ class Reader(FixerMixin, TimStatMixin):
         out = self.regridder.regrid(data)
 
         # set regridded attribute to 1 for all vars
-        out = set_attrs(out, {"regridded": 1})
+        out = set_attrs(out, {"AQUA_regridded": 1})
         return out
 
     def _check_if_regridded(self, data):
@@ -451,7 +451,7 @@ class Reader(FixerMixin, TimStatMixin):
         else:
             att = data.attrs
 
-        return att.get("regridded", False)
+        return att.get("AQUA_regridded", False)
 
     # def _clean_spourious_coords(self, data, name=None):
     #     """
