@@ -11,6 +11,7 @@ Removed:
 - `aqua.slurm` has been removed.
 
 AQUA core complete list:
+- Custom `paths` in the `confi-aqua.yaml` can now be defined and will take priority over the catalog paths (#1809)
 - Remove deprecated `aqua.slurm` module (#1860)
 - Refactor of `plot_maps()` and `plot_maps_diff()` functions with projection support and use their single map version internally (#1865)
 - Refactor of `plot_single_map()` and `plot_single_map_diff()` functions with projection support (#1854)
