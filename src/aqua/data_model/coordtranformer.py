@@ -46,7 +46,7 @@ class CoordTransformer():
 
         self.data = data
 
-        self.src_coords = CoordIdentifier(data.coords).identify_coords()
+        self.src_coords = CoordIdentifier(data.coords, loglevel=loglevel).identify_coords()
         self.tgt_coords = None
         self.gridtype = self._info_grid(data.coords)
         self.logger.info("Grid type: %s", self.gridtype)
@@ -86,12 +86,23 @@ class CoordTransformer():
         Returns:
             xr.Dataset or xr.DataArray: The transformed dataset or dataarray.
         """
+
+        # multiple safety check
+        self.logger.error("name: %s", name)
+        self.logger.error("tgt_coords: %s", tgt_coords)
+        if name is not None and tgt_coords is None:
+            raise ValueError("If name is provided, tgt_coords must be provided too.")
+
         if tgt_coords is None:
             self.logger.info("No target coordinates provided. Using default coordinates.")
             tgt_coords = TGT_COORDS
             name = NAME
-        elif not isinstance(tgt_coords, dict) and not isinstance(name, str):
-            raise TypeError("tgt_coords must be a dictionary, name must be a string.")
+
+        if not isinstance(tgt_coords, dict):
+            raise TypeError("tgt_coords must be a dictionary.")
+        if not isinstance(name, str):
+            raise TypeError("name must be a string.")
+
         self.tgt_coords = tgt_coords
         self.logger.info("Target data model: %s", name)
         data = self.data
