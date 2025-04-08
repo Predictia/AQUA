@@ -444,7 +444,7 @@ class Reader(FixerMixin, TimStatMixin):
         else:
             att = data.attrs
 
-        return att.get("regridded", False)
+        return att.get("AQUA_regridded", False)
 
     # def _clean_spourious_coords(self, data, name=None):
     #     """
