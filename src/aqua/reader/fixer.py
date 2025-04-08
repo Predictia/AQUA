@@ -595,9 +595,6 @@ class FixerMixin():
         src_datamodel = self.fixes.get("data_model", src_datamodel)
         if src_datamodel:
             data = CoordTransformer(data, loglevel=self.loglevel).transform_coords()
-        #    data = self.change_coord_datamodel(data, src_datamodel, self.dst_datamodel)
-        #    self.logger.info(f"coordinates adjusted to {src_datamodel} by AQUA fixer")
-        #    data = log_history(data, f"Coordinates adjusted to {src_datamodel} by fixer")
 
         # Extra coordinate handling
         data = self._fix_dims(data)

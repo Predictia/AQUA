@@ -30,6 +30,10 @@ class CoordIdentifier():
     Class to identify the nature of coordinates of an Xarray object.
     It aims at detecting the longitude, latitude, time and any other vertical
     by inspecting the attributes of the coordinates provided by the user.
+
+    Args: 
+        coords (xarray.Coordinates): The coordinates of Dataset to be analysed.
+        loglevel (str): The log level to use. Default is 'WARNING'.
     """
 
     def __init__(self, coords: xr.Coordinates, loglevel='WARNING'):
@@ -73,7 +77,7 @@ class CoordIdentifier():
             if self._identify_depth(coord):
                 self.coord_dict["depth"].append(self._get_vertical_attributes(coord))
                 continue 
-            
+
             # TODO: improve time detection
             if self._identify_time(name):
                 self.coord_dict["time"].append({"name": name})
