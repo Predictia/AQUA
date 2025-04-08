@@ -60,12 +60,20 @@ class CoordIdentifier():
             self.logger.debug("Identifying coordinate: %s", name)
             if self._identify_latitude(coord):
                 self.coord_dict["latitude"].append(self._get_horizontal_attributes(coord))
+                continue
+
             if self._identify_longitude(coord):
                 self.coord_dict["longitude"].append(self._get_horizontal_attributes(coord))
+                continue 
+
             if self._identify_isobaric(coord):
                 self.coord_dict["isobaric"].append(self._get_vertical_attributes(coord))
+                continue 
+
             if self._identify_depth(coord):
                 self.coord_dict["depth"].append(self._get_vertical_attributes(coord))
+                continue 
+            
             # TODO: improve time detection
             if self._identify_time(name):
                 self.coord_dict["time"].append({"name": name})
