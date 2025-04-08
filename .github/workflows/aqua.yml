@@ -85,7 +85,7 @@ jobs:
           path: Climate-DT-catalog 
       - name: Clone GitLab data-portfolio repository
         run: |
-          git clone https://oauth2:${{ secrets.BSC_GITLAB }}@earth.bsc.es/gitlab/digital-twins/de_340-2/data-portfolio data-portfolio
+          git clone --branch 1.3.0 --depth 1 https://oauth2:${{ secrets.BSC_GITLAB }}@earth.bsc.es/gitlab/digital-twins/de_340-2/data-portfolio data-portfolio
       - name: List Workspace Contents
         run: |
           echo "Current Directory: $PWD"
@@ -152,8 +152,8 @@ jobs:
           # Produce the XML report
           cd AQUA
           # produce a xml report and a junit report to be used by codecov. Please notice other options are set in pyproject.toml
-          # pytest --cov-report=xml --junitxml=junit.xml -o junit_family=legacy -m "aqua or slow or gsv or graphics or catgen or diagnostics"
-          pytest --cov-report=xml --junitxml=junit.xml -o junit_family=legacy -m "aqua or slow or gsv or graphics or diagnostics"
+          pytest --cov-report=xml --junitxml=junit.xml -o junit_family=legacy -m "aqua or slow or gsv or graphics or catgen or diagnostics"
+         # pytest --cov-report=xml --junitxml=junit.xml -o junit_family=legacy -m "aqua or slow or gsv or graphics or diagnostics"
       - name: Display coverage.xml contents
         run: cat AQUA/coverage.xml
       - name: Upload coverage reports to Codecov
