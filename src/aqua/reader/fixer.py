@@ -9,7 +9,6 @@ import pandas as pd
 from aqua.util import eval_formula, get_eccodes_attr
 from aqua.util import to_list, normalize_units, convert_units
 from aqua.logger import log_history
-#from aqua.data_models import translate_coords
 from aqua.data_model import CoordTransformer
 
 
