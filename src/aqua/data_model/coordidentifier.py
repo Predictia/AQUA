@@ -32,7 +32,7 @@ class CoordIdentifier():
     by inspecting the attributes of the coordinates provided by the user.
     """
 
-    def __init__(self, coords, loglevel='WARNING'):
+    def __init__(self, coords: xr.Coordinates, loglevel='WARNING'):
         """
         Constructor of the CoordIdentifier class.
         """
@@ -85,27 +85,39 @@ class CoordIdentifier():
                 self.coord_dict[key] = None
             elif len(value) == 1:
                 self.coord_dict[key] = value[0]
-            elif len(value) > 1:
-                self.logger.error("Multiple %s coordinates found: %s. Using the first one: %s",
-                                     key, [x['name'] for x in value], value[0]['name'])
-                self.coord_dict[key] = value[0]
+            else:
+                self.logger.warning("Multiple %s coordinates found: %s. Disabling data model check for this coordinate.",
+                                     key, [x['name'] for x in value])
+                self.coord_dict[key] = None
         return self.coord_dict
     
     def _get_horizontal_attributes(self, coord):
         """
-        Get the attributes of the coordinate.
+        Get the attributes of the horizontal coordinates.
+
+        Args:
+            coord (xarray.Coordinates): The coordinate to define the attributes.
+
+        Return: 
+            dict: A dictionary containing the attributes of the coordinate.
         """
         coord_range = (coord.values.min(),  coord.values.max())
         direction = "increasing" if coord.values[-1] > coord.values[0] else "decreasing"
         return {'name': coord.name,
                 'units': coord.attrs.get('units'),
-                'direction': direction,
+                'stored_direction': direction,
                 'range': coord_range,
                 'bounds': coord.attrs.get('bounds')}    
 
     def _get_vertical_attributes(self, coord):
         """
-        Get the attributes of the coordinate.
+        Get the attributes of the vertical coordinates.
+
+        Args:
+            coord (xarray.Coordinates): The coordinate to define the attributes.
+
+        Returns:
+            dict: A dictionary containing the attributes of the coordinate.
         """
         coord_range = (coord.values.min(),  coord.values.max())
         positive = coord.attrs.get('positive')

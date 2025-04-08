@@ -3,7 +3,7 @@ import xarray as xr
 import numpy as np
 import pytest
 from aqua import Reader
-from aqua.data_model import CoordTransformer
+from aqua.data_model import CoordTransformer, CoordIdentifier
 
 @pytest.mark.aqua
 class TestDataModel():
@@ -22,13 +22,26 @@ class TestDataModel():
                 "deeepth": [0, 10, 20],
             },
         )
+    
+    def test_coord_identifier_error(self, data):
+        """Error case"""
+
+        with pytest.raises(TypeError, match="coords must be an Xarray Coordinates object."):
+            CoordIdentifier(data, loglevel='debug')
 
     def test_basic_transform_vertical(self):
         """Basic test for the CoordTransformer class."""
 
         reader = Reader(model="FESOM", exp="test-pi", source="original_3d", fix=False) 
         data = reader.retrieve()
+
+        # case for multiple vertical coordinates, ignore along the vertical
         new = CoordTransformer(data, loglevel='debug').transform_coords()
+        assert "nz1" in new.coords
+        assert "nz" in new.coords
+
+        # case for single vertical coordinate, convert it
+        new = CoordTransformer(data['temp'], loglevel='debug').transform_coords()
 
         assert "depth" in new.coords
         assert "nz1" not in new.coords
@@ -39,6 +52,7 @@ class TestDataModel():
 
         reader = Reader(model="IFS", exp="test-tco79", source="long", fix=False)
         data = reader.retrieve(var='2t')
+
         new = CoordTransformer(data, loglevel='debug').transform_coords()
 
         assert "lon" in new.coords

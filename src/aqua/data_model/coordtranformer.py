@@ -184,21 +184,21 @@ class CoordTransformer():
         Returns:
             xr.Dataset or xr.DataArray: The Xarray object with possibly reversed coordinate.
         """
-        if 'direction' not in tgt_coord:
+        if 'stored_direction' not in tgt_coord:
             return data
-        if tgt_coord['direction'] not in ["increasing", "decreasing"]:
-            raise ValueError(f"tgt direction must be 'increasing' or 'decreasing', not  {tgt_coord['direction']}")
-        if src_coord['direction'] not in ["increasing", "decreasing"]:
-            self.logger.warning("src direction is not 'increasing' or 'decreasing', but %s. Disabling reverse!", src_coord['direction'])
+        if tgt_coord['stored_direction'] not in ["increasing", "decreasing"]:
+            raise ValueError(f"tgt direction must be 'increasing' or 'decreasing', not  {tgt_coord['stored_direction']}")
+        if src_coord['stored_direction'] not in ["increasing", "decreasing"]:
+            self.logger.warning("src direction is not 'increasing' or 'decreasing', but %s. Disabling reverse!", src_coord['stored_direction'])
             return data
-        if src_coord['direction'] != tgt_coord['direction']:
+        if src_coord['stored_direction'] != tgt_coord['direction']:
             if self.gridtype == "Regular":
                 self.logger.info("Reversing coordinate %s from %s to %s",
-                                tgt_coord['name'], src_coord['direction'], tgt_coord['direction'])
+                                tgt_coord['name'], src_coord['stored_direction'], tgt_coord['stored_direction'])
                 data = data.isel({tgt_coord['name']: slice(None, None, -1)})
                 # add an attribute for regridder evalution
                 data[tgt_coord['name']].attrs['flipped'] = 1
-                log_history(data, f"Reversed coordinate {tgt_coord['name']} from {src_coord['direction']} to {tgt_coord['direction']} by datamodel")
+                log_history(data, f"Reversed coordinate {tgt_coord['name']} from {src_coord['stored_direction']} to {tgt_coord['stored_direction']} by datamodel")
             else:
                 self.logger.info("Cannot reverse coordinate %s. Grid type is %s.",
                                     tgt_coord['name'], self.gridtype)
@@ -250,7 +250,7 @@ class CoordTransformer():
         Assign attributes to the coordinate.
         """
         for key, value in tgt_coord.items():
-            if key not in['name', 'units', 'positive', 'direction', 'bounds']:
+            if key not in['name', 'units', 'positive', 'stored_direction', 'bounds']:
                 if key not in data.coords[tgt_coord['name']].attrs:
                     self.logger.debug("Adding attribute %s to coordinate %s", key, tgt_coord['name'])
                     data.coords[tgt_coord['name']].attrs[key] = value
