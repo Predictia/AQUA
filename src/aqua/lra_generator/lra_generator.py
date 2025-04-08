@@ -3,7 +3,6 @@ LRA class for glob
 """
 
 import os
-import types
 from time import time
 import glob
 import shutil
