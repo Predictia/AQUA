@@ -66,7 +66,7 @@ class sshVariabilityCompute():
             if self.data is not None and self.regrid:
                 self.data = reader.regrid(self.data)
             elif self.data is not None and self.regrid is None:
-                self.logger(f"Precomputed data for {self.model} may not be reggrid correctly. This could lead to errors in the ssh variabilty calculation")
+                self.logger.warning(f"Precomputed data for {self.model} may not be reggrid correctly. This could lead to errors in the ssh variabilty calculation")
             else:
                 data = reader.retrieve(var=self.variable)
                 data = data[self.variable]
