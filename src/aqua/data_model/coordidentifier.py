@@ -22,8 +22,7 @@ def is_isobaric(unit):
     try:
         return units(unit).dimensionality == pressure_dim
     except Exception as e:
-        pass
-    return False
+        return False
 
 class CoordIdentifier():
     """
