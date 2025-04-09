@@ -26,6 +26,17 @@ class TimStat():
         parameter. The frequency can be a string (e.g. '1D', '1M', '1Y') or a pandas frequency object. The statistic can be
         'mean', 'std', 'max', 'min'. The output is a new xarray dataset with the time dimension resampled to the desired
         frequency and the statistic computed over the time window.
+
+        Args: 
+            data (xarray.Dataset): Input data to compute the statistic on.
+            stat (str): Statistic to compute. Can be 'mean', 'std', 'max', 'min'.
+            freq (str): Frequency to resample the data to. Can be a string (e.g. '1D', '1M', '1Y') or a pandas frequency object.
+            exclude_incomplete (bool): If True, exclude incomplete chunks from the output.
+            time_bounds (bool): If True, add time bounds to the output data.
+            center_time (bool): If True, center the time axis of the output data.
+
+        Returns:
+            xarray.Dataset: Output data the required statistic computed at the desired frequency.
         """
 
         if stat not in ['mean', 'std', 'max', 'min']:
@@ -44,9 +55,10 @@ class TimStat():
 
         # Get original frequency (for history)
         if len(data.time) > 1:
-            orig_freq = data['time'].values[1] - data['time'].values[0]
-            # Convert time difference to hours
-            self.orig_freq = round(np.timedelta64(orig_freq, 'ns') / np.timedelta64(1, 'h'))
+            time_values = pd.to_datetime(data['time'].values[:2])
+            self.orig_freq = pd.tseries.frequencies.to_offset(time_values[1] - time_values[0])
+            #orig_freq = (time_values[1] - time_values[0]).total_seconds() / 3600
+            #self.orig_freq = round(orig_freq)
         else:
             # this block is likely never run, as the check for time dimension is done before
             self.logger.warning('A single timestep is available, is this correct?')
@@ -94,7 +106,7 @@ class TimStat():
             if np.any(np.isnat(out.time)):
                 raise ValueError('Resampling cannot produce output for all frequency step, is your input data correct?')
 
-        out = log_history(out, f"resampled from frequency {self.orig_freq}h to frequency {freq} by AQUA tim{stat}")
+        out = log_history(out, f"resampled from frequency {self.orig_freq} to frequency {freq} by AQUA tim{stat}")
 
         # Add a variable to create time_bounds
         if time_bounds:
@@ -109,52 +121,32 @@ class TimStat():
 
         return out
     
-    def _add_time_bounds(self, data, resample_freq):
-
+    # this is not yet a great solution, but is more general than the previous one
+    def center_time_axis(self, avg_data: xr.Dataset, resample_freq: str) -> xr.Dataset:
         """
-        Add time bounds to the data
-        """
+        Move the time axis of the averaged data toward the center of the averaging period.
 
-        # Resample to the desired frequency
-        resample_data = data.resample(time=resample_freq)
+        Args:
+            avg_data (xr.Dataset): The dataset with averaged data.
+            resample_freq (str): The resampling frequency (e.g., '1D', '1M', '1Y').
 
-        # Create time bounds
-        time_bnds = xr.concat([resample_data.min(), resample_data.max()], dim='bnds').transpose()
-        time_bnds['time'] = data.time
-
-        # Add time bounds to the data
-        data = xr.merge([data, time_bnds])
-        return data
-
-
-    def center_time_axis(self, avg_data, resample_freq):
-        """
-        Move the time axis of the averaged data toward the center of the averaging period
+        Returns:
+            xr.Dataset: The dataset with the time axis centered.
         """
 
-        # decipher the frequency
         literal, numeric = extract_literal_and_numeric(resample_freq)
         self.logger.debug('Frequency is %s with numeric part %s', literal, numeric)
 
-        # if we have monthly/yearly time windows we cannot use timedelta and need to do some tricky magic
-        if any(check in literal for check in ["YS", "MS", "M", "Y", "ME", "YE"]):
-            if 'YS' in resample_freq:
-                offset = pd.DateOffset(months=6 * numeric)
-            elif 'MS' in resample_freq:
-                if numeric % 2 == 1:
-                    offset = pd.DateOffset(days=14, months=(numeric // 2))
-                else:
-                    offset = pd.DateOffset(month=(numeric // 2))
-            else:
-                self.logger.error("center_time cannot be not implemented for end of the frequency %s", resample_freq)
-                return avg_data
-            self.logger.debug('Time offset (DateOffset) for time centering will be %s', offset)
-            avg_data["time"] = avg_data.get_index("time") + offset
+        if literal in ["M", "Y", "ME", "YE"]:
+            raise ValueError(f"Centering not implemented for frequency '{resample_freq}'")
 
-        # otherwise we can use timedelta (which works with fractions)
-        else:
-            offset = pd.Timedelta(numeric / 2, literal)
-            self.logger.debug('Time offset (Timedelta) for time centering will be %s', offset)
-            avg_data['time'] = avg_data["time"] + offset
+        def average_datetimeindex(idx1: pd.DatetimeIndex, idx2: pd.DatetimeIndex) -> pd.DatetimeIndex:
+            return pd.to_datetime((idx1.view("int64") + idx2.view("int64")) // 2)
+        
+        offset = pd.tseries.frequencies.to_offset(resample_freq)
 
+        avg_data['time'] = average_datetimeindex(pd.to_datetime(avg_data['time']),
+                              pd.to_datetime(avg_data['time']) + offset)
+        
         return avg_data
+    
