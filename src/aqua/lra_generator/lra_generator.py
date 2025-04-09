@@ -3,7 +3,6 @@ LRA class for glob
 """
 
 import os
-import types
 from time import time
 import glob
 import shutil
@@ -538,9 +537,9 @@ class LRAgenerator():
 
         # remove regridded attribute to avoid issues with Reader
         # https://github.com/oloapinivad/AQUA/issues/147
-        if 'regridded' in data.attrs:
+        if "AQUA_regridded" in data.attrs:
             self.logger.debug('Removing regridding attribute...')
-            del data.attrs['regridded']
+            del data.attrs["AQUA_regridded"]
         return data
 
     # def _write_var_generator(self, var):

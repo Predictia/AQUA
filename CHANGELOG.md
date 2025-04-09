@@ -7,8 +7,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 Unreleased in the current development version (target v0.14.1):
 
+Removed:
+- `aqua.slurm` has been removed.
+
 AQUA core complete list:
+
 - Adapt Catalog Generator to Data-Portfolio v1.3.0 (#1848)
+- Introduction of a internal AQUA data model able to guess coordinates and convert toward required target data convention definition (#1862)
+- Custom `paths` in the `confi-aqua.yaml` can now be defined and will take priority over the catalog paths (#1809)
+- Remove deprecated `aqua.slurm` module (#1860)
+- Refactor of `plot_maps()` and `plot_maps_diff()` functions with projection support and use their single map version internally (#1865)
+- Refactor of `plot_single_map()` and `plot_single_map_diff()` functions with projection support (#1854)
+- Refactor time handling: replacement of `datetime` objects and of `pd.Timestamp` lists (#1828)
+- Fix the `regrid_method` option in the Reader (#1859)
+- Add a GitHub Token for downloading ClimateDT catalogs (#1855)
+- Ignore `nonlocal` complaints by flake8 (#1855)
 - WOCE-ARGO ocean dataset grids and fixes added (#1846)
 - Upgrade of base container to FDB 5.15.11 (#1845)
 - Matplotlib styles can be set in the configuration file (#1729)
