@@ -60,8 +60,6 @@ grids:
     cellareas_var: areacello
     path: '{{ grids }}/PSC/grid_giomas_new.nc'
     regrid_method: 'bil'
-<<<<<<< HEAD
-=======
 
   # WAGHC
   waghc:
@@ -69,4 +67,3 @@ grids:
     vert_coord: ["depth"]
     path:
       depth: '{{ grids }}/WAGHC/grid-waghc.nc'
->>>>>>> main
