@@ -3,7 +3,6 @@ grids:
 
   # AVISO
   aviso:
-    #space_coord: ["lon", "lat"]
     space_coord: ["longitude", "latitude"]
   # EN4
   en4:
