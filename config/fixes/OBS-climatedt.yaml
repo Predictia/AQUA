@@ -268,3 +268,20 @@ fixer_name:
               source: longitude
             zos:
                 source: adt 
+    
+    WAGHC:
+        convention: eccodes
+        data_model: false
+        coords:
+            lat:
+                source: latitude
+            lon:
+                source: longitude
+        vars:
+            tos:
+                source: temperature
+                src_units: C
+            sos:   
+                source: salinity
+                src_units: psu
+    
