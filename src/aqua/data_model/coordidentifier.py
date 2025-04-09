@@ -1,0 +1,238 @@
+"""
+Module to identify the nature of coordinates of an Xarray object.
+"""
+import xarray as xr
+from metpy.units import units
+
+from aqua.logger import log_configure
+
+LATITUDE = ["latitude", "lat", "nav_lat"]
+LONGITUDE = ["longitude", "lon", "nav_lon"]
+TIME = ["time", "valid_time", "forecast_period", "time_counter"]
+ISOBARIC = ["plev"]
+DEPTH = ["depth", "zlev"]
+
+# Define the target dimensionality (pressure)
+pressure_dim = units.pascal.dimensionality
+#meter_dim = units.meter.dimensionality
+
+# Function to check if a unit is a pressure unit
+def is_isobaric(unit):
+    """Check if a unit is a pressure unit."""
+    try:
+        return units(unit).dimensionality == pressure_dim
+    except Exception as e:
+        return False
+
+class CoordIdentifier():
+    """
+    Class to identify the nature of coordinates of an Xarray object.
+    It aims at detecting the longitude, latitude, time and any other vertical
+    by inspecting the attributes of the coordinates provided by the user.
+
+    Args: 
+        coords (xarray.Coordinates): The coordinates of Dataset to be analysed.
+        loglevel (str): The log level to use. Default is 'WARNING'.
+    """
+
+    def __init__(self, coords: xr.Coordinates, loglevel='WARNING'):
+        """
+        Constructor of the CoordIdentifier class.
+        """
+        self.loglevel = loglevel
+        self.logger = log_configure(self.loglevel, 'CoordIdentifier')
+
+        if not isinstance(coords, xr.Coordinates):
+            raise TypeError("coords must be an Xarray Coordinates object.")
+        self.coords = coords
+
+        # internal name definition for the coordinates
+        self.coord_dict = {
+            "latitude": [],
+            "longitude": [],
+            "time": [],
+            "isobaric": [],
+            "depth": []
+        }
+
+    def identify_coords(self):
+        """
+        Identify the coordinates of the Xarray object.
+        """
+        for name, coord in self.coords.items():
+            self.logger.debug("Identifying coordinate: %s", name)
+            if self._identify_latitude(coord):
+                self.coord_dict["latitude"].append(self._get_horizontal_attributes(coord))
+                continue
+
+            if self._identify_longitude(coord):
+                self.coord_dict["longitude"].append(self._get_horizontal_attributes(coord))
+                continue
+
+            if self._identify_isobaric(coord):
+                self.coord_dict["isobaric"].append(self._get_vertical_attributes(coord))
+                continue
+
+            if self._identify_depth(coord):
+                self.coord_dict["depth"].append(self._get_vertical_attributes(coord))
+                continue
+
+            if self._identify_time(coord):
+                self.coord_dict["time"].append(self._get_time_attributes(coord))
+
+        self.coord_dict = self._clean_coord_dict()
+
+        return self.coord_dict
+    
+    def _clean_coord_dict(self):
+        """
+        Clean the coordinate dictionary.
+        Set to None the coordinates that are empty.
+        If multiple coordinates are found, keep only the first one and log an error
+        """
+        for key, value in self.coord_dict.items():
+            if len(value) == 0:
+                self.coord_dict[key] = None
+            elif len(value) == 1:
+                self.coord_dict[key] = value[0]
+            else:
+                self.logger.warning("Multiple %s coordinates found: %s. Disabling data model check for this coordinate.",
+                                     key, [x['name'] for x in value])
+                self.coord_dict[key] = None
+        return self.coord_dict
+    
+    def _get_time_attributes(self, coord):
+        """
+        Get the attributes of the time coordinates.
+
+        Args:
+            coord (xarray.Coordinates): The coordinate to define the attributes.
+
+        Returns:
+            dict: A dictionary containing the attributes of the coordinate.
+        """
+        return {'name': coord.name,
+                'dims:': coord.dims,
+                'units': coord.attrs.get('units'),
+                'calendar': coord.attrs.get('calendar'),
+                'bounds': coord.attrs.get('bounds')}
+    
+    def _get_horizontal_attributes(self, coord):
+        """
+        Get the attributes of the horizontal coordinates.
+
+        Args:
+            coord (xarray.Coordinates): The coordinate to define the attributes.
+
+        Return: 
+            dict: A dictionary containing the attributes of the coordinate.
+        """
+        coord_range = (coord.values.min(),  coord.values.max())
+        if coord.ndim == 1:
+            direction = "increasing" if coord.values[-1] > coord.values[0] else "decreasing"
+        else:
+            direction = None
+        return {'name': coord.name,
+                'dims:': coord.dims,
+                'units': coord.attrs.get('units'),
+                'stored_direction': direction,
+                'range': coord_range,
+                'bounds': coord.attrs.get('bounds')}    
+
+    def _get_vertical_attributes(self, coord):
+        """
+        Get the attributes of the vertical coordinates.
+
+        Args:
+            coord (xarray.Coordinates): The coordinate to define the attributes.
+
+        Returns:
+            dict: A dictionary containing the attributes of the coordinate.
+        """
+        coord_range = (coord.values.min(),  coord.values.max())
+        positive = coord.attrs.get('positive')
+        if not positive:
+            if is_isobaric(coord.attrs.get('units')):
+                positive = "down"
+            else:
+                positive = "down" if coord.values[0] > 0  else "up"
+        return {'name': coord.name,
+                'dims': coord.dims,
+                'units': coord.attrs.get('units'),
+                'positive': positive,
+                'range': coord_range,
+                'bounds': coord.attrs.get('bounds')}  
+
+    @staticmethod
+    def _identify_latitude(coord):
+        """
+        Identify the latitude coordinate of the Xarray object.
+        """
+        if coord.name in LATITUDE:
+            return True
+        if coord.attrs.get("standard_name") == "latitude":
+            return True
+        if coord.attrs.get("axis") == "Y":
+            return True
+        if coord.attrs.get("units") == "degrees_north":
+            return True
+        return False
+    
+    @staticmethod
+    def _identify_longitude(coord):
+        """
+        Identify the longitude coordinate of the Xarray object.
+        """
+        if coord.name in LONGITUDE:
+            return True
+        if coord.attrs.get("standard_name") == "longitude":
+            return True
+        if coord.attrs.get("axis") == "X":
+            return True
+        if coord.attrs.get("units") == "degrees_east":
+            return True
+        return False
+    
+    @staticmethod
+    def _identify_time(coord):
+        """
+        Identify the time coordinate of the Xarray object.
+        """
+        if coord.name in TIME:
+            return True
+        if coord.attrs.get("axis") == "T":
+            return True
+        if coord.attrs.get("standard_name") == "time":
+            return True
+        return False
+    
+    @staticmethod
+    def _identify_isobaric(coord):
+        """
+        Identify the isobaric coordinate of the Xarray object.
+        """
+        if coord.name in ISOBARIC:
+            return True
+        if coord.attrs.get("standard_name") == "air_pressure":
+            return True
+        if is_isobaric(coord.attrs.get("units")):
+            return True
+        return False
+    
+    @staticmethod
+    def _identify_depth(coord):
+        """
+        Identify the depth coordinate of the Xarray object.
+        """
+        if coord.name in DEPTH:
+            return True
+        if coord.attrs.get("standard_name") == "depth":
+            return True
+        if "depth" in coord.name:
+            return True
+        if "depth" in coord.attrs.get("long_name", ""):
+            return True
+        return False
+    
+    
+
