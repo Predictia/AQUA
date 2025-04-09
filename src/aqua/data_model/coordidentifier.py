@@ -8,7 +8,7 @@ from aqua.logger import log_configure
 
 LATITUDE = ["latitude", "lat", "nav_lat"]
 LONGITUDE = ["longitude", "lon", "nav_lon"]
-TIME = ["time", "valid_time"]
+TIME = ["time", "valid_time", "forecast_period", "time_counter"]
 ISOBARIC = ["plev"]
 DEPTH = ["depth", "zlev"]
 
@@ -19,10 +19,10 @@ pressure_dim = units.pascal.dimensionality
 # Function to check if a unit is a pressure unit
 def is_isobaric(unit):
     """Check if a unit is a pressure unit."""
-    if unit is None:
-        return False
-    if unit in units:
+    try:
         return units(unit).dimensionality == pressure_dim
+    except Exception as e:
+        pass
     return False
 
 class CoordIdentifier():
@@ -113,6 +113,7 @@ class CoordIdentifier():
             dict: A dictionary containing the attributes of the coordinate.
         """
         return {'name': coord.name,
+                'dims:': coord.dims,
                 'units': coord.attrs.get('units'),
                 'calendar': coord.attrs.get('calendar'),
                 'bounds': coord.attrs.get('bounds')}
@@ -133,6 +134,7 @@ class CoordIdentifier():
         else:
             direction = None
         return {'name': coord.name,
+                'dims:': coord.dims,
                 'units': coord.attrs.get('units'),
                 'stored_direction': direction,
                 'range': coord_range,
@@ -156,6 +158,7 @@ class CoordIdentifier():
             else:
                 positive = "down" if coord.values[0] > 0  else "up"
         return {'name': coord.name,
+                'dims': coord.dims,
                 'units': coord.attrs.get('units'),
                 'positive': positive,
                 'range': coord_range,
