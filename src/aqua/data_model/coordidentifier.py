@@ -68,19 +68,18 @@ class CoordIdentifier():
 
             if self._identify_longitude(coord):
                 self.coord_dict["longitude"].append(self._get_horizontal_attributes(coord))
-                continue 
+                continue
 
             if self._identify_isobaric(coord):
                 self.coord_dict["isobaric"].append(self._get_vertical_attributes(coord))
-                continue 
+                continue
 
             if self._identify_depth(coord):
                 self.coord_dict["depth"].append(self._get_vertical_attributes(coord))
-                continue 
+                continue
 
-            # TODO: improve time detection
-            if self._identify_time(name):
-                self.coord_dict["time"].append({"name": name})
+            if self._identify_time(coord):
+                self.coord_dict["time"].append(self._get_time_attributes(coord))
 
         self.coord_dict = self._clean_coord_dict()
 
@@ -103,6 +102,21 @@ class CoordIdentifier():
                 self.coord_dict[key] = None
         return self.coord_dict
     
+    def _get_time_attributes(self, coord):
+        """
+        Get the attributes of the time coordinates.
+
+        Args:
+            coord (xarray.Coordinates): The coordinate to define the attributes.
+
+        Returns:
+            dict: A dictionary containing the attributes of the coordinate.
+        """
+        return {'name': coord.name,
+                'units': coord.attrs.get('units'),
+                'calendar': coord.attrs.get('calendar'),
+                'bounds': coord.attrs.get('bounds')}
+    
     def _get_horizontal_attributes(self, coord):
         """
         Get the attributes of the horizontal coordinates.
@@ -114,7 +128,10 @@ class CoordIdentifier():
             dict: A dictionary containing the attributes of the coordinate.
         """
         coord_range = (coord.values.min(),  coord.values.max())
-        direction = "increasing" if coord.values[-1] > coord.values[0] else "decreasing"
+        if coord.ndim == 1:
+            direction = "increasing" if coord.values[-1] > coord.values[0] else "decreasing"
+        else:
+            direction = None
         return {'name': coord.name,
                 'units': coord.attrs.get('units'),
                 'stored_direction': direction,
@@ -179,9 +196,13 @@ class CoordIdentifier():
         """
         Identify the time coordinate of the Xarray object.
         """
-        if coord in TIME:
-            return coord
-        return None
+        if coord.name in TIME:
+            return True
+        if coord.attrs.get("axis") == "T":
+            return True
+        if coord.attrs.get("standard_name") == "time":
+            return True
+        return False
     
     @staticmethod
     def _identify_isobaric(coord):
@@ -204,6 +225,8 @@ class CoordIdentifier():
         if coord.name in DEPTH:
             return True
         if coord.attrs.get("standard_name") == "depth":
+            return True
+        if "depth" in coord.name:
             return True
         if "depth" in coord.attrs.get("long_name", ""):
             return True

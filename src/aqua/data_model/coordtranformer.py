@@ -88,8 +88,6 @@ class CoordTransformer():
         """
 
         # multiple safety check
-        self.logger.error("name: %s", name)
-        self.logger.error("tgt_coords: %s", tgt_coords)
         if name is not None and tgt_coords is None:
             raise ValueError("If name is provided, tgt_coords must be provided too.")
 
