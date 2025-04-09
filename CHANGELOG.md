@@ -14,6 +14,7 @@ AQUA core complete list:
 - Graphics refactoring for timeseries plot functions (#1729, #1841)
 - Major refactor of the regrid options, with new modular `Regridder()` class replacing `Regrid()` mixin (#1768)
 - Refactor of the `retrieve_plain()` function with contextmanager and smmregrid GridInspector (#1768)
+- Adapt Catalog Generator to Data-Portfolio v1.3.0 (#1848)
 
 ## [v0.14.0]
 
