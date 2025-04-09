@@ -12,14 +12,14 @@ class TestDataModel():
     def data(self):
         return xr.Dataset(
             {
-                "temperature": (["time", "plev", "lat", "lon", "deeepth"], np.random.rand(2, 5, 3, 4, 3)),
+                "temperature": (["plev", "lat", "lon", "deeepth", "time"], np.random.rand(5, 3, 4, 3, 2)),
             },
             coords={
-                "time": ["2023-01-01", "2023-01-02"],
-                "level": [1000, 850, 700, 500, 300],  # Pressione in hPa
+                "level": [1000, 850, 700, 500, 300], 
                 "LATITUDE": [10, 20, 30],
                 "longi": [100, 110, 120, 130],
                 "deeepth": [0, 10, 20],
+                "timing": ["2023-01-01", "2023-01-02"],
             },
         )
     
@@ -94,12 +94,14 @@ class TestDataModel():
         data['longi'].attrs = {"units": "degrees_east"}
         data['LATITUDE'].attrs = {"units": "degrees_north"}
         data['deeepth'].attrs = {"standard_name": "depth"}
+        data = data.rename({"timing": "time"})
 
         new = CoordTransformer(data, loglevel='debug').transform_coords()
         assert "lat" in new.coords
         assert "lon" in new.coords
         assert "level" not in new.coords
         assert "plev" in new.coords
+        assert "time" in new.coords
         assert "Pa" == new["plev"].attrs["units"]
         assert new["plev"].max().values == 100000
         assert "depth" in new.coords
@@ -108,6 +110,7 @@ class TestDataModel():
         """Test for more complex cases."""
 
         data["level"].attrs = {"standard_name": "air_pressure"}
+        data['timing'].attrs = {"standard_name": "time"}
         data['longi'].attrs = {"axis": "X"}
         data['LATITUDE'].attrs = {"axis": "Y"}
         data['deeepth'].attrs = {"long_name": "so much water depth"}
@@ -116,5 +119,17 @@ class TestDataModel():
         assert "lat" in new.coords
         assert "lon" in new.coords
         assert "plev" in new.coords
+        assert "depth" in new.coords
+        assert "time" in new.coords
+
+    def test_fake_weird_case_third(self, data):
+        """Test for more complex cases."""
+
+        data["level"].attrs = {"units": "patate"}
+        data['timing'].attrs = {"axis": "T"}
+        data = data.rename({"deeepth": "depth"})
+
+        new = CoordTransformer(data, loglevel='debug').transform_coords()
+        assert "time" in new.coords
         assert "depth" in new.coords
 
