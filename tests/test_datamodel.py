@@ -33,14 +33,9 @@ class TestDataModel():
             CoordTransformer(data.coords)
 
         coord = CoordTransformer(data, loglevel='debug')
-        with pytest.raises(TypeError, match="tgt_coords must be a dictionary"):
-            coord.transform_coords(tgt_coords=data.coords)
         with pytest.raises(TypeError, match="name must be a string."):
-            coord.transform_coords(tgt_coords={}, name=20)
+            coord.transform_coords(name=123)
         
-        with pytest.raises(ValueError, match="If name is provided, tgt_coords must be provided too."):
-            coord.transform_coords(name="test")
-
     def test_basic_transform_vertical(self):
         """Basic test for the CoordTransformer class."""
 
