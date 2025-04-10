@@ -11,15 +11,19 @@ from aqua.util import area_selection
 class FldStat():
     """AQUA class for field statitics"""
 
-    def __init__(self, area=None, horizontal_dims=None, grid_name=None, loglevel='WARNING'):
+    def __init__(self,
+             area: xr.Dataset | xr.DataArray | None = None,
+             horizontal_dims: list[str] | None = None,
+             grid_name: str | None = None,
+             loglevel: str = 'WARNING'):
         """
         Initialize the FldStat.
 
         Args:
-            area (str): The area to calculate the statistics for.
-            horizontal_dims (list): The horizontal dimensions of the data.
+            area (xr.Dataset, xr.DataArray, optional): The area to calculate the statistics for.
+            horizontal_dims (list, optional): The horizontal dimensions of the data.
             grid_name (str, optional): The name of the grid, used for logging history.
-            loglevel (str): The logging level.
+            loglevel (str, optional): The logging level.
         """
 
         self.loglevel = loglevel
@@ -37,7 +41,6 @@ class FldStat():
         if not isinstance(area, (xr.DataArray, xr.Dataset)):
             raise ValueError("Area must be an xarray DataArray or Dataset.")
 
-        self.logger.debug('Horizontal dimensions are %s', self.horizontal_dims)
         self.grid_name = grid_name
        
     def fldmean(self, data, lon_limits=None, lat_limits=None, **kwargs):
@@ -63,6 +66,7 @@ class FldStat():
 
         # if horizontal_dims is not provided, try to guess it
         if self.horizontal_dims is None:
+            # please notice GridInspector always return a list of GridType objects
             data_gridtype = GridInspector(data).get_grid_info()
             if len(data_gridtype) > 1:
                 raise ValueError("Multiple grid types found in the data, please provide horizontal_dims!")
@@ -71,6 +75,7 @@ class FldStat():
 
         #if area is not provided, return the raw mean
         if self.area is None:
+            self.logger.warning("No area provided, no weighted area can be provided.")
             return data.mean(dim=self.horizontal_dims)
         
         # align dimensions naming of area to match data
@@ -104,6 +109,7 @@ class FldStat():
         # verify that horizontal dimensions area the same in the two datasets.
         # If not, try to rename them. Use gridtype to get the horizontal dimensions
         # TODO: "rgrid" is not a default dimension in smmregrid, it should be added.
+        # please notice GridInspector always return a list of GridType objects
         area_gridtype = GridInspector(self.area, extra_dims={"horizontal": ["rgrid"]}).get_grid_info()
         area_horizontal_dims = area_gridtype[0].horizontal_dims
         self.logger.debug("Area horizontal dimensions are %s", area_horizontal_dims)
