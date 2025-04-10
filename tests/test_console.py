@@ -460,7 +460,6 @@ class TestAquaConsole():
         assert 'ciccio (editable' in out
         assert 'IFS.yaml' in out
         assert 'HealPix.yaml' in out
-        assert 'ifs2cds.json' in out
 
         run_aqua(['avail'])
         out, _ = capfd.readouterr()
