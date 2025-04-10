@@ -4,7 +4,7 @@ import os
 import xarray as xr
 from metpy.units import units
 from aqua.logger import log_configure, log_history
-from aqua.util import load_yaml
+from aqua.util import load_yaml, ConfigPath
 from aqua import __path__ as pypath
 from .coordidentifier import CoordIdentifier
 
@@ -19,7 +19,8 @@ def units_conversion_factor(from_unit_str, to_unit_str):
     return from_unit.to(to_unit).magnitude
 
 # default target coords
-data_yaml = load_yaml(os.path.join(pypath[0], "data_model", "aqua.yaml"))
+data_model_dir = os.path.join(ConfigPath().get_config_dir(), "data_model")
+data_yaml = load_yaml(os.path.join(data_model_dir, "aqua.yaml"))
 TGT_COORDS = data_yaml.get('data_model')
 NAME = f'{data_yaml.get('name')} v{str(data_yaml.get('version'))}'
 
