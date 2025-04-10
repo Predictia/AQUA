@@ -12,6 +12,7 @@ Removed:
 
 AQUA core complete list:
 - `FldStat()` as independent module for area-weighted operations (#1835)
+- Introduce a `Timstat()` module independent from the `Reader()` (#1832)
 - Adapt Catalog Generator to Data-Portfolio v1.3.0 (#1848)
 - Introduction of a internal AQUA data model able to guess coordinates and convert toward required target data convention definition (#1862)
 - Custom `paths` in the `confi-aqua.yaml` can now be defined and will take priority over the catalog paths (#1809)

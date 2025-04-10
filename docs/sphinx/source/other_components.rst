@@ -7,8 +7,9 @@ Time Statistics
 ---------------
 
 Input data may not be available at the desired time frequency. It is possible to perform time statistics, including
-time averaging, minimum, maximum and standard deviation at a given time frequency by using the ``timstat()`` method and its sibilings
-``timmean()``, ``timmin()``, ``timmax()`` and ``timstd()``. 
+time averaging, minimum, maximum and standard deviation at a given time frequency by using the ``Timstat()`` class and its method ``timstat()```
+which allow for several statistical operations. The class is nested into the reader, and its method are exposed so that is sufficient
+to use `timstat()` and its sibilings ``timmean()``, ``timmin()``, ``timmax()`` and ``timstd()``, as in the case below. 
 
 .. code-block:: python
 
@@ -26,7 +27,8 @@ Some extra options are available:
 
 - ``exclude_incomplete=True``: this flag will remove averaged chunks which are not complete
   (for example, verify  that all the record from each month are available before doing the time mean).
-- ``center_time=True``: this flag will center the time coordinate on the mean time window.
+- ``center_time=True``: this flag will center the time coordinate on the mean time window. 
+    Otherwise, the time coordinate will be the first timestamp of the time window.
 - ``time_bounds=True``: this flag can be activated to build time bounds in a similar way to CMOR-like standard.
 
 

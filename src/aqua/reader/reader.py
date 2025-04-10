@@ -15,19 +15,18 @@ from aqua.exceptions import NoDataError, NoRegridError
 from aqua.version import __version__ as aqua_version
 from aqua.regridder import Regridder
 from aqua.fldstat import FldStat
+from aqua.timstat import TimStat
 from aqua.data_model import counter_reverse_coordinate
 import aqua.gsv
 
 from .streaming import Streaming
 from .fixer import FixerMixin
-from .timstat import TimStatMixin
 from .reader_utils import set_attrs
 
 # set default options for xarray
 xr.set_options(keep_attrs=True)
 
-
-class Reader(FixerMixin, TimStatMixin):
+class Reader(FixerMixin):
     """General reader for climate data."""
 
     instance = None  # Used to store the latest instance of the class
@@ -272,6 +271,9 @@ class Reader(FixerMixin, TimStatMixin):
                 # TODO: this should include the latitudes flipping fix
                 self.tgt_grid_area = self._fix_area(self.tgt_grid_area)
             self.tgt_space_coord = self.regridder.tgt_horizontal_dims
+
+        # activste time statistics
+        self.timemodule = TimStat(loglevel=self.loglevel)
 
     def retrieve(self, var=None, level=None,
                  startdate=None, enddate=None,
@@ -985,8 +987,41 @@ class Reader(FixerMixin, TimStatMixin):
             print("GSV request for this source:")
             for k, v in self.esmcat._request.items():
                 if k not in ["time", "param", "step", "expver"]:
-                    print(f"  {k}: {v}")
+                    print("  %s: %s" % (k, v))
 
+    def timstat(self, data, stat, freq=None, exclude_incomplete=False,
+             time_bounds=False, center_time=False):
+        """
+        Time averaging wrapper which is calling the timstat module
+
+        Args:
+            data (xr.DataArray or xarray.Dataset):  the input data
+            stat (str):  the statistical function to be applied
+            freq (str):  the frequency of the time average
+            exclude_incomplete (bool):  exclude incomplete time averages
+            time_bounds (bool):  produce time bounds after averaging
+            center_time (bool):  center time for averaging
+        """
+
+        data = self.timemodule.timstat(
+            data, stat=stat, freq=freq,
+            exclude_incomplete=exclude_incomplete,
+            time_bounds=time_bounds,
+            center_time=center_time)
+        data.aqua.set_default(self) #accessor linking
+        return data
+    
+    def timmean(self, data, **kwargs):
+        return self.timstat(data, stat='mean', **kwargs)
+
+    def timmax(self, data, **kwargs):
+        return self.timstat(data, stat='max', **kwargs)
+    
+    def timmin(self, data, **kwargs):
+       return self.timstat(data, stat='min', **kwargs)
+    
+    def timstd(self, data, **kwargs):
+       return self.timstat(data, stat='std', **kwargs)
 
 def units_extra_definition():
     """Add units to the pint registry"""
