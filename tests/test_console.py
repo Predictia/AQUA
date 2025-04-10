@@ -417,7 +417,7 @@ class TestAquaConsole():
         # install from path with grids
         run_aqua(['-vv', 'install', machine, '--editable', 'config'])
         assert os.path.exists(os.path.join(mydir, '.aqua'))
-        for folder in ['fixes', 'data_models', 'grids']:
+        for folder in ['fixes', 'data_model', 'grids']:
             assert os.path.islink(os.path.join(mydir, '.aqua', folder))
         assert os.path.isdir(os.path.join(mydir, '.aqua', 'catalogs'))
 
