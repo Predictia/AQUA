@@ -688,7 +688,7 @@ class LRAgenerator():
 
         # update data attributes for history
         if self.frequency:
-            log_history(data, f'regridded from {self.reader.src_grid_name} to {self.resolution} and from frequency {self.reader.orig_freq} to {self.frequency} through LRA generator')                
+            log_history(data, f'regridded from {self.reader.src_grid_name} to {self.resolution} and from frequency {self.reader.timemodule.orig_freq} to {self.frequency} through LRA generator')                
         else:
             log_history(data, f'regridded from {self.reader.src_grid_name} to {self.resolution} through LRA generator')
 
