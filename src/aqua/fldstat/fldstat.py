@@ -42,14 +42,22 @@ class FldStat():
             raise ValueError("Area must be an xarray DataArray or Dataset.")
 
         self.grid_name = grid_name
-       
-    def fldmean(self, data, lon_limits=None, lat_limits=None, **kwargs):
+
+
+    def fldmean(self, data, **kwargs):
+        """
+        Perform a weighted global average. Builds on fldstat.
+        """
+        return self.fldstat(data, stat="mean", **kwargs)
+
+    def fldstat(self, data, stat="mean", lon_limits=None, lat_limits=None, **kwargs):
         """
         Perform a weighted global average.
         If a subset of the data is provided, the average is performed only on the subset.
 
         Arguments:
             data (xr.DataArray or xarray.DataDataset):  the input data
+            stat (str):  the statistic to compute, only supported is "mean"
             lon_limits (list, optional):  the longitude limits of the subset
             lat_limits (list, optional):  the latitude limits of the subset
 
@@ -60,6 +68,9 @@ class FldStat():
         Returns:
             the value of the averaged field
         """
+        
+        if stat not in ["mean"]:
+            raise ValueError(f"Statistic {stat} not supported, only 'mean' is supported.")
 
         if not isinstance(data, (xr.DataArray, xr.Dataset)):
             raise ValueError("Data must be an xarray DataArray or Dataset.")
@@ -99,7 +110,7 @@ class FldStat():
             log_history(data, f"Spatially averaged by fldmean from {self.grid_name} grid")
 
         return out
-    
+
     def align_area_dimensions(self, data):
         """
         Align the area dimensions with the data dimensions.
@@ -144,7 +155,7 @@ class FldStat():
                 # verify coordinates has the same sizes
                 if len(area_coord) != len(data_coord):
                     raise ValueError(f"{coord} has a mismatch in length!")
-                
+
                 # Fast check if coordinates are already aligned
                 if np.array_equal(area_coord, data_coord):
                     continue
@@ -156,7 +167,6 @@ class FldStat():
                     continue
 
                 raise ValueError(f"Mismatch in values for coordinate '{coord}' between data and areas.")
-                    
+    
         return self.area
-
 
