@@ -65,8 +65,6 @@ class CoordTransformer():
             raise FileNotFoundError(f"Data model file {data_model_file} not found.")
         self.logger.info("Loading data model from %s", data_model_file)
         data_yaml = load_yaml(data_model_file)
-        #tgt_coords = data_yaml.get('data_model')
-        #name = f'{data_yaml.get('name')} v{str(data_yaml.get('version'))}'
         return data_yaml
 
     def _info_grid(self, coords):
@@ -212,7 +210,7 @@ class CoordTransformer():
         if src_coord['stored_direction'] not in ["increasing", "decreasing"]:
             self.logger.warning("src direction is not 'increasing' or 'decreasing', but %s. Disabling reverse!", src_coord['stored_direction'])
             return data
-        if src_coord['stored_direction'] != tgt_coord['direction']:
+        if src_coord['stored_direction'] != tgt_coord['stored_direction']:
             if self.gridtype == "Regular":
                 self.logger.info("Reversing coordinate %s from %s to %s",
                                 tgt_coord['name'], src_coord['stored_direction'], tgt_coord['stored_direction'])

@@ -145,7 +145,7 @@ class TestAquaConsole():
         # do it twice!
         run_aqua_console_with_input(['-vv', 'install', machine], 'yes')
         assert os.path.exists(os.path.join(mydir, '.aqua'))
-        for folder in ['fixes', 'data_models', 'grids']:
+        for folder in ['fixes', 'data_model', 'grids']:
             assert os.path.isdir(os.path.join(mydir, '.aqua', folder))
 
         # add two catalogs

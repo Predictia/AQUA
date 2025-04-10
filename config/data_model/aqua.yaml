@@ -9,7 +9,7 @@ data_model:
     name: lat
     standard_name: latitude
     long_name: latitude
-    direction: increasing
+    stored_direction: increasing
     units: degrees_north
     axis: Y
 
@@ -17,7 +17,7 @@ data_model:
     name: lon
     standard_name: longitude
     long_name: longitude
-    direction: increasing
+    stored_direction: increasing
     units: degrees_east
     axis: X
 
