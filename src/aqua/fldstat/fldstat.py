@@ -86,9 +86,13 @@ class FldStat():
 
         #if area is not provided, return the raw mean
         if self.area is None:
-            self.logger.warning("No area provided, no weighted area can be provided.")
-            return data.mean(dim=self.horizontal_dims)
-        
+            self.logger.warning("No area provided, no area-weighted stat can be provided.")
+            # compact call, equivalent of "out = data.mean()"
+            if stat in ["mean"]:
+                self.logger.info("Computing unweighted %s on %s dimensions", stat, self.horizontal_dims)
+                return getattr(data, stat)(dim=self.horizontal_dims)
+            raise KeyError(f'{stat} is not a statistic supported by AQUA FldStat()')
+
         # align dimensions naming of area to match data
         self.area = self.align_area_dimensions(data)
 
@@ -103,11 +107,16 @@ class FldStat():
         # grid_area = self._clean_spourious_coords(grid_area, name = "area")
         # data = self._clean_spourious_coords(data, name = "data")
 
-        self.logger.debug('Computing the weighted average over  %s', self.horizontal_dims)
-        out = data.weighted(weights=self.area.fillna(0)).mean(dim=self.horizontal_dims)
+        # compact call, equivalent of "out = weighted_data.mean()""
+        if stat in ["mean"]:
+            weighted_data = data.weighted(weights=self.area.fillna(0))
+            self.logger.info("Computing area-weighted %s on %s dimensions", stat, self.horizontal_dims)
+            out = getattr(weighted_data, stat)(dim=self.horizontal_dims)
+        else:
+            raise KeyError(f'{stat} is not a statistic supported by AQUA FldStat()')
 
         if self.grid_name is not None:
-            log_history(data, f"Spatially averaged by fldmean from {self.grid_name} grid")
+            log_history(data, f"Spatially reduced by fld{stat} from {self.grid_name} grid")
 
         return out
 
