@@ -105,7 +105,6 @@ class OutputSaver:
             folder = os.path.join(self.outdir, 'netcdf')
             create_folder(folder=str(folder), loglevel=self.loglevel)
             filepath = os.path.join(folder, filename)
-            
             dataset.to_netcdf(filepath)
 
             self.logger.info(f"Saved NetCDF: {filepath}")
@@ -130,20 +129,7 @@ class OutputSaver:
         filepath = os.path.join(folder, filename)
         fig.savefig(filepath, format='pdf', bbox_inches='tight')
 
-        # Adding metadata
-        base_metadata = {
-            'diagnostic': self.diagnostic,
-            'diagnostic_product': diagnostic_product,
-            'model': self.model
-            }
-        
-        processed_extra_keys = {
-                    key: (",".join(map(str, value)) if isinstance(value, list) else str(value))
-                    for key, value in extra_keys.items()
-                }
-
-        base_metadata.update(processed_extra_keys)
-        metadata = update_metadata(base_metadata, metadata)
+        metadata = create_metadata(self, diagnostic_product=diagnostic_product, extra_keys=extra_keys)
         add_pdf_metadata(filepath, metadata, loglevel=self.loglevel)
 
         self.logger.info(f"Saved PDF: {filepath}")
@@ -166,30 +152,47 @@ class OutputSaver:
         folder = os.path.join(self.outdir, 'png')
         create_folder(folder=str(folder), loglevel=self.loglevel)
         filepath = os.path.join(folder, filename)
-        
         fig.savefig(filepath, format='png', dpi=300, bbox_inches='tight')
 
-        # Adding metadata
-        base_metadata = {
-            'diagnostic': self.diagnostic,
-            'diagnostic_product': diagnostic_product,
-            'catalog': self.catalog,
-            'model': self.model,
-            'exp': self.exp,
-            'catalog_ref': self.catalog_ref,
-            'model_ref': self.model_ref,
-            'exp_ref': self.exp_ref
-            }
-
-        base_metadata = {k: v for k, v in base_metadata.items() if v is not None}
-
-        processed_extra_keys = {
-                    key: (",".join(map(str, value)) if isinstance(value, list) else str(value))
-                    for key, value in extra_keys.items()
-                }
-        base_metadata.update(processed_extra_keys)
-        metadata = update_metadata(base_metadata, metadata)
+        metadata = create_metadata(self, diagnostic_product=diagnostic_product, extra_keys=extra_keys)
         add_png_metadata(filepath, metadata, loglevel=self.loglevel)
 
         self.logger.info(f"Saved PNG: {filepath}")
         return filepath
+
+
+
+def create_metadata(self, diagnostic_product: str, extra_keys: dict = None, metadata: dict = None) -> dict:
+    """
+    Create metadata dictionary for a plot or output file.
+
+    Args:
+        diagnostic_product (str): Product of the diagnostic analysis.
+        extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
+        metadata (dict, optional): Additional metadata to include in the PNG file.
+    """
+    base_metadata = {
+        'diagnostic': self.diagnostic,
+        'diagnostic_product': diagnostic_product,
+        'catalog': self.catalog,
+        'model': self.model,
+        'exp': self.exp,
+        'catalog_ref': self.catalog_ref,
+        'model_ref': self.model_ref,
+        'exp_ref': self.exp_ref
+    }
+
+    # Remove None values
+    base_metadata = {k: v for k, v in base_metadata.items() if v is not None}
+
+    # Process extra keys safely
+    if extra_keys:
+        processed_extra_keys = {
+            key: ",".join(map(str, value)) if isinstance(value, list) else str(value)
+            for key, value in extra_keys.items()
+        }
+        base_metadata.update(processed_extra_keys)
+
+    # Merge with provided metadata
+    metadata = update_metadata(base_metadata, metadata)
+    return metadata
