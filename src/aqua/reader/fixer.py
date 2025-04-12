@@ -1,20 +1,15 @@
 """Fixer mixin for the Reader class"""
 
-import os
 import re
-import json
-import warnings
-import types
 from datetime import timedelta
 import xarray as xr
 import numpy as np
 import pandas as pd
-from metpy.units import units
 
-from aqua.util import eval_formula, get_eccodes_attr, find_lat_dir
-from aqua.util import check_direction, to_list, normalize_units, convert_units
+from aqua.util import eval_formula, get_eccodes_attr
+from aqua.util import to_list, normalize_units, convert_units
 from aqua.logger import log_history
-from aqua.data_models import translate_coords
+from aqua.data_model import CoordTransformer
 
 
 class FixerMixin():
@@ -369,19 +364,7 @@ class FixerMixin():
 
         return default_fixes
 
-    def fixer(self, data, var, **kwargs):
-        """Call the fixer function returning container or iterator"""
-        if isinstance(data, types.GeneratorType):
-            return self._fixergen(data, var, **kwargs)
-        else:
-            return self._fixer(data, var, **kwargs)
-
-    def _fixergen(self, data, var, **kwargs):
-        """Iterator version of the fixer"""
-        for ds in data:
-            yield self._fixer(ds, var, keep_memory=True, **kwargs)
-
-    def _fixer(self, data, destvar, apply_unit_fix=True, keep_memory=False):
+    def fixer(self, data, destvar, apply_unit_fix=True):
         """
         Perform fixes (var name, units, coord name adjustments) of the input dataset.
 
@@ -391,8 +374,6 @@ class FixerMixin():
             apply_unit_fix (bool):  if to perform immediately unit conversions (which requite a product or an addition).
                                     The fixer sets anyway an offset or a multiplicative factor in the data attributes.
                                     These can be applied also later with the method `apply_unit_fix`. (true)
-            keep_memory (bool):     if to keep memory of the previous fields (used for decumulation of iterators)
-
         Returns:
             A xarray.Dataset containing the fixed data and target units, factors and offsets in variable attributes.
         """
@@ -412,8 +393,6 @@ class FixerMixin():
         # Fix GRIB attribute names. This removes "GRIB_" from the beginning
         # for var in data.data_vars:
         #    data[var].attrs = {key.split("GRIB_")[-1]: value for key, value in data[var].attrs.items()}
-
-        units_extra_definition()
 
         # if there are no fixes defined, return
         if self.fixes is None:
@@ -596,7 +575,7 @@ class FixerMixin():
 
         # decumulate if necessary and fix first of month if necessary
         if vars_to_fix:
-            data = self._wrapper_decumulate(data, vars_to_fix, varlist, keep_memory, jump)
+            data = self._wrapper_decumulate(data, vars_to_fix, varlist, jump)
             if nanfirst_enddate:  # This is a temporary fix for IFS data, run ony if an end date is specified
                 data = self._wrapper_nanfirst(data, vars_to_fix, varlist,
                                               startdate=nanfirst_startdate,
@@ -615,9 +594,7 @@ class FixerMixin():
         # Fix coordinates according to a given data model
         src_datamodel = self.fixes.get("data_model", src_datamodel)
         if src_datamodel:
-            data = self.change_coord_datamodel(data, src_datamodel, self.dst_datamodel)
-            self.logger.info(f"coordinates adjusted to {src_datamodel} by AQUA fixer")
-            data = log_history(data, f"Coordinates adjusted to {src_datamodel} by fixer")
+            data = CoordTransformer(data, loglevel=self.loglevel).transform_coords()
 
         # Extra coordinate handling
         data = self._fix_dims(data)
@@ -635,8 +612,8 @@ class FixerMixin():
         # First case: get from metadata
         metadata_deltat = self.esmcat.metadata.get('deltat')
         if metadata_deltat:
-                self.logger.debug('deltat = %s read from metadata', metadata_deltat)
-                return metadata_deltat
+            self.logger.debug('deltat = %s read from metadata', metadata_deltat)
+            return metadata_deltat
 
         # Second case if not available: get from fixes
         fix_deltat = self.fixes.get("deltat")
@@ -692,7 +669,7 @@ class FixerMixin():
 
         return field
 
-    def _wrapper_decumulate(self, data, variables, varlist, keep_memory, jump):
+    def _wrapper_decumulate(self, data, variables, varlist, jump):
         """
         Wrapper function for decumulation, which takes into account the requirement of
         keeping into memory the last step for streaming/fdb purposes
@@ -701,16 +678,12 @@ class FixerMixin():
             Data: Xarray Dataset
             variables: The fixes of the variables
             varlist: the variable dictionary with the old and new names
-            keep_memory: if to keep memory of the previous fields (used for decumulation of iterators)
             jump: the jump for decumulation
 
         Returns:
             Dataset with decumulated fixes
         """
 
-        fkeep = False
-        if keep_memory:
-            data1 = data.isel(time=-1)  # save last timestep for possible future use
         for var in variables:
             # Decumulate if required
             if variables[var].get("decumulate", None):
@@ -718,23 +691,10 @@ class FixerMixin():
                 if varname in data.variables:
                     self.logger.debug("Starting decumulation for variable %s", varname)
                     keep_first = variables[var].get("keep_first", True)
-                    if keep_memory:  # Special case for iterators
-                        fkeep = True  # We have decumulated at least once and we need to keep data
-                        if not self.previous_data:
-                            previous_data = xr.zeros_like(data[varname].isel(time=0))
-                        else:
-                            previous_data = self.previous_data[varname]
-                        data[varname] = self.simple_decumulate(data[varname],
-                                                               jump=jump,
-                                                               keep_first=keep_first,
-                                                               keep_memory=previous_data)
-                    else:
-                        data[varname] = self.simple_decumulate(data[varname],
-                                                               jump=jump,
-                                                               keep_first=keep_first)
+                    data[varname] = self.simple_decumulate(data[varname],
+                                                            jump=jump,
+                                                            keep_first=keep_first)
                     log_history(data[varname], f"Variable {varname} decumulated by fixer")
-        if fkeep:
-            self.previous_data = data1  # keep the last timestep for further decumulations
 
         return data
 
@@ -889,11 +849,12 @@ class FixerMixin():
         else:
             self.logger.debug("Applying fixes to area file")
             # This operation is a duplicate, rationalization with fixer method is needed
-            src_datamodel = self.fixes_dictionary["defaults"].get("src_datamodel", None)
-            src_datamodel = self.fixes.get("data_model", src_datamodel)
+            #src_datamodel = self.fixes_dictionary["defaults"].get("src_datamodel", None)
+            #src_datamodel = self.fixes.get("data_model", src_datamodel)
 
-            if src_datamodel:
-                area = self.change_coord_datamodel(area, src_datamodel, self.dst_datamodel)
+            #if src_datamodel:
+            #    area = self.change_coord_datamodel(area, src_datamodel, self.dst_datamodel)
+            area = CoordTransformer(area, loglevel=self.loglevel).transform_coords()
 
             return area
 
@@ -1031,7 +992,7 @@ class FixerMixin():
         self.logger.debug("Variables to be loaded: %s", loadvar)
         return loadvar
 
-    def simple_decumulate(self, data, jump=None, keep_first=True, keep_memory=None):
+    def simple_decumulate(self, data, jump=None, keep_first=True):
         """
         Remove cumulative effect on IFS fluxes.
 
@@ -1040,7 +1001,6 @@ class FixerMixin():
             jump (str):              used to fix periodic jumps (a very specific NextGEMS IFS issue)
                                      Examples: jump='month' (the NextGEMS case), jump='day')
             keep_first (bool):       if to keep the first value as it is (True) or place a 0 (False)
-            keep_memory (DataArray): data from previous step
 
         Returns:
             A xarray.DataArray where the cumulation has been removed
@@ -1055,10 +1015,6 @@ class FixerMixin():
             zeros = data.isel(time=0)
         else:
             zeros = xr.zeros_like(data.isel(time=0))
-        if isinstance(keep_memory, xr.DataArray):
-            data0 = data.isel(time=0)
-            keep_memory = keep_memory.assign_coords(time=data0.time)  # We need them to have the same time
-            zeros = data0 - keep_memory
 
         deltas = xr.concat([zeros, deltas], dim='time').transpose('time', ...)
 
@@ -1078,47 +1034,47 @@ class FixerMixin():
 
         return deltas
 
-    def change_coord_datamodel(self, data, src_datamodel, dst_datamodel):
-        """
-        Wrapper around cfgrib.cf2cdm to perform coordinate conversions
+    # def change_coord_datamodel(self, data, src_datamodel, dst_datamodel):
+    #     """
+    #     Wrapper around cfgrib.cf2cdm to perform coordinate conversions
 
-        Arguments:
-            data (xr.DataSet):      input dataset to process
-            src_datamodel (str):    input datamodel (e.g. "cf")
-            dst_datamodel (str):    output datamodel (e.g. "cds")
+    #     Arguments:
+    #         data (xr.DataSet):      input dataset to process
+    #         src_datamodel (str):    input datamodel (e.g. "cf")
+    #         dst_datamodel (str):    output datamodel (e.g. "cds")
 
-        Returns:
-            The processed input dataset
-        """
-        fn = os.path.join(self.configdir, 'data_models', f'{src_datamodel}2{dst_datamodel}.json')
-        self.logger.debug("Data model: %s", fn)
-        with open(fn, 'r', encoding="utf8") as f:
-            dm = json.load(f)
+    #     Returns:
+    #         The processed input dataset
+    #     """
+    #     fn = os.path.join(self.configdir, 'data_models', f'{src_datamodel}2{dst_datamodel}.json')
+    #     self.logger.debug("Data model: %s", fn)
+    #     with open(fn, 'r', encoding="utf8") as f:
+    #         dm = json.load(f)
 
-        if "IFSMagician" in data.attrs.get("history", ""):  # Special fix for gribscan levels
-            if "level" in data.coords:
-                if data.level.max() >= 1000:  # IS THERE A REASON FOR THIS CHECK?
-                    data.level.attrs["units"] = "hPa"
-                    data.level.attrs["standard_name"] = "air_pressure"
-                    data.level.attrs["long_name"] = "pressure"
+    #     if "IFSMagician" in data.attrs.get("history", ""):  # Special fix for gribscan levels
+    #         if "level" in data.coords:
+    #             if data.level.max() >= 1000:  # IS THERE A REASON FOR THIS CHECK?
+    #                 data.level.attrs["units"] = "hPa"
+    #                 data.level.attrs["standard_name"] = "air_pressure"
+    #                 data.level.attrs["long_name"] = "pressure"
 
-        if "GSV interface" in data.attrs.get("history", ""):  # Special fix for FDB retrieved data
-            if "height" in data.coords:
-                data.height.attrs["units"] = "hPa"
-                data.height.attrs["standard_name"] = "air_pressure"
-                data.height.attrs["long_name"] = "pressure"
+    #     if "GSV interface" in data.attrs.get("history", ""):  # Special fix for FDB retrieved data
+    #         if "height" in data.coords:
+    #             data.height.attrs["units"] = "hPa"
+    #             data.height.attrs["standard_name"] = "air_pressure"
+    #             data.height.attrs["long_name"] = "pressure"
 
-        lat_coord, lat_dir = find_lat_dir(data)
-        # this is needed since cf2cdm issues a (useless) UserWarning
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", category=UserWarning)
-            data = translate_coords(data, dm)
-            # Hack needed because cfgrib.cf2cdm mixes up coordinates with dims
-            if "forecast_reference_time" in data.dims:
-                data = data.swap_dims({"forecast_reference_time": "time"})
+    #     lat_coord, lat_dir = find_lat_dir(data)
+    #     # this is needed since cf2cdm issues a (useless) UserWarning
+    #     with warnings.catch_warnings():
+    #         warnings.filterwarnings("ignore", category=UserWarning)
+    #         data = translate_coords(data, dm)
+    #         # Hack needed because cfgrib.cf2cdm mixes up coordinates with dims
+    #         if "forecast_reference_time" in data.dims:
+    #             data = data.swap_dims({"forecast_reference_time": "time"})
 
-        check_direction(data, lat_coord, lat_dir)  # set 'flipped' attribute if lat direction has changed
-        return data
+    #     check_direction(data, lat_coord, lat_dir)  # set 'flipped' attribute if lat direction has changed
+    #     return data
 
     def apply_unit_fix(self, data):
         """
@@ -1151,16 +1107,3 @@ class FixerMixin():
                 data += offset
             log_history(data, f"Units changed to {tgt_units} by fixer")
             data.attrs.pop('tgt_units', None)
-
-
-def units_extra_definition():
-    """Add units to the pint registry"""
-
-    # special units definition
-    # needed to work with metpy 1.4.0 see
-    # https://github.com/Unidata/MetPy/issues/2884
-    units._on_redefinition = 'ignore'
-    units.define('fraction = [] = Fraction = frac')
-    units.define('psu = 1e-3 frac')
-    units.define('PSU = 1e-3 frac')
-    units.define('Sv = 1e+6 m^3/s')

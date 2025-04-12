@@ -3,11 +3,8 @@ coverage:
   status:
     project:
       default:
-        target: 55%   
+        target: auto
         threshold: 0.1%  # Allow a 0.1% drop without failing
-    
-fixes:
-  - "/__w/AQUA/AQUA/AQUA/src/::src/"
 
 ignore:
   - "tests/*"          # Ignore test files
@@ -17,3 +14,6 @@ ignore:
 comment:
   layout: "diff, flags"
   require_changes: true
+
+#fixes:
+#  - "/__w/AQUA/AQUA/AQUA/src/::src/"
