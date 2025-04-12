@@ -51,7 +51,7 @@ class PlotGlobalBiases:
                 vmax (float, optional): Maximum colorbar value.
 
             Returns:
-                tuple: Matplotlib figure, axis objects, and xarray Dataset of the calculated bias if available.
+                tuple: tuple: Matplotlib figure and an xarray.Dataset of the calculated bias.
             """
             self.logger.info('Plotting global biases.')
 
@@ -141,7 +141,7 @@ class PlotGlobalBiases:
                 vmax (float, optional): Maximum colorbar value.
 
             Returns:
-                tuple: Matplotlib figure, axis objects, and an xarray.Dataset of the calculated seasonal biases.
+                tuple: Matplotlib figure and an xarray.Dataset of the calculated seasonal biases.
             """
 
             self.var = var or self.var
@@ -212,7 +212,7 @@ class PlotGlobalBiases:
             if vmax is not None:
                 plot_kwargs['vmax'] = vmax
 
-            fig, ax = plot_maps(**plot_kwargs)
+            fig = plot_maps(**plot_kwargs)
             
             description = (
                         f"Seasonal bias map of the variable {self.var} for the {self.model} model, experiment {self.exp}"
