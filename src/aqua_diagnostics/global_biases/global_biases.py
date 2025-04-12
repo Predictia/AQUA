@@ -36,10 +36,15 @@ class GlobalBiases(Diagnostic):
         self.plev = plev
         self.var = var
 
-    def retrieve_and_process(self, plev=None, var=None):
+    def retrieve(self, var=None, plev=None, units=None):
         """
-        Retrieves and pre-processes the dataset, converting precipitation units if necessary 
-        and selecting the specified pressure level.
+        Retrieves and pre-processes the dataset,    
+        Optionally selects a pressure level and converts variable units. 
+
+        Args:
+            var (str): Variable to retrieve.
+            plev (int): Pressure level to select.
+            units (str) : Target units for conversion (e.g., 'mm/day').
         """
         self.var = var or self.var
         self.plev = plev or self.plev
@@ -53,10 +58,10 @@ class GlobalBiases(Diagnostic):
         self.startdate = self.startdate or pd.to_datetime(self.data.time[0].values).strftime('%Y-%m-%d')
         self.enddate = self.enddate or pd.to_datetime(self.data.time[-1].values).strftime('%Y-%m-%d')
         
-        if self.var in ['tprate', 'mtpr']:
-            self.logger.info(f'Adjusting units for precipitation variable: {self.var}.')
-            self.data = convert_data_units(self.data, self.var, 'mm/day', loglevel=self.loglevel)
-
+        if units is not None:
+            self.logger.info(f'Adjusting units for variable {self.var} to {units}.')
+            self.data = convert_data_units(self.data, self.var, units, loglevel=self.loglevel)
+            
         if self.plev is not None:
             self.logger.info(f'Selecting pressure level {self.plev} for variable {self.var}.')
             self.data = select_pressure_level(self.data, self.plev, self.var)

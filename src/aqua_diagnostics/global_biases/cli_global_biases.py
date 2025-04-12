@@ -82,9 +82,10 @@ if __name__ == '__main__':
                 logger.info(f"Running Global Biases diagnostic for variable: {var}")
                 plot_params = config_dict['diagnostics']['globalbiases']['plot_params']['limits']['2d_maps'].get(var, {})
                 vmin, vmax = plot_params.get('vmin'), plot_params.get('vmax')
+                units = 'mm/day' if var in ['tprate', 'mtpr'] else None
 
-                biases_dataset.retrieve_and_process(var=var)
-                biases_reference.retrieve_and_process(var=var)
+                biases_dataset.retrieve(var=var, units=units)
+                biases_reference.retrieve(var=var, units=units)
 
                 if 'plev' in biases_dataset.data.get(var, {}).dims and plev:
                     plev_list = to_list(plev)
