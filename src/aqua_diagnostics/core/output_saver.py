@@ -79,8 +79,7 @@ class OutputSaver:
 
         # Add additional filename keys if provided
         if extra_keys:
-            filtered_keys = {key: value for key, value in extra_keys.items()}
-            parts_dict.update(filtered_keys)
+            parts_dict.update(extra_keys)
         
         # Remove None values
         parts = [str(value) for value in parts_dict.values() if value is not None]
@@ -101,7 +100,7 @@ class OutputSaver:
                 diagnostic_product (str): Product of the diagnostic analysis.
                 extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
             """
-            filename = self.generate_name(diagnostic_product, extra_keys) + '.nc'
+            filename = self.generate_name(diagnostic_product=diagnostic_product, extra_keys=extra_keys) + '.nc'
             
             folder = os.path.join(self.outdir, 'netcdf')
             create_folder(folder=str(folder), loglevel=self.loglevel)
@@ -123,15 +122,15 @@ class OutputSaver:
             extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
             metadata (dict, optional): Additional metadata to include in the PDF file.
         """
-        filename = self.generate_name(diagnostic_product, extra_keys) + '.pdf'
+        
+        filename = self.generate_name(diagnostic_product=diagnostic_product, extra_keys=extra_keys) + '.pdf'
                 
         folder = os.path.join(self.outdir, 'pdf')
         create_folder(folder=str(folder), loglevel=self.loglevel)
         filepath = os.path.join(folder, filename)
-        
         fig.savefig(filepath, format='pdf', bbox_inches='tight')
 
-         # Adding metadata
+        # Adding metadata
         base_metadata = {
             'diagnostic': self.diagnostic,
             'diagnostic_product': diagnostic_product,
@@ -161,8 +160,9 @@ class OutputSaver:
             extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
             metadata (dict, optional): Additional metadata to include in the PNG file.
         """
-        filename = self.generate_name(diagnostic_product, extra_keys) + '.png'
-        
+
+        filename = self.generate_name(diagnostic_product=diagnostic_product, extra_keys=extra_keys) + '.png'
+
         folder = os.path.join(self.outdir, 'png')
         create_folder(folder=str(folder), loglevel=self.loglevel)
         filepath = os.path.join(folder, filename)
@@ -187,7 +187,6 @@ class OutputSaver:
                     key: (",".join(map(str, value)) if isinstance(value, list) else str(value))
                     for key, value in extra_keys.items()
                 }
-
         base_metadata.update(processed_extra_keys)
         metadata = update_metadata(base_metadata, metadata)
         add_png_metadata(filepath, metadata, loglevel=self.loglevel)
