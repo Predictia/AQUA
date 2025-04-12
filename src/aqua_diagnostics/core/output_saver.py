@@ -134,7 +134,8 @@ class OutputSaver:
          # Adding metadata
         base_metadata = {
             'diagnostic': self.diagnostic,
-            'diagnostic_product': diagnostic_product
+            'diagnostic_product': diagnostic_product,
+            'model': self.model
             }
         
         processed_extra_keys = {
@@ -160,8 +161,6 @@ class OutputSaver:
             extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
             metadata (dict, optional): Additional metadata to include in the PNG file.
         """
-        self.logger.info(f"extra_keys: {extra_keys}")
-
         filename = self.generate_name(diagnostic_product, extra_keys) + '.png'
         
         folder = os.path.join(self.outdir, 'png')
@@ -173,9 +172,17 @@ class OutputSaver:
         # Adding metadata
         base_metadata = {
             'diagnostic': self.diagnostic,
-            'diagnostic_product': diagnostic_product
+            'diagnostic_product': diagnostic_product,
+            'catalog': self.catalog,
+            'model': self.model,
+            'exp': self.exp,
+            'catalog_ref': self.catalog_ref,
+            'model_ref': self.model_ref,
+            'exp_ref': self.exp_ref
             }
-        
+
+        base_metadata = {k: v for k, v in base_metadata.items() if v is not None}
+
         processed_extra_keys = {
                     key: (",".join(map(str, value)) if isinstance(value, list) else str(value))
                     for key, value in extra_keys.items()
@@ -187,6 +194,3 @@ class OutputSaver:
 
         self.logger.info(f"Saved PNG: {filepath}")
         return filepath
-
-    
-    
