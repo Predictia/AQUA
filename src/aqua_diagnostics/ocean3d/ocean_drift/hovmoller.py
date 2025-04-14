@@ -1,20 +1,21 @@
 import pandas as pd
 import xarray as xr
 from aqua.logger import log_configure
-from aqua.diagnostics.core import Diagnostic, convert_data_units
+from aqua.diagnostics.core import Diagnostic
 from aqua.util import area_selection
-import os
-from aqua.util import find_vert_coord, load_yaml, add_pdf_metadata
+from .util import data_process_by_type, predefined_regions
+from itertools import product
 
 xr.set_options(keep_attrs=True)
 
-class hovmoller(Diagnostic):
+class Hovmoller(Diagnostic):
     """
-    Hovmoller class for creating Hovmoller diagrams from xarray datasets.
+    Hovmoller class for generating Hovmoller diagrams from ocean model data.
+    This class inherits from the Diagnostic class and provides methods to retrieve,
+    process, and save the netcdf for Hovmoller diagrams.
     """
     def __init__(self, catalog=None, model = None, exp = None, source = None,
-                regrid = None, startdate = None, enddate = None, var = ['thetao', 'so'],
-                outputdir = None, region = None,
+                regrid = None, startdate = None, enddate = None,
                 loglevel='WARNING'):
         """
         Initialize the Hovmoller class.
@@ -27,13 +28,13 @@ class hovmoller(Diagnostic):
         super().__init__(catalog=catalog, model=model, exp=exp, source=source,
                         regrid=regrid, startdate=startdate, enddate=enddate,
                         loglevel=loglevel)
-        self.var = var
-        self.outputdir = outputdir
-        self.region = region
-        self.output = None
         self.logger = log_configure(log_name='Hovmoller', log_level=loglevel)
     
-    def run(self):
+    def run(self, outputdir = None, region = None,  var = ['thetao', 'so']):
+        self.outputdir = outputdir
+        self.region = region
+        self.var = var
+        self.logger.info("Running Hovmoller diagram generation")
         self.retrieve()
         self.area_select()
         self.process_data(dim_mean = ["lat","lon"])
@@ -46,15 +47,12 @@ class hovmoller(Diagnostic):
                                                         regrid=self.regrid, startdate=self.startdate,
                                                         enddate=self.enddate)
     def area_select(self):
-        from ocean3d import predefined_regions
         if self.region is not None:
             lat_s, lat_n, lon_w, lon_e = predefined_regions(self.region)
             self.data = area_selection(data = self.data, lat = [lat_n, lat_s], lon = [lon_w, lon_e], drop = True)
     
     def process_data(self, dim_mean : None):
-        from ocean3d.ocean_drifts.tools import data_process_by_type
-        from itertools import product
-        import numpy as np
+
         
         if dim_mean is not None:
             self.data = self.data.mean(dim=dim_mean)
