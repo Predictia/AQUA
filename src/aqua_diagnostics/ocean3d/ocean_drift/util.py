@@ -8,7 +8,13 @@ import os
 
 def process_region_config(regions_yaml):
     """
-    Converts keys at the top level of the dictionary to lowercase and removes spaces, underscores, and dashes.
+    Processes the region configuration dictionary by normalizing the keys.
+
+    Args:
+        regions_yaml (dict): A dictionary containing region configurations.
+
+    Returns:
+        dict: A dictionary with keys converted to lowercase and with spaces, underscores, and dashes removed.
     """
     if isinstance(regions_yaml, dict):
         return {
@@ -20,6 +26,28 @@ def process_region_config(regions_yaml):
 
 
 def predefined_regions(region, loglevel="WARNING"):
+    """
+    Retrieves the geographical boundaries (latitude and longitude) for a predefined region 
+    from a configuration file.
+
+    Args:
+        region (str): The name of the region to retrieve. The name is processed to be 
+            case-insensitive and ignores spaces, underscores, and hyphens.
+        loglevel (str, optional): The logging level to use. Defaults to "WARNING".
+
+    Returns:
+        tuple: A tuple containing the southern latitude (lat_s), northern latitude (lat_n), 
+            western longitude (lon_w), and eastern longitude (lon_e) of the region.
+
+    Raises:
+        ValueError: If the specified region is not found in the configuration file.
+
+    Notes:
+        - The configuration file is expected to be located at 
+          `../../../../config/diagnostics/ocean3d/regions.yaml` relative to this script.
+        - The configuration file should contain a dictionary with a "regions" key, where 
+          each region is defined with its boundaries (LatN, LatS, LonE, LonW).
+    """
     current_dir = os.path.dirname(os.path.abspath(__file__))
     processed_region = region.replace(" ", "").replace("_", "").replace("-", "").lower()
     regions_yaml = f"{current_dir}/../../../../config/diagnostics/ocean3d/regions.yaml"
@@ -115,6 +143,20 @@ def _data_process_by_type(**kwargs):
 
 
 def _data_process_for_drift(data, dim_mean: None, loglevel="WARNING"):
+    """
+    Processes input data for drift analysis by applying various transformations 
+    and aggregations.
+
+    Args:
+        data (xarray.DataArray): The input data to be processed.
+        dim_mean (str or None): The dimension along which to compute the mean. 
+            If None, no mean is computed.
+        loglevel (str): The logging level to use during processing. Defaults to "WARNING".
+
+    Returns:
+        xarray.DataArray: A concatenated DataArray containing processed data 
+        for different combinations of anomaly, standardization, and anomaly reference types.
+    """
 
     if dim_mean is not None:
         data = data.mean(dim=dim_mean)
