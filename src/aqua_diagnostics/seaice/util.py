@@ -1,6 +1,7 @@
 """Utility for the sea ice plotting module"""
 
 import os
+import xarray as xr
 from aqua.logger import log_configure
 from collections import defaultdict
 from aqua.util import load_yaml, ConfigPath
@@ -21,7 +22,7 @@ def load_region_file(regions_file=None):
     return load_yaml(infile=regions_file)
 
 def defaultdict_to_dict(d):
-    """Recursively converts a defaultdict to a normal dict."""
+    """ Recursively converts a defaultdict to a normal dict."""
     if isinstance(d, defaultdict):
         return {k: defaultdict_to_dict(v) for k, v in d.items()}
     return d
@@ -29,7 +30,6 @@ def defaultdict_to_dict(d):
 def filter_region_list(regions_dict, regions_list, domain, logger, valid_domains=None):
     """ Filters a list of string regions based on config_file defined coords values and specified domain.
     This function checks if regions fall within the appropriate hemisphere based on their latitude bounds.
-
     Args:
         regions_dict (dict): Dictionary containing region definitions. Each region should have
             'latN' (northern latitude) and 'latS' (southern latitude) keys.
@@ -37,11 +37,9 @@ def filter_region_list(regions_dict, regions_list, domain, logger, valid_domains
         domain (str): Domain to filter regions by. Must be one of the valid domains, e.g., 'nh' or 'sh'.
         logger (logging.Logger): Logger instance for logging messages.
         valid_domains (list, optional): List of valid domain strings. Defaults to ['nh', 'sh'].
-
     Returns:
         list or str: Filtered list of region names. If exactly one region is valid, returns a single string.
     """
-    
     if not valid_domains:
         valid_domains = ['nh', 'sh']
 
@@ -66,5 +64,24 @@ def filter_region_list(regions_dict, regions_list, domain, logger, valid_domains
 
     if len(filtered_regions) == 1:
         return filtered_regions[0]
+
     return filtered_regions
-            
+
+def ensure_istype(obj, expected_types, logger=None):
+    """Ensure an object is of the expected type(s), otherwise raise ValueError.
+    Args:
+        obj: The object to check.
+        expected_types: A type or tuple of types to check against.
+        logger (optional): Logger for reporting the error, if provided.
+    """
+    if isinstance(expected_types, tuple):
+        expected_names_type = ", ".join(t.__name__ for t in expected_types)
+    else:
+        expected_names_type = expected_types.__name__
+
+    if not isinstance(obj, expected_types):
+        errmsg = f"Expected type {expected_names_type}, but got {type(obj).__name__}."
+        if logger:
+            logger.error(errmsg)
+        raise ValueError(errmsg)
+        
