@@ -15,14 +15,13 @@ xr.set_options(keep_attrs=True)
 class PlotSeaIce:
     """ A class for processing and visualizing timeseries of integrated sea ice extent or volume. """
 
-    ALLOWED_METHODS = ['extent', 'volume']
-
     def __init__(self, monthly_models=None, annual_models=None,
                  monthly_ref=None, annual_ref=None,
                  monthly_std_ref: str = None, annual_std_ref: str = None,
                  model: str = None, exp: str = None, source: str = None, catalog: str = None,
                  regions_to_plot: list = None, # ['Arctic', 'Antarctic'], # this is a list of strings with the region names to plot
-                 outdir='./', rebuild=True, 
+                 outdir='./',
+                 rebuild=True,
                  filename_keys=None,  # List of keys to keep in the filename. Default is None, which includes all keys.
                  dpi=300, loglevel='WARNING'):
         """
@@ -353,7 +352,7 @@ class PlotSeaIce:
         self.logger.debug("Start looping over sea ice regions")
 
         for region_idx, (ax, (region, data_dict)) in enumerate(zip(axes, region_dict.items())):
-            self.logger.info(f"Processing region: {region}")
+            self.logger.info(f"Processing {self.plot_type} for region: {region}")
 
             monthly_models = self._getdata_fromdict(data_dict, 'monthly_models')
             annual_models  = self._getdata_fromdict(data_dict, 'annual_models')
@@ -400,9 +399,6 @@ class PlotSeaIce:
 
             # update description
             self._update_description(self.method, region, data_dict, region_idx)
-
-            # optionally, customize the subplot (e.g. add a title)
-            ax.set_title(f"Sea ice {self.method}: region {region}")
 
         return fig, axes
 

@@ -5,11 +5,8 @@ import xarray as xr
 from aqua.diagnostics.core import Diagnostic
 from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure, log_history
-from aqua.util import ConfigPath, OutputSaver
-from aqua.util import load_yaml, area_selection, to_list
-from aqua.diagnostics.timeseries import Timeseries
-from aqua.util import frequency_string_to_pandas
-from aqua.diagnostics.seaice.util import load_region_file
+from aqua.util import ConfigPath, OutputSaver, load_yaml, area_selection, to_list
+from aqua.diagnostics.seaice.util import load_region_file, ensure_istype
 
 xr.set_options(keep_attrs=True)
 
@@ -93,9 +90,11 @@ class SeaIce(Diagnostic):
 
     def show_regions(self):
         """Show the regions available in the region file. Method for the user."""
+
         # check regions_definition is defined in the class or not None
         if not hasattr(self, 'regions_definition') or self.regions_definition is None:
             raise ValueError("No regions_definition found.")
+
         return dict(self.regions_definition)
 
     def add_seaice_attrs(self, da_seaice_computed: xr.DataArray, method: str, region: str,
@@ -113,6 +112,8 @@ class SeaIce(Diagnostic):
         Returns:
             xr.DataArray
         """
+        ensure_istype(da_seaice_computed, xr.DataArray, logger=self.logger)
+
         # set attributes: 'method','unit'   
         units_dict = {"extent": "million km^2",
                       "volume": "thousands km^3"}
@@ -129,20 +130,38 @@ class SeaIce(Diagnostic):
         if startdate is not None: da_seaice_computed.attrs["AQUA_startdate"] = f"{startdate}"
         if enddate is not None: da_seaice_computed.attrs["AQUA_enddate"] = f"{enddate}"
         da_seaice_computed.name = f"{'std_' if std_flag else ''}sea_ice_{method}_{region.replace(' ', '_').lower()}"
+
         return da_seaice_computed
 
-    def get_area_cells(self, region: str) -> xr.DataArray:
+    def get_area_cells_and_coords(self, masked_data: xr.DataArray, region: str) -> xr.DataArray:
         """ Get areacello and select by provided region.
         Args:
+            masked_data (xr.DataArray): The masked data to be checked if it is regridded or not
             region (str): The region for which select the area cells.
         Returns:
             xr.DataArray: The area grid cells (m^2) selected by region coordinates.
         """
         self.logger.debug(f'Calculate cell areas for {region}')
 
+        if 'AQUA_regridded' in masked_data.attrs:
+            self.logger.debug('Data has been regridded, using target grid area & coords')
+            areacello = self.reader.tgt_grid_area
+            space_coord = self.reader.tgt_space_coord
+        else:
+            self.logger.debug('Data has not been regridded, using source grid area & coords')
+            areacello = self.reader.src_grid_area
+            space_coord = self.reader.src_space_coord
+        
+        if areacello is None:
+            areacello = self.reader.grid_area
+            space_coord = self.reader.space_coord
+
         # get xr.DataArray with info on grid area that must be reinitialised for each region. 
-        # # Note: areacello units are in (m^2)
-        areacello = self.reader.grid_area
+        # Note: areacello units (m^2)
+        if len(areacello.data_vars) == 1:
+            areacello = areacello.to_array().squeeze()
+        else:
+            raise ValueError("Dataset 'areacello' has more than one variable. This is not expected.")
 
         # get the region box from the region definition file
         box = self.regions_definition[region]
@@ -158,7 +177,10 @@ class SeaIce(Diagnostic):
         areacello = area_selection(areacello, lat=[box["latS"], box["latN"]], lon=[box["lonW"], box["lonE"]], 
                                    default={"lon_min": lonmin, "lon_max": lonmax, "lat_min": -90, "lat_max": 90},
                                    loglevel=self.loglevel)
-        return areacello
+
+        self.logger.debug(f"returning areacello...")
+
+        return areacello, space_coord
 
     def integrate_seaice_masked_data(self, masked_data, method: str, region: str):
         """Integrate the masked data over the spatial dimension to compute sea ice metrics.
@@ -171,7 +193,7 @@ class SeaIce(Diagnostic):
         """
 
         # get areacells of region
-        areacello = self.get_area_cells(region)
+        areacello, space_coord = self.get_area_cells_and_coords(masked_data, region)
 
         # log the computation
         self.logger.info(f'Computing sea ice {method} for {region}')
@@ -179,13 +201,13 @@ class SeaIce(Diagnostic):
         if method == 'extent':
             # compute sea ice extent: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to million km^2
             seaice_metric = areacello.where(masked_data.notnull()).sum(skipna = True, min_count = 1, 
-                                                                       dim=self.reader.space_coord) / 1e12
+                                                                       dim=space_coord) / 1e12
             # keep attributes from the retrieved data
             seaice_metric.attrs = masked_data.attrs
         elif method == 'volume':
             # compute sea ice volume: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to thousand km^3
             seaice_metric = (masked_data * areacello.where(masked_data.notnull())).sum(skipna = True, min_count = 1, 
-                                                                                       dim=self.reader.space_coord) / 1e12
+                                                                                       dim=space_coord) / 1e12
         # add attributes
         seaice_metric = self.add_seaice_attrs(seaice_metric, method, region)
 
@@ -215,9 +237,7 @@ class SeaIce(Diagnostic):
         freq_dict = {'monthly':'time.month',
                      'annual': 'time.year'}
 
-        if not isinstance(computed_data, xr.DataArray):
-            self.logger.error('Input data is not an xarray DataArray')
-            raise ValueError( 'Input data is not an xarray DataArray')
+        ensure_istype(computed_data, xr.DataArray, logger=self.logger)
 
         self.logger.debug(f'Computing standard deviation for frequency: {freq}')
 
@@ -226,6 +246,7 @@ class SeaIce(Diagnostic):
 
         # select time, if None, the whole time will be taken in one or both boundaries
         computed_data = computed_data.sel(time=slice(self.startdate, self.enddate))
+
         # calculate the standard deviation using the frequency freq
         computed_data_std = computed_data.groupby(freq_dict[freq]).std('time')
 
@@ -249,10 +270,12 @@ class SeaIce(Diagnostic):
         if isinstance(monthly_data, list):
             if 'time' not in monthly_data[0].coords:
                 raise KeyError("Cannot compute seasonal cycle as 'time' coordinate is missing.")
+
             return [da.groupby('time.month').mean('time') for da in monthly_data]
         else:
             if 'time' not in monthly_data.coords:
                 raise KeyError("Cannot compute seasonal cycle as 'time' coordinate is missing.")
+
             return monthly_data.groupby('time.month').mean('time')
 
     def _compute_extent(self, threshold: float = 0.15, var: str = 'siconc', 
