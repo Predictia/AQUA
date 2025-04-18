@@ -400,6 +400,9 @@ class PlotSeaIce:
             # update description
             self._update_description(self.method, region, data_dict, region_idx)
 
+            # customize the subplot - add a title
+            ax.set_title(f"Sea ice {self.method}: region {region}")
+
         return fig, axes
 
     def plot_seaice(self, plot_type='timeseries', save_pdf=True, save_png=True, **kwargs):
