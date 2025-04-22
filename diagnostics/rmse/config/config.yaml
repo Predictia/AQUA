@@ -1,0 +1,38 @@
+# Config file for RMSE diagnostic
+
+# Reference data
+data_ref:
+  catalog: 'CMIP6_F8_phase1'
+  model: 'CESM2_piControl_r1i1p1f1'
+  exp: 'piControl'
+  source: 'daily'
+  regrid: False
+  fix: True
+
+# Data to evaluate
+data:
+  catalog: 'CMIP6_F8_phase1'
+  model: 'emulator_inference'
+  exp: 'piControl'
+  source: 'e3.1_last_checkpoint'
+  regrid: False
+  fix: True
+
+# Dates to evaluate
+dates:
+  startdate: '1945-08-01'
+  enddate: '1948-08-01'
+
+# Variables to evaluate
+# For variables with plev provide a list of pressure levels to evaluate
+variables:
+  - name: 'q'
+    level: [85000, 70000]
+    
+  - name: '2t'
+
+# Output directory
+outputdir_data: './data_rmse'
+
+# Output figure directory
+outputdir_fig: './figs_rmse'
