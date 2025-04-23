@@ -30,6 +30,9 @@ AQUA core complete list:
 - Major refactor of the regrid options, with new modular `Regridder()` class replacing `Regrid()` mixin (#1768)
 - Refactor of the `retrieve_plain()` function with contextmanager and smmregrid GridInspector (#1768)
 
+AQUA diagnostics complete list:
+- Timeseries: complete refactor of the timeseries diagnostic according to the Diagnostic, PlotDiagnostic schema (#1712)
+
 ## [v0.14.0]
 
 Main changes are:
