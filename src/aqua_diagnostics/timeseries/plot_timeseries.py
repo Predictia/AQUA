@@ -184,11 +184,8 @@ class PlotTimeseries(PlotBaseMixin):
                                   annual_data=self.annual_data,
                                   ref_annual_data=self.ref_annual_data,
                                   std_annual_data=self.std_annual_data,
-                                  data_labels=data_labels,
-                                  ref_label=ref_label,
-                                  title=title,
-                                  return_fig=True,
-                                  loglevel=self.loglevel)
+                                  data_labels=data_labels, ref_label=ref_label,
+                                  title=title, return_fig=True, loglevel=self.loglevel)
 
         return fig, ax
 
