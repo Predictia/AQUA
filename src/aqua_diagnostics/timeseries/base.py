@@ -45,9 +45,15 @@ class BaseMixin(Diagnostic):
         # We want to make sure we retrieve the required amount of data with a single Reader instance
         self.startdate, self.enddate = start_end_dates(startdate=startdate, enddate=enddate,
                                                        start_std=std_startdate, end_std=std_enddate)
+        # They need to be stored to evaluate the std on the correct period
         self.std_startdate = self.startdate if std_startdate is None else std_startdate
         self.std_enddate = self.enddate if std_enddate is None else std_enddate
-        self.logger.debug(f"Start date: {self.startdate}, End date: {self.enddate}")
+        # Finally we need to set the start and end dates of the data
+        self.plt_startdate = startdate
+        self.plt_enddate = enddate
+        self.logger.debug(f"Retrieve start date: {self.startdate}, End date: {self.enddate}")
+        self.logger.debug(f"Plot start date: {self.plt_startdate}, End date: {self.plt_enddate}")
+        self.logger.debug(f"Std start date: {self.std_startdate}, Std end date: {self.std_enddate}")
 
         # Set the region based on the region name or the lon and lat limits
         self._set_region(region=region, lon_limits=lon_limits, lat_limits=lat_limits)
@@ -127,16 +133,11 @@ class BaseMixin(Diagnostic):
                      'monthly': {'data': self.monthly, 'groupdby': 'time.month'},
                      'annual': {'data': self.annual, 'groupdby': None}}
 
-        # If possible we use the data already computed
-        if isinstance(freq_dict[str_freq]['data'], xr.DataArray):
-            self.logger.debug('Using already computed %s data', str_freq)
-            data = freq_dict[str_freq]['data']
-        else:
-            data = self.data
-            data = self.reader.fldmean(data, box_brd=box_brd,
-                                       lon_limits=self.lon_limits, lat_limits=self.lat_limits)
-            data = self.reader.timmean(data, freq=freq, exclude_incomplete=exclude_incomplete,
-                                       center_time=center_time)
+        data = self.data
+        data = self.reader.fldmean(data, box_brd=box_brd,
+                                    lon_limits=self.lon_limits, lat_limits=self.lat_limits)
+        data = self.reader.timmean(data, freq=freq, exclude_incomplete=exclude_incomplete,
+                                    center_time=center_time)
         data = data.sel(time=slice(self.std_startdate, self.std_enddate))
         if freq_dict[str_freq]['groupdby'] is not None:
             data = data.groupby(freq_dict[str_freq]['groupdby']).std('time')
