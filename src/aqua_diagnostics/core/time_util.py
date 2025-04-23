@@ -22,20 +22,12 @@ def start_end_dates(startdate=None, enddate=None,
         tuple (str, str): start and end dates for the data retrieve
     """
     # Convert to pandas Timestamp
-    for time in [startdate, enddate, start_std, end_std]:
-        if time is not None:
-            try:
-                pd.Timestamp(time)
-            except ValueError:
-                raise ValueError(f"Invalid date format: {time}. Use 'YYYY-MM-DD' or 'YYYYMMDD'.")
+    startdate = pd.Timestamp(startdate) if startdate else None
+    enddate = pd.Timestamp(enddate) if enddate else None
+    start_std = pd.Timestamp(start_std) if start_std else None
+    end_std = pd.Timestamp(end_std) if end_std else None
 
     start_retrieve = min(filter(None, [startdate, start_std])) if any([startdate, start_std]) else None
     end_retrieve = max(filter(None, [enddate, end_std])) if any([enddate, end_std]) else None
-
-    # Reconverting to string "YYYY-MM-DD"
-    if start_retrieve is not None:
-        start_retrieve = pd.Timestamp(start_retrieve).strftime('%Y-%m-%d')
-    if end_retrieve is not None:
-        end_retrieve = pd.Timestamp(end_retrieve).strftime('%Y-%m-%d')
 
     return start_retrieve, end_retrieve
