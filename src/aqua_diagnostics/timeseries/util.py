@@ -35,21 +35,12 @@ def loop_seasonalcycle(data: xr.DataArray, startdate: str, enddate: str,
 
     logger.debug(f'Start: {startdate}, End: {enddate}, Freq: {freq} Center Time: {center_time}')
 
-    # if center_time:
-    #     startdate = center_time_str(startdate, freq)
-    #     enddate = center_time_str(enddate, freq)
-    #     time_range = pd.date_range(start=startdate, end=enddate, freq='MS')
-    #     logger.warning(f'Centered time range: {time_range}')
-    # else:
-    #     time_range = pd.date_range(start=startdate, end=enddate, freq='YS')
-
     if center_time:
-            startdate = center_time_str(startdate, freq)
-            enddate = center_time_str(enddate, freq)
+            startdate = center_timestamp(pd.Timestamp(startdate), freq)
+            enddate = center_timestamp(pd.Timestamp(enddate), freq)
 
     if freq == 'monthly':
         time_range = pd.date_range(start=startdate, end=enddate, freq='MS')
-        time_range_str = [center_time_str(time.strftime('%Y%m%d'), freq) for time in time_range]
         months_data = []
         for i in range(1, 13):
             months_data.append(cycle[i-1].values)
@@ -59,18 +50,17 @@ def loop_seasonalcycle(data: xr.DataArray, startdate: str, enddate: str,
             loop_data.append(months_data[timestamp.month-1])
     elif freq == 'annual':
         time_range = pd.date_range(start=startdate, end=enddate, freq='YS')
-        time_range_str = [center_time_str(time.strftime('%Y%m%d'), freq) for time in time_range]
         years_data = cycle.values
 
         loop_data = []
         for timestamp in time_range:
             loop_data.append(years_data)
 
-    data = xr.DataArray(data=loop_data, coords=dict(time=pd.to_datetime(time_range_str)), dims=['time'])
+    data = xr.DataArray(data=loop_data, coords=dict(time=time_range), dims=['time'])
     return data
 
 
-def center_time_str(time: str, freq: str):
+def center_timestamp(time: pd.Timestamp, freq: str):
     """
     Center the time value at the center of the month or year
 
@@ -79,18 +69,16 @@ def center_time_str(time: str, freq: str):
         freq (str): The frequency of the time period (only 'monthly' or 'annual')
 
     Returns:
-        str: The centered time value
+        pd.Timestamp: The centered time value
     
     Raises:
         ValueError: If the frequency is not supported
     """
-    pd_time = pd.to_datetime(time)
-
     if freq == 'monthly':
-        pd_time = pd.to_datetime(f'{pd_time.year}-{pd_time.month}-15')
+        center_time = time + pd.DateOffset(days=15)
     elif freq == 'annual':
-        pd_time = pd.to_datetime(f'{pd_time.year}-07-01')
+        center_time = time + pd.DateOffset(months=6)
     else:
         raise ValueError(f'Frequency {freq} not supported')
     
-    return pd_time.strftime('%Y%m%d')
+    return center_time

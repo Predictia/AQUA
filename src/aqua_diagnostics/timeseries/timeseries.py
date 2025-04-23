@@ -1,7 +1,8 @@
 """Timeseries class for retrieve and netcdf saving of a single experiment"""
 import xarray as xr
-from aqua.util import to_list, frequency_string_to_pandas, time_to_string
-from .util import loop_seasonalcycle, center_time_str
+import pandas as pd
+from aqua.util import to_list, frequency_string_to_pandas
+from .util import loop_seasonalcycle, center_timestamp
 from .base import BaseMixin
 
 xr.set_options(keep_attrs=True)
@@ -102,12 +103,11 @@ class Timeseries(BaseMixin):
         str_freq = self._str_freq(freq)
 
         self.logger.info('Computing %s mean', str_freq)
+        data = self.data.sel(time=slice(self.plt_startdate, self.plt_enddate))
 
         # Field and time average
-        data = self.reader.fldmean(self.data, box_brd=box_brd,
-                                   lon_limits=self.lon_limits, lat_limits=self.lat_limits)
-        data = self.reader.timmean(data, freq=freq, exclude_incomplete=exclude_incomplete,
-                                   center_time=center_time)
+        data = self.reader.fldmean(data, box_brd=box_brd, lon_limits=self.lon_limits, lat_limits=self.lat_limits)
+        data = self.reader.timmean(data, freq=freq, exclude_incomplete=exclude_incomplete, center_time=center_time)
 
         if extend:
             data = self._extend_data(data=data, freq=str_freq, center_time=center_time)
@@ -136,19 +136,18 @@ class Timeseries(BaseMixin):
             center_time (bool): If True, the time will be centered.
         """
         if freq == 'monthly' or freq == 'annual':
-            class_startdate = time_to_string(self.startdate, format='%Y%m%d')
-            class_enddate = time_to_string(self.enddate, format='%Y%m%d')
-
-            start_date = time_to_string(self.data.time[0].values, format='%Y%m%d')
-            end_date = time_to_string(self.data.time[-1].values, format='%Y%m%d')
+            class_startdate = pd.Timestamp(self.startdate)
+            class_enddate = pd.Timestamp(self.enddate)
+            start_date = pd.Timestamp(self.data.time[0].values)
+            end_date = pd.Timestamp(self.data.time[-1].values)
 
             # if the center_time is True, we need to center the time of the start_date and end_date
             # to be able to compare them with the class_startdate and class_enddate
             if center_time:
-                start_date = center_time_str(time=start_date, freq=freq)
-                end_date = center_time_str(time=end_date, freq=freq)
-                class_startdate = center_time_str(time=class_startdate, freq=freq)
-                class_enddate = center_time_str(time=class_enddate, freq=freq)
+                start_date = center_timestamp(time=start_date, freq=freq)
+                end_date = center_timestamp(time=end_date, freq=freq)
+                class_startdate = center_timestamp(time=class_startdate, freq=freq)
+                class_enddate = center_timestamp(time=class_enddate, freq=freq)
 
             # Extend the data if needed
             if class_startdate < start_date:
