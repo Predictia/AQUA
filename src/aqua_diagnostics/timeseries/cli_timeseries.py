@@ -17,7 +17,7 @@ from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_
 from aqua.diagnostics.core import load_diagnostic_config, merge_config_args
 from aqua.diagnostics.timeseries.util_cli import load_var_config
 from aqua.diagnostics.timeseries import Timeseries, SeasonalCycles, Gregory
-from aqua.diagnostics.timeseries import PlotTimeseries, PlotSeasonalCycles
+from aqua.diagnostics.timeseries import PlotTimeseries, PlotSeasonalCycles, PlotGregory
 
 
 def parse_arguments(args):
@@ -290,16 +290,45 @@ if __name__ == '__main__':
                                 'regrid': regrid,
                                 'startdate': config_dict['diagnostics']['gregory'].get('std_startdate'),
                                 'enddate': config_dict['diagnostics']['gregory'].get('std_enddate')}
-                greg = Gregory(loglevel=loglevel, **dataset_args)
-                greg.run(**run_args, t2m=True, net_toa=False, std=True)
+                greg_ref_t2m = Gregory(loglevel=loglevel, **dataset_args)
+                greg_ref_t2m.run(**run_args, t2m=True, net_toa=False, std=True)
 
                 # net_toa:
                 dataset_args = {**config_dict['diagnostics']['gregory']['net_toa_ref'],
                                 'regrid': regrid,
                                 'startdate': config_dict['diagnostics']['gregory'].get('std_startdate'),
                                 'enddate': config_dict['diagnostics']['gregory'].get('std_enddate')}
-                greg = Gregory(loglevel=loglevel, **dataset_args)
-                greg.run(**run_args, t2m=False, net_toa=True, std=True)
+                greg_ref_toa = Gregory(loglevel=loglevel, **dataset_args)
+                greg_ref_toa.run(**run_args, t2m=False, net_toa=True, std=True)
+            
+            # Plot the gregory
+            if save_pdf or save_png:
+                logger.info(f"Plotting Gregory diagnostic for variable {var} in region {region if region else 'global'}")
+                plot_args = {'t2m_monthly_data': [greg[i].t2m_monthly for i in range(len(greg))],
+                             't2m_annual_data': [greg[i].t2m_annual for i in range(len(greg))],
+                             'net_toa_monthly_data': [greg[i].net_toa_monthly for i in range(len(greg))],
+                             'net_toa_annual_data': [greg[i].net_toa_annual for i in range(len(greg))],
+                             't2m_monthly_ref': greg_ref_t2m.t2m_monthly,
+                             't2m_annual_ref': greg_ref_t2m.t2m_annual,
+                             'net_toa_monthly_ref': greg_ref_toa.net_toa_monthly,
+                             'net_toa_annual_ref': greg_ref_toa.net_toa_annual,
+                             't2m_annual_std': greg_ref_t2m.t2m_std,
+                             'net_toa_annual_std': greg_ref_toa.net_toa_std,
+                             'loglevel': loglevel}
+                
+                plot_greg = PlotGregory(**plot_args)
+                title = plot_greg.set_title()
+                data_labels = plot_greg.set_data_labels()
+                ref_label = plot_greg.set_ref_label()
+                fig = plot_greg.plot(data_labels=data_labels, ref_label=ref_label, title=title)
+                description = plot_greg.set_description()
+
+                if save_pdf:
+                    plot_greg.save_plot(fig, description=description, outputdir=outputdir,
+                                        dpi=dpi, rebuild=rebuild, format='pdf', diagnostic='gregory')
+                if save_png:
+                    plot_greg.save_plot(fig, description=description, outputdir=outputdir,
+                                        dpi=dpi, rebuild=rebuild, format='png', diagnostic='gregory')
 
     close_cluster(client=client, cluster=cluster, private_cluster=private_cluster, loglevel=loglevel)
 
