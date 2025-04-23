@@ -11,7 +11,7 @@ from urllib.error import HTTPError
 import fsspec
 
 from aqua import __path__ as pypath
-from aqua import catalog
+from aqua import catalog as print_catalog
 from aqua.util import load_yaml, dump_yaml, load_multi_yaml, ConfigPath, create_folder
 from aqua.logger import log_configure
 from aqua.util.util import HiddenPrints, to_list
@@ -23,7 +23,10 @@ from aqua.cli.catgen import catgen_execute
 
 
 # folder used for reading/storing catalogs
-catpath = 'catalogs'
+CATPATH = 'catalogs'
+
+# directories to be installed in the AQUA config folder
+BASIC_DIRECTORIES = ['fixes', 'data_model', 'grids', 'catgen', 'datachecker', 'styles']
 
 
 class AquaConsole():
@@ -112,11 +115,11 @@ class AquaConsole():
         # define from where aqua is installed and copy/link the files
         if args.editable is None:
             self._install_default()
-            for diagnostic_type in diagnostic_config.keys():
+            for diagnostic_type in diagnostic_config:
                 self._install_default_diagnostics(diagnostic_type)
         else:
             self._install_editable(args.editable)
-            for diagnostic_type in diagnostic_config.keys():
+            for diagnostic_type in diagnostic_config:
                 self._install_editable_diagnostics(diagnostic_type, args.editable)
 
         self._set_machine(args)
@@ -181,13 +184,13 @@ class AquaConsole():
         for file in ['config-aqua.tmpl']:
             target_file = os.path.splitext(file)[0] + '.yaml'  # replace the tmpl with yaml
             self._copy_update_folder_file(f'{self.aquapath}/{file}', f'{self.configpath}/{target_file}')
-        for directory in ['fixes', 'data_models', 'grids', 'catgen', 'datachecker', 'styles']:
+        for directory in BASIC_DIRECTORIES:
             self._copy_update_folder_file(os.path.join(self.aquapath, directory),
                                      os.path.join(self.configpath, directory))
         for directory in ['templates']:
             self._copy_update_folder_file(os.path.join(self.aquapath, '..', directory),
                                      os.path.join(self.configpath, directory))
-        os.makedirs(f'{self.configpath}/{catpath}', exist_ok=True)
+        os.makedirs(f'{self.configpath}/{CATPATH}', exist_ok=True)
 
     def _install_editable(self, editable):
         """Linking the installation file in editable
@@ -206,13 +209,13 @@ class AquaConsole():
                 self.logger.error('%s folder does not include AQUA configuration files. Please use AQUA/config', editable)
                 os.rmdir(self.configpath)
                 sys.exit(1)
-        for directory in ['fixes', 'data_models', 'grids', 'catgen', 'datachecker', 'styles']:
+        for directory in BASIC_DIRECTORIES:
             self._copy_update_folder_file(f'{editable}/{directory}', f'{self.configpath}/{directory}', link=True)
 
         for directory in ['templates']:
             self._copy_update_folder_file(os.path.join(editable, '..', directory), f'{self.configpath}/{directory}', link=True)
 
-        os.makedirs(f'{self.configpath}/{catpath}', exist_ok=True)
+        os.makedirs(f'{self.configpath}/{CATPATH}', exist_ok=True)
 
     def _install_default_diagnostics(self, diagnostic_type):
         """Copy the config file from the diagnostics path to AQUA"""
@@ -315,7 +318,7 @@ class AquaConsole():
 
         self._check()
 
-        if os.path.exists(f"{self.configpath}/{catpath}/{args.catalog}"):
+        if os.path.exists(f"{self.configpath}/{CATPATH}/{args.catalog}"):
             self._set_catalog(args.catalog)
         else:
             self.logger.error('%s catalog is not installed!', args.catalog)
@@ -326,15 +329,14 @@ class AquaConsole():
 
         self._check()
 
-        cdir = f'{self.configpath}/{catpath}'
+        cdir = f'{self.configpath}/{CATPATH}'
         contents = os.listdir(cdir)
 
         print('AQUA current installed catalogs in', cdir, ':')
         self._list_folder(cdir)
 
         if args.all:
-            contents = ['data_models', 'grids', 'fixes']
-            for content in contents:
+            for content in BASIC_DIRECTORIES:
                 print(f'AQUA current installed {content} in {self.configpath}:')
                 self._list_folder(os.path.join(self.configpath, content))
 
@@ -411,7 +413,7 @@ class AquaConsole():
         # verify that the new catalog is compatible with AQUA, loading it with catalog()
         try:
             with HiddenPrints():
-                catalog()
+                print_catalog()
         except Exception as e:
             self.remove(args)
             self.logger.error('Current catalog is not compatible with AQUA, removing it for safety!')
@@ -421,7 +423,7 @@ class AquaConsole():
     def _add_catalog_editable(self, catalog, editable):
         """Add a catalog in editable mode (i.e. link)"""
 
-        cdir = f'{self.configpath}/{catpath}/{catalog}'
+        cdir = f'{self.configpath}/{CATPATH}/{catalog}'
         editable = os.path.abspath(editable)
         print('Installing catalog in editable mode from', editable, 'to', self.configpath)
         if os.path.exists(editable):
@@ -439,22 +441,37 @@ class AquaConsole():
 
     def _github_explore(self):
         try:
-            fs = fsspec.filesystem("github",
-                                    org="DestinE-Climate-DT",
-                                    repo="Climate-DT-catalog")
+            # Detect if running in GitHub Actions
+            is_github_actions = os.getenv("GITHUB_ACTIONS") == "true"
+            token = os.getenv("GITHUB_TOKEN")  # Get GitHub token
+
+            # Use authentication only when running inside GitHub Actions
+            if is_github_actions and token:
+                auth_kwargs = {"username": "github-actions", "token": token}
+                self.logger.info("Using authenticated access to GitHub API.")
+            else:
+                auth_kwargs = {}
+                self.logger.info("Running without authentication. Rate limits may apply.")
+
+            fs = fsspec.filesystem(
+                "github",
+                org="DestinE-Climate-DT",
+                repo="Climate-DT-catalog",
+                **auth_kwargs  # Apply authentication if available
+            )
             self.logger.info('Accessed remote repository https://github.com/DestinE-Climate-DT/Climate-DT-catalog')
         except HTTPError:
             self.logger.error('Permission issues in accessing Climate-DT catalog, please contact AQUA maintainers')
             sys.exit(1)
-    
+
         return fs
 
     def avail(self, args):
-        
+
         """Return the catalog available on the Github website"""
 
         fs = self._github_explore()
-        available_catalog = [os.path.basename(x) for x in fs.ls(f"{catpath}/")]
+        available_catalog = [os.path.basename(x) for x in fs.ls(f"{CATPATH}/")]
         print('Available ClimateDT catalogs at are:')
         print(available_catalog)
 
@@ -463,16 +480,16 @@ class AquaConsole():
         """Add a catalog from the remote Github Climate-DT repository"""
 
         # recursive copy
-        cdir = f'{self.configpath}/{catpath}/{catalog}'
+        cdir = f'{self.configpath}/{CATPATH}/{catalog}'
         if not os.path.exists(cdir):
             fs = self._github_explore()
-            available_catalog = [os.path.basename(x) for x in fs.ls(f"{catpath}/")]
+            available_catalog = [os.path.basename(x) for x in fs.ls(f"{CATPATH}/")]
             if catalog not in available_catalog:
                 self.logger.error('Cannot find on Climate-DT-catalog the requested catalog %s, available are %s',
                                   catalog, available_catalog)
                 sys.exit(1)
 
-            source_dir = f"{catpath}/{catalog}"
+            source_dir = f"{CATPATH}/{catalog}"
             self.logger.info('Fetching remote catalog %s from github to %s', catalog, cdir)
             os.makedirs(cdir, exist_ok=True)
             fsspec_get_recursive(fs, source_dir, cdir)
@@ -485,7 +502,7 @@ class AquaConsole():
 
     def _copy_update_folder_file(self, source, target, link=False, update=False):
         """Generic function to copy or update a source to a target folder"""
-        
+
         # Check if the target exists
         if os.path.exists(target):
             if os.path.islink(target):
@@ -507,7 +524,7 @@ class AquaConsole():
         if link:
             self.logger.info('Linking from %s to %s', source, target)
             os.symlink(source, target)
-        
+
         # Handle copying
         else:
             if os.path.isdir(source):
@@ -523,8 +540,8 @@ class AquaConsole():
         self._check()
         if args.catalog:
             self.logger.info('Updating catalog %s ..', args.catalog)
-            cdir = f'{self.configpath}/{catpath}/{args.catalog}'
-            sdir = f'{self.aquapath}/{catpath}/{args.catalog}'
+            cdir = f'{self.configpath}/{CATPATH}/{args.catalog}'
+            sdir = f'{self.aquapath}/{CATPATH}/{args.catalog}'
             if os.path.exists(cdir):
                 if os.path.islink(cdir):
                     self.logger.error('%s catalog has been installed in editable mode, no need to update', args.catalog)
@@ -537,7 +554,7 @@ class AquaConsole():
                 sys.exit(1)
         else:
             self.logger.info('Updating AQUA installation...')
-            for directory in ['fixes', 'data_models', 'grids', 'catgen']:
+            for directory in BASIC_DIRECTORIES:
                 self._copy_update_folder_file(os.path.join(self.aquapath, directory),
                                          os.path.join(self.configpath, directory),
                                          update=True)
@@ -585,7 +602,7 @@ class AquaConsole():
         self._check()
         if '/' in args.catalog:
             args.catalog = os.path.basename(args.catalog)
-        cdir = f'{self.configpath}/{catpath}/{args.catalog}'
+        cdir = f'{self.configpath}/{CATPATH}/{args.catalog}'
         print('Remove the AQUA catalog', args.catalog, 'from', cdir)
         if os.path.exists(cdir):
             if os.path.islink(cdir):
@@ -677,7 +694,7 @@ class AquaConsole():
 
         self._check()
         try:
-            load_multi_yaml(folder_path=f'{self.configpath}/{kind}',
+            _ = load_multi_yaml(folder_path=f'{self.configpath}/{kind}',
                             filenames=[file]) if file is not None else load_multi_yaml(folder_path=f'{self.configpath}/{kind}')
 
             if file is not None:
@@ -705,8 +722,7 @@ class AquaConsole():
         """Run the FDB catalog generator"""
 
         print("Running the catalog generator")
-        catgen_execute(args)
-        
+        catgen_execute(args)       
 
 def main():
     """AQUA main installation tool"""
@@ -776,7 +792,3 @@ def fsspec_get_recursive(fs, src_dir, dest_dir):
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
             # Copy the file
             fs.get(item, dest_path)
-
-
-
-        
