@@ -67,6 +67,9 @@ class TestTimeseries:
         
         plt.run(var=self.var, outputdir=tmp_path)
 
+        file = os.path.join(tmp_path, 'png', 'timeseries.timeseries.ci.ERA5.era5-hpz3.tcc.png')
+        assert os.path.exists(file)
+
     def test_hourly_daily_with_region(self):
         ts = Timeseries(catalog=self.catalog, model=self.model, exp=self.exp, source=self.source,
                         region=self.region, loglevel=loglevel, startdate='19900101', enddate='19900102',
