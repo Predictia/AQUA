@@ -1,3 +1,4 @@
+import xarray as xr
 from aqua.graphics import plot_timeseries
 from aqua.logger import log_configure
 from aqua.util import to_list
@@ -48,27 +49,21 @@ class PlotTimeseries(PlotBaseMixin):
             if data is not None:
                 self.logger.warning('Hourly and daily data are not yet supported, they will be ignored')
 
-        # TODO: support ref list
-        for ref in [ref_hourly_data, ref_daily_data, ref_monthly_data, ref_annual_data,
-                    std_hourly_data, std_daily_data, std_monthly_data, std_annual_data]:
-            if isinstance(ref, list):
-                self.logger.warning('List of reference data is not yet supported, only the first element will be used')
-                ref = ref[0]
-
         # self.hourly_data = to_list(hourly_data)
         # self.daily_data = to_list(daily_data)
         self.monthly_data = to_list(monthly_data)
         self.annual_data = to_list(annual_data)
 
+        # TODO: support ref list
         # self.ref_hourly_data = to_list(ref_hourly_data)
         # self.ref_daily_data = to_list(ref_daily_data)
-        self.ref_monthly_data = ref_monthly_data
-        self.ref_annual_data = ref_annual_data
+        self.ref_monthly_data = ref_monthly_data if isinstance(ref_monthly_data, xr.DataArray) else ref_monthly_data[0]
+        self.ref_annual_data = ref_annual_data if isinstance(ref_annual_data, xr.DataArray) else ref_annual_data[0]
 
         # self.std_hourly_data = to_list(std_hourly_data)
         # self.std_daily_data = to_list(std_daily_data)
-        self.std_monthly_data = std_monthly_data
-        self.std_annual_data = std_annual_data
+        self.std_monthly_data = std_monthly_data if isinstance(std_monthly_data, xr.DataArray) else std_monthly_data[0]
+        self.std_annual_data = std_annual_data if isinstance(std_annual_data, xr.DataArray) else std_annual_data[0]
 
         self.len_data, self.len_ref = self._check_data_length()
 

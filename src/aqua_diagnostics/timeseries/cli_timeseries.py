@@ -101,7 +101,7 @@ if __name__ == '__main__':
                                               'std_enddate': reference.get('std_enddate'),
                                               'regrid': reference.get('regrid', regrid)}
                             ts_ref[i] = Timeseries(**init_args, **reference_args)
-                            ts_ref[i].run(**run_args)
+                            ts_ref[i].run(**run_args, std=True)
 
                     # Plot the timeseries
                     if save_pdf or save_png:
@@ -110,15 +110,15 @@ if __name__ == '__main__':
                                      'annual_data': [ts[i].annual for i in range(len(ts))],
                                      'ref_monthly_data': [ts_ref[i].monthly for i in range(len(ts_ref))],
                                      'ref_annual_data': [ts_ref[i].annual for i in range(len(ts_ref))],
-                                     'std_monthly_data': [ts[i].std_monthly for i in range(len(ts))],
-                                     'std_annual_data': [ts[i].std_annual for i in range(len(ts))],
+                                     'std_monthly_data': [ts_ref[i].std_monthly for i in range(len(ts_ref))],
+                                     'std_annual_data': [ts_ref[i].std_annual for i in range(len(ts_ref))],
                                      'loglevel': loglevel}
                         plot_ts = PlotTimeseries(**plot_args)
                         data_label = plot_ts.set_data_labels()
                         ref_label = plot_ts.set_ref_label()
                         description = plot_ts.set_description(region=region)
                         title = plot_ts.set_title(var=var, region=region, units=var_config.get('units'))
-                        fig, _ = plot_ts.plot_timeseries(data_labels=data_label, ref_labels=ref_label, title=title)
+                        fig, _ = plot_ts.plot_timeseries(data_labels=data_label, ref_label=ref_label, title=title)
 
                         if save_pdf:
                             plot_ts.save_plot(fig, var=var, description=description, region=region, outputdir=outputdir,
@@ -165,7 +165,7 @@ if __name__ == '__main__':
                                               'std_enddate': reference.get('std_enddate'),
                                               'regrid': reference.get('regrid', regrid)}
                             ts_ref[i] = Timeseries(**init_args, **reference_args)
-                            ts_ref[i].run(**run_args)
+                            ts_ref[i].run(**run_args, std=True)
 
                     # Plot the timeseries
                     if save_pdf or save_png:
@@ -174,15 +174,15 @@ if __name__ == '__main__':
                                      'annual_data': [ts[i].annual for i in range(len(ts))],
                                      'ref_monthly_data': [ts_ref[i].monthly for i in range(len(ts_ref))],
                                      'ref_annual_data': [ts_ref[i].annual for i in range(len(ts_ref))],
-                                     'std_monthly_data': [ts[i].std_monthly for i in range(len(ts))],
-                                     'std_annual_data': [ts[i].std_annual for i in range(len(ts))],
+                                     'std_monthly_data': [ts_ref[i].std_monthly for i in range(len(ts_ref))],
+                                     'std_annual_data': [ts_ref[i].std_annual for i in range(len(ts_ref))],
                                      'loglevel': loglevel}
                         plot_ts = PlotTimeseries(**plot_args)
                         data_label = plot_ts.set_data_labels()
                         ref_label = plot_ts.set_ref_label()
                         description = plot_ts.set_description(region=region)
                         title = plot_ts.set_title(var=var, region=region, units=var_config.get('units'))
-                        fig, _ = plot_ts.plot_timeseries(data_labels=data_label, ref_labels=ref_label, title=title)
+                        fig, _ = plot_ts.plot_timeseries(data_labels=data_label, ref_label=ref_label, title=title)
 
                         if save_pdf:
                             plot_ts.save_plot(fig, var=var, description=description, region=region, outputdir=outputdir,
@@ -235,21 +235,21 @@ if __name__ == '__main__':
                                               'std_enddate': reference.get('std_enddate'),
                                               'regrid': reference.get('regrid', regrid)}
                             sc_ref[i] = SeasonalCycles(**init_args, **reference_args)
-                            sc_ref[i].run(**run_args)
+                            sc_ref[i].run(**run_args, std=True)
 
                     # Plot the seasonal cycles
                     if save_pdf or save_png:
                         logger.info(f"Plotting SeasonalCycles diagnostic for variable {var} in region {region if region else 'global'}") # noqa
                         plot_args = {'monthly_data': [sc[i].monthly for i in range(len(sc))],
                                      'ref_monthly_data': [sc_ref[i].monthly for i in range(len(sc_ref))],
-                                     'std_monthly_data': [sc[i].std_monthly for i in range(len(sc))],
+                                     'std_monthly_data': [sc_ref[i].std_monthly for i in range(len(sc_ref))],
                                      'loglevel': loglevel}
                         plot_sc = PlotSeasonalCycles(**plot_args)
                         data_label = plot_sc.set_data_labels()
                         ref_label = plot_sc.set_ref_label()
                         description = plot_sc.set_description(region=region)
                         title = plot_sc.set_title(var=var, region=region, units=var_config.get('units'))
-                        fig, _ = plot_sc.plot_seasonalcycles(data_labels=data_label, ref_labels=ref_label, title=title)
+                        fig, _ = plot_sc.plot_seasonalcycles(data_labels=data_label, ref_label=ref_label, title=title)
 
                         if save_pdf:
                             plot_sc.save_plot(fig, var=var, description=description, region=region, outputdir=outputdir,

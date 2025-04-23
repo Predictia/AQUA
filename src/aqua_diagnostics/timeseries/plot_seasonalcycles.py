@@ -1,3 +1,4 @@
+import xarray as xr
 from aqua.graphics import plot_seasonalcycle
 from aqua.logger import log_configure
 from aqua.util import to_list
@@ -22,16 +23,10 @@ class PlotSeasonalCycles(PlotBaseMixin):
         self.logger = log_configure(self.loglevel, 'PlotSeasonalCycles')
 
         # TODO: support ref list
-        for ref in [ref_monthly_data, std_monthly_data]:
-            if isinstance(ref, list):
-                self.logger.warning('List of reference data is not yet supported, only the first element will be used')
-                ref = ref[0]
-
         self.monthly_data = to_list(monthly_data)
-        self.ref_monthly_data = ref_monthly_data
-        self.std_monthly_data = std_monthly_data
+        self.ref_monthly_data = ref_monthly_data  if isinstance(ref_monthly_data, xr.DataArray) else ref_monthly_data[0]
+        self.std_monthly_data = std_monthly_data if isinstance(std_monthly_data, xr.DataArray) else std_monthly_data[0]
 
-        # TODO: support ref list
         self.len_data, self.len_ref = len(self.monthly_data), 1
 
         # Filling them
