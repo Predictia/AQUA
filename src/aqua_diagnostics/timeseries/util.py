@@ -1,7 +1,6 @@
 """Utility for the timeseries module"""
 import xarray as xr
 import pandas as pd
-from aqua.util import extract_literal_and_numeric, time_to_string
 from aqua.logger import log_configure
 
 
