@@ -97,8 +97,8 @@ if __name__ == '__main__':
                             reference_args = {'catalog': reference['catalog'], 'model': reference['model'],
                                               'exp': reference['exp'], 'source': reference['source'],
                                               'startdate': startdate, 'enddate': enddate,
-                                              'std_startdate': reference.get('std_startdate'),
-                                              'std_enddate': reference.get('std_enddate'),
+                                              'std_startdate': var_config.get('std_startdate'),
+                                              'std_enddate': var_config.get('std_enddate'),
                                               'regrid': reference.get('regrid', regrid)}
                             ts_ref[i] = Timeseries(**init_args, **reference_args)
                             ts_ref[i].run(**run_args, std=True)
@@ -161,8 +161,8 @@ if __name__ == '__main__':
                             reference_args = {'catalog': reference['catalog'], 'model': reference['model'],
                                               'exp': reference['exp'], 'source': reference['source'],
                                               'startdate': startdate, 'enddate': enddate,
-                                              'std_startdate': reference.get('std_startdate'),
-                                              'std_enddate': reference.get('std_enddate'),
+                                              'std_startdate': var_config.get('std_startdate'),
+                                              'std_enddate': var_config.get('std_enddate'),
                                               'regrid': reference.get('regrid', regrid)}
                             ts_ref[i] = Timeseries(**init_args, **reference_args)
                             ts_ref[i].run(**run_args, std=True)
@@ -231,8 +231,8 @@ if __name__ == '__main__':
                             reference_args = {'catalog': reference['catalog'], 'model': reference['model'],
                                               'exp': reference['exp'], 'source': reference['source'],
                                               'startdate': startdate, 'enddate': enddate,
-                                              'std_startdate': reference.get('std_startdate'),
-                                              'std_enddate': reference.get('std_enddate'),
+                                              'std_startdate': var_config.get('std_startdate'),
+                                              'std_enddate': var_config.get('std_enddate'),
                                               'regrid': reference.get('regrid', regrid)}
                             sc_ref[i] = SeasonalCycles(**init_args, **reference_args)
                             sc_ref[i].run(**run_args, std=True)
@@ -303,7 +303,7 @@ if __name__ == '__main__':
             
             # Plot the gregory
             if save_pdf or save_png:
-                logger.info(f"Plotting Gregory diagnostic for variable {var} in region {region if region else 'global'}")
+                logger.info(f"Plotting Gregory diagnostic")
                 plot_args = {'t2m_monthly_data': [greg[i].t2m_monthly for i in range(len(greg))],
                              't2m_annual_data': [greg[i].t2m_annual for i in range(len(greg))],
                              'net_toa_monthly_data': [greg[i].net_toa_monthly for i in range(len(greg))],
