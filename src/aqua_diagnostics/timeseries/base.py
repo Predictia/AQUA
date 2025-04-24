@@ -3,7 +3,7 @@ import xarray as xr
 
 from aqua.logger import log_configure
 from aqua.util import ConfigPath,  OutputSaver
-from aqua.util import frequency_string_to_pandas
+from aqua.util import frequency_string_to_pandas, time_to_string
 from aqua.util import load_yaml, eval_formula, convert_units
 from aqua.diagnostics.core import Diagnostic, start_end_dates
 
@@ -144,9 +144,10 @@ class BaseMixin(Diagnostic):
         else:  # For annual data, we compute the std over all years
             data = data.std('time')
 
-        # Store start and end dates for the standard deviation
-        data.attrs['std_startdate'] = self.std_startdate
-        data.attrs['std_enddate'] = self.std_enddate
+        # Store start and end dates for the standard deviation.
+        # pd.Timestamp cannot be used as attribute, so we convert to a string
+        data.attrs['std_startdate'] = time_to_string(self.std_startdate)
+        data.attrs['std_enddate'] = time_to_string(self.std_enddate)
 
         # Assign the data to the correct attribute based on frequency
         if str_freq == 'hourly':
