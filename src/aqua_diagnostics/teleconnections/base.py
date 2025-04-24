@@ -1,7 +1,7 @@
 import os
 import xarray as xr
 from aqua.diagnostics.core import Diagnostic
-from aqua.util import ConfigPath, load_yaml
+from aqua.util import ConfigPath, load_yaml, select_season
 
 xr.set_options(keep_attrs=True)
 
@@ -41,13 +41,58 @@ class BaseMixin(Diagnostic):
         # Initialize the possible results
         self.index = None
 
-    def evaluate_regression(self, data: xr.Dataset = None, var: str = None,
+    def compute_regression(self, var: str = None,
                             dim: str = 'time', season: str = None):
-        pass
+        """
+        Compute the regression of the data on the index.
 
-    def evaluate_correlation(self, data: xr.Dataset = None, var: str = None,
+        Args:
+            var (str): The variable to be used. If None, the variable is the same of the index.
+            dim (str): The dimension to be used for the regression. Default is 'time'.
+            season (str): The season to be used. If None, no season will be selected.
+
+        Returns:
+            xr.DataArray: The regression of the data on the index.
+        """
+        data, index = self._prepare_statistic(var=var, season=season)
+        reg = xr.cov(index, data, dim=dim)/index.var(dim=dim, skipna=True).values
+        return reg
+
+    def compute_correlation(self, var: str = None,
                              dim: str = 'time', season: str = None):
-        pass
+        """
+        Compute the correlation of the data on the index.
+
+        Args:
+            var (str): The variable to be used. If None, the variable is the same of the index.
+            dim (str): The dimension to be used for the regression. Default is 'time'.
+            season (str): The season to be used. If None, no season will be selected.
+
+        Returns:
+            xr.DataArray: The regression of the data on the index.
+        """
+        data, index = self._prepare_statistic(var=var, season=season)
+        corr = xr.corr(index, data, dim=dim, skipna=True)
+        return corr
+    
+    def _prepare_statistic(self, var: str = None, season: str = None):
+        """Hidden method to prepare the data and index for the statistic."""
+        # Preparing data and index. Both have to be xr.DataArray
+        if not var:
+            data = self.data[self.var]
+        else:
+            data, _, _ = super()._retrieve(model=self.model, exp=self.exp, source=self.source,
+                                           var=var, catalog=self.catalog, startdate=self.startdate,
+                                           enddate=self.enddate, regrid=self.regrid, loglevel=self.loglevel)
+            data = data[var]
+
+        index = self.index
+        if season:
+            data = select_season(data, season)
+            index = select_season(index, season)
+
+        return data, index
+        
 
     def load_interface(self, configdir: str = None, interface: str = 'teleconnections-destine',
                        telecname: str = None):
