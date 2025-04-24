@@ -6,39 +6,8 @@ This module contains scientific tools for the teleconnections diagnostic.
 - weighted area mean function, to deal with weighted area mean
 '''
 import numpy as np
-import xarray as xr
 from aqua.logger import log_configure
 from aqua.util import area_selection
-
-
-def lon_180_to_360(lon: float):
-    """
-    Convert longitude [-180,180] to [0,360] range.
-
-    Args:
-        lon (float): longitude coordinate
-
-    Returns:
-        lon (float): converted longitude
-    """
-    if lon < 0:
-        lon = 360 + lon
-    return lon
-
-
-def lon_360_to_180(lon: float):
-    """
-    Convert longitude [0,360] to [-180,180] range.
-
-    Args:
-        lon (float): longitude coordinate
-
-    Returns:
-        lon (float): converted longitude
-    """
-    if lon > 180:
-        lon = - 360 + lon
-    return lon
 
 
 def wgt_area_mean(indat, latN: float, latS: float,
