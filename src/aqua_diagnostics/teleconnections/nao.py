@@ -18,6 +18,21 @@ class NAO(BaseMixin):
                  configdir: str = None,
                  interface: str = 'teleconnections-destine',
                  loglevel: str = 'WARNING'):
+        """
+        Initialize the NAO class.
+
+        Args:
+            catalog (str): Catalog name.
+            model (str): Model name.
+            exp (str): Experiment name.
+            source (str): Source name.
+            regrid (str): Regrid method.
+            startdate (str): Start date for data retrieval.
+            enddate (str): End date for data retrieval.
+            configdir (str): Configuration directory. Default is the installation directory.
+            interface (str): Interface filename. Default is 'teleconnections-destine'.
+            loglevel (str): Logging level. Default is 'WARNING'.
+        """
         super().__init__(telecname='NAO', catalog=catalog, model=model, exp=exp, source=source,
                          regrid=regrid, startdate=startdate, enddate=enddate,
                          configdir=configdir, interface=interface,
@@ -25,12 +40,6 @@ class NAO(BaseMixin):
         self.logger = log_configure(log_name='NAO', log_level=loglevel)
 
         self.var = self.interface.get('field')
-        
-    def run(self, months_window: int = 3, rebuild: bool = False):
-        self.retrieve()
-        self.compute_index(months_window=months_window, rebuild=rebuild)
-        reg = self.compute_regression()
-        cor = self.compute_correlation()
 
     def retrieve(self):
         # Assign self.data, self.reader, self.catalog
