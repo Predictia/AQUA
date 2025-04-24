@@ -225,36 +225,112 @@ class RMSE:
 
         return data, data_ref
 
-    def _save_figure(self, fig, ax, processed_key): # Use processed_key for filename
+    def _sanitize_filename_part(self, part):
+        """Sanitizes a string part for use in a filename."""
+        if not isinstance(part, str):
+            part = str(part) # Ensure it's a string
+        # Replace potentially problematic characters with underscores
+        invalid_chars = [' ', '/', '\\', ':', '*', '?', '"', '<', '>', '|', '.'] 
+        for char in invalid_chars:
+            part = part.replace(char, '_')
+        return part
+
+    def _generate_filename(self, processed_key, output_type, suffix):
         """
-        Saves the generated figure to the output directory. If no directory is provided,
-        defaults to './figs'.
+        Generates a unique filename based on config and context.
 
         Args:
-            fig (matplotlib.figure.Figure): The generated figure
-            ax (matplotlib.axes.Axes): The axes of the figure
-            processed_key (str): The processed key (e.g., 'q_85000', '2t') used for the filename.
-        """
-        # Create output directory if it doesn't exist
-        os.makedirs(self.config.get('outputdir_fig', './figs'), exist_ok=True)
+            processed_key (str): The variable key (e.g., 'q_85000', '2t').
+            output_type (str): Type of output ('figure' or 'netcdf').
+            suffix (str): Suffix describing the calculation (e.g., 'spatial_rmse', 'temporal_rmse').
 
-        # Save the figure using the processed key
-        fig.savefig(os.path.join(self.config.get('outputdir_fig', './figs'), f'{processed_key}.pdf'))
-
-    def _save_netcdf(self, data, processed_key): # Use processed_key for filename
+        Returns:
+            str: The full, unique path for the output file.
         """
-        Saves the generated netcdf file to the output directory. If no directory is provided,
-        defaults to './output'.
+        # Get config details with defaults and sanitize them
+        data_cfg = self.config.get('data', {})
+        ref_cfg = self.config.get('data_ref', {})
+        dates_cfg = self.config.get('dates', {})
+
+        model = self._sanitize_filename_part(data_cfg.get('model', 'model'))
+        exp = self._sanitize_filename_part(data_cfg.get('exp', 'exp'))
+        source = self._sanitize_filename_part(data_cfg.get('source', 'src')) # Shorten 'source' label if needed
+        model_ref = self._sanitize_filename_part(ref_cfg.get('model', 'refmodel'))
+        
+        exp_ref = self._sanitize_filename_part(ref_cfg.get('exp', 'refexp'))
+        startdate = self._sanitize_filename_part(dates_cfg.get('startdate', 'nodate'))
+        enddate = self._sanitize_filename_part(dates_cfg.get('enddate', 'nodate'))
+
+        # Construct the base filename from sanitized parts
+        base_name_parts = [
+            model, exp, source,
+            'vs', model_ref,
+            startdate, enddate,
+            processed_key,
+            suffix
+        ]
+        # Filter out any empty strings that might result from missing config values
+        base_filename = '_'.join(filter(None, base_name_parts))
+
+        # Determine directory and extension based on output_type
+        if output_type == 'figure':
+            output_dir = self.config.get('outputdir_fig', './figs')
+            extension = '.pdf'
+        elif output_type == 'netcdf':
+            output_dir = self.config.get('outputdir_data', './output')
+            extension = '.nc'
+        else:
+            self.logger.error(f"Unknown output_type requested for filename generation: {output_type}")
+            # Return a fallback path or raise an error
+            return os.path.join('.', f"{processed_key}_{suffix}_unknown_type") # Basic fallback
+
+        # Ensure the output directory exists
+        try:
+            os.makedirs(output_dir, exist_ok=True)
+        except OSError as e:
+            self.logger.error(f"Could not create output directory {output_dir}: {e}")
+            # Fallback to current directory? Or re-raise? For now, log and continue path creation
+            output_dir = '.'
+
+        full_path = os.path.join(output_dir, f"{base_filename}{extension}")
+        self.logger.debug(f"Generated path for {output_type} ({processed_key}, {suffix}): {full_path}")
+        return full_path
+
+    def _save_figure(self, fig, processed_key, plot_type): # plot_type: 'spatial' or 'temporal'
+        """
+        Saves the generated figure with a unique name based on config.
 
         Args:
-            data (xr.Dataset): The data to save (contains the rmse result)
-            processed_key (str): The processed key (e.g., 'q_85000', '2t') used for the filename.
+            fig (matplotlib.figure.Figure): The figure object to save.
+            processed_key (str): The variable key (e.g., 'q_85000', '2t').
+            plot_type (str): The type of plot ('spatial' or 'temporal').
         """
-        # Create output directory if it doesn't exist
-        os.makedirs(self.config.get('outputdir_data', './output'), exist_ok=True)
+        # Generate the unique filename using the helper method
+        filename = self._generate_filename(processed_key, 'figure', f'{plot_type}_rmse')
+        try:
+            fig.savefig(filename)
+            self.logger.info(f"Figure saved to {filename}")
+        except Exception as e:
+            # Log the error with the specific filename that failed
+            self.logger.error(f"Failed to save figure {filename}: {e}", exc_info=True)
 
-        # Save the netcdf using the processed key
-        data.to_netcdf(os.path.join(self.config.get('outputdir_data', './output'), f'{processed_key}.nc'))
+    def _save_netcdf(self, data, processed_key, data_type): # data_type: 'spatial' or 'temporal'
+        """
+        Saves the generated netcdf file with a unique name based on config.
+
+        Args:
+            data (xr.Dataset): The data to save.
+            processed_key (str): The variable key (e.g., 'q_85000', '2t').
+            data_type (str): The type of data ('spatial' or 'temporal').
+        """
+        # Generate the unique filename using the helper method
+        filename = self._generate_filename(processed_key, 'netcdf', f'{data_type}_rmse')
+        try:
+            data.to_netcdf(filename)
+            self.logger.info(f"NetCDF data saved to {filename}")
+        except Exception as e:
+            # Log the error with the specific filename that failed
+            self.logger.error(f"Failed to save NetCDF {filename}: {e}", exc_info=True)
 
     # Helper function to parse the processed key
     def _parse_processed_key(self, processed_key):
@@ -378,18 +454,31 @@ class RMSE:
 
             except Exception as e:
                 self.logger.error(f"Failed to calculate or plot spatial RMSE for key {processed_key}: {e}", exc_info=True)
+                # Clear potentially incomplete results for this key
+                if processed_key in results: del results[processed_key]
 
         self.logger.info("Finished spatial RMSE processing.")
 
         if save_fig:
             self.logger.info("Saving spatial RMSE figures...")
-            for key, (fig, ax, _) in results.items():
-                self._save_figure(fig, ax, key) # Use the key for saving
+            for key, result_tuple in results.items():
+                if len(result_tuple) >= 1 and result_tuple[0] is not None: # Check if fig exists
+                     fig_to_save = result_tuple[0]
+                     self._save_figure(fig_to_save, key, 'spatial') # Pass 'spatial' type
+                else:
+                     self.logger.warning(f"Skipping saving figure for key {key} as no figure object was found in results.")
 
         if save_netcdf:
             self.logger.info("Saving spatial RMSE netcdf files...")
-            for key, (_, _, rmse_ds) in results.items():
-                self._save_netcdf(data=rmse_ds, processed_key=key) # Use the key for saving
+            for key, result_tuple in results.items():
+                if len(result_tuple) >= 3 and result_tuple[2] is not None: # Check if dataset exists
+                    rmse_ds_to_save = result_tuple[2]
+                    self._save_netcdf(data=rmse_ds_to_save, processed_key=key, data_type='spatial') # Pass 'spatial' type
+                else:
+                    self.logger.warning(f"Skipping saving NetCDF for key {key} as no dataset object was found in results.")
+
+        # Return only the datasets for consistency, or modify based on actual needs
+        return {key: res[2] for key, res in results.items() if len(res) >= 3 and res[2] is not None}
 
     def temporal_rmse(self, save_fig: bool = False, save_netcdf: bool = False):
         """
@@ -508,20 +597,32 @@ class RMSE:
 
             except Exception as e:
                 self.logger.error(f"Failed to calculate or plot temporal RMSE for key {processed_key}: {e}", exc_info=True)
+                # Clear potentially incomplete results for this key
+                if processed_key in results: del results[processed_key]
 
         self.logger.info("Finished temporal RMSE processing.")
 
         # Save Figure if requested
         if save_fig:
             self.logger.info("Saving temporal RMSE figures...")
-            for key, (fig, ax, _) in results.items():
-                 # Use the key (e.g., q_85000_temporal_rmse) for saving
-                self._save_figure(fig, ax, f'{key}_temporal_rmse')
+            for key, result_tuple in results.items():
+                if len(result_tuple) >= 1 and result_tuple[0] is not None:
+                    fig_to_save = result_tuple[0]
+                    # Note: No longer adding suffix manually here
+                    self._save_figure(fig_to_save, key, 'temporal') # Pass 'temporal' type
+                else:
+                     self.logger.warning(f"Skipping saving figure for key {key} as no figure object was found in results.")
 
         # Save NetCDF if requested
         if save_netcdf:
             self.logger.info("Saving temporal RMSE netcdf files...")
-            for key, (_, _, rmse_ds) in results.items():
-                 # Use the key (e.g., q_85000_temporal_rmse) for saving
-                self._save_netcdf(data=rmse_ds, processed_key=f'{key}_temporal_rmse')
+            for key, result_tuple in results.items():
+                 if len(result_tuple) >= 3 and result_tuple[2] is not None:
+                    rmse_ds_to_save = result_tuple[2]
+                    # Note: No longer adding suffix manually here
+                    self._save_netcdf(data=rmse_ds_to_save, processed_key=key, data_type='temporal') # Pass 'temporal' type
+                 else:
+                    self.logger.warning(f"Skipping saving NetCDF for key {key} as no dataset object was found in results.")
 
+        # Return only the datasets
+        return {key: res[2] for key, res in results.items() if len(res) >= 3 and res[2] is not None}
