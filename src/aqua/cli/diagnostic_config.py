@@ -150,7 +150,7 @@ diagnostic_config = {
             'target_path': 'diagnostics/teleconnections/config'
         },
         {
-            'config_file': 'cli_config.yaml',
+            'config_file': 'config_teleconnections.yaml',
             'source_path': 'config/diagnostics/teleconnections',
             'target_path': 'diagnostics/teleconnections'
         },
