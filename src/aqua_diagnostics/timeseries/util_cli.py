@@ -12,10 +12,10 @@ def load_var_config(config_dict: dict, var: str, diagnostic: str = 'timeseries')
     Returns:
         var_config (dict): The variable configuration dictionary
     """
-    default_dict = config_dict['diagnostics']['timeseries']['params']['default']
+    default_dict = config_dict['diagnostics'][diagnostic]['params']['default']
 
-    if var in config_dict['diagnostics']['timeseries']['params']:
-        var_config = config_dict['diagnostics']['timeseries']['params'][var]
+    if var in config_dict['diagnostics'][diagnostic]['params']:
+        var_config = config_dict['diagnostics'][diagnostic]['params'][var]
     else:
         var_config = {}
 
@@ -33,10 +33,6 @@ def load_var_config(config_dict: dict, var: str, diagnostic: str = 'timeseries')
             if var_config[key] is not None:
                 del var_config[key]
         var_config['freq'] = freq
-    elif diagnostic == 'seasonalcycles':
-        for key in ['hourly', 'daily', 'monthly', 'annual']:
-            if var_config[key] is not None:
-                del var_config[key]
 
     # Get the regions
     regions = [None]
