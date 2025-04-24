@@ -47,3 +47,5 @@ diagnostics:
       default:
         std_startdate: '19900101'
         std_enddate: '20201231'
+      tprate:
+        units: "mm/day"

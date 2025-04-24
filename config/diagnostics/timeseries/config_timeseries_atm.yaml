@@ -32,7 +32,7 @@ output:
 diagnostics:
   timeseries:
     run: true
-    variables: ['2t', 'ie', 'msl',
+    variables: ['2t', 'ie', 'msl', 'tprate',
                 'tcc', 'lcc', 'mcc', 'hcc',
                 'slhtf', #Mean surface latent heat flux
                 'ishf', #Mean surface sensible heat flux
@@ -43,7 +43,7 @@ diagnostics:
                 'tnlwrf', #Mean top net long-wave radiation flux
                 'tnswrf' #Mean top net short-wave radiation flux
                 ]
-    formulae: ['tnlwrf+tnswrf', '86400*tprate']
+    formulae: ['tnlwrf+tnswrf']
     params:
       default:
         hourly: False
@@ -55,7 +55,7 @@ diagnostics:
       tnlwrf+tnswrf:
         standard_name: "net_top_radiation"
         long_name: "Net top radiation"
-      86400*tprate:
+      tprate:
         standard_name: "tprate"
         long_name: "Precipitation"
         units: "mm/day"
