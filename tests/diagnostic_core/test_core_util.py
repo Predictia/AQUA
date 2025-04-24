@@ -1,5 +1,6 @@
 import pytest
 import argparse
+import pandas as pd
 from unittest.mock import patch
 from aqua import Reader
 from aqua.diagnostics.core import template_parse_arguments, load_diagnostic_config
@@ -122,10 +123,18 @@ def test_start_end_dates():
     assert start_end_dates() == (None, None)
 
     # Only startdate provided
-    assert start_end_dates(startdate="2020-01-01") == ("2020-01-01", None)
+    assert start_end_dates(startdate="2020-01-01") == (pd.Timestamp("2020-01-01"), None)
 
     # Two dates provided
-    assert start_end_dates(startdate="2020-01-01", enddate="2020-01-02") == ("2020-01-01", "2020-01-02")
-    assert start_end_dates(startdate="20200101", enddate="20200102") == ("2020-01-01", "2020-01-02")
-    assert start_end_dates(startdate="20200101", start_std="20200102") == ("2020-01-01", None)
-    assert start_end_dates(startdate="2020-01-01", enddate="20200102") == ("2020-01-01", "2020-01-02")
+    assert start_end_dates(startdate="2020-01-01", enddate="2020-01-02") == (
+        pd.Timestamp("2020-01-01"), pd.Timestamp("2020-01-02")
+    )
+    assert start_end_dates(startdate="20200101", enddate="20200102") == (
+        pd.Timestamp("2020-01-01"), pd.Timestamp("2020-01-02")
+    )
+    assert start_end_dates(startdate="20200101", start_std="20200102") == (
+        pd.Timestamp("2020-01-01"), None
+    )
+    assert start_end_dates(startdate="2020-01-01", enddate="20200102") == (
+        pd.Timestamp("2020-01-01"), pd.Timestamp("2020-01-02")
+    )
