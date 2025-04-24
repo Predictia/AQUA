@@ -26,8 +26,11 @@ class NAO(BaseMixin):
 
         self.var = self.interface.get('field')
         
-    def run(self):
+    def run(self, months_window: int = 3, rebuild: bool = False):
         self.retrieve()
+        self.compute_index(months_window=months_window, rebuild=rebuild)
+        reg = self.compute_regression()
+        cor = self.compute_correlation()
 
     def retrieve(self):
         # Assign self.data, self.reader, self.catalog
