@@ -103,6 +103,10 @@ Options:
     This option will force the rebuilding of the areas and weights files for the regridding.
     If multiple variables or members are present in the configuration, this will be done only once.
 
+.. option:: --stat
+
+    Statistic to be computed (default: 'mean')
+
 Please note that this options override the ones available in the configuration file. 
 
 A basic example usage can thus be: 
