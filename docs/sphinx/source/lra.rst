@@ -107,7 +107,7 @@ Options:
 
     Statistic to be computed (default: 'mean')
 
-Please note that this options override the ones available in the configuration file. 
+Please note that these options override the ones available in the configuration file. 
 
 A basic example usage can thus be: 
 
