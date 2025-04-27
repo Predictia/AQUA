@@ -40,7 +40,7 @@ class LRAgenerator():
                  resolution=None, frequency=None, fix=True,
                  outdir=None, tmpdir=None, nproc=1,
                  loglevel=None,
-                 region=None,
+                 region=None, drop=False,
                  overwrite=False, definitive=False,
                  performance_reporting=False,
                  rebuild=False,
@@ -76,6 +76,7 @@ class LRAgenerator():
             region (dict, opt):      Region to be processed, default is None, 
                                      meaning the full globe. 
                                      Requires 'name' (str), 'lon' (list) and 'lat' (list)
+            drop (bool, opt):        Drop the missing values in the region selection.
             overwrite (bool, opt):   True to overwrite existing files in LRA,
                                      default is False
             definitive (bool, opt):  True to create the output file,
@@ -166,9 +167,10 @@ class LRAgenerator():
                 raise KeyError('Please specify name in region.')
             if self.region['lon'] is None and self.region['lat'] is None:
                 raise KeyError(f'Please specify at least one between lat and lon for {region['name']}.')
-
         else:
             self.region = None
+
+        self.drop = drop
 
         self.stat = stat
         if self.stat not in ['mean', 'std', 'max', 'min']:
@@ -656,7 +658,7 @@ class LRAgenerator():
         temp_data = self._remove_regridded(temp_data)
 
         if self.region:
-            temp_data = area_selection(temp_data, lon = self.region['lon'], lat = self.region['lat'])
+            temp_data = area_selection(temp_data, lon = self.region['lon'], lat = self.region['lat'], drop=self.drop)
 
         # Splitting data into yearly files
         years = sorted(set(temp_data.time.dt.year.values))
