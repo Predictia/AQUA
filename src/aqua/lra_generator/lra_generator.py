@@ -45,6 +45,7 @@ class LRAgenerator():
                  performance_reporting=False,
                  rebuild=False,
                  exclude_incomplete=False,
+                 stat="mean",
                  compact="xarray",
                  cdo="cdo",
                  cdo_options=["-f", "nc4", "-z", "zip_1"],
@@ -84,7 +85,8 @@ class LRAgenerator():
                                                dask usage, default is False.
             exclude_incomplete (bool,opt)   : True to remove incomplete chunk
                                             when averaging, default is false. 
-            rebuild (bool, opt):     Rebuild the weights when calling the reader 
+            rebuild (bool, opt):     Rebuild the weights when calling the reader
+            stat (string, opt):      Statistic to compute. Can be 'mean', 'std', 'max', 'min'.
             compact (string, opt):   Compact the data into yearly files using xarray or cdo.
                                      If set to None, no compacting is performed. Default is "xarray"
             cdo (string, opt):       Path to the cdo executable used for compacting, default is "cdo"
@@ -167,6 +169,10 @@ class LRAgenerator():
 
         else:
             self.region = None
+
+        self.stat = stat
+        if self.stat not in ['mean', 'std', 'max', 'min']:
+            raise KeyError('Please specify a valid statistic: mean, std, max or min.')
 
         self.compact = compact
         if self.compact not in ['xarray', 'cdo', None]:
@@ -515,17 +521,14 @@ class LRAgenerator():
     def get_filename(self, var, year=None, month=None, tmp=False):
         """Create output filenames"""
 
-        # modify filename if realization is in the kwargs
+        filestring = f"{var}_{self.exp}"
         if 'realization' in self.kwargs:
-            if self.region:
-                filestring = f"{var}_{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_{self.region['name']}_*.nc"
-            else:
-                filestring = f"{var}_{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_*.nc"
-        else:
-            if self.region:
-                filestring = f"{var}_{self.exp}_{self.resolution}_{self.frequency}_{self.region['name']}_*.nc"
-            else:
-                filestring = f"{var}_{self.exp}_{self.resolution}_{self.frequency}_*.nc"
+            filestring = filestring + f"_r{self.kwargs['realization']}"
+        filestring = filestring + f"_{self.resolution}_{self.frequency}_{self.stat}"
+        if self.region:
+            filestring = filestring + f"_{self.region['name']}"
+        filestring = filestring + "_*.nc"
+
         if tmp:
             filename = os.path.join(self.tmpdir, filestring)
         else:
@@ -645,7 +648,7 @@ class LRAgenerator():
         temp_data = self.data[var]
 
         if self.frequency:
-            temp_data = self.reader.timmean(temp_data, freq=self.frequency,
+            temp_data = self.reader.timstat(temp_data, self.stat, freq=self.frequency,
                                             exclude_incomplete=self.exclude_incomplete)
 
         # regrid
