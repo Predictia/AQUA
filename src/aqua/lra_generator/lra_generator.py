@@ -496,13 +496,14 @@ class LRAgenerator():
             # clean older file
             if os.path.exists(outfile):
                 os.remove(outfile)
-            
+
             if self.compact == 'cdo':
+                infiles_list = sorted(glob.glob(infiles))
                 command = [
                     self.cdo,
                     *self.cdo_options,
                     'cat',
-                    *glob.glob(infiles),
+                    *infiles_list,
                     outfile
                 ]
                 self.logger.debug("Using CDO command: %s", command)
