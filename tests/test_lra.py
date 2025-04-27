@@ -169,3 +169,29 @@ class TestLRA:
 
         assert os.path.exists(outfile)
         shutil.rmtree(os.path.join(args["outdir"]))
+
+    def test_concat_var_year_cdo(self, lra_arguments, tmp_path):
+        """Test concatenation of monthly files into a single yearly file using cdo."""
+        args = lra_arguments
+        resolution = 'r100'
+        frequency = 'monthly'
+        year = 2022
+
+        test = LRAgenerator(
+            catalog='ci', model=args["model"], exp=args["exp"], source=args["source"],
+            var=args["var"], outdir=args["outdir"], tmpdir=str(tmp_path), compact="cdo",
+            resolution=resolution, frequency=frequency, loglevel=LOGLEVEL
+        )
+
+        for month in range(1, 13):
+            mm = f'{month:02d}'
+            filename = test.get_filename(args["var"], year, month=mm)
+            timeobj = pd.Timestamp(f'{year}-{mm}-01')
+            ds = xr.Dataset({args["var"]: xr.DataArray([0], dims=['time'], coords={'time': [timeobj]})})
+            ds.to_netcdf(filename)
+
+        test._concat_var_year(args["var"], year)
+        outfile = test.get_filename(args["var"], year)
+
+        assert os.path.exists(outfile)
+        shutil.rmtree(os.path.join(args["outdir"]))
