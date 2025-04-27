@@ -10,6 +10,7 @@ import dask
 import xarray as xr
 import numpy as np
 import pandas as pd
+import subprocess
 from dask.distributed import Client, LocalCluster, progress, performance_report
 from dask.diagnostics import ProgressBar
 from dask.distributed.diagnostics import MemorySampler
@@ -43,7 +44,11 @@ class LRAgenerator():
                  overwrite=False, definitive=False,
                  performance_reporting=False,
                  rebuild=False,
-                 exclude_incomplete=False, **kwargs):
+                 exclude_incomplete=False,
+                 compact="xarray",
+                 cdo="cdo",
+                 cdo_options=["-f", "nc4", "-z", "zip_1"],
+                 **kwargs):
         """
         Initialize the LRA_Generator class
 
@@ -80,6 +85,10 @@ class LRAgenerator():
             exclude_incomplete (bool,opt)   : True to remove incomplete chunk
                                             when averaging, default is false. 
             rebuild (bool, opt):     Rebuild the weights when calling the reader 
+            compact (string, opt):   Compact the data into yearly files using xarray or cdo.
+                                     If set to None, no compacting is performed. Default is "xarray"
+            cdo (string, opt):       Path to the cdo executable used for compacting, default is "cdo"
+            cdo_options (list, opt): List of options to be passed to cdo, default is ["-f", "nc4", "-z", "zip_1"]
             **kwargs:                kwargs to be sent to the Reader, as 'zoom' or 'realization'
                                      please notice that realization will change the file name 
                                      produced by the LRA
@@ -158,6 +167,15 @@ class LRAgenerator():
 
         else:
             self.region = None
+
+        self.compact = compact
+        if self.compact not in ['xarray', 'cdo', None]:
+            raise KeyError('Please specify a valid compact method: xarray, cdo or None.')
+        
+        self.cdo = cdo
+        self.cdo_options = cdo_options
+        if not isinstance(self.cdo_options, list):
+            raise TypeError('cdo_options must be a list.')
 
         self.kwargs = kwargs
 
@@ -463,7 +481,7 @@ class LRAgenerator():
 
         infiles = self.get_filename(var, year, month = '??')
         if len(glob.glob(infiles)) == 12:
-            xfield = xr.open_mfdataset(infiles)
+
             self.logger.info('Creating a single file for %s, year %s...', var, str(year))
             outfile = self.get_filename(var, year)
 
@@ -471,10 +489,23 @@ class LRAgenerator():
             if os.path.exists(outfile):
                 os.remove(outfile)
             
-            # these are made XarrayDataset made of a single variable
-            name = list(xfield.data_vars)[0]
-            xfield.to_netcdf(outfile, 
-                             encoding={'time': self.time_encoding, name: self.var_encoding})
+            if self.compact == 'cdo':
+                command = [
+                    self.cdo,
+                    *self.cdo_options,
+                    'cat',
+                    *glob.glob(infiles),
+                    outfile
+                ]
+                self.logger.debug("Using CDO command: %s", command)
+                subprocess.check_output(command, stderr=subprocess.STDOUT)
+            else:   
+                # these XarrayDatasets are made of a single variable
+                self.logger.debug("Using xarray to concatenate files")
+                xfield = xr.open_mfdataset(infiles)
+                name = list(xfield.data_vars)[0]
+                xfield.to_netcdf(outfile, 
+                                encoding={'time': self.time_encoding, name: self.var_encoding})
 
             # clean of monthly files
             for infile in glob.glob(infiles):
@@ -678,7 +709,7 @@ class LRAgenerator():
                     move_tmp_files(self.tmpdir, self.outdir)
                 del month_data
             del year_data
-            if self.definitive:
+            if self.definitive and self.compact:
                 self._concat_var_year(var, year)
         del temp_data
 
