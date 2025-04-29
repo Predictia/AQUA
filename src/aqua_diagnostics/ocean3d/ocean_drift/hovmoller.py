@@ -25,14 +25,14 @@ class Hovmoller(Diagnostic):
 
     def __init__(
         self,
-        catalog=None,
-        model=None,
-        exp=None,
-        source=None,
-        regrid=None,
-        startdate=None,
-        enddate=None,
-        loglevel="WARNING",
+        catalog: str = None,
+        model: str = None,
+        exp: str = None,
+        source: str = None,
+        regrid: str = None,
+        startdate: str = None,
+        enddate: str = None,
+        loglevel: str = "WARNING",
     ):
         """
         Initializes the Hovmoller class.
@@ -59,7 +59,9 @@ class Hovmoller(Diagnostic):
         )
         self.logger = log_configure(log_name="Hovmoller", log_level=loglevel)
 
-    def run(self, outputdir=None, region=None, var=["thetao", "so"]):
+    def run(self, outputdir: str = None, region: str = None, var: list = None):
+        if var is None:
+            var = ["thetao", "so"]
         """
         Executes the Hovmoller diagram generation process.
 
@@ -93,7 +95,10 @@ class Hovmoller(Diagnostic):
             self.data = area_selection(
                 data=self.data, lat=lat_limits, lon=lon_limits, drop=True
             )
-
+        else:
+            self.logger.warning("Since region name is not specified, processing whole region in the dataset")
+            
+            
     def save_netcdf(self, diagnostic, diagnostic_product, rebuild=True):
         """
         Saves the processed data to a netCDF file.
