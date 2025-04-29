@@ -81,25 +81,6 @@ class Hovmoller(Diagnostic):
         self.save_netcdf(diagnostic="Hovmoller", diagnostic_product="Hovmoller")
         self.logger.info("Hovmoller diagram saved to netCDF file")
 
-    def retrieve(self):
-        """
-        Retrieves the data required for generating Hovmoller diagrams.
-
-        This method uses the parent class's `_retrieve` method to fetch
-        the data based on the provided parameters.
-        """
-        
-        # self.data, self.reader, self.catalog = super().retrieve(
-        #     catalog=self.catalog,
-        #     model=self.model,
-        #     exp=self.exp,
-        #     source=self.source,
-        #     var=self.var,
-        #     regrid=self.regrid,
-        #     startdate=self.startdate,
-        #     enddate=self.enddate,
-        # )
-
     def area_select(self):
         """
         Applies area selection to the retrieved data.
@@ -108,9 +89,9 @@ class Hovmoller(Diagnostic):
         predefined region's latitude and longitude bounds.
         """
         if self.region is not None:
-            lat_s, lat_n, lon_w, lon_e = predefined_regions(self.region)
+            lon_limits, lat_limits = predefined_regions(self.region)
             self.data = area_selection(
-                data=self.data, lat=[lat_n, lat_s], lon=[lon_w, lon_e], drop=True
+                data=self.data, lat=lat_limits, lon=lon_limits, drop=True
             )
 
     def save_netcdf(self, diagnostic, diagnostic_product, rebuild=True):

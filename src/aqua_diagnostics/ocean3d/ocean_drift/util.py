@@ -55,16 +55,14 @@ def predefined_regions(region, loglevel="WARNING"):
     try:
         regions_dict = process_region_config(regions_dict["regions"])
         region_boundary = regions_dict[processed_region]
-        lat_n = region_boundary.get("LatN")
-        lat_s = region_boundary.get("LatS")
-        lon_e = region_boundary.get("LonE")
-        lon_w = region_boundary.get("LonW")
+        lon_limits = region_boundary.get("lon_limits")
+        lat_limits = region_boundary.get("lat_limits")
     except KeyError:
         raise ValueError(
             f"Invalid region name: {region}. Check the region name in config file or update it: {regions_yaml}"
         )
 
-    return lat_s, lat_n, lon_w, lon_e
+    return lon_limits, lat_limits
 
 
 def _data_process_by_type(**kwargs):
