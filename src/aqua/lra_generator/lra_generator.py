@@ -47,7 +47,6 @@ class LRAgenerator():
                  exclude_incomplete=False,
                  stat="mean",
                  compact="xarray",
-                 cdo="cdo",
                  cdo_options=["-f", "nc4", "-z", "zip_1"],
                  **kwargs):
         """
@@ -90,7 +89,6 @@ class LRAgenerator():
             stat (string, opt):      Statistic to compute. Can be 'mean', 'std', 'max', 'min'.
             compact (string, opt):   Compact the data into yearly files using xarray or cdo.
                                      If set to None, no compacting is performed. Default is "xarray"
-            cdo (string, opt):       Path to the cdo executable used for compacting, default is "cdo"
             cdo_options (list, opt): List of options to be passed to cdo, default is ["-f", "nc4", "-z", "zip_1"]
             **kwargs:                kwargs to be sent to the Reader, as 'zoom' or 'realization'
                                      please notice that realization will change the file name 
@@ -180,7 +178,6 @@ class LRAgenerator():
         if self.compact not in ['xarray', 'cdo', None]:
             raise KeyError('Please specify a valid compact method: xarray, cdo or None.')
         
-        self.cdo = cdo
         self.cdo_options = cdo_options
         if not isinstance(self.cdo_options, list):
             raise TypeError('cdo_options must be a list.')
@@ -500,7 +497,7 @@ class LRAgenerator():
             if self.compact == 'cdo':
                 infiles_list = sorted(glob.glob(infiles))
                 command = [
-                    self.cdo,
+                    'cdo',
                     *self.cdo_options,
                     'cat',
                     *infiles_list,
