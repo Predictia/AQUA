@@ -21,7 +21,8 @@ Welcome to AQUA's documentation!
    other_components
    container
    stateoftheart_diagnostics/index
-   diagnostics/index
+   frontier_diagnostics/index
+   new_diagnostics/index
    adding_data
    catalog_generator
    lra
