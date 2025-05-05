@@ -8,7 +8,7 @@ from aqua.util import load_yaml
 from aqua.reader import Reader
 from aqua.graphics import plot_single_map
 
-class ACC: # Renamed from RMSE
+class ACC: 
     """ACC diagnostic"""
 
     def __init__(self, config, loglevel: str = 'WARNING'):
@@ -56,6 +56,9 @@ class ACC: # Renamed from RMSE
 
         self._reader()
 
+        # Initialize cache for climatology means
+        self._climatology_means_cache = None
+
     def _reader(self):
         """
         The reader method. This method initializes the Reader class for both reference
@@ -96,23 +99,18 @@ class ACC: # Renamed from RMSE
             enddate=self.enddate,
             loglevel=self.loglevel
         )
-        try:
-            self.reader_climatology = Reader(
-                catalog=config_climatology.get('catalog'),
-                model=config_climatology.get('model'),
-                exp=config_climatology.get('exp'),
-                source=config_climatology.get('source'),
-                regrid=config_climatology.get('regrid'),
-                fix=config_climatology.get('fix'),
-                startdate=self.clim_startdate,
-                enddate=self.clim_enddate,
-                loglevel=self.loglevel
-            )
-            self.logger.info("Initialized reader for mandatory climatology data.")
-        except Exception as e:
-            msg = f"Failed to initialize Reader for mandatory 'climatology_data': {e}"
-            self.logger.error(msg, exc_info=True)
-            raise ValueError(msg) from e # Fail early if clim reader fails
+        self.reader_climatology = Reader(
+            catalog=config_climatology.get('catalog'),
+            model=config_climatology.get('model'),
+            exp=config_climatology.get('exp'),
+            source=config_climatology.get('source'),
+            regrid=config_climatology.get('regrid'),
+            fix=config_climatology.get('fix'),
+            startdate=self.clim_startdate,
+            enddate=self.clim_enddate,
+            loglevel=self.loglevel
+        )
+
         self.logger.debug('Reader classes initialized for data_ref, data, and climatology')
 
     def retrieve(self):
@@ -121,7 +119,11 @@ class ACC: # Renamed from RMSE
         from both the reference and main data sources using the initialized readers.
         Stores retrieved data in self.retrieved_data_ref and self.retrieved_data dictionaries.
         Handles single levels, lists of levels, and surface variables.
+        Invalidates the climatology mean cache.
         """
+        # Invalidate cache when retrieving new data
+        self.logger.debug("Resetting climatology means cache.")
+        self._climatology_means_cache = None
 
         self.retrieved_data_ref = {}
         self.retrieved_data = {}
@@ -163,6 +165,7 @@ class ACC: # Renamed from RMSE
                 if level is not None:
                     retrieve_args['level'] = level
 
+                # Check the status
                 ref_ok, data_ok, clim_ok = False, False, False
 
                 # Retrieve Reference Data
@@ -209,7 +212,7 @@ class ACC: # Renamed from RMSE
                         del self.retrieved_data_ref[data_key]
                     continue # Skip this level/variable on error
 
-                # Retrieve Climatology (Mandatory for ACC)
+                # Retrieve Climatology
                 try:
                     self.logger.debug(f"Retrieving climatology data for {var_name}{log_msg_suffix}")
                     data_clim = self.reader_climatology.retrieve(**retrieve_args)
@@ -251,7 +254,7 @@ class ACC: # Renamed from RMSE
             xr.DataArray: The DataArray with float32 lat/lon coordinates.
         """
         if not isinstance(array, xr.DataArray):
-            print(f"Warning: Input to _ensure_float32_coords is not a DataArray (name: {getattr(array, 'name', 'N/A')}). Skipping.")
+            self.logger.warning(f"Warning: Input to _ensure_float32_coords is not a DataArray (name: {getattr(array, 'name', 'N/A')}). Skipping.")
             return array
 
         # Identify potential latitude and longitude coordinate names dynamically
@@ -259,7 +262,7 @@ class ACC: # Renamed from RMSE
         lon_names = [dim for dim in array.coords if 'lon' in dim.lower()]
 
         if not lat_names or not lon_names:
-            # print(f"Debug: Could not find lat/lon coordinates in array {array.name}. Skipping conversion.")
+            print(f"Debug: Could not find lat/lon coordinates in array {array.name}. Skipping conversion.")
             return array # Return unchanged if no lat/lon found
 
         lat_name = lat_names[0]
@@ -269,22 +272,18 @@ class ACC: # Renamed from RMSE
         needs_conversion = False
         if array[lat_name].dtype != np.float32:
             needs_conversion = True
-            # print(f"Debug: Lat conversion needed for {array.name} ({lat_name}: {array[lat_name].dtype})")
         if array[lon_name].dtype != np.float32:
             needs_conversion = True
-            # print(f"Debug: Lon conversion needed for {array.name} ({lon_name}: {array[lon_name].dtype})")
-
 
         if needs_conversion:
-            # print(f"Info: Converting lat/lon coordinate types to float32 for {array.name}")
+            print(f"Info: Converting lat/lon coordinate types to float32 for {array.name}")
             try:
                 array = array.assign_coords({
                     lat_name: array[lat_name].astype('float32'),
                     lon_name: array[lon_name].astype('float32')
                 })
             except Exception as e:
-                 print(f"Warning: Failed to convert coordinate types for {array.name}: {e}")
-                 # Return original array if conversion fails
+                print(f"Warning: Failed to convert coordinate types for {array.name}: {e}")
 
         return array
 
@@ -319,9 +318,11 @@ class ACC: # Renamed from RMSE
         model = self._sanitize_filename_part(data_cfg.get('model', 'model'))
         exp = self._sanitize_filename_part(data_cfg.get('exp', 'exp'))
         source = self._sanitize_filename_part(data_cfg.get('source', 'src'))
+        
         model_ref = self._sanitize_filename_part(ref_cfg.get('model', 'refmodel'))
-
         exp_ref = self._sanitize_filename_part(ref_cfg.get('exp', 'refexp'))
+        source_ref = self._sanitize_filename_part(ref_cfg.get('source', 'refsrc'))
+
         startdate = self._sanitize_filename_part(dates_cfg.get('startdate', 'nodate'))
         enddate = self._sanitize_filename_part(dates_cfg.get('enddate', 'nodate'))
         
@@ -331,7 +332,7 @@ class ACC: # Renamed from RMSE
         # Construct the base filename from sanitized parts
         base_name_parts = [
             model, exp, source,
-            'vs', model_ref, exp_ref,
+            'vs', model_ref, exp_ref, source_ref,
             clim_startdate, clim_enddate,
             processed_key,
             suffix
@@ -348,8 +349,6 @@ class ACC: # Renamed from RMSE
             extension = '.nc'
         else:
             self.logger.error(f"Unknown output_type requested for filename generation: {output_type}")
-            # Return a fallback path or raise an error
-            return os.path.join('.', f"{processed_key}_{suffix}_unknown_type")
 
         # Ensure the output directory exists
         try:
@@ -371,14 +370,11 @@ class ACC: # Renamed from RMSE
             processed_key (str): The variable key (e.g., 'q_85000', '2t').
             plot_type (str): The type of plot ('spatial' or 'temporal').
         """
-        # Generate the unique filename using the helper method
-        # The suffix now correctly includes '_acc' based on the plot_type
         filename = self._generate_filename(processed_key, 'figure', f'{plot_type}_acc')
         try:
             fig.savefig(filename)
             self.logger.info(f"Figure saved to {filename}")
         except Exception as e:
-            # Log the error with the specific filename that failed
             self.logger.error(f"Failed to save figure {filename}: {e}", exc_info=True)
 
     def _save_netcdf(self, data, processed_key, data_type):
@@ -390,13 +386,11 @@ class ACC: # Renamed from RMSE
             processed_key (str): The variable key (e.g., 'q_85000', '2t').
             data_type (str): The type of data ('spatial' or 'temporal').
         """
-        # Generate the unique filename using the helper method
         filename = self._generate_filename(processed_key, 'netcdf', f'{data_type}_acc')
         try:
             data.to_netcdf(filename)
             self.logger.info(f"NetCDF data saved to {filename}")
         except Exception as e:
-            # Log the error with the specific filename that failed
             self.logger.error(f"Failed to save NetCDF {filename}: {e}", exc_info=True)
 
     # Helper function to parse the processed key
@@ -442,7 +436,6 @@ class ACC: # Renamed from RMSE
 
         self.logger.debug(f"Calculating anomalies using provided climatology mean for {data_array.name}")
         try:
-            # xarray handles broadcasting based on coords
             anomalies = data_array - climatology_mean
             anomalies.attrs = data_array.attrs
             anomalies.name = f"{data_array.name}_anom"
@@ -453,13 +446,21 @@ class ACC: # Renamed from RMSE
             raise ValueError(msg) from e # Raise error to stop processing this key
 
     def _prepare_climatology_means(self):
-        """Calculates and returns a dictionary of climatology means."""
+        """Calculates and returns a dictionary of climatology means, using a cache."""
+        # Check cache first
+        if self._climatology_means_cache is not None:
+            self.logger.info("Using cached climatology means.")
+            return self._climatology_means_cache
+
+        # Proceed with calculation if not cached
+        self.logger.info("Calculating climatology means (cache was empty)...")
         climatology_means = {}
         if not hasattr(self, 'retrieved_climatology_data') or not self.retrieved_climatology_data:
              self.logger.error("Climatology data dictionary is missing or empty. Cannot calculate means.")
-             return {} # Return empty if no climatology data retrieved
+             # Store empty dict in cache and return
+             self._climatology_means_cache = {}
+             return self._climatology_means_cache
 
-        self.logger.info("Pre-calculating climatology means...")
         for key, data_clim_ds in self.retrieved_climatology_data.items():
              base_var_name, _ = self._parse_processed_key(key)
              if base_var_name in data_clim_ds:
@@ -467,14 +468,7 @@ class ACC: # Renamed from RMSE
                  try:
                      # Ensure 'time' dimension exists before taking mean
                      if 'time' in da_clim.dims:
-                         ########### DEBUG ###########
-                         print(da_clim)
-                         print(f"Percentage of NaNs in climatology data before mean calculation: {(da_clim.isnull().sum() / da_clim.size * 100).values:.2f}%")
-                         ######### End of DEBUG #######
                          climatology_means[key] = da_clim.mean(dim='time', skipna=True)
-                         ########### DEBUG ###########
-                         print(f"Percentage of NaNs in climatology data after mean calculation: {(climatology_means[key].isnull().sum() / climatology_means[key].size * 100).values:.2f}%")
-                         ######### End of DEBUG #######
                          self.logger.debug(f"Calculated climatology mean for key: {key}")
                      else:
                          self.logger.warning(f"Climatology data for key '{key}' (variable '{base_var_name}') is missing 'time' dimension. Cannot calculate mean. Storing as is.")
@@ -487,6 +481,10 @@ class ACC: # Renamed from RMSE
 
         if not climatology_means:
             self.logger.error("Climatology mean calculation failed for all retrieved keys.")
+
+        # Cache the results before returning
+        self.logger.info("Caching calculated climatology means.")
+        self._climatology_means_cache = climatology_means
         return climatology_means
 
     def spatial_acc(self, save_fig: bool = False, save_netcdf: bool = False):
@@ -532,25 +530,19 @@ class ACC: # Renamed from RMSE
 
             data_ds = self.retrieved_data[processed_key]
             data_ref_ds = self.retrieved_data_ref[processed_key]
-            clim_mean_da = climatology_means[processed_key] # Use da suffix for clarity
+            clim_mean_da = climatology_means[processed_key]
 
             if base_var_name not in data_ds or base_var_name not in data_ref_ds:
                 self.logger.warning(f"Var '{base_var_name}' not in datasets for key '{processed_key}'. Skipping.")
                 continue
             if not isinstance(clim_mean_da, xr.DataArray):
                  self.logger.warning(f"Climatology mean for key '{processed_key}' is not a DataArray. Skipping.")
-                 continue # Ensure clim_mean is a DataArray
+                 continue
 
             try:
                 # Get the DataArrays
                 da = data_ds[base_var_name]
                 da_ref = data_ref_ds[base_var_name]
-
-                ########### DEBUG ###########
-                print(f"Percentage of NaNs in main data: {(da.isnull().sum() / da.size * 100).values:.2f}%")
-                print(f"Percentage of NaNs in reference data: {(da_ref.isnull().sum() / da_ref.size * 100).values:.2f}%") 
-                print(f"Percentage of NaNs in climatology data: {(clim_mean_da.isnull().sum() / clim_mean_da.size * 100).values:.2f}%")
-                ######### End of DEBUG #######
                 
                 # Ensure all arrays have float32 coordinates
                 da = self._ensure_float32_coords(da)
@@ -558,21 +550,10 @@ class ACC: # Renamed from RMSE
                 clim_mean_da = self._ensure_float32_coords(clim_mean_da)
                 self.logger.debug(f"Coordinates ensured float32 for {processed_key}")
 
-                ########### DEBUG ###########
-                print(f"Percentage of NaNs in main data after conversion: {(da.isnull().sum() / da.size * 100).values:.2f}%")
-                print(f"Percentage of NaNs in reference data after conversion: {(da_ref.isnull().sum() / da_ref.size * 100).values:.2f}%") 
-                print(f"Percentage of NaNs in climatology data after conversion: {(clim_mean_da.isnull().sum() / clim_mean_da.size * 100).values:.2f}%")
-                ######### End of DEBUG #######
-
                 # Calculate Anomalies
                 anom = self._calculate_anomalies(da, clim_mean_da)
                 anom_ref = self._calculate_anomalies(da_ref, clim_mean_da)
                 self.logger.debug(f"Anomalies calculated for {processed_key}")
-
-                ########### DEBUG ###########
-                print(f"Percentage of NaNs in main data after conversion and anomaly calculation: {(anom.isnull().sum() / anom.size * 100).values:.2f}%")
-                print(f"Percentage of NaNs in reference data after conversion and anomaly calculation: {(anom_ref.isnull().sum() / anom_ref.size * 100).values:.2f}%") 
-                ######### End of DEBUG #######
 
                 # Calculate spatial ACC map
                 spatial_acc_map = xr.corr(anom, anom_ref, dim='time')
@@ -652,7 +633,7 @@ class ACC: # Renamed from RMSE
 
             data_ds = self.retrieved_data[processed_key]
             data_ref_ds = self.retrieved_data_ref[processed_key]
-            clim_mean_da = climatology_means[processed_key] # Use da suffix
+            clim_mean_da = climatology_means[processed_key]
 
             if base_var_name not in data_ds or base_var_name not in data_ref_ds:
                 self.logger.warning(f"Var '{base_var_name}' not in datasets for key '{processed_key}'. Skipping.")
@@ -678,7 +659,7 @@ class ACC: # Renamed from RMSE
                 self.logger.debug(f"Anomalies calculated for {processed_key}")
 
                 # Determine spatial dimensions
-                spatial_dims = [dim for dim in anom.dims if dim.lower() != 'time']
+                spatial_dims = [dim for dim in anom.dims if dim.lower() != 'time'] # Risky check
                 if not spatial_dims:
                     self.logger.error(f"Could not determine spatial dims for {processed_key}. Skipping.")
                     continue
@@ -707,7 +688,7 @@ class ACC: # Renamed from RMSE
                 elif len(time_coords) == 1: self.logger.debug(f"Only one time point for {processed_key}.")
                 ax.set_ylabel("Spatial Pattern ACC")
                 ax.set_xlabel("Time")
-                ax.set_ylim(-1.1, 1.1)
+                ax.set_ylim(0, 1)
                 ax.grid(True)
                 title_level_part = f" at {int(level / 100)} hPa" if level is not None else ""
                 title = (f"Temporal Evolution of Spatial ACC: {base_var_name}{title_level_part}\n"

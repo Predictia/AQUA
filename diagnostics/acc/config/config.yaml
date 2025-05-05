@@ -34,13 +34,14 @@ climatology_data:
 # Dates to evaluate (for 'data' and 'data_ref')
 dates:
   startdate: '1945-08-01'
-  enddate: '1948-08-15'
+  enddate: '1945-08-15'
 
 # Variables to evaluate
 # For variables with plev provide a list of pressure levels to evaluate
 variables:
   - name: 'q'
-    level: [85000]
+    level: [1000]
+  - name: '2t'
 
 # Output directory for data
 outputdir_data: './data_acc'

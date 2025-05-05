@@ -39,7 +39,7 @@ if __name__ == '__main__':
     args = parse_arguments(sys.argv[1:])
 
     try:
-        from acc import ACC # Import ACC instead of RMSE
+        from acc import ACC
         from aqua.logger import log_configure
         from aqua.util import load_yaml
         from aqua import __version__ as aqua_version
