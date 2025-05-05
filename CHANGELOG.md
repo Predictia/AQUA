@@ -32,6 +32,7 @@ AQUA core complete list:
 - Refactor of the `retrieve_plain()` function with contextmanager and smmregrid GridInspector (#1768)
 
 AQUA diagnostics complete list:
+- Diagnostic core: refactor of the documentation folder structure (#1891)
 - Timeseries: complete refactor of the timeseries diagnostic according to the Diagnostic, PlotDiagnostic schema (#1712)
 
 ## [v0.14.0]
