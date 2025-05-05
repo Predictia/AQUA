@@ -4,8 +4,7 @@ import os
 import xarray as xr
 from metpy.units import units
 from aqua.logger import log_configure, log_history
-from aqua.util import load_yaml
-from aqua import __path__ as pypath
+from aqua.util import load_yaml, ConfigPath
 from .coordidentifier import CoordIdentifier
 
 
@@ -18,10 +17,6 @@ def units_conversion_factor(from_unit_str, to_unit_str):
     to_unit = units(to_unit_str)
     return from_unit.to(to_unit).magnitude
 
-# default target coords
-data_yaml = load_yaml(os.path.join(pypath[0], "data_model", "aqua.yaml"))
-TGT_COORDS = data_yaml.get('data_model')
-NAME = f'{data_yaml.get('name')} v{str(data_yaml.get('version'))}'
 
 
 class CoordTransformer():
@@ -51,6 +46,26 @@ class CoordTransformer():
         self.gridtype = self._info_grid(data.coords)
         self.logger.info("Grid type: %s", self.gridtype)
 
+    def load_data_model(self, name: str = "aqua"):
+        """
+        Load the default data model from the aqua.yaml file.
+
+        Args:
+            name (str): An installed data_model into aqua config, i.e. a YAML file
+
+        Returns:
+            dict: Target coordinates dictionary.
+            str: Name of the target data model.
+        """
+
+        data_model_dir = os.path.join(ConfigPath().get_config_dir(), "data_model")
+        data_model_file = os.path.join(data_model_dir, f"{name}.yaml")
+        if not os.path.exists(data_model_file):
+            raise FileNotFoundError(f"Data model file {data_model_file} not found.")
+        self.logger.info("Loading data model from %s", data_model_file)
+        data_yaml = load_yaml(data_model_file)
+        return data_yaml
+
     def _info_grid(self, coords):
         """
         Identify the grid type of the Xarray object.
@@ -75,36 +90,30 @@ class CoordTransformer():
             return "Regular"
         return "Unstructured"
     
-    def transform_coords(self, tgt_coords=None, name=None):
+    def transform_coords(self, name="aqua"):
         """
         Transform the coordinates of the Xarray object.
 
         Args:
             tgt_coords (dict, optional): Target coordinates dictionary. Defaults to None.
-            name (str, optional): Name of the target data model. Defaults to None.
 
         Returns:
             xr.Dataset or xr.DataArray: The transformed dataset or dataarray.
         """
 
-        # multiple safety check
-        if name is not None and tgt_coords is None:
-            raise ValueError("If name is provided, tgt_coords must be provided too.")
-
-        if tgt_coords is None:
-            self.logger.info("No target coordinates provided. Using default coordinates.")
-            tgt_coords = TGT_COORDS
-            name = NAME
-
-        if not isinstance(tgt_coords, dict):
-            raise TypeError("tgt_coords must be a dictionary.")
         if not isinstance(name, str):
             raise TypeError("name must be a string.")
 
-        self.tgt_coords = tgt_coords
+        # multiple safety check
         self.logger.info("Target data model: %s", name)
-        data = self.data
+        data_yaml = self.load_data_model(name)
+        self.tgt_coords = data_yaml.get('data_model')
+        outname = f'{data_yaml.get('name')} v{str(data_yaml.get('version'))}'
 
+        if not isinstance(self.tgt_coords, dict):
+            raise TypeError("tgt_coords must be a dictionary.")
+        
+        data = self.data
         for coord in self.tgt_coords:
             if coord in self.src_coords and self.src_coords[coord]:
                 tgt_coord = self.tgt_coords[coord]
@@ -118,7 +127,7 @@ class CoordTransformer():
             else:
                 self.logger.info("Coordinate %s not found in source coordinates.", coord)
 
-        log_history(data, f"Coordinates fixed toward {name} datamodel")
+        log_history(data, f"Coordinates fixed toward {outname} datamodel")
 
         return data
     
@@ -200,7 +209,7 @@ class CoordTransformer():
         if src_coord['stored_direction'] not in ["increasing", "decreasing"]:
             self.logger.warning("src direction is not 'increasing' or 'decreasing', but %s. Disabling reverse!", src_coord['stored_direction'])
             return data
-        if src_coord['stored_direction'] != tgt_coord['direction']:
+        if src_coord['stored_direction'] != tgt_coord['stored_direction']:
             if self.gridtype == "Regular":
                 self.logger.info("Reversing coordinate %s from %s to %s",
                                 tgt_coord['name'], src_coord['stored_direction'], tgt_coord['stored_direction'])
@@ -219,13 +228,13 @@ class CoordTransformer():
         Convert units of the coordinate.
         """
         if 'units' not in tgt_coord:
-            self.logger.warning("%s not found. Disabling unit conversion.", tgt_coord['name'])
+            self.logger.debug("%s unit not found in target data model. Disabling unit conversion.", tgt_coord['name'])
             return data
         if 'units' not in src_coord:
-            self.logger.warning("%s not found. Disabling unit conversion.", src_coord['name'])
+            self.logger.warning("%s unit not found source data model. Disabling unit conversion.", src_coord['name'])
             return data
         if 'units' not in data[tgt_coord['name']].attrs:
-            self.logger.warning("%s not found in data. Disabling unit conversion.", tgt_coord['name'])
+            self.logger.warning("%s unit not found in data. Disabling unit conversion.", tgt_coord['name'])
             return data
         if src_coord['units'] != tgt_coord['units']:
             self.logger.info("Converting units of coordinate %s from %s to %s",

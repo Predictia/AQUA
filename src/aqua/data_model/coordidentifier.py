@@ -2,6 +2,7 @@
 Module to identify the nature of coordinates of an Xarray object.
 """
 import xarray as xr
+import numpy as np
 from metpy.units import units
 
 from aqua.logger import log_configure
@@ -59,27 +60,31 @@ class CoordIdentifier():
         """
         Identify the coordinates of the Xarray object.
         """
+
+        # define a dictionary with the methods to identify the coordinates
+        coord_methods = {
+            "latitude": self._identify_latitude,
+            "longitude": self._identify_longitude,
+            "isobaric": self._identify_isobaric,
+            "depth": self._identify_depth,
+            "time": self._identify_time,
+        }
+
+        # loop on coordinates provided by the user
         for name, coord in self.coords.items():
             self.logger.debug("Identifying coordinate: %s", name)
-            if self._identify_latitude(coord):
-                self.coord_dict["latitude"].append(self._get_horizontal_attributes(coord))
-                continue
 
-            if self._identify_longitude(coord):
-                self.coord_dict["longitude"].append(self._get_horizontal_attributes(coord))
-                continue
+            # use the methods to detect the coordinates and assign attributes accordingly
+            for coord_name, identify_func in coord_methods.items():
+                if identify_func(coord):
+                    self.logger.debug(coord_name)
+                    if coord_name == "time":
+                        self.coord_dict[coord_name].append(self._get_time_attributes(coord))
+                    else:
+                        self.coord_dict[coord_name].append(self._get_attributes(coord, coord_name=coord_name))
+                    continue # loop on the next coordinate
 
-            if self._identify_isobaric(coord):
-                self.coord_dict["isobaric"].append(self._get_vertical_attributes(coord))
-                continue
-
-            if self._identify_depth(coord):
-                self.coord_dict["depth"].append(self._get_vertical_attributes(coord))
-                continue
-
-            if self._identify_time(coord):
-                self.coord_dict["time"].append(self._get_time_attributes(coord))
-
+        # check if the coordinates are empty or double!
         self.coord_dict = self._clean_coord_dict()
 
         return self.coord_dict
@@ -117,51 +122,67 @@ class CoordIdentifier():
                 'calendar': coord.attrs.get('calendar'),
                 'bounds': coord.attrs.get('bounds')}
     
-    def _get_horizontal_attributes(self, coord):
+    def _get_attributes(self, coord, coord_name="longitude"):
         """
-        Get the attributes of the horizontal coordinates.
+        Get the attributes of the coordinates.
 
         Args:
             coord (xarray.Coordinates): The coordinate to define the attributes.
-
-        Return: 
-            dict: A dictionary containing the attributes of the coordinate.
-        """
-        coord_range = (coord.values.min(),  coord.values.max())
-        if coord.ndim == 1:
-            direction = "increasing" if coord.values[-1] > coord.values[0] else "decreasing"
-        else:
-            direction = None
-        return {'name': coord.name,
-                'dims:': coord.dims,
-                'units': coord.attrs.get('units'),
-                'stored_direction': direction,
-                'range': coord_range,
-                'bounds': coord.attrs.get('bounds')}    
-
-    def _get_vertical_attributes(self, coord):
-        """
-        Get the attributes of the vertical coordinates.
-
-        Args:
-            coord (xarray.Coordinates): The coordinate to define the attributes.
+            coord_type (str): The type of coordinate ("horizontal" or "vertical").
 
         Returns:
             dict: A dictionary containing the attributes of the coordinate.
         """
-        coord_range = (coord.values.min(),  coord.values.max())
-        positive = coord.attrs.get('positive')
-        if not positive:
-            if is_isobaric(coord.attrs.get('units')):
-                positive = "down"
-            else:
-                positive = "down" if coord.values[0] > 0  else "up"
-        return {'name': coord.name,
-                'dims': coord.dims,
-                'units': coord.attrs.get('units'),
-                'positive': positive,
-                'range': coord_range,
-                'bounds': coord.attrs.get('bounds')}  
+        coord_range = (coord.values.min(), coord.values.max())
+        direction = None
+        positive = None
+        horizontal = ["longitude", "latitude"]
+        vertical = ["depth", "isobaric"]
+
+        if coord.ndim == 1 and coord_name in horizontal:
+            direction = "increasing" if coord.values[-1] > coord.values[0] else "decreasing"
+
+        if coord_name in vertical:
+            positive = coord.attrs.get('positive')
+            if not positive:
+                if is_isobaric(coord.attrs.get('units')):
+                    positive = "down"
+                else:
+                    positive = "down" if coord.values[0] > 0 else "up"
+
+        attributes = {
+            'name': coord.name,
+            'dims': coord.dims,
+            'units': coord.attrs.get('units'),
+            'range': coord_range,
+            'bounds': coord.attrs.get('bounds'),
+        }
+
+        if coord_name in horizontal:
+            attributes['stored_direction'] = direction
+        elif coord_name in vertical:
+            attributes['positive'] = positive
+        
+        if coord_name == "longitude":
+            attributes['convention'] = self._guess_longitude_range(coord)
+            
+
+        return attributes
+    
+    @staticmethod
+    def _guess_longitude_range(longitude) -> str:
+        """
+        Guess if the longitude range is from 0 to 360 or from -180 to 180,
+        ensuring the grid is global.
+        """
+
+        # Guess the longitude range
+        if np.any(longitude.values < 0):
+            return "centered"
+        elif np.any(longitude.values > 180):
+            return "positive"
+        else:
+            return "ambigous"
 
     @staticmethod
     def _identify_latitude(coord):

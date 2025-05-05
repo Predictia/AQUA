@@ -12,7 +12,7 @@ class TestDataModel():
     def data(self):
         return xr.Dataset(
             {
-                "temperature": (["plev", "lat", "lon", "deeepth", "time"], np.random.rand(5, 3, 4, 3, 2)),
+                "temperature": (["level", "lat", "lon", "deeepth", "time"], np.random.rand(5, 3, 4, 3, 2)),
             },
             coords={
                 "level": [1000, 850, 700, 500, 300], 
@@ -33,14 +33,11 @@ class TestDataModel():
             CoordTransformer(data.coords)
 
         coord = CoordTransformer(data, loglevel='debug')
-        with pytest.raises(TypeError, match="tgt_coords must be a dictionary"):
-            coord.transform_coords(tgt_coords=data.coords)
         with pytest.raises(TypeError, match="name must be a string."):
-            coord.transform_coords(tgt_coords={}, name=20)
+            coord.transform_coords(name=123)
+        with pytest.raises(FileNotFoundError):
+            coord.transform_coords(name="antani")
         
-        with pytest.raises(ValueError, match="If name is provided, tgt_coords must be provided too."):
-            coord.transform_coords(name="test")
-
     def test_basic_transform_vertical(self):
         """Basic test for the CoordTransformer class."""
 

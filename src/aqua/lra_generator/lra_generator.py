@@ -10,6 +10,7 @@ import dask
 import xarray as xr
 import numpy as np
 import pandas as pd
+import subprocess
 from dask.distributed import Client, LocalCluster, progress, performance_report
 from dask.diagnostics import ProgressBar
 from dask.distributed.diagnostics import MemorySampler
@@ -39,11 +40,15 @@ class LRAgenerator():
                  resolution=None, frequency=None, fix=True,
                  outdir=None, tmpdir=None, nproc=1,
                  loglevel=None,
-                 region=None,
+                 region=None, drop=False,
                  overwrite=False, definitive=False,
                  performance_reporting=False,
                  rebuild=False,
-                 exclude_incomplete=False, **kwargs):
+                 exclude_incomplete=False,
+                 stat="mean",
+                 compact="xarray",
+                 cdo_options=["-f", "nc4", "-z", "zip_1"],
+                 **kwargs):
         """
         Initialize the LRA_Generator class
 
@@ -70,6 +75,7 @@ class LRAgenerator():
             region (dict, opt):      Region to be processed, default is None, 
                                      meaning the full globe. 
                                      Requires 'name' (str), 'lon' (list) and 'lat' (list)
+            drop (bool, opt):        Drop the missing values in the region selection.
             overwrite (bool, opt):   True to overwrite existing files in LRA,
                                      default is False
             definitive (bool, opt):  True to create the output file,
@@ -79,7 +85,11 @@ class LRAgenerator():
                                                dask usage, default is False.
             exclude_incomplete (bool,opt)   : True to remove incomplete chunk
                                             when averaging, default is false. 
-            rebuild (bool, opt):     Rebuild the weights when calling the reader 
+            rebuild (bool, opt):     Rebuild the weights when calling the reader
+            stat (string, opt):      Statistic to compute. Can be 'mean', 'std', 'max', 'min'.
+            compact (string, opt):   Compact the data into yearly files using xarray or cdo.
+                                     If set to None, no compacting is performed. Default is "xarray"
+            cdo_options (list, opt): List of options to be passed to cdo, default is ["-f", "nc4", "-z", "zip_1"]
             **kwargs:                kwargs to be sent to the Reader, as 'zoom' or 'realization'
                                      please notice that realization will change the file name 
                                      produced by the LRA
@@ -155,9 +165,22 @@ class LRAgenerator():
                 raise KeyError('Please specify name in region.')
             if self.region['lon'] is None and self.region['lat'] is None:
                 raise KeyError(f'Please specify at least one between lat and lon for {region['name']}.')
-
         else:
             self.region = None
+
+        self.drop = drop
+
+        self.stat = stat
+        if self.stat not in ['mean', 'std', 'max', 'min']:
+            raise KeyError('Please specify a valid statistic: mean, std, max or min.')
+
+        self.compact = compact
+        if self.compact not in ['xarray', 'cdo', None]:
+            raise KeyError('Please specify a valid compact method: xarray, cdo or None.')
+        
+        self.cdo_options = cdo_options
+        if not isinstance(self.cdo_options, list):
+            raise TypeError('cdo_options must be a list.')
 
         self.kwargs = kwargs
 
@@ -463,18 +486,32 @@ class LRAgenerator():
 
         infiles = self.get_filename(var, year, month = '??')
         if len(glob.glob(infiles)) == 12:
-            xfield = xr.open_mfdataset(infiles)
+
             self.logger.info('Creating a single file for %s, year %s...', var, str(year))
             outfile = self.get_filename(var, year)
 
             # clean older file
             if os.path.exists(outfile):
                 os.remove(outfile)
-            
-            # these are made XarrayDataset made of a single variable
-            name = list(xfield.data_vars)[0]
-            xfield.to_netcdf(outfile, 
-                             encoding={'time': self.time_encoding, name: self.var_encoding})
+
+            if self.compact == 'cdo':
+                infiles_list = sorted(glob.glob(infiles))
+                command = [
+                    'cdo',
+                    *self.cdo_options,
+                    'cat',
+                    *infiles_list,
+                    outfile
+                ]
+                self.logger.debug("Using CDO command: %s", command)
+                subprocess.check_output(command, stderr=subprocess.STDOUT)
+            else:   
+                # these XarrayDatasets are made of a single variable
+                self.logger.debug("Using xarray to concatenate files")
+                xfield = xr.open_mfdataset(infiles)
+                name = list(xfield.data_vars)[0]
+                xfield.to_netcdf(outfile, 
+                                encoding={'time': self.time_encoding, name: self.var_encoding})
 
             # clean of monthly files
             for infile in glob.glob(infiles):
@@ -484,17 +521,14 @@ class LRAgenerator():
     def get_filename(self, var, year=None, month=None, tmp=False):
         """Create output filenames"""
 
-        # modify filename if realization is in the kwargs
+        filestring = f"{var}_{self.exp}"
         if 'realization' in self.kwargs:
-            if self.region:
-                filestring = f"{var}_{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_{self.region['name']}_*.nc"
-            else:
-                filestring = f"{var}_{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_*.nc"
-        else:
-            if self.region:
-                filestring = f"{var}_{self.exp}_{self.resolution}_{self.frequency}_{self.region['name']}_*.nc"
-            else:
-                filestring = f"{var}_{self.exp}_{self.resolution}_{self.frequency}_*.nc"
+            filestring = filestring + f"_r{self.kwargs['realization']}"
+        filestring = filestring + f"_{self.resolution}_{self.frequency}_{self.stat}"
+        if self.region:
+            filestring = filestring + f"_{self.region['name']}"
+        filestring = filestring + "_*.nc"
+
         if tmp:
             filename = os.path.join(self.tmpdir, filestring)
         else:
@@ -614,7 +648,7 @@ class LRAgenerator():
         temp_data = self.data[var]
 
         if self.frequency:
-            temp_data = self.reader.timmean(temp_data, freq=self.frequency,
+            temp_data = self.reader.timstat(temp_data, self.stat, freq=self.frequency,
                                             exclude_incomplete=self.exclude_incomplete)
 
         # regrid
@@ -622,7 +656,7 @@ class LRAgenerator():
         temp_data = self._remove_regridded(temp_data)
 
         if self.region:
-            temp_data = area_selection(temp_data, lon = self.region['lon'], lat = self.region['lat'])
+            temp_data = area_selection(temp_data, lon = self.region['lon'], lat = self.region['lat'], drop=self.drop)
 
         # Splitting data into yearly files
         years = sorted(set(temp_data.time.dt.year.values))
@@ -678,7 +712,7 @@ class LRAgenerator():
                     move_tmp_files(self.tmpdir, self.outdir)
                 del month_data
             del year_data
-            if self.definitive:
+            if self.definitive and self.compact:
                 self._concat_var_year(var, year)
         del temp_data
 
@@ -688,7 +722,7 @@ class LRAgenerator():
 
         # update data attributes for history
         if self.frequency:
-            log_history(data, f'regridded from {self.reader.src_grid_name} to {self.resolution} and from frequency {self.reader.orig_freq} to {self.frequency} through LRA generator')                
+            log_history(data, f'regridded from {self.reader.src_grid_name} to {self.resolution} and from frequency {self.reader.timemodule.orig_freq} to {self.frequency} through LRA generator')                
         else:
             log_history(data, f'regridded from {self.reader.src_grid_name} to {self.resolution} through LRA generator')
 
