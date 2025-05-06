@@ -1,6 +1,7 @@
 import os
 import xarray as xr
 from aqua.diagnostics.core import Diagnostic
+from aqua.graphics import indexes_plot
 from aqua.util import ConfigPath, load_yaml, select_season
 
 xr.set_options(keep_attrs=True)
@@ -115,10 +116,32 @@ class BaseMixin(Diagnostic):
         if not configdir:
             configdir = ConfigPath().get_config_dir()
             configdir = os.path.join(configdir, 'diagnostics', 'teleconnections', 'config')
-        
+
         interface_file = os.path.join(configdir, interface)
         self.logger.debug(f'Loading interface file: {interface_file}')
 
         interface_dict = load_yaml(interface_file)
 
         return interface_dict[telecname] if telecname else interface_dict
+
+
+class PlotBaseMixin():
+    """PlotBaseMixin class is used for the PlotNAO and the PlotENSO classes."""
+    def __init__(self, loglevel: str = 'WARNING'):
+        """
+        Initialize the PlotBaseMixin class.
+        Args:
+            loglevel (str): The log level to be used. Default is 'WARNING'.
+        """
+        # Data info initalized as empty
+        self.loglevel = loglevel
+        self.catalogs = None
+        self.models = None
+        self.exps = None
+        self.ref_catalogs = None
+        self.ref_models = None
+        self.ref_exps = None
+
+    def plot_index(self, indexes: list, thresh: float = None):
+
+        indexes_plot(indexes=indexes, thresh=thresh)
