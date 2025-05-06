@@ -11,6 +11,7 @@ Removed:
 - `aqua.slurm` has been removed.
 
 AQUA core complete list:
+- Additional stats for LRA and other refinements (#1886) 
 - New OutputSaver class (#1837)
 - Introduce a `Timstat()` module independent from the `Reader()` (#1832)
 - Adapt Catalog Generator to Data-Portfolio v1.3.0 (#1848)
@@ -29,6 +30,10 @@ AQUA core complete list:
 - Graphics refactoring for timeseries plot functions (#1729, #1841)
 - Major refactor of the regrid options, with new modular `Regridder()` class replacing `Regrid()` mixin (#1768)
 - Refactor of the `retrieve_plain()` function with contextmanager and smmregrid GridInspector (#1768)
+
+AQUA diagnostics complete list:
+- Diagnostic core: refactor of the documentation folder structure (#1891)
+- Timeseries: complete refactor of the timeseries diagnostic according to the Diagnostic, PlotDiagnostic schema (#1712)
 
 ## [v0.14.0]
 
