@@ -11,6 +11,7 @@ from aqua.util import get_arg
 from aqua.version import __version__ as aqua_version
 from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_cluster
 from aqua.diagnostics.core import load_diagnostic_config, merge_config_args
+from aqua.diagnostics.teleconnections import NAO
 
 
 def parse_arguments(args):
@@ -54,8 +55,14 @@ if __name__ == '__main__':
 
     if 'teleconnections' in config_dict['diagnostics']:
         if 'NAO' in config_dict['diagnostics']['teleconnections']:
-            pass
-            
+            if config_dict['diagnostics']['teleconnections']['NAO']['run']:
+                logger.info('Running NAO teleconnections diagnostic')
+
+                nao = [None] * len(config_dict['datasets'])
+
+                for i, dataset in enumerate(config_dict['datasets']):
+                    logger.info(f'Running dataset: {dataset}')
+
     close_cluster(client=client, cluster=cluster, private_cluster=private_cluster, loglevel=loglevel)
 
     logger.info('Teleconnections diagnostic finished.')
