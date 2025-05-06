@@ -1,14 +1,12 @@
-"""
-This module contains simple function for index plotting.
-"""
 import xarray as xr
 import matplotlib.pyplot as plt
 from aqua.logger import log_configure
 from .styles import ConfigStyle
 
+
 def index_plot(index: xr.DataArray, thresh: float = 0,
                fig: plt.Figure = None, ax: plt.Axes = None,
-               style=None, figsize: tuple = (11, 8.5),
+               style: str = None, figsize: tuple = (11, 8.5),
                title: str = None, ylim: tuple = None,
                ylabel: str = None,
                loglevel='WARNING', **kwargs):
@@ -32,7 +30,7 @@ def index_plot(index: xr.DataArray, thresh: float = 0,
     Returns:
         fig, ax: Figure and Axes objects
     """
-    logger = log_configure(loglevel, 'Index plot')
+    logger = log_configure(loglevel, 'index_plot')
     ConfigStyle(style=style, loglevel=loglevel)
 
     logger.debug('Loading data in memory')
@@ -47,14 +45,15 @@ def index_plot(index: xr.DataArray, thresh: float = 0,
         ax.set_ylim(ylim)
 
     # Plot the index
-    ax.fill_between(index.time, index.values, where=index.values >= thresh,
-                        alpha=0.6, color='red', interpolate=True)
-    ax.fill_between(index.time, index.values, where=index.values < thresh,
-                        alpha=0.6, color='blue', interpolate=True)
+    ax.fill_between(x=index.time, y1=thresh, y2=index.values, where=index.values >= thresh,
+                    alpha=0.6, color='red', interpolate=True)
+    ax.fill_between(index.time, y1=-thresh, y2=index.values, where=index.values < -thresh,
+                    alpha=0.6, color='blue', interpolate=True)
     index.plot(ax=ax, color='black', alpha=0.8)
 
     ax.hlines(y=0, xmin=min(index['time']), xmax=max(index['time']),
               color='black')
+    ax.grid(True, axis="y", linestyle='-', color='silver', alpha=0.8)
 
     if title is not None:
         ax.set_title(title)
@@ -69,8 +68,8 @@ def index_plot(index: xr.DataArray, thresh: float = 0,
     return fig, ax
 
 
-def indexes_plot(index1: xr.DataArray, index2: xr.DataArray, thresh: float = 0,
-                 style=None, figsize: tuple = (11, 8.5),
+def indexes_plot(indexes: list, thresh: float = 0,
+                 style=None, figsize: tuple = None,
                  titles: list = None, suptitle: str = None,
                  ylabel: str = None, loglevel='WARNING'):
     """
@@ -78,13 +77,11 @@ def indexes_plot(index1: xr.DataArray, index2: xr.DataArray, thresh: float = 0,
     subplots.
 
     Args:
-        index1 (DataArray):    First index DataArray
-        index2 (DataArray):    Second index DataArray
+        indexes (list):         List of DataArray objects
         thresh (float,opt):     Threshold for the index, default is 0
         style (str, optional):  Style to use. Defaults to None (aqua style).
-        figsize (tuple,opt):    Figure size, default is (11, 8.5)
-        titles (list,opt):      List of two strings for the titles of the plots.
-                                Default is None
+        figsize (tuple,opt):    Figure size, default is (5.5*n_indexes, 8.5)
+        titles (list,opt):      List of strings for the titles of the plots. Default is None
         suptitle (str,opt):     Title for the figure. Default is None
         ylabel (str,opt):       y-axis label. Default is None
         loglevel (str,opt):     Loglevel for the logger. Default is 'WARNING'
@@ -92,23 +89,25 @@ def indexes_plot(index1: xr.DataArray, index2: xr.DataArray, thresh: float = 0,
     Returns:
         fig: Figure object
     """
-    logger = log_configure(loglevel, 'Indexes plot')
+    figsize = (8.5, 5.5 * len(indexes)) if figsize is None else figsize
 
-    fig, axs = plt.subplots(2, 1, figsize=figsize)
+    fig, axs = plt.subplots(nrows=len(indexes), ncols=1, figsize=figsize, sharex=True)
 
     # Evaluating a common ylim:
-    ymin = min(index1.min().values, index2.min().values)
-    ymax = max(index1.max().values, index2.max().values)
+    ymin = min(index.min().values for index in indexes)
+    ymax = max(index.max().values for index in indexes)
     ylim = [ymin, ymax]
 
-    logger.debug('Plotting the first index')
-    fig, axs[0] = index_plot(index1, loglevel=loglevel,
-                             fig=fig, ax=axs[0],
-                             title=titles[0], ylim=ylim)
-    logger.debug('Plotting the second index')
-    fig, axs[1] = index_plot(index2, loglevel=loglevel,
-                             fig=fig, ax=axs[1],
-                             title=titles[1], ylim=ylim)
+    if isinstance(axs, plt.Axes):
+        axs = [axs]
+
+    for i, index in enumerate(indexes):
+        fig, axs[i] = index_plot(index, thresh=thresh,
+                                 fig=fig, ax=axs[i],
+                                 style=style, figsize=figsize,
+                                 title=titles[i] if titles is not None else None,
+                                 ylim=ylim, ylabel=ylabel,
+                                 loglevel=loglevel)
 
     if suptitle is not None:
         fig.suptitle(suptitle)
