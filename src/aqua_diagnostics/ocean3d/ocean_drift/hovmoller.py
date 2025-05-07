@@ -99,7 +99,7 @@ class Hovmoller(Diagnostic):
             self.logger.warning("Since region name is not specified, processing whole region in the dataset")
             
             
-    def save_netcdf(self, diagnostic, diagnostic_product, rebuild=True):
+    def save_netcdf(self, diagnostic = "Ocean3D", diagnostic_product = "Hovmoller", rebuild=True):
         """
         Saves the processed data to a netCDF file.
 
@@ -109,9 +109,9 @@ class Hovmoller(Diagnostic):
             rebuild (bool, optional): Whether to rebuild the netCDF file. Defaults to True.
         """
         super().save_netcdf(
-            data=self.stacked_data,
-            diagnostic=diagnostic,
-            diagnostic_product=diagnostic_product,
-            outputdir=self.outputdir,
-            rebuild=rebuild,
+            data = self.stacked_data,
+            diagnostic = diagnostic,
+            diagnostic_product = diagnostic_product,
+            outputdir = self.outputdir,
+            rebuild = rebuild,
         )
