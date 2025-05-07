@@ -144,4 +144,6 @@ class PlotBaseMixin():
 
     def plot_index(self, indexes: list, thresh: float = None):
 
-        indexes_plot(indexes=indexes, thresh=thresh)
+        fig, axs = indexes_plot(indexes=indexes, thresh=thresh)
+
+        return
