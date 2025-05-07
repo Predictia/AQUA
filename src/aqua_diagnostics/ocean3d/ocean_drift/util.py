@@ -66,117 +66,40 @@ def predefined_regions(region, loglevel="WARNING"):
 
     return lon_limits, lat_limits
 
-
-def _data_process_by_type(**kwargs):
-    """
-    Selects the type of timeseries and colormap based on the given parameters.
-
-    Args:
-        data (DataArray): Input data containing temperature (thetao) and salinity (so).
-        anomaly (bool, optional): Specifies whether to compute anomalies. Defaults to False.
-        standardise (bool, optional): Specifies whether to standardize the data. Defaults to False.
-        anomaly_ref (str, optional): Reference for the anomaly computation. Valid options: "t0", "tmean". Defaults to None.
-
-    Returns:
-        process_data (Dataset): Processed data based on the selected preprocessing approach.
-        type (str): Type of preprocessing approach applied
-        cmap (str): Colormap to be used for the plot.
-    """
-    loglevel = kwargs.get("loglevel", "WARNING")
-    logger = log_configure(loglevel, "data_process_by_type")
-    data = kwargs["data"]
-    anomaly = kwargs["anomaly"]
-    anomaly_ref = kwargs["anomaly_ref"]
-    standardise = kwargs["standardise"]
-
-    process_data = xr.Dataset()
-
-    if anomaly:
-        anomaly_ref = anomaly_ref.lower().replace(" ", "").replace("_", "")
-        if not standardise:
-            if anomaly_ref in ["tmean", "meantime", "timemean"]:
-                cmap = "coolwarm"  # "PuOr"
-                for var in list(data.data_vars.keys()):
-                    process_data[var] = data[var] - data[var].mean(dim="time")
-                type = "anomaly wrt temporal mean"
-            elif anomaly_ref in ["t0", "intialtime", "firsttime"]:
-                cmap = "coolwarm"  # "PuOr"
-                for var in list(data.data_vars.keys()):
-                    process_data[var] = data[var] - data[var].isel(time=0)
-                type = "anomaly wrt initial time"
-            else:
-                raise ValueError(
-                    "Select proper value of anomaly_ref: t0 or tmean, when anomaly = True "
-                )
-            logger.debug(f"Data processed for {type}")
-        if standardise:
-            if anomaly_ref in ["t0", "intialtime", "firsttime"]:
-                cmap = "coolwarm"  # "PuOr"
-                for var in list(data.data_vars.keys()):
-                    var_data = data[var] - data[var].isel(time=0)
-                    var_data.attrs["units"] = "Stand. Units"
-                    # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
-                    process_data[var] = var_data / var_data.std(dim="time")
-                type = "Std. anomaly wrt initial time"
-            elif anomaly_ref in ["tmean", "meantime", "timemean"]:
-                cmap = "coolwarm"  # "PuOr"
-                for var in list(data.data_vars.keys()):
-                    var_data = data[var] - data[var].mean(dim="time")
-                    var_data.attrs["units"] = "Stand. Units"
-                    # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
-                    process_data[var] = var_data / var_data.std(dim="time")
-                type = "Std. anomaly wrt temporal mean"
-            else:
-                raise ValueError(
-                    "Select proper value of type: t0 or tmean, when anomaly = True "
-                )
-            logger.debug(f"Data processed for {type}")
-
+def _get_anomaly(data, ref, dim="time"):
+    if dim == "time":
+        if ref == "tmean":
+            data = data - data.isel(time=0)
+            data.attrs["AQUA_anomaly_ref"] = "tmean"
+            data.attrs["AQUA_cmap"] = "coolwarm"
+            return data
+        elif ref == "t0":
+            data = data - data.mean(dim=dim)
+            data.attrs["AQUA_anomaly_ref"] = "t0"
+            data.attrs["AQUA_cmap"] = "coolwarm"
+            return data
     else:
-        cmap = "jet"
-        logger.debug("Data processed for Full values as anomaly = False")
-        type = "Full values"
+        raise ValueError("Invalid anomaly_ref: use 't0' or 'tmean'")
+        
+def _get_standardise(data, anomaly = False, dim = "time"):
+    data = data / data.std(dim=dim)
+    data.attrs["units"] = "Stand. Units"
+    data.attrs["AQUA_standardise"] = f"Standardised with {dim}"
+    return data
 
-        process_data = data
-    # logger.debug(f"Data processed for {type}")
-    return process_data, type, cmap
+def _get_std_anomaly(data, anomaly_ref = None, standardise = False, dim="time"):
+    if anomaly_ref is not None:
+        if anomaly_ref in ["t0", "tmean"]:
+            data = _get_anomaly(data, anomaly_ref, dim)
+    if standardise == True:
+        data = _get_standardise(data, anomaly_ref, dim)
+        
+    Std = "Std_" if standardise else ""
+    anom = "anom" if anomaly_ref != None else "full"
+    anom_ref = f"_{anomaly_ref}" if anomaly_ref else ""
 
+    type = f"{Std}{anom}{anom_ref}"
+    data.attrs["AQUA_type"] = type
+    data = data.expand_dims(dim={"type": [data.attrs["AQUA_type"]]})
+    return data
 
-def _data_process_for_drift(data, dim_mean: None, loglevel="WARNING"):
-    """
-    Processes input data for drift analysis by applying various transformations 
-    and aggregations.
-
-    Args:
-        data (xarray.DataArray): The input data to be processed.
-        dim_mean (str or None): The dimension along which to compute the mean. 
-            If None, no mean is computed.
-        loglevel (str): The logging level to use during processing. Defaults to "WARNING".
-
-    Returns:
-        xarray.DataArray: A concatenated DataArray containing processed data 
-        for different combinations of anomaly, standardization, and anomaly reference types.
-    """
-
-    if dim_mean is not None:
-        data = data.mean(dim=dim_mean)
-    data_list = []
-
-    for anomaly, standardise, anomaly_ref in product(
-        [False, True], [False, True], ["t0", "tmean"]
-    ):
-        data_proc, type, cmap = _data_process_by_type(
-            data=data,
-            anomaly=anomaly,
-            standardise=standardise,
-            anomaly_ref=anomaly_ref,
-            loglevel=loglevel,
-        )
-
-        data_proc.attrs["cmap"] = cmap
-        data_proc = data_proc.expand_dims(dim={"type": [type]})
-
-        data_list.append(data_proc)
-
-    stacked_data = xr.concat(data_list, dim="type")
-    return stacked_data

@@ -3,7 +3,8 @@ import xarray as xr
 from aqua.logger import log_configure
 from aqua.diagnostics.core import Diagnostic
 from aqua.util import area_selection
-from .util import predefined_regions, _data_process_for_drift
+from .util import predefined_regions, _get_std_anomaly
+from itertools import product
 
 xr.set_options(keep_attrs=True)
 
@@ -77,9 +78,7 @@ class Hovmoller(Diagnostic):
         super().retrieve(var = var)
         self.logger.info("Data retrieved successfully")
         self.area_select()
-        self.stacked_data = _data_process_for_drift(
-            data=self.data, dim_mean=["lat", "lon"]
-        )
+        self.stacked_data = self._data_process_for_drift(dim_mean=["lat", "lon"])
         self.save_netcdf(diagnostic="Hovmoller", diagnostic_product="Hovmoller")
         self.logger.info("Hovmoller diagram saved to netCDF file")
 
@@ -97,7 +96,71 @@ class Hovmoller(Diagnostic):
             )
         else:
             self.logger.warning("Since region name is not specified, processing whole region in the dataset")
+          
+    def _data_process_by_type(self, **kwargs):
+        """
+        Selects the type of timeseries and colormap based on the given parameters.
+
+        Args:
+            data (DataArray): Input data containing temperature (thetao) and salinity (so).
+            anomaly (bool, optional): Specifies whether to compute anomalies. Defaults to False.
+            standardise (bool, optional): Specifies whether to standardize the data. Defaults to False.
+            anomaly_ref (str, optional): Reference for the anomaly computation. Valid options: "t0", "tmean". Defaults to None.
+
+        Returns:
+            process_data (Dataset): Processed data based on the selected preprocessing approach.
+            type (str): Type of preprocessing approach applied
+            cmap (str): Colormap to be used for the plot.
+        """
+        data = kwargs["data"]
+        anomaly = kwargs["anomaly"]
+        anomaly_ref = kwargs["anomaly_ref"]
+        standardise = kwargs["standardise"]
+
+        data = _get_std_anomaly(data, anomaly_ref, standardise, dim = "time")
+
+        return data
+
+
+    def _data_process_for_drift(self, dim_mean: None, loglevel="WARNING"):
+        """
+        Processes input data for drift analysis by applying various transformations 
+        and aggregations.
+
+        Args:
+            data (xarray.DataArray): The input data to be processed.
+            dim_mean (str or None): The dimension along which to compute the mean. 
+                If None, no mean is computed.
+            loglevel (str): The logging level to use during processing. Defaults to "WARNING".
+
+        Returns:
+            xarray.DataArray: A concatenated DataArray containing processed data 
+            for different combinations of anomaly, standardization, and anomaly reference types.
+        """
+
+        if dim_mean is not None:
+            data = self.data.mean(dim=dim_mean)
+        data_list = []
+
+        for anomaly, standardise, anomaly_ref in product(
+            [False, True], [False, True], ["t0", "tmean"]
+        ):
+            data_proc = self._data_process_by_type(
+                data = data,
+                anomaly = anomaly,
+                standardise = standardise,
+                anomaly_ref = anomaly_ref,
+                loglevel = loglevel,
+            )
             
+
+
+            # data_proc = data_proc.expand_dims(dim={"type": [type]})
+
+            data_list.append(data_proc)
+
+        stacked_data = xr.concat(data_list, dim="type")
+        return stacked_data
             
     def save_netcdf(self, diagnostic = "Ocean3D", diagnostic_product = "Hovmoller", rebuild=True):
         """
