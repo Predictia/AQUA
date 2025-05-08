@@ -51,8 +51,7 @@ def index_plot(index: xr.DataArray, thresh: float = 0,
                     alpha=0.6, color='blue', interpolate=True)
     index.plot(ax=ax, color='black', alpha=0.8)
 
-    ax.hlines(y=0, xmin=min(index['time']), xmax=max(index['time']),
-              color='black')
+    ax.axhline(y=0, color='black', alpha=0.5)
     ax.grid(True, axis="y", linestyle='-', color='silver', alpha=0.8)
 
     if title is not None:
@@ -87,7 +86,7 @@ def indexes_plot(indexes: list, thresh: float = 0,
         loglevel (str,opt):     Loglevel for the logger. Default is 'WARNING'
 
     Returns:
-        fig: Figure object
+        fig, axs: Figure and Axes objects
     """
     figsize = (8.5, 5.5 * len(indexes)) if figsize is None else figsize
 
@@ -114,4 +113,4 @@ def indexes_plot(indexes: list, thresh: float = 0,
 
     fig.tight_layout()
 
-    return fig
+    return fig, axs
