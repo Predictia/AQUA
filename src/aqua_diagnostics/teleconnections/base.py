@@ -1,7 +1,6 @@
 import os
 import xarray as xr
 from aqua.diagnostics.core import Diagnostic
-from aqua.graphics import indexes_plot
 from aqua.util import ConfigPath, load_yaml, select_season
 
 xr.set_options(keep_attrs=True)
@@ -142,8 +141,3 @@ class PlotBaseMixin():
         self.ref_models = None
         self.ref_exps = None
 
-    def plot_index(self, indexes: list, thresh: float = None):
-
-        fig, axs = indexes_plot(indexes=indexes, thresh=thresh)
-
-        return
