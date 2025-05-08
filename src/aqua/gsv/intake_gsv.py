@@ -40,7 +40,7 @@ class GSVSource(base.DataSource):
                  hpc_expver=None, timestyle="date",
                  chunks="S", savefreq="h", timestep="h", timeshift=None,
                  startdate=None, enddate=None, var=None, metadata=None, level=None,
-                 switch_eccodes=False, loglevel='WARNING', engine='fdb', **kwargs):
+                 switch_eccodes=False, loglevel='WARNING', engine=None, **kwargs):
         """
         Initializes the GSVSource class. These are typically specified in the catalog entry,
         but can also be specified upon accessing the catalog.
@@ -68,7 +68,8 @@ class GSVSource(base.DataSource):
             metadata (dict, optional): Metadata read from catalog. Contains path to FDB.
             level (int, float, list): optional level(s) to be read. Must use the same units as the original source.
             switch_eccodes (bool, optional): Flag to activate switching of eccodes path. Defaults to False.
-            engine (str, optional): Engine to be used. 'polytope' or 'fdb' (default).
+            engine (str, optional): Engine to be used for GSV retrieval: 'polytope' or 'fdb'. 
+                                    If None it behaves like 'fdb' but no paths are checked.
             loglevel (string) : The loglevel for the GSVSource
             kwargs: other keyword arguments.
         """
@@ -98,11 +99,15 @@ class GSVSource(base.DataSource):
             self.fdb_info_file = metadata.get('fdb_info_file', None)
 
             # safety check for paths
-            for attr in ['fdbhome', 'fdbpath', 'fdbhome_bridge', 
-                         'fdbpath_bridge', 'eccodes_path']:
-                attr_path = getattr(self, attr)
-                if attr_path and not os.path.exists(attr_path):
-                    raise FileNotFoundError(f'{attr} path {attr_path} does not exist!')
+
+            # If called without explicitly specifying engine='fdb' do not check paths
+            # This is needed because intake calls initialization twice, once without custom arguments
+            if self.engine and self.engine == 'fdb':
+                for attr in ['fdbhome', 'fdbpath', 'fdbhome_bridge', 
+                            'fdbpath_bridge', 'eccodes_path']:
+                    attr_path = getattr(self, attr)
+                    if attr_path and not os.path.exists(attr_path):
+                        raise FileNotFoundError(f'{attr} path {attr_path} does not exist!')
 
         else:
             self.fdbpath = None
@@ -112,6 +117,10 @@ class GSVSource(base.DataSource):
             self.fdb_info_file = None
             self.eccodes_path = None
             self.levels = None
+
+        # Now that checking of paths has been decided, we can set engine to fdb if None
+        if not self.engine:
+            self.engine = 'fdb'
 
         # set the timestyle
         self.timestyle = timestyle
