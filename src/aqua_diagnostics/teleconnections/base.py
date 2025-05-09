@@ -1,7 +1,9 @@
 import os
 import xarray as xr
 from aqua.diagnostics.core import Diagnostic
-from aqua.util import ConfigPath, load_yaml, select_season
+from aqua.logger import log_configure
+from aqua.util import ConfigPath
+from aqua.util import load_yaml, select_season, to_list
 
 xr.set_options(keep_attrs=True)
 
@@ -126,14 +128,19 @@ class BaseMixin(Diagnostic):
 
 class PlotBaseMixin():
     """PlotBaseMixin class is used for the PlotNAO and the PlotENSO classes."""
-    def __init__(self, loglevel: str = 'WARNING'):
+    def __init__(self, indexes=None, ref_indexes=None,
+                 loglevel: str = 'WARNING'):
         """
         Initialize the PlotBaseMixin class.
+
         Args:
+            indexes (list): The list of indexes to be used. Default is None.
+            ref_indexes (list): The list of reference indexes to be used. Default is None.
             loglevel (str): The log level to be used. Default is 'WARNING'.
         """
         # Data info initalized as empty
         self.loglevel = loglevel
+        self.logger = log_configure(self.loglevel, 'PlotBaseMixin')
         self.catalogs = None
         self.models = None
         self.exps = None
@@ -141,3 +148,65 @@ class PlotBaseMixin():
         self.ref_models = None
         self.ref_exps = None
 
+        self.indexes = to_list(indexes)
+        self.ref_indexes = to_list(ref_indexes)
+
+        self.len_data = len(self.indexes)
+        self.len_ref = len(self.ref_indexes)
+
+        self.get_data_info()
+
+    def get_data_info(self):
+        """
+        We extract the data needed for labels, description etc
+        from the data arrays attributes.
+
+        The attributes are:
+        - AQUA_catalog
+        - AQUA_model
+        - AQUA_exp
+        """
+        if self.indexes is not None:
+            self.catalogs = [d.AQUA_catalog for d in self.indexes]
+            self.models = [d.AQUA_model for d in self.indexes]
+            self.exps = [d.AQUA_exp for d in self.indexes]
+        self.logger.debug(f'Catalogs: {self.catalogs}')
+        self.logger.debug(f'Models: {self.models}')
+        self.logger.debug(f'Exps: {self.exps}')
+
+        if self.ref_indexes is not None:
+            self.ref_catalogs = [d.AQUA_catalog for d in self.ref_indexes]
+            self.ref_models = [d.AQUA_model for d in self.ref_indexes]
+            self.ref_exps = [d.AQUA_exp for d in self.ref_indexes]
+            self.logger.debug(f'Ref Catalogs: {self.ref_catalogs}')
+            self.logger.debug(f'Ref Models: {self.ref_models}')
+            self.logger.debug(f'Ref Exps: {self.ref_exps}')
+
+    def set_index_title(self, diagnostic: str = None):
+        """
+        Set the title of the index.
+
+        Args:
+            diagnostic (str): The name of the diagnostic. Default is None.
+        """
+        titles_dataset = [f'{diagnostic} index for {self.models[i]} {self.exps[i]}'
+                          for i in range(self.len_data)]
+        titles_ref = [f'{diagnostic} index for {self.ref_models[i]} {self.ref_exps[i]}'
+                       for i in range(self.len_ref)]
+        titles = titles_dataset + titles_ref
+
+        return titles
+    
+    def set_labels(self):
+        """
+        Set the labels for the plot.
+
+        Returns:
+            list: The list of labels for the plot.
+        """
+        labels_dataset = [f'{self.models[i]} {self.exps[i]}'
+                          for i in range(self.len_data)]
+        labels_ref = [f'{self.ref_models[i]} {self.ref_exps[i]}'
+                       for i in range(self.len_ref)]
+        labels = labels_dataset + labels_ref
+        return labels
