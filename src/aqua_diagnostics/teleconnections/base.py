@@ -94,7 +94,6 @@ class BaseMixin(Diagnostic):
             index = select_season(index, season)
 
         return data, index
-        
 
     def load_interface(self, configdir: str = None, interface: str = 'teleconnections-destine',
                        telecname: str = None):
@@ -265,3 +264,21 @@ class PlotBaseMixin():
         elif format == 'pdf':
             _ = self.outputsaver.save_pdf(fig, diagnostic_product=diagnostic_product,
                                           extra_keys=extra_keys, metadata=metadata)
+
+def _homogeneize_maps(maps, ref_maps):
+    """
+    Homogeneize the maps. If a list has length 1, we convert it to a single xarray.
+
+    Args:
+        maps (list): The list of maps to be homogenized.
+        ref_maps (list): The list of reference maps to be homogenized.
+
+    Returns:
+        tuple: The homogenized maps and reference maps.
+    """
+    if isinstance(maps, list) and len(maps) == 1:
+        maps = maps[0]
+    if isinstance(ref_maps, list) and len(ref_maps) == 1:
+        ref_maps = ref_maps[0]
+
+    return maps, ref_maps
