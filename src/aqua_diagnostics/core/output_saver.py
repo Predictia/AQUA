@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 import os
 import xarray as xr
-from aqua.logger import log_configure, log_history
+from aqua.logger import log_configure
 from aqua.util import create_folder, add_pdf_metadata, add_png_metadata, update_metadata
+
 
 class OutputSaver:
     """
@@ -14,12 +15,12 @@ class OutputSaver:
                  catalog: str = None, model: str = None, exp: str = None,
                  catalog_ref: str = None, model_ref: str = None, exp_ref: str = None,
                  outdir: str = '.', rebuild: bool = True, loglevel: str = 'WARNING',):
-                 
+
         self.diagnostic = diagnostic
-        self.catalog = catalog  
+        self.catalog = catalog
         self.model = model
         self.exp = exp
-        self.catalog_ref = catalog_ref  
+        self.catalog_ref = catalog_ref
         self.model_ref = model_ref
         self.exp_ref = exp_ref
         self.outdir = outdir
@@ -45,10 +46,10 @@ class OutputSaver:
         """
 
         self.catalog = catalog or self.catalog
-        self.model =  model or self.model
+        self.model = model or self.model
         self.exp = exp or self.exp
         self.catalog_ref = catalog_ref or self.catalog_ref
-        self.model_ref =  model_ref or self.model_ref
+        self.model_ref = model_ref or self.model_ref
         self.exp_ref = exp_ref or self.exp_ref
 
         if not self.catalog or not self.model or not self.exp:
@@ -80,36 +81,34 @@ class OutputSaver:
         # Add additional filename keys if provided
         if extra_keys:
             parts_dict.update(extra_keys)
-        
+
         # Remove None values
         parts = [str(value) for value in parts_dict.values() if value is not None]
-        
-        # Join all parts 
+
+        # Join all parts
         filename = '.'.join(parts)
 
         self.logger.debug(f"Generated filename: {filename}")
         return filename
 
-
     def save_netcdf(self, dataset: xr.Dataset, diagnostic_product: str, extra_keys: dict = None):
-            """
-            Save an xarray Dataset as a NetCDF file with a generated filename.
+        """
+        Save an xarray Dataset as a NetCDF file with a generated filename.
 
-            Args:
-                dataset (xr.Dataset): The xarray Dataset to save.
-                diagnostic_product (str): Product of the diagnostic analysis.
-                extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
-            """
-            filename = self.generate_name(diagnostic_product=diagnostic_product, extra_keys=extra_keys) + '.nc'
-            
-            folder = os.path.join(self.outdir, 'netcdf')
-            create_folder(folder=str(folder), loglevel=self.loglevel)
-            filepath = os.path.join(folder, filename)
-            dataset.to_netcdf(filepath)
+        Args:
+            dataset (xr.Dataset): The xarray Dataset to save.
+            diagnostic_product (str): Product of the diagnostic analysis.
+            extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
+        """
+        filename = self.generate_name(diagnostic_product=diagnostic_product, extra_keys=extra_keys) + '.nc'
 
-            self.logger.info(f"Saved NetCDF: {filepath}")
-            return filepath
+        folder = os.path.join(self.outdir, 'netcdf')
+        create_folder(folder=str(folder), loglevel=self.loglevel)
+        filepath = os.path.join(folder, filename)
+        dataset.to_netcdf(filepath)
 
+        self.logger.info(f"Saved NetCDF: {filepath}")
+        return filepath
 
     def save_pdf(self, fig: plt.Figure, diagnostic_product: str, extra_keys: dict = None,  metadata: dict = None):
         """
@@ -121,9 +120,8 @@ class OutputSaver:
             extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
             metadata (dict, optional): Additional metadata to include in the PDF file.
         """
-        
         filename = self.generate_name(diagnostic_product=diagnostic_product, extra_keys=extra_keys) + '.pdf'
-                
+
         folder = os.path.join(self.outdir, 'pdf')
         create_folder(folder=str(folder), loglevel=self.loglevel)
         filepath = os.path.join(folder, filename)
@@ -134,7 +132,6 @@ class OutputSaver:
 
         self.logger.info(f"Saved PDF: {filepath}")
         return filepath
-
 
     def save_png(self, fig: plt.Figure, diagnostic_product: str, extra_keys: dict = None,  metadata: dict = None):
         """
@@ -159,7 +156,6 @@ class OutputSaver:
 
         self.logger.info(f"Saved PNG: {filepath}")
         return filepath
-
 
 
 def create_metadata(self, diagnostic_product: str, extra_keys: dict = None, metadata: dict = None) -> dict:
