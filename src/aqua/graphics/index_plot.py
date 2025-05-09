@@ -8,8 +8,7 @@ def index_plot(index: xr.DataArray, thresh: float = 0,
                fig: plt.Figure = None, ax: plt.Axes = None,
                style: str = None, figsize: tuple = (11, 8.5),
                title: str = None, ylim: tuple = None,
-               ylabel: str = None,
-               loglevel='WARNING', **kwargs):
+               ylabel: str = None, label: str = None, loglevel='WARNING'):
     """
     Index plot together with a black line at index=0.
     Values above thresh are filled in red, values below thresh are filled in blue.
@@ -24,8 +23,8 @@ def index_plot(index: xr.DataArray, thresh: float = 0,
         title (str,opt):       Title for the plot. Default is None
         ylim (tuple,opt):      y-axis limits. Default is None
         ylabel (str,opt):      y-axis label. Default is None
+        label (str,opt):       Label for the plot. Default is None
         loglevel (str,opt):    Loglevel for the logger. Default is 'WARNING'
-        **kwargs:              Additional arguments
 
     Returns:
         fig, ax: Figure and Axes objects
@@ -49,14 +48,13 @@ def index_plot(index: xr.DataArray, thresh: float = 0,
                     alpha=0.6, color='red', interpolate=True)
     ax.fill_between(index.time, y1=-thresh, y2=index.values, where=index.values < -thresh,
                     alpha=0.6, color='blue', interpolate=True)
-    index.plot(ax=ax, color='black', alpha=0.8)
+    index.plot(ax=ax, color='black', alpha=0.8, label=label)
 
     ax.axhline(y=0, color='black', alpha=0.5)
     ax.grid(True, axis="y", linestyle='-', color='silver', alpha=0.8)
 
     if title is not None:
         ax.set_title(title)
-        logger.debug("Title set to %s", title)
 
     # Set the ylabel
     if ylabel is not None:
@@ -64,12 +62,16 @@ def index_plot(index: xr.DataArray, thresh: float = 0,
     else:
         ax.set_ylabel('Index')
 
+    if label is not None:
+        ax.legend()
+
     return fig, ax
 
 
 def indexes_plot(indexes: list, thresh: float = 0,
                  style=None, figsize: tuple = None,
-                 titles: list = None, suptitle: str = None,
+                 titles: list = None, labels: list = None,
+                 suptitle: str = None,
                  ylabel: str = None, loglevel='WARNING'):
     """
     Use the plot_index function to plot two indexes in two
@@ -81,6 +83,7 @@ def indexes_plot(indexes: list, thresh: float = 0,
         style (str, optional):  Style to use. Defaults to None (aqua style).
         figsize (tuple,opt):    Figure size, default is (5.5*n_indexes, 8.5)
         titles (list,opt):      List of strings for the titles of the plots. Default is None
+        labels (list,opt):      List of strings for the labels of the plots. Default is None
         suptitle (str,opt):     Title for the figure. Default is None
         ylabel (str,opt):       y-axis label. Default is None
         loglevel (str,opt):     Loglevel for the logger. Default is 'WARNING'
@@ -105,6 +108,7 @@ def indexes_plot(indexes: list, thresh: float = 0,
                                  fig=fig, ax=axs[i],
                                  style=style, figsize=figsize,
                                  title=titles[i] if titles is not None else None,
+                                 label=labels[i] if labels is not None else None,
                                  ylim=ylim, ylabel=ylabel,
                                  loglevel=loglevel)
 
