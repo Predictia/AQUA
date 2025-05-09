@@ -88,7 +88,27 @@ class GlobalBiases(Diagnostic):
             xarray.DataArray: The bias between the two datasets.
         """
         var = var or self.var
+
+        # Check if the variable has pressure levels but no specific level is selected
+        if 'plev' in self.data.get(self.var, {}).dims:
+            if self.plev is None:
+                self.logger.warning(
+                    f"Variable {self.var} has multiple pressure levels, but no specific level was selected. "
+                    "Skipping 2D bias plotting."
+                )
+                return None 
+        
+            # If a pressure level is specified, select it
+            self.logger.info(f"Selecting pressure level {self.plev} for variable {self.var}.")
+            data = select_pressure_level(self.data, self.plev, self.var)
+            data_ref = select_pressure_level(self.data_ref, self.plev, self.var)
+
+        # If a pressure level is specified but the variable has no pressure levels
+        elif self.plev is not None:
+            self.logger.warning(f"Variable {self.var} does not have pressure levels!")
+
         self.bias = self.data[self.var].mean(dim='time') - data_ref[self.var].mean(dim='time')
+
         if self.save_netcdf:
             super().save_netcdf(data=self.bias, diagnostic='global_biases', diagnostic_product='bias', 
                                 default_path=self.outputdir)
@@ -106,6 +126,26 @@ class GlobalBiases(Diagnostic):
             xarray.Dataset: A dataset containing the seasonal biases for each season.
         """
         var = var or self.var
+
+        # Check if the variable has pressure levels but no specific level is selected
+        if 'plev' in self.data.get(self.var, {}).dims:
+            if self.plev is None:
+                self.logger.warning(
+                    f"Variable {self.var} has multiple pressure levels, but no specific level was selected. "
+                    "Skipping 2D bias plotting."
+                )
+                return None 
+        
+            # If a pressure level is specified, select it
+            self.logger.info(f"Selecting pressure level {self.plev} for variable {self.var}.")
+            data = select_pressure_level(self.data, self.plev, self.var)
+            data_ref = select_pressure_level(self.data_ref, self.plev, self.var)
+
+        # If a pressure level is specified but the variable has no pressure levels
+        elif self.plev is not None:
+            self.logger.warning(f"Variable {self.var} does not have pressure levels!")
+
+
         stat_funcs = {'mean': 'mean', 'max': 'max', 'min': 'min', 'std': 'std'}
         if seasons_stat not in stat_funcs:
             raise ValueError("Invalid statistic. Please choose one of 'mean', 'std', 'max', 'min'.")
