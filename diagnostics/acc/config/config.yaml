@@ -14,7 +14,7 @@ data:
   catalog: 'CMIP6_F8_phase1'
   model: 'emulator_inference'
   exp: 'piControl'
-  source: 'e3.1_last_checkpoint'
+  source: 'e4.3a_member1_epoch_069'
   regrid: False
   fix: True
 
@@ -34,13 +34,14 @@ climatology_data:
 # Dates to evaluate (for 'data' and 'data_ref')
 dates:
   startdate: '1945-08-01'
-  enddate: '1945-08-15'
+  enddate: '1948-08-01'
 
 # Variables to evaluate
 # For variables with plev provide a list of pressure levels to evaluate
 variables:
-  - name: 'q'
-    level: [1000]
+  - name: 'zg'
+    level: [50000]
+  
   - name: '2t'
 
 # Output directory for data

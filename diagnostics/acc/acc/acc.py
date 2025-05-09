@@ -688,7 +688,7 @@ class ACC:
                 elif len(time_coords) == 1: self.logger.debug(f"Only one time point for {processed_key}.")
                 ax.set_ylabel("Spatial Pattern ACC")
                 ax.set_xlabel("Time")
-                ax.set_ylim(0, 1)
+                ax.set_ylim(-1, 1)
                 ax.grid(True)
                 title_level_part = f" at {int(level / 100)} hPa" if level is not None else ""
                 title = (f"Temporal Evolution of Spatial ACC: {base_var_name}{title_level_part}\n"
