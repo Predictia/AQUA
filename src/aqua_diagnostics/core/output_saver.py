@@ -161,7 +161,8 @@ class OutputSaver:
         self.logger.info(f"Saved PDF: {filepath}")
         return filepath
 
-    def save_png(self, fig: plt.Figure, diagnostic_product: str, extra_keys: dict = None,  metadata: dict = None):
+    def save_png(self, fig: plt.Figure, diagnostic_product: str, extra_keys: dict = None,  metadata: dict = None,
+                 dpi: int = 300):
         """
         Save a Matplotlib figure as a PNG file with a generated filename.
 
@@ -170,6 +171,7 @@ class OutputSaver:
             diagnostic_product (str): Product of the diagnostic analysis.
             extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
             metadata (dict, optional): Additional metadata to include in the PNG file.
+            dpi (int, optional): Dots per inch for the PNG file.
         """
 
         filename = self.generate_name(diagnostic_product=diagnostic_product, extra_keys=extra_keys) + '.png'
@@ -177,7 +179,7 @@ class OutputSaver:
         folder = os.path.join(self.outdir, 'png')
         create_folder(folder=str(folder), loglevel=self.loglevel)
         filepath = os.path.join(folder, filename)
-        fig.savefig(filepath, format='png', dpi=300, bbox_inches='tight')
+        fig.savefig(filepath, format='png', dpi=dpi, bbox_inches='tight')
 
         metadata = self.create_metadata(diagnostic_product=diagnostic_product, extra_keys=extra_keys, metadata=metadata)
         add_png_metadata(filepath, metadata, loglevel=self.loglevel)
