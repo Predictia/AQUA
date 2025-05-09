@@ -1,6 +1,6 @@
 import os
 import xarray as xr
-from aqua.diagnostics.core import Diagnostic
+from aqua.diagnostics.core import Diagnostic, OutputSaver
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
 from aqua.util import load_yaml, select_season, to_list
@@ -128,14 +128,17 @@ class BaseMixin(Diagnostic):
 
 class PlotBaseMixin():
     """PlotBaseMixin class is used for the PlotNAO and the PlotENSO classes."""
-    def __init__(self, indexes=None, ref_indexes=None,
-                 loglevel: str = 'WARNING'):
+    def __init__(self, indexes=None, ref_indexes=None, diagnostic: str = None, outputdir: str = './',
+                 rebuild: bool = True, loglevel: str = 'WARNING'):
         """
         Initialize the PlotBaseMixin class.
 
         Args:
             indexes (list): The list of indexes to be used. Default is None.
             ref_indexes (list): The list of reference indexes to be used. Default is None.
+            diagnostic (str): The name of the diagnostic. Default is None.
+            outputdir (str): The directory where the output files will be saved. Default is './'.
+            rebuild (bool): If True, the output files will be rebuilt. Default is True.
             loglevel (str): The log level to be used. Default is 'WARNING'.
         """
         # Data info initalized as empty
@@ -155,6 +158,10 @@ class PlotBaseMixin():
         self.len_ref = len(self.ref_indexes)
 
         self.get_data_info()
+
+        self.outputsaver = OutputSaver(diagnostic=diagnostic,  catalog=self.catalogs, model=self.models,
+                                  exp=self.exps, catalog_ref=self.ref_catalogs, model_ref=self.ref_models,
+                                  exp_ref=self.ref_exps, outdir=outputdir, rebuild=rebuild, loglevel=self.loglevel)
 
     def get_data_info(self):
         """
@@ -236,3 +243,25 @@ class PlotBaseMixin():
 
         self.logger.debug(f'Index description: {description}')
         return description
+    
+    def save_plot(self, fig, diagnostic_product: str = None, extra_keys: dict = None,
+                  dpi: int = 300, format: str = 'png', metadata: dict = None):
+        """
+        Save the plot to a file.
+
+        Args:
+            fig (matplotlib.figure.Figure): The figure to be saved.
+            diagnostic_product (str): The name of the diagnostic product. Default is None.
+            extra_keys (dict): Extra keys to be used for the filename (e.g. season). Default is None.
+            dpi (int): The dpi of the figure. Default is 300.
+            format (str): The format of the figure. Default is 'png'.
+            metadata (dict): The metadata to be used for the figure. Default is None.
+                             They will be complemented with the metadata from the outputsaver.
+                             We usually want to add here the description of the figure.
+        """
+        if format == 'png':
+            _ = self.outputsaver.save_png(fig, diagnostic_product=diagnostic_product,
+                                          extra_keys=extra_keys, metadata=metadata)
+        elif format == 'pdf':
+            _ = self.outputsaver.save_pdf(fig, diagnostic_product=diagnostic_product,
+                                          extra_keys=extra_keys, metadata=metadata)
