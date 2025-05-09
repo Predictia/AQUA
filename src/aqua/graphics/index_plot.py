@@ -90,7 +90,7 @@ def indexes_plot(indexes: list, thresh: float = 0,
     """
     figsize = (8.5, 5.5 * len(indexes)) if figsize is None else figsize
 
-    fig, axs = plt.subplots(nrows=len(indexes), ncols=1, figsize=figsize, sharex=True)
+    fig, axs = plt.subplots(nrows=len(indexes), ncols=1, figsize=figsize, sharex=False)
 
     # Evaluating a common ylim:
     ymin = min(index.min().values for index in indexes)
