@@ -5,10 +5,20 @@ from .base import PlotBaseMixin
 
 class PlotENSO(PlotBaseMixin):
 
-    def __init__(self, indexes=None, ref_indexes=None,
+    def __init__(self, indexes=None, ref_indexes=None, outputdir: str = './', rebuild: bool = True,
                  loglevel: str = 'WARNING'):
-        super().__init__(indexes=indexes, ref_indexes=ref_indexes,
-                         loglevel=loglevel)
+        """
+        Plot the ENSO products.
+
+        Args:
+            indexes (list): List of indexes to plot.
+            ref_indexes (list): List of reference indexes to plot.
+            outputdir (str): Directory to save the plots. Default is './'.
+            rebuild (bool): If True, rebuild the plots. Default is True.
+            loglevel (str): Log level for the logger. Default is 'WARNING'.
+        """
+        super().__init__(indexes=indexes, ref_indexes=ref_indexes, diagnostic='enso',
+                         outputdir=outputdir, rebuild=rebuild, loglevel=loglevel)
 
     def plot_index(self, thresh: float = 0.5):
 
