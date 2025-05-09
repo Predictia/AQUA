@@ -3,7 +3,7 @@ import xarray as xr
 from aqua.graphics import indexes_plot
 from aqua.graphics import plot_maps, plot_single_map
 from aqua.graphics import plot_maps_diff, plot_single_map_diff
-from .base import PlotBaseMixin
+from .base import PlotBaseMixin, _homogeneize_maps
 
 
 class PlotENSO(PlotBaseMixin):
@@ -99,11 +99,7 @@ class PlotENSO(PlotBaseMixin):
             vmin_diff = -2.0
             vmax_diff = 2.0
 
-        # Homogeneize: if a list has length 1, we convert it to a single xarray
-        if isinstance(maps, list) and len(maps) == 1:
-            maps = maps[0]
-        if isinstance(ref_maps, list) and len(ref_maps) == 1:
-            ref_maps = ref_maps[0]
+        maps, ref_maps = _homogeneize_maps(maps=maps, ref_maps=ref_maps)
 
         # Case 1: no reference maps
         if maps is not None and ref_maps is None:
@@ -112,6 +108,8 @@ class PlotENSO(PlotBaseMixin):
             if isinstance(maps, xr.DataArray):
                 var = maps.shortName if hasattr(maps, 'shortName') else maps.long_name
                 title = f"ENSO {maps.AQUA_model} {maps.AQUA_exp} {statistic} map ({var})"
+                if hasattr(maps, 'AQUA_season'):
+                    title += f" ({maps.AQUA_season})"
                 fig, _ = plot_single_map(data=maps, vmin=vmin, vmax=vmax, title=title,
                                          return_fig=True, loglevel=self.loglevel, **kwargs)
 
@@ -121,6 +119,8 @@ class PlotENSO(PlotBaseMixin):
                 for map in maps:
                     var = map.shortName if hasattr(map, 'shortName') else map.long_name
                     title = f"ENSO {map.AQUA_model} {map.AQUA_exp} {statistic} map ({var})"
+                    if hasattr(map, 'AQUA_season'):
+                        title += f" ({map.AQUA_season})"
                     titles.append(title)
                 fig= plot_maps(maps=maps, vmin=vmin, vmax=vmax, titles=titles,
                                return_fig=True, loglevel=self.loglevel, **kwargs)
@@ -132,6 +132,8 @@ class PlotENSO(PlotBaseMixin):
             if isinstance(maps, xr.DataArray) and isinstance(ref_maps, xr.DataArray):
                 var = maps.shortName if hasattr(maps, 'shortName') else maps.long_name
                 title = f"ENSO {maps.AQUA_model} {maps.AQUA_exp} {statistic} map ({var}) compared to {ref_maps.AQUA_model} {ref_maps.AQUA_exp}"
+                if hasattr(maps, 'AQUA_season'):
+                    title += f" ({maps.AQUA_season})"
                 fig, _ = plot_single_map_diff(data=maps, data_ref=ref_maps,
                                               vmin_contour=vmin if vmin is not None else None,
                                               vmax_contour=vmax if vmax is not None else None,
@@ -150,6 +152,8 @@ class PlotENSO(PlotBaseMixin):
                     titles.append(title)
                 var = ref_maps.shortName if hasattr(ref_maps, 'shortName') else ref_maps.long_name
                 title = f"ENSO {statistic} map ({var}) compared to {ref_maps.AQUA_model} {ref_maps.AQUA_exp}"
+                if hasattr(ref_maps, 'AQUA_season'):
+                    title += f" ({ref_maps.AQUA_season})"
 
                 # plot_maps_diff wants a list of reference maps of the same length as maps
                 maps_ref = [ref_maps] * len(maps)
@@ -172,6 +176,8 @@ class PlotENSO(PlotBaseMixin):
                     titles.append(title)
                 var = maps.shortName if hasattr(maps, 'shortName') else maps.long_name
                 title = f"ENSO {statistic} map ({var}) of {maps.AQUA_model} {maps.AQUA_exp}"
+                if hasattr(maps, 'AQUA_season'):
+                    title += f" ({maps.AQUA_season})"
 
                 # plot_maps_diff wants a list of reference maps of the same length as maps
                 maps = [maps] * len(ref_maps)
@@ -205,4 +211,34 @@ class PlotENSO(PlotBaseMixin):
             str: Description of the maps.
         """
         description = f"ENSO {statistic} map "
+
+        maps, ref_maps = _homogeneize_maps(maps=maps, ref_maps=ref_maps)
+        
+        if isinstance(maps, xr.DataArray):
+            var = maps.shortName if hasattr(maps, 'shortName') else maps.long_name
+            description += f"({var}) "
+            description += f"{maps.AQUA_model} {maps.AQUA_exp}"
+            if hasattr(maps, 'AQUA_season'):
+                description += f" ({maps.AQUA_season})"
+        elif isinstance(maps, list):
+            var = maps[0].shortName if hasattr(maps[0], 'shortName') else maps[0].long_name
+            description += f"({var}) "
+            for map in maps:
+                description += f"{map.AQUA_model} {map.AQUA_exp}, "
+            description = description[:-2]
+            if hasattr(maps[0], 'AQUA_season'):
+                description += f" ({maps[0].AQUA_season})"
+        if isinstance(ref_maps, xr.DataArray):
+            var = ref_maps.shortName if hasattr(ref_maps, 'shortName') else ref_maps.long_name
+            description += f" compared to {ref_maps.AQUA_model} {ref_maps.AQUA_exp}"
+        elif isinstance(ref_maps, list):
+            var = ref_maps[0].shortName if hasattr(ref_maps[0], 'shortName') else ref_maps[0].long_name
+            description += f" compared to {ref_maps[0].AQUA_model} {ref_maps[0].AQUA_exp}"
+            for map in ref_maps:
+                description += f"{map.AQUA_model} {map.AQUA_exp}, "
+            description = description[:-2]
+        description += "."
+        if ref_maps is not None:
+            description += f" The contour lines are the model regression map and the filled contour map is the defference between the model and the reference {statistic} map."
+
         return description
