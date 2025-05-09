@@ -5,20 +5,30 @@ from .base import PlotBaseMixin
 
 class PlotENSO(PlotBaseMixin):
 
-    def __init__(self, loglevel: str = 'WARNING'):
-        super().__init__(loglevel=loglevel)
+    def __init__(self, indexes=None, ref_indexes=None,
+                 loglevel: str = 'WARNING'):
+        super().__init__(indexes=indexes, ref_indexes=ref_indexes,
+                         loglevel=loglevel)
 
-    def plot_index(self, indexes: list, thresh: float = 0.5):
+    def plot_index(self, thresh: float = 0.5):
+
+        # Join the indexes in a single list
+        indexes = self.indexes + self.ref_indexes
+
+        labels = super().set_labels()
         
-        fig, axs = indexes_plot(indexes=indexes, thresh=thresh)
+        fig, axs = indexes_plot(indexes=indexes, thresh=thresh, suptitle='ENSO3.4 index',
+                                ylabel='ENSO3.4 index', labels=labels, loglevel=self.loglevel)
 
         if isinstance(axs, plt.Axes):
             axs = [axs]
 
+        # Indexes customization for ENSO only
         for i in range(len(axs)):
             ax = axs[i]
 
-            ax.set_ylim(min(ax.get_ylim()[0], -2.1), max(ax.get_ylim()[1], 2.1))
+            ylim = 2.3
+            ax.set_ylim(min(ax.get_ylim()[0], -ylim), max(ax.get_ylim()[1], ylim))
 
             textoffset = 0.08
 
@@ -41,3 +51,8 @@ class PlotENSO(PlotBaseMixin):
                 ha='right',
                 va='center'
             )
+
+        return fig, axs
+
+    def set_index_description(self):
+        return super().set_index_description(index_name='ENSO3.4')

@@ -210,3 +210,29 @@ class PlotBaseMixin():
                        for i in range(self.len_ref)]
         labels = labels_dataset + labels_ref
         return labels
+    
+    def set_index_description(self, index_name: str = None):
+        """
+        Set the description of the index. This is used to
+        generate the caption of the figure.
+
+        Args:
+            index_name (str): The name of the index. Default is None.
+
+        Returns:
+            str: The caption of the figure.
+        """
+        description = f"{index_name} index for"
+
+        dataset = [f"{self.models[i]} {self.exps[i]}" for i in range(self.len_data)]
+        refs = [f"{self.ref_models[i]} {self.ref_exps[i]}" for i in range(self.len_ref)]
+        
+        if self.len_data > 0:
+            description += f" {', '.join(dataset)}"
+        if self.len_ref > 0:
+            description += " using reference data from"
+            description += f" {', '.join(refs)}"
+        description += "."
+
+        self.logger.debug(f'Index description: {description}')
+        return description
