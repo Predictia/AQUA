@@ -11,10 +11,26 @@ class OutputSaver:
     customized naming based on provided parameters and metadata.
     """
 
-    def __init__(self, diagnostic: str, 
+    def __init__(self, diagnostic: str,
                  catalog: str = None, model: str = None, exp: str = None,
                  catalog_ref: str = None, model_ref: str = None, exp_ref: str = None,
-                 outdir: str = '.', rebuild: bool = True, loglevel: str = 'WARNING',):
+                 outdir: str = '.', rebuild: bool = True, loglevel: str = 'WARNING'):
+        """
+        Initialize the OutputSaver with diagnostic parameters and output directory.
+        All the catalog, model, and experiment can be both a string or a list of strings.
+
+        Args:
+            diagnostic (str): Name of the diagnostic.
+            catalog (str, optional): Catalog name.
+            model (str, optional): Model name.
+            exp (str, optional): Experiment name.
+            catalog_ref (str, optional): Reference catalog name.
+            model_ref (str, optional): Reference model name.
+            exp_ref (str, optional): Reference experiment name.
+            outdir (str, optional): Output directory. Defaults to current directory.
+            rebuild (bool, optional): Whether to rebuild the output directory. Defaults to True.
+            loglevel (str, optional): Logging level. Defaults to 'WARNING'.
+        """
 
         self.diagnostic = diagnostic
         self.catalog = catalog
@@ -55,27 +71,39 @@ class OutputSaver:
         if not self.catalog or not self.model or not self.exp:
             raise ValueError("Catalog, model, and exp must be specified to generate a filename.")
 
-        # handle multimodel case
+        # handle multimodel case: we need to check if the 6 keys above are lists
         if isinstance(self.model, list):
             model_value = "multimodel" if len(self.model) > 1 else self.model[0]
+            if isinstance(self.catalog, list):
+                catalog_value = None if len(self.catalog) > 1 else self.catalog[0]
+            if isinstance(self.exp, list):
+                exp_value = None if len(self.exp) > 1 else self.exp[0]
         else:
             model_value = self.model
+            catalog_value = self.catalog
+            exp_value = self.exp
 
         # handle multiref case
         if isinstance(self.model_ref, list):
             model_ref_value = "multiref" if len(self.model_ref) > 1 else self.model_ref[0]
+            if isinstance(self.catalog_ref, list):
+                catalog_ref_value = None if len(self.catalog_ref) > 1 else self.catalog_ref[0]
+            if isinstance(self.exp_ref, list):
+                exp_ref_value = None if len(self.exp_ref) > 1 else self.exp_ref[0]
         else:
             model_ref_value = self.model_ref
+            catalog_ref_value = self.catalog_ref
+            exp_ref_value = self.exp_ref
 
         parts_dict = {
             'diagnostic': self.diagnostic,
             'diagnostic_product': diagnostic_product,
-            'catalog': self.catalog if model_value != "multimodel" else None,
+            'catalog': catalog_value if model_value != "multimodel" else None,
             'model': model_value,
-            'exp': self.exp if model_value != "multimodel" else None,
-            'catalog_ref': self.catalog_ref if model_ref_value != "multiref" else None,
+            'exp': exp_value if model_value != "multimodel" else None,
+            'catalog_ref': catalog_ref_value if model_ref_value != "multiref" else None,
             'model_ref': model_ref_value,
-            'exp_ref': self.exp_ref if model_ref_value != "multiref" else None,
+            'exp_ref': exp_ref_value if model_ref_value != "multiref" else None,
         }
 
         # Add additional filename keys if provided
