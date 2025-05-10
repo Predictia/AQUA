@@ -157,6 +157,13 @@ jobs:
               weights: ./AQUA_tests/weights
               areas: ./AQUA_tests/weights
           EOF
+          # Set up polytope secrets
+          cat >$HOME/.polytopeapirc << EOF
+          {
+            "user_email": "${{ secrets.POLYTOPE_MAIL }}",
+            "user_key": "${{ secrets.POLYTOPE_KEY }}"
+          }
+          EOF
       - name: Run tests
         run: |
           # Produce the XML report
