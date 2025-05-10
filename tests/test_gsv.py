@@ -245,3 +245,14 @@ class TestGsv():
         
         assert source.data_start_date == '19900101T0000'
         assert source.data_end_date == '19900103T2300'
+
+    def test_reader_polytope(self) -> None:
+        """
+        Reading from a remote databridge using polytope
+        """
+
+        reader = Reader(catalog='climatedt-phase1', model="IFS-NEMO", exp="ssp370", source="hourly-hpz7-atm2d",
+                        startdate="20210101T0000", enddate="20210101T2300", loglevel="debug", engine="polytope",
+                        chunking={'time': 'h'}) 
+        data = reader.retrieve(var='2t')
+        assert data.isel(time=1)['2t'].mean().values == pytest.approx(285.8661045)
