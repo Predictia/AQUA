@@ -344,7 +344,8 @@ class GSVSource(base.DataSource):
             '_var': self._var,
             'timeshift': self.timeshift,
             'gsv_log_level': self.gsv_log_level,
-            'logger': self.logger
+            'logger': self.logger,
+            'engine': self.engine
         }
 
     def __setstate__(self, state):
@@ -374,6 +375,7 @@ class GSVSource(base.DataSource):
         self._request = state['_request']
         self.gsv_log_level = state['gsv_log_level']
         self.logger = state['logger']
+        self.engine = state['engine']
 
     def _get_schema(self):
         """
