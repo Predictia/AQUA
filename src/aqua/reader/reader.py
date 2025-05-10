@@ -139,6 +139,7 @@ class Reader(FixerMixin):
         machine_paths, intake_vars = configurer.get_machine_info()
 
         # load the catalog
+        aqua.gsv.GSVSource.first_run = True  # Hack needed to avoid double checking of paths (which would not work if on another machine using polytope)
         self.expcat = self.cat(**intake_vars)[self.model][self.exp]  # the top-level experiment entry
         self.esmcat = self.expcat[self.source](**kwargs) 
 

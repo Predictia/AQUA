@@ -35,12 +35,13 @@ class GSVSource(base.DataSource):
     _ds = None  # _ds and _da will contain samples of the data for dask access
     _da = None
     dask_access = False  # Flag if dask has been requested
+    first_run = True  # Flag to check if this is the first run of the class
 
     def __init__(self, request, data_start_date, data_end_date, bridge_start_date=None, bridge_end_date=None, 
                  hpc_expver=None, timestyle="date",
                  chunks="S", savefreq="h", timestep="h", timeshift=None,
                  startdate=None, enddate=None, var=None, metadata=None, level=None,
-                 switch_eccodes=False, loglevel='WARNING', engine=None, **kwargs):
+                 switch_eccodes=False, loglevel='WARNING', engine='fdb', **kwargs):
         """
         Initializes the GSVSource class. These are typically specified in the catalog entry,
         but can also be specified upon accessing the catalog.
@@ -68,8 +69,7 @@ class GSVSource(base.DataSource):
             metadata (dict, optional): Metadata read from catalog. Contains path to FDB.
             level (int, float, list): optional level(s) to be read. Must use the same units as the original source.
             switch_eccodes (bool, optional): Flag to activate switching of eccodes path. Defaults to False.
-            engine (str, optional): Engine to be used for GSV retrieval: 'polytope' or 'fdb'. 
-                                    If None it behaves like 'fdb' but no paths are checked.
+            engine (str, optional): Engine to be used for GSV retrieval: 'polytope' or 'fdb'. Defaults to 'fdb'. 
             loglevel (string) : The loglevel for the GSVSource
             kwargs: other keyword arguments.
         """
@@ -100,9 +100,10 @@ class GSVSource(base.DataSource):
 
             # safety check for paths
 
-            # If called without explicitly specifying engine='fdb' do not check paths
-            # This is needed because intake calls initialization twice, once without custom arguments
-            if self.engine and self.engine == 'fdb':
+            # skip the first time:
+            # this is needed because intake calls initialization twice, first without custom arguments and then with
+            # If we pass engine='polytope' on a remote machine the path check would fail but intake initializes the class a first time actually with the wrong engine
+            if self.engine and self.engine == 'fdb' and not GSVSource.first_run:
                 for attr in ['fdbhome', 'fdbpath', 'fdbhome_bridge', 
                             'fdbpath_bridge', 'eccodes_path']:
                     attr_path = getattr(self, attr)
@@ -117,6 +118,8 @@ class GSVSource(base.DataSource):
             self.fdb_info_file = None
             self.eccodes_path = None
             self.levels = None
+
+        GSVSource.first_run = False
 
         # Now that checking of paths has been decided, we can set engine to fdb if None
         if not self.engine:
