@@ -39,7 +39,6 @@ class Reader(FixerMixin):
                  rebuild=False, loglevel=None, nproc=4,
                  aggregation=None, chunks=None,
                  preproc=None, convention='eccodes',
-                 engine='fdb',
                  **kwargs):
         """
         Initializes the Reader class, which uses the catalog
@@ -76,7 +75,6 @@ class Reader(FixerMixin):
             preproc (function, optional): a function to be applied to the dataset when retrieved. Defaults to None.
             convention (str, optional): convention to be used for reading data. Defaults to 'eccodes'.
                                         (Only one supported so far)
-            engine (str, optional): engine to be used for reading data from GSV retrievbe. Can be 'polytope' or 'fdb' (default).
             **kwargs: Arbitrary keyword arguments to be passed as additional parameters to the catalog entry.
                       'zoom', meant for HEALPix grid, is a predefined one which will allow for multiple gridname definitions.
 
@@ -142,7 +140,7 @@ class Reader(FixerMixin):
 
         # load the catalog
         self.expcat = self.cat(**intake_vars)[self.model][self.exp]  # the top-level experiment entry
-        self.esmcat = self.expcat[self.source](engine=engine, **kwargs) 
+        self.esmcat = self.expcat[self.source](**kwargs) 
 
         # Manual safety check for netcdf sources (see #943), we output a more meaningful error message
         if isinstance(self.esmcat, intake_xarray.netcdf.NetCDFSource):
