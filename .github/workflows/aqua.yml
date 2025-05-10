@@ -151,7 +151,7 @@ jobs:
           # Double check the catalogs
           aqua -vv list
           # add default paths to the config
-          cat >> $HOME/.aqua/config.yaml <<EOF
+          cat >> $HOME/.aqua/config-aqua.yaml <<EOF
           paths:
               grids: ./AQUA_tests/grids
               weights: ./AQUA_tests/weights
