@@ -121,10 +121,6 @@ class GSVSource(base.DataSource):
 
         GSVSource.first_run = False
 
-        # Now that checking of paths has been decided, we can set engine to fdb if None
-        if not self.engine:
-            self.engine = 'fdb'
-
         # set the timestyle
         self.timestyle = timestyle
         self.timeshift = timeshift
