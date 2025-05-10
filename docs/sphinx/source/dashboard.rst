@@ -193,6 +193,10 @@ Options
 
     Custom endpoint URL for S3. Default is https://lumidata.eu.
 
+Returns
+^^^^^^^
+
+The script returns 0 if the upload was successful, 1 if the credentials are not valid, 2 if the bucket does not exist and 3 for other errors.
 
 .. _submit-aqua-web:
 
