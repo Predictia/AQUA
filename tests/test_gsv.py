@@ -236,8 +236,8 @@ class TestGsv():
         
         assert source.data_start_date == '19900101T0000'
         assert source.data_end_date == '19900103T2300'
-
-        def test_reader_dask(self) -> None:
+    
+    def test_reader_dask(self) -> None:
         """
         Reading in parallel with a dask cluster
         """
