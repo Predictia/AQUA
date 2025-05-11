@@ -209,7 +209,7 @@ class TestGsv():
 
         reader = Reader(catalog='climatedt-phase1', model="IFS-NEMO", exp="ssp370", source="hourly-hpz7-atm2d",
                         startdate="20210101T0000", enddate="20210101T2300", loglevel="debug", engine="polytope",
-                        chunks='H')
+                        chunks='h')
         data = reader.retrieve(var='2t')
         assert data.isel(time=1)['2t'].mean().values == pytest.approx(285.8661045)
 
