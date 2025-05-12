@@ -66,40 +66,4 @@ def predefined_regions(region, loglevel="WARNING"):
 
     return lon_limits, lat_limits
 
-def _get_anomaly(data, ref, dim="time"):
-    if dim == "time":
-        if ref == "tmean":
-            data = data - data.isel(time=0)
-            data.attrs["AQUA_anomaly_ref"] = "tmean"
-            data.attrs["AQUA_cmap"] = "coolwarm"
-            return data
-        elif ref == "t0":
-            data = data - data.mean(dim=dim)
-            data.attrs["AQUA_anomaly_ref"] = "t0"
-            data.attrs["AQUA_cmap"] = "coolwarm"
-            return data
-    else:
-        raise ValueError("Invalid anomaly_ref: use 't0' or 'tmean'")
-        
-def _get_standardise(data, anomaly = False, dim = "time"):
-    data = data / data.std(dim=dim)
-    data.attrs["units"] = "Stand. Units"
-    data.attrs["AQUA_standardise"] = f"Standardised with {dim}"
-    return data
-
-def _get_std_anomaly(data, anomaly_ref = None, standardise = False, dim="time"):
-    if anomaly_ref is not None:
-        if anomaly_ref in ["t0", "tmean"]:
-            data = _get_anomaly(data, anomaly_ref, dim)
-    if standardise == True:
-        data = _get_standardise(data, anomaly_ref, dim)
-        
-    Std = "Std_" if standardise else ""
-    anom = "anom" if anomaly_ref != None else "full"
-    anom_ref = f"_{anomaly_ref}" if anomaly_ref else ""
-
-    type = f"{Std}{anom}{anom_ref}"
-    data.attrs["AQUA_type"] = type
-    data = data.expand_dims(dim={"type": [data.attrs["AQUA_type"]]})
-    return data
 
