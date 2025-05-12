@@ -201,9 +201,9 @@ levels to use for each chunk.
 Polytope access to Destination Earth data
 -----------------------------------------
 
-It is poossible to access ClimateDT data availble on the 'Databridge' for the DestinE ClimateDT also remotely, from other machines,
-using the 'polytope' access. to this end you will need to specify ``engine="polytope"`` when instantiating the `Reader` or adding
-the argument ``engine="polytope"`` as an additional argument in the intake data source.
+It is possible to access ClimateDT data available on the 'Databridge' for the DestinE ClimateDT also remotely, from other machines,
+using the 'polytope' access. to this end you will need to specify ``engine="polytope"`` when instantiating the `Reader` or permanently, adding
+the argument ``engine: polytope`` as an additional argument in the intake catalog source entry in the corresponding yaml file, under `args:`.
 
 .. code-block:: python
 
@@ -215,8 +215,17 @@ This allows accessing ClimateDT data on the Databridge also remotely from other 
 In order for this to work you will need to store an access token in the file ``~/.polytopeapirc`` in your home directory.
 Please follow the instructions in the `Polytope documentation <https://github.com/destination-earth-digital-twins/polytope-examples>`_ to 
 set up appropriate credential and create this file. 
-As a preliminary step, you will need to be registered on the `Destine Service Platform  <https://auth.destine.eu/>`_ 
-and have requested "upgraded access" to the data.
+A sample file will look like this:
+
+.. code-block:: text
+
+    {
+        "user_email" : "<your.email>",
+        "user_key" : "<your.token>"
+    }
+
+As a preliminary step, you will need to be registered on the `Destine Service Platform  <https://platform.destine.eu/>`_ 
+and have requested "upgraded access" to the data (follow the link "Access policy upgrade" under your username at the top left corner of the page).
 
 Level selection and regridding
 ------------------------------
