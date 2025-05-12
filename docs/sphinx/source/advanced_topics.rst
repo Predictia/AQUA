@@ -217,7 +217,7 @@ In order for this to work you will need to store an access token in the file ``~
 Please follow the instructions in the `Polytope documentation <https://github.com/destination-earth-digital-twins/polytope-examples>`_ to 
 set up appropriate credential and create this file. 
 
-As an alternative, you will find the email and key which you need by logging in to your `ECMW account <https://www.ecmwf.int/>`_ . 
+As an alternative, you will find the email and key which you need by logging in to your `ECMWF account <https://www.ecmwf.int/>`_ 
 After logging in you will find your key at `https://api.ecmwf.int/v1/key/ <https://api.ecmwf.int/v1/key/>`_ 
 
 A sample file will look like this:
