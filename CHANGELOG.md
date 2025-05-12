@@ -10,6 +10,11 @@ Unreleased in the current development version (target v0.14.1):
 Removed:
 - `aqua.slurm` has been removed.
 
+Workflow modifications:
+- `push_s3.py`: this is an utility called by `push_analysis.sh` but it can also be called directly. 
+   It now returns proper error codes and it can be used to test the connection/credentials to lumi-o
+   by pushing a small file (e.g. after `python push_s3.py aqua-web ping.txt` a return code of 1 indicates wrong credentials.)
+
 AQUA core complete list:
 - Return codes for push_s3 utility (#1903)
 - Additional stats for LRA and other refinements (#1886) 
