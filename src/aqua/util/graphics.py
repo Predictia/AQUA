@@ -349,22 +349,29 @@ def get_nside(data):
     Raises:
         ValueError: If the input data is not a valid HEALPix map.
     """
+    # Chech if the input is a numpy array or xarray DataArray
+    if not isinstance(data, (np.ndarray, xr.DataArray)): 
+        raise ValueError("Input data must be a numpy array or xarray DataArray")
+
+    if data.size == 0:  # Check for empty data
+        raise ValueError("Invalid HEALPix map: data array is empty")
+    
     npix = data.size
     if not hp.isnpixok(npix):
         raise ValueError(f"Invalid HEALPix map: npix={npix}")
     return hp.npix2nside(npix)
     
-def get_npix(dx):
+def get_npix(data):
     """
-    Get the number of pixels in a HEALPix map based on the pixel size. 
+    Get the number of pixels in a HEALPix map based on the map data.
 
     Args:
-        dx (float): Pixel size in degrees.
+        data (numpy.ndarray or xarray.DataArray): HEALPix map data.
 
     Returns:
         int: Number of pixels in the HEALPix map.
     """
-    return hp.nside2npix(get_nside(dx))
+    return hp.nside2npix(get_nside(data))
     
 def healpix_resample(
         var,
