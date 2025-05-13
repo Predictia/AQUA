@@ -106,39 +106,6 @@ class TestGsv():
         dd = next(data)
         assert len(dd) > 0, 'GSVSource could not load data'
 
-    def test_fdb_home_bridge_logs(caplog):
-        # Prepare test metadata ensuring we have fdbhome_bridge
-        metadata = {
-            'fdb_home_bridge': FDB_HOME,
-            'fdb_home': FDB_HOME
-        }
-
-        source = GSVSource(DEFAULT_GSV_PARAMS['request'], data_start_date='20080101T1200', data_end_date='20080101T1200',
-                           metadata=metadata, loglevel='DEBUG')
-
-        source.chk_type = [1]  # Force chunk type to be bridge
-        source._get_partition(ii=0)
-        assert "Access is BRIDGE and FDB_HOME is set to" in caplog.text
-
-        source.chk_type = [0]
-        source._get_partition(ii=0)
-        assert "Access is HPC and FDB_HOME is set to" in caplog.text
-
-        metadata = {
-            'fdb_path_bridge': FDB_HOME+'/etc/fdb/config.yaml',
-            'fdb_path': FDB_HOME+'/etc/fdb/config.yaml'
-        }
-        source = GSVSource(DEFAULT_GSV_PARAMS['request'], data_start_date='20080101T1200', data_end_date='20080101T1200',
-                           metadata=metadata, loglevel='DEBUG')
-        
-        source.chk_type = [1]
-        source._get_partition(ii=0)
-        assert "Access is BRIDGE and FDB5_CONFIG_FILE is set to" in caplog.text
-
-        source.chk_type = [0]
-        source._get_partition(ii=0)
-        assert "Access is HPC and FDB5_CONFIG_FILE is set to" in caplog.text
-
     # High-level, integrated test
     def test_reader(self) -> None:
         """Simple test, to check that catalog access works and reads correctly"""
@@ -289,3 +256,39 @@ class TestGsv():
 
         client.shutdown()
         cluster.close()
+
+# Additional tests for the GSVSource class
+
+@pytest.mark.gsv2
+def test_fdb_home_bridge_logs(caplog):
+    # Prepare test metadata ensuring we have fdbhome_bridge
+    metadata = {
+        'fdb_home_bridge': FDB_HOME,
+        'fdb_home': FDB_HOME
+    }
+
+    source = GSVSource(DEFAULT_GSV_PARAMS['request'], data_start_date='20080101T1200', data_end_date='20080101T1200',
+                        metadata=metadata, loglevel='DEBUG')
+
+    source.chk_type = [1]  # Force chunk type to be bridge
+    source._get_partition(ii=0)
+    assert "Access is BRIDGE and FDB_HOME is set to" in caplog.text
+
+    source.chk_type = [0]
+    source._get_partition(ii=0)
+    assert "Access is HPC and FDB_HOME is set to" in caplog.text
+
+    metadata = {
+        'fdb_path_bridge': FDB_HOME+'/etc/fdb/config.yaml',
+        'fdb_path': FDB_HOME+'/etc/fdb/config.yaml'
+    }
+    source = GSVSource(DEFAULT_GSV_PARAMS['request'], data_start_date='20080101T1200', data_end_date='20080101T1200',
+                        metadata=metadata, loglevel='DEBUG')
+    
+    source.chk_type = [1]
+    source._get_partition(ii=0)
+    assert "Access is BRIDGE and FDB5_CONFIG_FILE is set to" in caplog.text
+
+    source.chk_type = [0]
+    source._get_partition(ii=0)
+    assert "Access is HPC and FDB5_CONFIG_FILE is set to" in caplog.text
