@@ -122,8 +122,8 @@ class PlotENSO(PlotBaseMixin):
                     if hasattr(map, 'AQUA_season'):
                         title += f" ({map.AQUA_season})"
                     titles.append(title)
-                fig= plot_maps(maps=maps, vmin=vmin, vmax=vmax, titles=titles,
-                               return_fig=True, loglevel=self.loglevel, **kwargs)
+                fig = plot_maps(maps=maps, vmin=vmin, vmax=vmax, titles=titles,
+                                return_fig=True, loglevel=self.loglevel, **kwargs)
 
         # # Case 2: reference maps (maps and ref_maps are not None)
         if ref_maps is not None:
