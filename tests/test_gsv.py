@@ -260,7 +260,7 @@ class TestGsv():
 # Additional tests for the GSVSource class
 
 @pytest.mark.gsv
-def test_fdb_home_bridge_logs(caplog):
+def test_fdb_home_bridge_logs(capsys):
     # Prepare test metadata ensuring we have fdbhome_bridge
     metadata = {
         'fdb_home_bridge': FDB_HOME,
@@ -272,11 +272,13 @@ def test_fdb_home_bridge_logs(caplog):
 
     source.chk_type = [1]  # Force chunk type to be bridge
     source._get_partition(ii=0)
-    assert "Access is BRIDGE and FDB_HOME is set to" in caplog.text
+    _, err = capsys.readouterr()
+    assert "Access is BRIDGE and FDB_HOME is set to" in err
 
     source.chk_type = [0]
     source._get_partition(ii=0)
-    assert "Access is HPC and FDB_HOME is set to" in caplog.text
+    _, err = capsys.readouterr()
+    assert "Access is HPC and FDB_HOME is set to" in err
 
     metadata = {
         'fdb_path_bridge': FDB_HOME+'/etc/fdb/config.yaml',
@@ -287,8 +289,10 @@ def test_fdb_home_bridge_logs(caplog):
     
     source.chk_type = [1]
     source._get_partition(ii=0)
-    assert "Access is BRIDGE and FDB5_CONFIG_FILE is set to" in caplog.text
+    _, err = capsys.readouterr()
+    assert "Access is BRIDGE and FDB5_CONFIG_FILE is set to" in err
 
     source.chk_type = [0]
     source._get_partition(ii=0)
-    assert "Access is HPC and FDB5_CONFIG_FILE is set to" in caplog.text
+    _, err = capsys.readouterr()
+    assert "Access is HPC and FDB5_CONFIG_FILE is set to" in err
