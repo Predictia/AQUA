@@ -11,12 +11,11 @@ Removed:
 - `aqua.slurm` has been removed.
 
 Workflow modifications:
-- `push_s3.py`: this is an utility called by `push_analysis.sh` but it can also be called directly. 
-   It now returns proper error codes and it can be used to test the connection/credentials to lumi-o
-   by pushing a small file (e.g. after `python push_s3.py aqua-web ping.txt` a return code of 1 indicates wrong credentials.)
+- `push_analysis.sh` (and the tool `push_s3.py` which it calls) now both return proper error codes if the transfer fails. 0 = ok, 1 = credentials not valid, 2 = bucket not found. This would allow the workflow to check return codes.
+As an alternative, connectivity could be tested before attempting to run push_analysis by pushing a small file (e.g. with `python push_s3.py aqua-web ping.txt`))
 
 AQUA core complete list:
-- Return codes for push_s3 utility (#1903)
+- Return codes for push_s3 and push_analysis utilities (#1903)
 - Additional stats for LRA and other refinements (#1886) 
 - New OutputSaver class (#1837)
 - Introduce a `Timstat()` module independent from the `Reader()` (#1832)
