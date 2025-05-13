@@ -212,21 +212,21 @@ the argument ``engine: polytope`` as an additional argument in the intake catalo
 
 This allows accessing ClimateDT data on the Databridge also remotely from other machines.
 
-To access Destination Earth ClimateDT data you will need to be registered on the `Destine Service Platform  <https://platform.destine.eu/>`_ 
+To access Destination Earth ClimateDT data you will need to be registered on the `Destine Service Platform  <https://platform.destine.eu/>`_
 and have requested "upgraded access" to the data (follow the link "Access policy upgrade" under your username at the top left corner of the page).
 
-In order for this to work you will need to store an access token in the file ``~/.polytopeapirc`` in your home directory.
+In order for his to work you will need to store an access token in the file ``~/.polytopeapirc`` in your home directory.
 You can create this file following two proceures:
 
-1. ** Using DestinE Service Platform credentials **: 
+1. **Using DestinE Service Platform credentials**: 
 
-Follow the instructions in the `Polytope documentation <https://github.com/destination-earth-digital-twins/polytope-examples>`_ 
+Follow the instructions in the `Polytope documentation <https://github.com/destination-earth-digital-twins/polytope-examples>`_
 and the username and password which you defined for the Destine Service Platform to download the credentials into this file. 
 
-2. ** Using ECMWF credentials **:
+2. **Using ECMWF credentials**:
 
-You can also use your ECMWF credentials to access the data. You will find the email and key which you need by logging in to your `ECMWF account <https://www.ecmwf.int/>`_ 
-After logging in you will find your key at `https://api.ecmwf.int/v1/key/ <https://api.ecmwf.int/v1/key/>`_ 
+You can also use your ECMWF credentials to access the data. You will find the email and key which you need by logging in to your `ECMWF account <https://www.ecmwf.int/>`_.
+After logging in you will find your key at `https://api.ecmwf.int/v1/key/ <https://api.ecmwf.int/v1/key/>`_.
 
 A sample ``~/.polytopeapirc`` file will look like this:
 
