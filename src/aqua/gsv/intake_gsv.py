@@ -527,15 +527,19 @@ class GSVSource(base.DataSource):
             # Bridge FDB type
             if self.fdbhome_bridge:
                 os.environ["FDB_HOME"] = self.fdbhome_bridge
+                self.logger.debug('FDB_HOME set to %s', self.fdbhome_bridge)
             if self.fdbpath_bridge:
                 os.environ["FDB5_CONFIG_FILE"] = self.fdbpath_bridge
+                self.logger.debug('FDB5_CONFIG_FILE set to %s', self.fdbpath_bridge)
             fstream_iterator = True
         else:
             # HPC FDB type
             if self.fdbhome:  # if fdbhome is provided, use it, since we are creating a new gsv
                 os.environ["FDB_HOME"] = self.fdbhome
+                self.logger.debug('FDB_HOME set to %s', self.fdbhome)
             if self.fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
                 os.environ["FDB5_CONFIG_FILE"] = self.fdbpath
+                self.logger.debug('FDB5_CONFIG_FILE set to %s', self.fdbpath)
             if self.hpc_expver:
                 request["expver"] = self.hpc_expver
 
