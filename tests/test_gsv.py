@@ -259,7 +259,7 @@ class TestGsv():
 
 # Additional tests for the GSVSource class
 
-@pytest.mark.gsv2
+@pytest.mark.gsv
 def test_fdb_home_bridge_logs(caplog):
     # Prepare test metadata ensuring we have fdbhome_bridge
     metadata = {
