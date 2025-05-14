@@ -27,7 +27,7 @@ output:
   save_png: true
   dpi: 300
 
-diagnostic:
+diagnostics:
   teleconnections:
     NAO:
       run: true
