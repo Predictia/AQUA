@@ -8,12 +8,35 @@ import pandas as pd
 
 from aqua.util import eval_formula, get_eccodes_attr
 from aqua.util import to_list, normalize_units, convert_units
-from aqua.logger import log_history
+from aqua.logger import log_history, log_configure
 from aqua.data_model import CoordTransformer
 
 
-class FixerMixin():
-    """Fixer mixin for the Reader class"""
+class Fixer():
+    """Fixer for the Reader class"""
+
+    def __init__(self, model, exp, source, fixer_name=None, datamodel=None, fixes_dictionary=None, 
+                 convention=None, metadata=None, loglevel='WARNING'):
+
+        self.model = model # we likely do not need this anymore
+        self.exp = exp # we likely do not need this anymore
+        self.source = source # we likely do not need this anymore
+        self.fixes_dictionary = fixes_dictionary
+        self.fixer_name = fixer_name
+        self.convention = convention
+        self.metadata = metadata
+        self.logger = log_configure(log_level=loglevel, log_name='fixer')
+        self.loglevel = loglevel
+        self.fixes = self.find_fixes()
+        self.deltat = 1
+
+
+        # find fixes for this model/exp/source
+        self.tgt_datamodel = datamodel
+        # Default destination datamodel
+        # (unless specified in instantiating the Reader)
+        if not self.tgt_datamodel:
+            self.tgt_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
 
     def find_fixes(self):
         """
@@ -610,7 +633,7 @@ class FixerMixin():
         """
 
         # First case: get from metadata
-        metadata_deltat = self.esmcat.metadata.get('deltat')
+        metadata_deltat = self.metadata.get('deltat')
         if metadata_deltat:
             self.logger.debug('deltat = %s read from metadata', metadata_deltat)
             return metadata_deltat
