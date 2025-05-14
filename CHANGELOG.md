@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ## [Unreleased]
 
-Unreleased in the current development version (target v0.15.1):
+Unreleased in the current development version (target v0.16.0):
 
 AQUA core complete list:
 
