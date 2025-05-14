@@ -10,8 +10,14 @@ Unreleased in the current development version (target v0.14.1):
 Removed:
 - `aqua.slurm` has been removed.
 
+Workflow modifications:
+- `push_analysis.sh` (and the tool `push_s3.py` which it calls) now both return proper error codes if the transfer fails. 0 = ok, 1 = credentials not valid, 2 = bucket not found. This would allow the workflow to check return codes.
+As an alternative, connectivity could be tested before attempting to run push_analysis by pushing a small file (e.g. with `python push_s3.py aqua-web ping.txt`))
+
 AQUA core complete list:
 - Add FDB_HOME to debug logs (#1914)
+- Enabling support for DestinE STAC API to detect `bridge_start_date`and `bridge_end_date` (#1895)
+- Return codes for push_s3 and push_analysis utilities (#1903)
 - Polytope support (#1893)
 - Additional stats for LRA and other refinements (#1886) 
 - New OutputSaver class (#1837)
@@ -88,6 +94,7 @@ AQUA core complete list:
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
 
 AQUA diagnostics complete list:
+- Ensemble: config file structure and tests (#1630)
 - Ocean3d: Tests for the Ocean3d diagnostic (#1780)
 - Diagnostic core: A common function to check and convert variable units is provided as `convert_data_units()` (#1806)
 - Ocean3d: Bug fix to regridding of observations in cli (#1811)
