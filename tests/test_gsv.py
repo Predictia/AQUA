@@ -266,3 +266,37 @@ class TestGsv():
 
         client.shutdown()
         cluster.close()
+
+# Additional tests for the GSVSource class
+
+@pytest.mark.gsv
+def test_fdb_home_bridge_logs(capsys):
+    # Prepare test metadata ensuring we have fdbhome_bridge
+    metadata = {
+        'fdb_home_bridge': FDB_HOME,
+        'fdb_home': FDB_HOME
+    }
+
+    source = GSVSource(DEFAULT_GSV_PARAMS['request'], data_start_date='20080101T1200', data_end_date='20080101T1200',
+                        metadata=metadata, loglevel='DEBUG')
+
+    # No assert in the following because we cannot check the stderr logs. This is just for coverage.
+
+    source.chk_type = [1]  # Force chunk type to be bridge
+    source._get_partition(ii=0)
+
+    source.chk_type = [0]
+    source._get_partition(ii=0)
+
+    metadata = {
+        'fdb_path_bridge': FDB_HOME+'/etc/fdb/config.yaml',
+        'fdb_path': FDB_HOME+'/etc/fdb/config.yaml'
+    }
+    source = GSVSource(DEFAULT_GSV_PARAMS['request'], data_start_date='20080101T1200', data_end_date='20080101T1200',
+                        metadata=metadata, loglevel='DEBUG')
+    
+    source.chk_type = [1]
+    source._get_partition(ii=0)
+
+    source.chk_type = [0]
+    source._get_partition(ii=0)
