@@ -13,7 +13,20 @@ from aqua.data_model import CoordTransformer
 
 
 class Fixer():
-    """Fixer module"""
+    """Fixer module
+    
+    Args:
+        model (str): The model name
+        exp (str): The experiment name
+        source (str): The source name
+        fixer_name (str): The fixer name
+        datamodel (str): The datamodel name
+        fixes_dictionary (dict): The dictionary of fixes
+        convention (name): The convention name
+        metadata (dict): The metadata dictionary
+        loglevel (str): The log level
+    
+    """
 
     def __init__(self, model, exp, source, fixer_name=None, datamodel=None, fixes_dictionary=None, 
                  convention=None, metadata=None, loglevel='WARNING'):
