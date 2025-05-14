@@ -78,7 +78,7 @@ def plot_single_map(data: xr.DataArray,
     nside = hp.npix2nside(npix) if hp.isnpixok(npix) else None
 
     if nside is not None:
-        logger.warning(f"Input data is in HEALPix format with nside={nside}.")
+        logger.info(f"Input data is in HEALPix format with nside={nside}.")
         data = healpix_resample(data)
     else:
         logger.debug("Input data is not in HEALPix format.")

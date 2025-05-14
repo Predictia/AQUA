@@ -482,4 +482,6 @@ def healpix_resample(
             rescale=True,
         )
 
-    return xr.DataArray(res, coords=[("lat", yvals), ("lon", xvals)])
+    result = xr.DataArray(res, coords=[("lat", yvals), ("lon", xvals)])
+    result.attrs = getattr(var, "attrs", {}).copy()
+    return result
