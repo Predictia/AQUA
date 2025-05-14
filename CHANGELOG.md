@@ -7,11 +7,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 Unreleased in the current development version (target v0.14.1):
 
+Removed:
+- `aqua.slurm` has been removed.
+
+Workflow modifications:
+- `push_analysis.sh` (and the tool `push_s3.py` which it calls) now both return proper error codes if the transfer fails. 0 = ok, 1 = credentials not valid, 2 = bucket not found. This would allow the workflow to check return codes.
+As an alternative, connectivity could be tested before attempting to run push_analysis by pushing a small file (e.g. with `python push_s3.py aqua-web ping.txt`))
+
 AQUA core complete list:
+- Return codes for push_s3 and push_analysis utilities (#1903)
+- Polytope support (#1893)
+- Additional stats for LRA and other refinements (#1886) 
+- New OutputSaver class (#1837)
+- Introduce a `Timstat()` module independent from the `Reader()` (#1832)
+- Adapt Catalog Generator to Data-Portfolio v1.3.0 (#1848)
+- Introduction of a internal AQUA data model able to guess coordinates and convert toward required target data convention definition (#1862, #1877, #1883)
+- Custom `paths` in the `confi-aqua.yaml` can now be defined and will take priority over the catalog paths (#1809)
+- Remove deprecated `aqua.slurm` module (#1860)
+- Refactor of `plot_maps()` and `plot_maps_diff()` functions with projection support and use their single map version internally (#1865)
+- Refactor of `plot_single_map()` and `plot_single_map_diff()` functions with projection support (#1854)
+- Refactor time handling: replacement of `datetime` objects and of `pd.Timestamp` lists (#1828)
+- Fix the `regrid_method` option in the Reader (#1859)
+- Add a GitHub Token for downloading ClimateDT catalogs (#1855)
+- Ignore `nonlocal` complaints by flake8 (#1855)
+- WOCE-ARGO ocean dataset grids and fixes added (#1846)
+- Upgrade of base container to FDB 5.15.11 (#1845)
 - Matplotlib styles can be set in the configuration file (#1729)
 - Graphics refactoring for timeseries plot functions (#1729, #1841)
 - Major refactor of the regrid options, with new modular `Regridder()` class replacing `Regrid()` mixin (#1768)
 - Refactor of the `retrieve_plain()` function with contextmanager and smmregrid GridInspector (#1768)
+
+AQUA diagnostics complete list:
+- Diagnostic core: refinement of OutputSaver metadata and name handling (#1901)
+- Diagnostic core: refactor of the documentation folder structure (#1891)
+- Timeseries: complete refactor of the timeseries diagnostic according to the Diagnostic, PlotDiagnostic schema (#1712, #1896)
 
 ## [v0.14.0]
 
