@@ -11,6 +11,7 @@ import sys
 import gc
 import xarray as xr
 from dask.distributed import Client, LocalCluster
+from dask.utils import format_bytes
 import numpy as np
 import pandas as pd
 from aqua.util import load_yaml, get_arg, ConfigPath
@@ -33,62 +34,24 @@ def parse_arguments(args):
                         required=False, help="loglevel")
 
     # These will override the first one in the config file if provided
-    # parser.add_argument("--catalog", type=str,
-    #                    required=False, help="catalog name")
+    parser.add_argument("--catalog", type=str,
+                        required=False, help="catalog name")
     parser.add_argument("--model", type=str,
                         required=False, help="model name")
     parser.add_argument("--exp", type=str,
                         required=False, help="experiment name")
     parser.add_argument("--source", type=str,
                         required=False, help="source name")
+    parser.add_argument("--startdate", type=str,
+                        required=False, help="start date")
+    parser.add_argument("--enddate", type=str,
+                        required=False, help="end date")
     parser.add_argument("--outputdir", type=str,
                         required=False, help="output directory")
+    parser.add_argument("--cluster", type=str, 
+                        required=False, help="dask cluster address")
+
     return parser.parse_args(args)
-
-
-def get_plot_options(config: dict = None, variable: str = None):
-    """
-    Extracts timeseries plot options from a configuration dictionary.
-
-    This function retrieves a set of parameters related to timeseries plotting from the 
-    `timeseries_plot_params` key of the provided config file.
-
-    Args:
-        config (config file): Settings are defined in the config file 
-            which is load by the load_yaml function. 
-            It is expected to include the key `timeseries_plot_params` with 
-            sub-keys for various plotting parameters. Defaults to None.
-        variable (str): A variable name (not used in the current implementation, 
-            but reserved for future use). Defaults to None.
-            
-    Returns:
-        tuple: A tuple containing the following elements extracted from the 
-        `timeseries_plot_params` key in the configuration:
-            - startdate (any): The start date for the timeseries plot (default: None if not found).
-            - enddate (any): The end date for the timeseries plot (default: None).
-            - plot_std (any): Flag or settings for plotting standard deviations (default: None).
-            - plot_ensemble_members (any): Flag or settings for plotting ensemble members (default: None).
-            - ensemble_label (any): Label for ensemble data (default: None).
-            - figure_size (any): Size of the figure (default: None).
-            - ref_label (any): Label for the reference data (default: None).
-            - label_ncol (any): Number of columns for the plot legend labels (default: None).
-            - label_size (any): Font size of the labels (default: None).
-            - pdf_save (any): Whether to save the plot as a PDF (default: None).
-            - units (any): Units for the data being plotted (default: None).
-    """
-    startdate = config["timeseries_plot_params"].get("startdate", None)
-    enddate = config["timeseries_plot_params"].get("enddate", None)
-    plot_std = config["timeseries_plot_params"].get("plot_std", None)
-    plot_ensemble_members = config["timeseries_plot_params"].get("plot_ensemble_members", None)
-    ensemble_label = config["timeseries_plot_params"].get("ensemble_label", None)
-    figure_size = config["timeseries_plot_params"].get("figure_size", None)
-    ref_label = config["timeseries_plot_params"].get("ref_label", None)
-    label_ncol = config["timeseries_plot_params"].get("label_ncol", None)
-    label_size = config["timeseries_plot_params"].get("label_size", None)
-    pdf_save = config["timeseries_plot_params"].get("pdf_save", None)
-    units = config["timeseries_plot_params"].get("units", None)
-    return startdate, enddate, plot_std, plot_ensemble_members, ensemble_label, figure_size, ref_label, label_ncol, label_size, pdf_save, units
-
 
 def retrieve_data(variable=None, models=None, exps=None, sources=None, startdate=None, enddate=None, ens_dim="Ensembles"):
     """
@@ -161,28 +124,13 @@ def retrieve_data(variable=None, models=None, exps=None, sources=None, startdate
     gc.collect()
     return startdate, enddate, merged_dataset
 
-
 if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
 
     loglevel = get_arg(args, "loglevel", "WARNING")
     logger = log_configure(loglevel, 'CLI multi-model Timeseries ensemble')
-    logger.info("Running Global Time Series diagnostic")
-
-    # Moving to the current directory so that relative paths work
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    if os.getcwd() != dname:
-        os.chdir(dname)
-        logger.info(f"Changing directory to {dname}")
-
-    # Dask distributed cluster
-    nworkers = get_arg(args, 'nworkers', None)
-    if nworkers:
-        cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
-        client = Client(cluster)
-        logger.info(f"Running with {nworkers} dask distributed workers.")
+    logger.info("Starting Ensemble Time Series diagnostic")
 
     # Load configuration file
     configdir = ConfigPath(loglevel=loglevel).configdir
@@ -191,16 +139,39 @@ if __name__ == '__main__':
     file = get_arg(args, "config", default_config)
     logger.info(f"Reading configuration file {file}")
     config = load_yaml(file)
-    #file = get_arg(args, "config", "config_timeseries_ensemble.yaml")
-    #logger.info(f"Reading configuration file {file}")
-    #config = load_yaml(file)
+
+    # Initialize the Dask cluster
+    nworkers = get_arg(args, 'nworkers', None)
+    config_cluster = get_arg(args, 'cluster', None)
+
+    # If nworkers is not provided, use the value from the config
+    if nworkers is None or config_cluster is None:
+        config_cluster = config['cluster'].copy()
+    if nworkers is not None:
+        config_cluster['nworkers'] = nworkers
+
+    cluster = LocalCluster(n_workers=config_cluster['nworkers'], threads_per_worker=1)
+    client = Client(cluster)
+
+    # Get the Dask dashboard URL
+    logger.info("Dask Dashboard URL: %s", client.dashboard_link)
+    workers = client.scheduler_info()["workers"]
+    worker_count = len(workers)
+    total_memory = format_bytes(
+        sum(w["memory_limit"] for w in workers.values() if w["memory_limit"]))
+    memory_text = f"Workers={worker_count}, Memory={total_memory}"
+    logger.info(memory_text)
 
     variable = config['variable']
-    logger.info(f"Plotting {variable} timeseries")
-    startdate, enddate, plot_std, plot_ensemble_members, ensemble_label, figure_size, ref_label, label_ncol, label_size, pdf_save, units = get_plot_options(
-        config, variable)
-
+    logger.info(f"Variable under consideration: {variable}")
     outputdir = get_arg(args, "outputdir", config["outputdir"])
+
+    startdate = get_arg(args, "startdate", config["startdate"])
+    enddate = get_arg(args, "enddate", config["enddate"])
+
+    plot_options = config.get("plot_options", {})
+
+    logger.info(f"Loading {variable} timeseries")
 
     # Monthly model data
     mon_model = config['models_monthly']
@@ -216,6 +187,7 @@ if __name__ == '__main__':
             mon_exp_list.append(model['exp'])
             mon_source_list.append(model['source'])
 
+    # Reterive monthly data
     mon_startdate, mon_enddate, mon_dataset = retrieve_data(
         variable, models=mon_model_list, exps=mon_exp_list, sources=mon_source_list, startdate=startdate, enddate=enddate)
 
@@ -233,6 +205,7 @@ if __name__ == '__main__':
             ann_exp_list.append(model['exp'])
             ann_source_list.append(model['source'])
 
+    # Reterieve annual data
     ann_startdate, ann_enddate, ann_dataset = retrieve_data(
         variable, models=mon_model_list, exps=mon_exp_list, sources=ann_source_list, startdate=startdate, enddate=enddate)
 
@@ -257,12 +230,13 @@ if __name__ == '__main__':
     reader = Reader(model=ref_ann_model, exp=ref_ann_exp, source=ref_ann_source,
                     startdate=ann_startdate, enddate=ann_enddate, areas=False,variable=variable)
     ref_ann_dataset = reader.retrieve(var=variable)
-
+    
+    # Check if we need monthly and annual time variables
     ts = EnsembleTimeseries(var=variable, mon_model_dataset=mon_dataset, ann_model_dataset=ann_dataset,
-                            mon_ref_data=ref_mon_dataset, ann_ref_data=ref_ann_dataset)
-    try:
-        ts.edit_attributes(plot_std=plot_std, plot_ensemble_members=plot_ensemble_members, ensemble_label=ensemble_label,
-                         ref_label=ref_label, figure_size=figure_size, label_ncol=label_ncol, label_size=label_size, pdf_save=pdf_save)
-        ts.run()
-    except Exception as e:
-        logger.error(f'Error plotting {variable} timeseries: {e}')
+                            mon_ref_data=ref_mon_dataset, ann_ref_data=ref_ann_dataset, outputdir=outputdir, plot_options=plot_options)
+    ts.run()
+
+    logger.info(f"Finished Ensemble time series diagnostic for {variable}.")
+    # Close the Dask client and cluster
+    client.close()
+    cluster.close()

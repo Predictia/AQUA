@@ -7,43 +7,56 @@ models_monthly:
   - model: 'IFS-NEMO'
     exp: 'historical-1990'
     source: 'aqua-timeseries-monthly'
+    catalog: null
   - model: 'IFS-FESOM'
     exp: 'historical-1990'
     source: 'aqua-timeseries-monthly'
+    catalog: null 
 
 models_annual:
   - model: 'IFS-NEMO'
     exp: 'historical-1990'
     source: 'aqua-timeseries-annual'
+    catalog: null
   - model: 'IFS-FESOM'
     exp: 'historical-1990'
     source: 'aqua-timeseries-annual'
+    catalog: null
 
+# Reference
 reference_model_monthly:  
   - model: 'ERA5'
     exp: 'era5'
     source: 'aqua-timeseries-monthly'
+    catalog: null
 
 reference_model_annual:  
   - model: 'ERA5'
     exp: 'era5'
     source: 'aqua-timeseries-annual'
-
+    catalog: null
 
 outputdir: "./"
 
 # This is the variable that will be plotted as timeseries
 variable: '2t'
 
-timeseries_plot_params:
-  startdate: '1990-01-01'
-  enddate: '2000-12-31'
+startdate: '1990-01-01'
+enddate: '2000-12-31'
+
+# This is the current dask configuration which works for the inputs above. It could be adjusted based on the system this application is run.
+cluster:
+  nworkers: 8
+  threads_per_worker: 1
+  memory_limit: 30e9
+
+plot_options:
   plot_std: True
-  plot_ensemble_members: False
+  plot_ensemble_members: True
   ensemble_label: 'Multi-model'
+  plot_title: 'Ensemble statistics for 2-meter temperature [K]'
   ref_label: 'ERA5'
   figure_size: [10,5]
   label_ncol: 3
   label_size: 7
-  pdf_save: True
   units: 

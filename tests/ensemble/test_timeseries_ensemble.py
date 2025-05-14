@@ -31,11 +31,3 @@ def test_ensemble_timeseries_compute():
     assert ts.mon_dataset_mean is not None
     assert ts.mon_dataset_std.values.all() == 0 
 
-@pytest.mark.ensemble
-def test_edit_attributes():
-    """Test the edit_attributes method."""
-    ts = EnsembleTimeseries(var="2t")
-    ts.edit_attributes(loglevel="DEBUG", ensemble_label="Test Ensemble")
-
-    assert ts.loglevel == "DEBUG"
-    assert ts.ensemble_label == "Test Ensemble"

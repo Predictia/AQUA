@@ -11,6 +11,7 @@ import sys
 import gc
 import xarray as xr
 from dask.distributed import Client, LocalCluster
+from dask.utils import format_bytes
 from aqua import Reader
 from aqua.util import load_yaml, get_arg, ConfigPath
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
@@ -42,44 +43,10 @@ def parse_arguments(args):
                         required=False, help="source name")
     parser.add_argument("--outputdir", type=str,
                         required=False, help="output directory")
+    parser.add_argument("--cluster", type=str, 
+                        required=False, help="dask cluster address")
+
     return parser.parse_args(args)
-
-
-def get_plot_options(config: dict = None, variable: str = None):
-    """
-    Extracts zonal mean plot options from a config file.
-
-    This function retrieves a set of parameters related to timeseries plotting from the 
-    `zonalmean_plot_params` key of the provided config file.
-
-    Args:
-        config (config file): Settings are defined in the config file 
-            which is load by the load_yaml function. 
-            It is expected to include the key `zonalmean_plot_params` with 
-            sub-keys for various plotting parameters. Defaults to None.
-        variable (str): A variable name (not used in the current implementation, 
-            but reserved for future use). Defaults to None.
-
-    Returns:
-        tuple: A tuple containing the following elements extracted from the 
-        `zonalmean_plot_params` key in the configuration:
-            - figure_size (any): The size of the figure (default: None if not found).
-            - plot_std (any): Flag or settings for plotting standard deviations (default: None).
-            - plot_label (any): Label for the plot (default: None).
-            - pdf_save (any): Whether to save the plot as a PDF (default: None).
-            - mean_plot_title (any): Title for the mean plot (default: None).
-            - std_plot_title (any): Title for the standard deviation plot (default: None).
-            - cbar_label (any): Label for the color bar (default: None).
-    """
-    figure_size = config["zonalmean_plot_params"].get("figure_size", None)
-    plot_std = config["zonalmean_plot_params"].get("plot_std", None)
-    plot_label = config["zonalmean_plot_params"].get("plot_label", None)
-    pdf_save = config["zonalmean_plot_params"].get("pdf_save", None)
-    mean_plot_title = config["zonalmean_plot_params"].get("mean_plot_title", None)
-    std_plot_title = config["zonalmean_plot_params"].get("std_plot_title", None)
-    cbar_label = config["zonalmean_plot_params"].get("cbar_label", None)
-    return figure_size, plot_std, plot_label, pdf_save, mean_plot_title, std_plot_title, cbar_label
-
 
 def retrieve_data(region=None,variable=None, models=None, exps=None, sources=None, ens_dim="Ensembles"):
     """
@@ -123,7 +90,6 @@ def retrieve_data(region=None,variable=None, models=None, exps=None, sources=Non
     gc.collect()
     return merged_dataset
 
-
 if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
@@ -131,20 +97,6 @@ if __name__ == '__main__':
     loglevel = get_arg(args, "loglevel", "WARNING")
     logger = log_configure(loglevel, 'CLI multi-model ensemble calculation of zonalmean')
     logger.info("Running multi-model ensemble calculation of zonalmean")
-
-    # Moving to the current directory so that relative paths work
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    if os.getcwd() != dname:
-        os.chdir(dname)
-        logger.info(f"Changing directory to {dname}")
-
-    # Dask distributed cluster
-    nworkers = get_arg(args, 'nworkers', None)
-    if nworkers:
-        cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
-        client = Client(cluster)
-        logger.info(f"Running with {nworkers} dask distributed workers.")
 
     # Load configuration file
     configdir = ConfigPath(loglevel=loglevel).configdir
@@ -154,14 +106,34 @@ if __name__ == '__main__':
     logger.info(f"Reading configuration file {file}")
     config = load_yaml(file)
 
-    #file = get_arg(args, "config", "config_zonalmean_ensemble.yaml")
-    #logger.info(f"Reading configuration file {file}")
-    #config = load_yaml(file)
+    # Initialize the Dask cluster
+    nworkers = get_arg(args, 'nworkers', None)
+    config_cluster = get_arg(args, 'cluster', None)
+
+    # If nworkers is not provided, use the value from the config
+    if nworkers is None or config_cluster is None:
+        config_cluster = config['cluster'].copy()
+    if nworkers is not None:
+        config_cluster['nworkers'] = nworkers
+
+    cluster = LocalCluster(n_workers=config_cluster['nworkers'], threads_per_worker=1)
+    client = Client(cluster)
+
+    # Get the Dask dashboard URL
+    logger.info("Dask Dashboard URL: %s", client.dashboard_link)
+    workers = client.scheduler_info()["workers"]
+    worker_count = len(workers)
+    total_memory = format_bytes(
+        sum(w["memory_limit"] for w in workers.values() if w["memory_limit"]))
+    memory_text = f"Workers={worker_count}, Memory={total_memory}"
+    logger.info(memory_text)
 
     variable = config['variable']
     region = config['region']
+    outputdir = get_arg(args, "outputdir", config["outputdir"])
+    plot_options = config.get("plot_options", {})
+
     logger.info(f"Plotting {variable} Zonal average")
-    figure_size, plot_std, plot_label, pdf_save, mean_plot_title, std_plot_title, cbar_label = get_plot_options(config, variable)
 
     model = config['models']
     model_list = []
@@ -177,13 +149,9 @@ if __name__ == '__main__':
             source_list.append(model['source'])
 
     zonal_dataset = retrieve_data(region=region, variable=variable, models=model_list, exps=exp_list, sources=source_list)
-
-    outdir = get_arg(args, "outputdir", config["outputdir"])
-    outfile = f'aqua-analysis-ensemble-zonalmean-map-{region}-{variable}'
-    zm = EnsembleZonal(var=variable, dataset=zonal_dataset)
-    try:
-        zm.edit_attributes(outfile=outfile,cbar_label=cbar_label)  # to change class attributes
-        zm.run()
-
-    except Exception as e:
-        logger.error(f'Error plotting {variable} ensemble: {e}')
+    zm = EnsembleZonal(var=variable, dataset=zonal_dataset, outputdir=outputdir, plot_options=plot_options)
+    zm.run()
+    logger.info(f"Finished Ensemble Zonal Average diagnostic for {variable}.")
+    # Close the Dask client and cluster
+    client.close()
+    cluster.close()

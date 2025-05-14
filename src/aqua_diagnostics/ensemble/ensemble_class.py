@@ -25,8 +25,8 @@ class EnsembleTimeseries():
                  ann_model_dataset=None,
                  mon_ref_data=None,
                  ann_ref_data=None,
-                 ensemble_dimension_name="Ensembles",
-                 loglevel='WARNING'):
+                 ensemble_dimension_name="Ensembles",outputdir='./',
+                 loglevel='WARNING', **kwargs):
         """
         Args:
             var (str): Variable name.
@@ -39,40 +39,39 @@ class EnsembleTimeseries():
                      dimensions along with the individual Datasets were concatenated.
             mon_ref_data: xarray Dataset of monthly reference data.
             ann_ref_data: xarray Dataset of annual reference data.
+            outputdir (str): String input for output path.
             loglevel (str): Log level. Default is "WARNING".
+            **kwargs (dict): dictonary contains options for plots. Defaults values have been set already.
         """
         self.loglevel = loglevel
         self.logger = log_configure(log_level=self.loglevel, log_name='Ensemble Timeseries')
         self.var = var
+        self.dim = ensemble_dimension_name
         self.mon_model_dataset = mon_model_dataset
         self.ann_model_dataset = ann_model_dataset
         self.mon_ref_data = mon_ref_data
         self.ann_ref_data = ann_ref_data
-
-        self.plot_label = True
-
         self.mon_dataset_mean = None
         self.mon_dataset_std = None
-
         self.ann_dataset_mean = None
         self.ann_dataset_std = None
+        self.outputdir = outputdir + 'Ensemble_Timeseries'
+        self.outfile = f'ensemble_time_series_timeseries_{self.var}.pdf'
 
-        self.plot_std = True
-        self.plot_ensemble_members = True
-        self.plot_ref = True
-        self.figure_size = [10, 5]
-        self.outfile = None
-        self.outdir = 'Ensemble_Timeseries'
-        self.label_size = 7.5
-        self.ensemble_label = 'Ensemble'
-        self.ref_label = 'ERA5'
-        self.plot_title = 'Ensemble statistics for '+self.var
-        self.dim = ensemble_dimension_name
-        self.label_ncol = 3
-        self.pdf_save = True
-        if self.pdf_save is False:
-            self.logger.info("Figure will not be saved")
-        self.netcdf_save = True
+        plot_options = kwargs.get('plot_options',{})
+        self.plot_label = plot_options.get('plot_label',True)
+        self.plot_std =  plot_options.get('plot_std',True)
+        self.plot_ensemble_members = plot_options.get('plot_ensemble_members',True)
+        self.plot_ref = plot_options.get('plot_ref',True)
+        self.figure_size = plot_options.get('figure_size',[10, 5])
+        self.label_size = plot_options.get('label_size',7.5)
+        self.ensemble_label = plot_options.get('ensemble_label','Ensemble')
+        self.ref_label = plot_options.get('ref_label','ERA5')
+        self.plot_title = plot_options.get('plot_title','Ensemble statistics for '+self.var)
+        self.label_ncol = plot_options.get('plot_options',3)
+        # self.units = plot_options.get('plot_options',None) # TODO
+        # TODO: save the ensemble mean and the std values as netcdf files
+        # self.netcdf_save = True
 
     def ensemble_mean(self, dataset):
         """
@@ -102,15 +101,6 @@ class EnsembleTimeseries():
         if self.ann_model_dataset != None:
             self.ann_dataset_std = self.ann_model_dataset[self.var].std(dim=self.dim)
 
-    def edit_attributes(self, **kwargs):
-        """
-        This method helps edit the default attributes. 
-        """
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-            else:
-                print(f"Attribute '{key}' does not exist.")
 
     def plot(self):
         """
@@ -182,22 +172,19 @@ class EnsembleTimeseries():
         ax.legend(ncol=self.label_ncol, fontsize=self.label_size, framealpha=0)
         
         # Save plot as pdf
-        if self.pdf_save:
-            self.logger.info("Saving figure to pdf")
-            if self.outfile is None:
-                outfile = f'ensemble_time_series_timeseries_{self.var}'
-            else:
-                outfile = self.outfile
-            pdf_path = os.path.join(self.outdir, 'pdf')
-            self.logger.debug(f"Saving figure to {pdf_path}")
-            create_folder(pdf_path, self.loglevel)
-            outfile += '.pdf'
-            self.logger.debug(f"pdf output: {outfile}")
-            fig.savefig(os.path.join(pdf_path, outfile),bbox_inches='tight', pad_inches=0.1)
+        self.logger.info("Saving figure to pdf")
+        pdf_path = os.path.join(self.outputdir, 'pdf')
+        self.logger.debug(f"Saving figure to {pdf_path}")
+        create_folder(pdf_path, self.loglevel)
+        self.logger.debug(f"pdf output: {self.outfile}")
+        fig.savefig(os.path.join(pdf_path, self.outfile),bbox_inches='tight', pad_inches=0.1)
 
+    # TODO: separate .compute with .plot in order to implement DASK's .compute() 
+    # In order to use DASK's .compute() only on compute_statistics, the following function is commented out.
+    # Needs to be tested if it save's compute time when we use both functions with DASK's .compute()
+  
     def run(self):
         self.compute()
-        self.edit_attributes()
         self.plot()
 
 class EnsembleLatLon():
@@ -205,7 +192,7 @@ class EnsembleLatLon():
     A class to compute ensemble mean and standard deviation of a 2D (lon-lat) Dataset.
     Make sure that the dataset has correct lon-lat dimensions.
     """
-    def __init__(self, var=None, dataset=None, ensemble_dimension_name="Ensembles", loglevel='WARNING'):
+    def __init__(self, var=None, dataset=None, ensemble_dimension_name="Ensembles", outputdir='./', loglevel='WARNING', **kwargs):
         """
         Args:
             var (str): Variable name.
@@ -214,32 +201,37 @@ class EnsembleLatLon():
                      a new dimension "Ensemble". This Ensemble name can be changed.
             ensemble_dimension_name="Ensembles" (str): a default name given to the 
                      dimensions along with the individual Datasets were concatenated.
+            outputdir (str): String input for output path.
             loglevel (str): Log level. Default is "WARNING".
+            **kwargs (dict): dictonary contains options for plots. Defaults values have been set already.
         """
         self.loglevel = loglevel
         self.logger = log_configure(log_level=self.loglevel, log_name='Ensemble')
 
         self.var = var
         self.dataset = dataset
-        if self.dataset is not None:
-            self.units = self.dataset[self.var].units
-        else:
-            self.units = "units"
-        self.dim = ensemble_dimension_name
-        self.plot_std = True
-        self.figure_size = [15,15]
-        self.plot_label = True
-        self.outdir = 'Ensemble_LatLon'
-        self.outfile = None
-        self.pdf_save = True
-        self.mean_plot_title = 'Map of '+self.var+' for Ensemble mean'
-        self.std_plot_title = 'Map of '+self.var+' for Ensemble standard deviation'
-        self.cbar_label = self.var+' in '+self.units
-
-        if self.pdf_save is False:
-            self.logger.info("Figure will not be saved")
         self.dataset_mean = None
         self.dataset_std = None
+        self.dim = ensemble_dimension_name
+        self.outputdir = outputdir + 'Ensemble_LatLon'
+        self.outputfile = f'global_2D_map_{var}'
+
+        plot_options = kwargs.get('plot_options',{})
+        self.plot_label = plot_options.get('plot_label',True)
+        self.plot_std =  plot_options.get('plot_std',True)
+        self.figure_size = plot_options.get('figure_size',[15, 15])
+        self.units = plot_options.get('units',None)
+        self.dpi = plot_options.get('dpi', 300)
+        if self.units is None:
+            self.units = self.dataset[self.var].units
+        self.cbar_label = plot_options.get('cbar_label',None)
+        if self.cbar_label is None:
+            self.cbar_label = self.var+' in ' + self.units
+        self.mean_plot_title = plot_options.get('mean_plot_title', f'Map of {self.var} for Ensemble mean')
+        self.std_plot_title = plot_options.get('std_plot_title', f'Map of {self.var} for Ensemble standard deviation')
+
+        # TODO: save the ensemble mean and the std values as netcdf files
+        # self.netcdf_save = True
 
     def compute(self):
         """
@@ -251,20 +243,10 @@ class EnsembleLatLon():
             self.dataset_mean = self.dataset.mean(dim=self.dim)
             self.dataset_std = self.dataset.std(dim=self.dim)
 
-    def edit_attributes(self, **kwargs):
-        """
-        This method helps edit the default attributes. 
-        """
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-            else:
-                print(f"Attribute '{key}' does not exist.")
 
     def plot(self):
         """
         This plots the ensemble mean and standard deviation of the ensemble statistics.
-        To edit the default settings please call the method "edit_attributes"
         """
         self.logger.info('Plotting the ensemble computation')
         projection = ccrs.PlateCarree()
@@ -278,9 +260,7 @@ class EnsembleLatLon():
 
             fig0 = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
             levels = np.linspace(dataset_mean.values.min(), dataset_mean.values.max(), num=21)
-            create_folder(self.outdir, self.loglevel)
-            if self.outfile is None:
-                self.outfile = f'global_2D_map_{var}'
+            create_folder(self.outputdir, self.loglevel)
             gs = gridspec.GridSpec(1, 1, figure=fig0)
             ax0 = fig0.add_subplot(gs[0, :], projection=projection)
             ax0.coastlines()
@@ -297,12 +277,12 @@ class EnsembleLatLon():
             cbar = fig0.colorbar(im, ax=ax0, shrink=0.43, extend='both')
             cbar.set_label(self.cbar_label)
             self.logger.info("Saving ensemble mean map to pdf")
-            outfig = os.path.join(self.outdir, 'mean_pdf')
+            outfig = os.path.join(self.outputdir, 'mean_pdf')
             self.logger.debug(f"Saving figure to {outfig}")
             create_folder(outfig, self.loglevel)
-            outfile = self.outfile + '_mean.pdf'
-            self.logger.debug(f"Outfile: {outfile}")
-            fig0.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1)
+            outfile = self.outputfile + '_mean.pdf'
+            self.logger.debug(f"mean output file: {outfile}")
+            fig0.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
 
         if self.dataset_std is not None:
             if isinstance(self.dataset_std,xr.Dataset):
@@ -328,18 +308,15 @@ class EnsembleLatLon():
             cbar = fig1.colorbar(im, ax=ax1, shrink=0.43, extend='both')
             cbar.set_label(self.cbar_label)
             self.logger.info("Saving ensemble std map to pdf")
-            outfig = os.path.join(self.outdir, 'std_pdf')
+            outfig = os.path.join(self.outputdir, 'std_pdf')
             self.logger.debug(f"Saving figure to {outfig}")
             create_folder(outfig, self.loglevel)
-            outfile = self.outfile + '_std.pdf'
-            self.logger.debug(f"Outfile: {outfile}")
-            fig1.savefig(os.path.join(outfig, outfile))
-            self.logger.debug(f"Outfile: {outfile}")
-            fig1.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1)
+            outfile = self.outputfile + '_std.pdf'
+            self.logger.debug(f"std output file: {outfile}")
+            fig1.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
 
     def run(self):
         self.compute()
-        self.edit_attributes()
         self.plot()
 
 class EnsembleZonal():
@@ -347,7 +324,7 @@ class EnsembleZonal():
     A class to compute ensemble mean and standard deviation of the Zonal averages
     Make sure that the dataset has correct lev-lat dimensions.
     """
-    def __init__(self, var=None, dataset=None, ensemble_dimension_name="Ensembles", loglevel='WARNING'):
+    def __init__(self, var=None, dataset=None, ensemble_dimension_name="Ensembles", outputdir='./', loglevel='WARNING', **kwargs):
         """
         Args:
             var (str): Variable name.
@@ -357,28 +334,33 @@ class EnsembleZonal():
             ensemble_dimension_name="Ensembles" (str): a default name given to the 
                      dimensions along with the individual Datasets were concatenated.
             loglevel (str): Log level. Default is "WARNING".
+            **kwargs (dict): dictonary contains options for plots. Defaults values have been set already.
         """
         self.loglevel = loglevel
         self.logger = log_configure(log_level=self.loglevel, log_name='Ensembles')
 
         self.var = var
         self.dataset = dataset
-        # if self.dataset != None: self.units = self.dataset[self.var].units
         self.dim = ensemble_dimension_name
-        self.plot_std = True
-        self.figure_size = [15, 15]
-        self.plot_label = True
-        self.outdir = 'Ensemble_Zonal'
-        self.outfile = None
-        self.pdf_save = True
-        self.mean_plot_title = 'Ensemble mean of zonal average of '+self.var
-        self.std_plot_title = 'Ensemble standard deviation of zonal average of '+self.var
-        self.cbar_label = self.var
-
-        if self.pdf_save is False:
-            self.logger.info("Figure will not be saved")
         self.dataset_mean = None
         self.dataset_std = None
+
+        self.outputdir = outputdir + 'Ensemble_Zonal'
+        self.outputfile = f'global_Zonal_plot_{var}'
+
+        plot_options = kwargs.get('plot_options',{})
+        self.plot_label = plot_options.get('plot_label',True)
+        self.plot_std =  plot_options.get('plot_std',True)
+        self.figure_size = plot_options.get('figure_size',[15, 15])
+        self.units = plot_options.get('units',None)
+        self.dpi = plot_options.get('dpi', 300)
+        if self.units is None:
+            self.units = self.dataset[self.var].units
+        self.cbar_label = plot_options.get('cbar_label',None)
+        if self.cbar_label is None:
+            self.cbar_label = self.var+' in ' + self.units
+        self.mean_plot_title = plot_options.get('mean_plot_title', f'Ensemble mean zonal average of {self.var}')
+        self.std_plot_title = plot_options.get('std_plot_title', f'Ensemble standard deviation of zonal average of {self.var}')
 
     def compute(self):
         """
@@ -389,16 +371,6 @@ class EnsembleZonal():
         if self.dataset != None:
             self.dataset_mean = self.dataset.mean(dim=self.dim)
             self.dataset_std = self.dataset.std(dim=self.dim)
-
-    def edit_attributes(self, **kwargs):
-        """
-        This method helps edit the default attributes. 
-        """
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-            else:
-                print(f"Attribute '{key}' does not exist.")
 
     def plot(self):
         """
@@ -415,9 +387,7 @@ class EnsembleZonal():
                 dataset_mean = self.dataset_mean
  
             fig0 = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
-            if self.outfile is None:
-                self.outfile = f'zonal_average_{var}'
-            ax0 = fig0.add_subplot(111)
+            ax0 = fig0.add_subplot(1,1,1)
             im = ax0.contourf(dataset_mean.lat,dataset_mean.lev,dataset_mean,cmap='RdBu_r', levels=20, extend='both')
             ax0.set_ylim((5500, 0))
             ax0.set_ylabel("Depth (in m)", fontsize=9)
@@ -426,13 +396,13 @@ class EnsembleZonal():
             ax0.set_title(self.mean_plot_title)
             cbar = fig0.colorbar(im, ax=ax0, shrink=0.9, extend='both')
             cbar.set_label(self.cbar_label)
-            self.logger.info("Saving ensemble mean map to pdf")
-            outfig = os.path.join(self.outdir, 'mean_pdf')
+            self.logger.info("Saving ensemble mean Zonal average to pdf")
+            outfig = os.path.join(self.outputdir, 'mean_pdf')
             self.logger.debug(f"Saving figure to {outfig}")
             create_folder(outfig, self.loglevel)
-            outfile = self.outfile + '_mean.pdf'
-            self.logger.debug(f"Outfile: {outfile}")
-            fig0.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1)
+            outfile = self.outputfile + '_mean.pdf'
+            self.logger.debug(f"Ensemble Zonal average mean file: {outfile}")
+            fig0.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi) 
 
         if self.dataset_std is not None:
             if isinstance(self.dataset_std,xr.Dataset):
@@ -441,11 +411,9 @@ class EnsembleZonal():
                 dataset_std = self.dataset_std
  
             fig1 = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
-            if self.outfile is None:
-                self.outfile = f'zonal_average_{var}'
-            ax1 = fig1.add_subplot(111)
+            ax1 = fig1.add_subplot(1,1,1)
             #im = self.dataset_std[var].contourf(ax=ax1, cmap=cmap, levels=20, extend='both');
-            im = ax1.contourf(dataset_std.lat,dataset_std.lev,dataset_std,cmap='OrRd',extend='both')
+            im = ax1.contourf(dataset_std.lat,dataset_std.lev,dataset_std,cmap='OrRd', levels=20, extend='both')
             ax1.set_ylim((5500, 0))
             ax1.set_ylabel("Depth (in m)", fontsize=9)
             ax1.set_xlabel("Latitude (in deg North)", fontsize=9)
@@ -454,14 +422,13 @@ class EnsembleZonal():
             cbar = fig1.colorbar(im, ax=ax1,shrink=0.9, extend='both')
             cbar.set_label(self.cbar_label)
             self.logger.info("Saving ensemble std map to pdf")
-            outfig = os.path.join(self.outdir, 'std_pdf')
+            outfig = os.path.join(self.outputdir, 'std_pdf')
             self.logger.debug(f"Saving figure to {outfig}")
             create_folder(outfig, self.loglevel)
-            outfile = self.outfile + '_std.pdf'
-            self.logger.debug(f"Outfile: {outfile}")
-            fig1.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1)
+            outfile = self.outputfile + '_std.pdf'
+            self.logger.debug(f"Ensemble Zonal average std file: {outfile}")
+            fig1.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
 
     def run(self):
         self.compute()
-        self.edit_attributes()
         self.plot()

@@ -31,11 +31,3 @@ def test_ensemble_2D_compute():
     assert latlon.dataset_mean is not None
     assert latlon.dataset_std.all() == 0 
 
-@pytest.mark.ensemble
-def test_edit_attributes():
-    """Test the edit_attributes method."""
-    latlon = EnsembleLatLon(var="2t")
-    latlon.edit_attributes(loglevel="DEBUG", cbar_label="Test Label")
-
-    assert latlon.loglevel == "DEBUG"
-    assert latlon.cbar_label == "Test Label"

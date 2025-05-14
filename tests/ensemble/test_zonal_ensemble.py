@@ -31,11 +31,3 @@ def test_ensemble_Zonal_compute():
     assert Zonal.dataset_mean.all() is not None
     assert Zonal.dataset_std.any() == 0 or np.nan # this step needs correction  
 
-@pytest.mark.ensemble
-def test_edit_attributes():
-    """Test the edit_attributes method."""
-    Zonal = EnsembleZonal(var="avg_so")
-    Zonal.edit_attributes(loglevel="DEBUG", cbar_label="Test Label")
-
-    assert Zonal.loglevel == "DEBUG"
-    assert Zonal.cbar_label == "Test Label"
