@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 '''
-AQUA teleconnections command line interface.
-Reads configuration file and performs teleconnections diagnostic.
+Command-line interface for Teleconnections diagnostic.
+
+This CLI allows to run the NAO and ENSO diagnostics.
+Details of the run are defined in a yaml configuration file for a
+single or multiple experiments.
 '''
 import argparse
 import sys
@@ -11,16 +14,17 @@ from aqua.util import get_arg
 from aqua.version import __version__ as aqua_version
 from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_cluster
 from aqua.diagnostics.core import load_diagnostic_config, merge_config_args
-from aqua.diagnostics.teleconnections import NAO
+from aqua.diagnostics.teleconnections import NAO, ENSO
+from aqua.diagnostics.teleconnections import PlotNAO, PlotENSO
 
 
 def parse_arguments(args):
-    """Parse command-line arguments for Timeseries diagnostic.
+    """Parse command-line arguments for Teleconnections diagnostic.
 
     Args:
         args (list): list of command-line arguments to parse.
     """
-    parser = argparse.ArgumentParser(description='Timeseries CLI')
+    parser = argparse.ArgumentParser(description='Teleconnections CLI')
     parser = template_parse_arguments(parser)
     return parser.parse_args(args)
 
@@ -59,6 +63,15 @@ if __name__ == '__main__':
                 logger.info('Running NAO teleconnections diagnostic')
 
                 nao = [None] * len(config_dict['datasets'])
+
+                for i, dataset in enumerate(config_dict['datasets']):
+                    logger.info(f'Running dataset: {dataset}')
+
+        if 'ENSO' in config_dict['diagnostics']['teleconnections']:
+            if config_dict['diagnostics']['teleconnections']['ENSO']['run']:
+                logger.info('Running ENSO teleconnections diagnostic')
+
+                enso = [None] * len(config_dict['datasets'])
 
                 for i, dataset in enumerate(config_dict['datasets']):
                     logger.info(f'Running dataset: {dataset}')
