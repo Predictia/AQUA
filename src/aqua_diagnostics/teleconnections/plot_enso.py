@@ -101,7 +101,7 @@ class PlotENSO(PlotBaseMixin):
             vmin_diff = -2.0
             vmax_diff = 2.0
 
-        maps, ref_maps = _homogeneize_maps(maps=maps, ref_maps=ref_maps)
+        maps, ref_maps = _homogeneize_maps(maps=maps, ref_maps=ref_maps, var=var)
 
         # Case 1: no reference maps
         if maps is not None and ref_maps is None:
@@ -205,35 +205,4 @@ class PlotENSO(PlotBaseMixin):
         Returns:
             str: Description of the maps.
         """
-        description = f"ENSO {statistic} map "
-
-        maps, ref_maps = _homogeneize_maps(maps=maps, ref_maps=ref_maps)
-
-        if isinstance(maps, xr.DataArray):
-            var = maps.shortName if hasattr(maps, 'shortName') else maps.long_name
-            description += f"({var}) "
-            description += f"{maps.AQUA_model} {maps.AQUA_exp}"
-            if hasattr(maps, 'AQUA_season'):
-                description += f" ({maps.AQUA_season})"
-        elif isinstance(maps, list):
-            var = maps[0].shortName if hasattr(maps[0], 'shortName') else maps[0].long_name
-            description += f"({var}) "
-            for map in maps:
-                description += f"{map.AQUA_model} {map.AQUA_exp}, "
-            description = description[:-2]
-            if hasattr(maps[0], 'AQUA_season'):
-                description += f" ({maps[0].AQUA_season})"
-        if isinstance(ref_maps, xr.DataArray):
-            var = ref_maps.shortName if hasattr(ref_maps, 'shortName') else ref_maps.long_name
-            description += f" compared to {ref_maps.AQUA_model} {ref_maps.AQUA_exp}"
-        elif isinstance(ref_maps, list):
-            var = ref_maps[0].shortName if hasattr(ref_maps[0], 'shortName') else ref_maps[0].long_name
-            description += f" compared to {ref_maps[0].AQUA_model} {ref_maps[0].AQUA_exp}"
-            for map in ref_maps:
-                description += f"{map.AQUA_model} {map.AQUA_exp}, "
-            description = description[:-2]
-        description += "."
-        if ref_maps is not None:
-            description += f" The contour lines are the model regression map and the filled contour map is the defference between the model and the reference {statistic} map."
-
-        return description
+        return super().set_map_description(maps=maps, ref_maps=ref_maps, statistic=statistic, telecname='ENSO3.4')
