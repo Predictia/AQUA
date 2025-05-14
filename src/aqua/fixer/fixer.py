@@ -42,6 +42,7 @@ class Fixer():
         self.loglevel = loglevel
         self.fixes = self.find_fixes()
         self.deltat = 1
+        self.time_correction = False
 
 
         # find fixes for this model/exp/source
