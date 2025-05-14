@@ -15,6 +15,7 @@ Workflow modifications:
 As an alternative, connectivity could be tested before attempting to run push_analysis by pushing a small file (e.g. with `python push_s3.py aqua-web ping.txt`))
 
 AQUA core complete list:
+- Enabling support for DestinE STAC API to detect `bridge_start_date`and `bridge_end_date` (#1895)
 - Return codes for push_s3 and push_analysis utilities (#1903)
 - Polytope support (#1893)
 - Additional stats for LRA and other refinements (#1886) 
