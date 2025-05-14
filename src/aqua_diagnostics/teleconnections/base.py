@@ -1,9 +1,9 @@
 import os
 import xarray as xr
-from aqua.diagnostics.core import Diagnostic, OutputSaver
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
 from aqua.util import load_yaml, select_season, to_list
+from aqua.diagnostics.core import Diagnostic, OutputSaver, convert_data_units
 
 xr.set_options(keep_attrs=True)
 
@@ -44,7 +44,7 @@ class BaseMixin(Diagnostic):
         self.index = None
 
     def compute_regression(self, var: str = None,
-                            dim: str = 'time', season: str = None):
+                           dim: str = 'time', season: str = None):
         """
         Compute the regression of the data on the index.
 
@@ -61,7 +61,7 @@ class BaseMixin(Diagnostic):
         return reg
 
     def compute_correlation(self, var: str = None,
-                             dim: str = 'time', season: str = None):
+                            dim: str = 'time', season: str = None):
         """
         Compute the correlation of the data on the index.
 
@@ -76,7 +76,7 @@ class BaseMixin(Diagnostic):
         data, index = self._prepare_statistic(var=var, season=season)
         corr = xr.corr(index, data, dim=dim, skipna=True)
         return corr
-    
+
     def _prepare_statistic(self, var: str = None, season: str = None):
         """Hidden method to prepare the data and index for the statistic."""
         # Preparing data and index. Both have to be xr.DataArray
@@ -106,7 +106,7 @@ class BaseMixin(Diagnostic):
             interface (str): The filename of the interface file.
                              Default is 'teleconnections-destine'.
             telecname (str): The name of the teleconnection. It selects the subset of the interface.
-        
+
         Returns:
             dict: The interface file as a dictionary.
         """
@@ -159,8 +159,8 @@ class PlotBaseMixin():
         self.get_data_info()
 
         self.outputsaver = OutputSaver(diagnostic=diagnostic,  catalog=self.catalogs, model=self.models,
-                                  exp=self.exps, catalog_ref=self.ref_catalogs, model_ref=self.ref_models,
-                                  exp_ref=self.ref_exps, outdir=outputdir, rebuild=rebuild, loglevel=self.loglevel)
+                                       exp=self.exps, catalog_ref=self.ref_catalogs, model_ref=self.ref_models,
+                                       exp_ref=self.ref_exps, outdir=outputdir, rebuild=rebuild, loglevel=self.loglevel)
 
     def get_data_info(self):
         """
@@ -198,11 +198,11 @@ class PlotBaseMixin():
         titles_dataset = [f'{diagnostic} index for {self.models[i]} {self.exps[i]}'
                           for i in range(self.len_data)]
         titles_ref = [f'{diagnostic} index for {self.ref_models[i]} {self.ref_exps[i]}'
-                       for i in range(self.len_ref)]
+                      for i in range(self.len_ref)]
         titles = titles_dataset + titles_ref
 
         return titles
-    
+
     def set_labels(self):
         """
         Set the labels for the plot.
@@ -213,10 +213,10 @@ class PlotBaseMixin():
         labels_dataset = [f'{self.models[i]} {self.exps[i]}'
                           for i in range(self.len_data)]
         labels_ref = [f'{self.ref_models[i]} {self.ref_exps[i]}'
-                       for i in range(self.len_ref)]
+                      for i in range(self.len_ref)]
         labels = labels_dataset + labels_ref
         return labels
-    
+
     def set_index_description(self, index_name: str = None):
         """
         Set the description of the index. This is used to
@@ -232,7 +232,7 @@ class PlotBaseMixin():
 
         dataset = [f"{self.models[i]} {self.exps[i]}" for i in range(self.len_data)]
         refs = [f"{self.ref_models[i]} {self.ref_exps[i]}" for i in range(self.len_ref)]
-        
+
         if self.len_data > 0:
             description += f" {', '.join(dataset)}"
         if self.len_ref > 0:
@@ -242,7 +242,7 @@ class PlotBaseMixin():
 
         self.logger.debug(f'Index description: {description}')
         return description
-    
+
     def save_plot(self, fig, diagnostic_product: str = None, extra_keys: dict = None,
                   dpi: int = 300, format: str = 'png', metadata: dict = None):
         """
@@ -265,17 +265,72 @@ class PlotBaseMixin():
             _ = self.outputsaver.save_pdf(fig, diagnostic_product=diagnostic_product,
                                           extra_keys=extra_keys, metadata=metadata)
 
-def _homogeneize_maps(maps, ref_maps):
+    def set_map_description(self, maps=None, ref_maps=None, statistic: str = None, telecname: str = None):
+        """
+        Set the description for the maps.
+
+        Args:
+            maps (list): List of maps to plot.
+            ref_maps (list): List of reference maps to plot.
+            statistic (str): Statistic to plot. Default is None.
+            telecname (str): The name of the teleconnection. Default is None.
+
+        Returns:
+            str: Description of the maps.
+        """
+        description = f"{telecname} {statistic} map "
+
+        maps, ref_maps = _homogeneize_maps(maps=maps, ref_maps=ref_maps)
+
+        if isinstance(maps, xr.DataArray):
+            var = maps.shortName if hasattr(maps, 'shortName') else maps.long_name
+            description += f"({var}) "
+            description += f"{maps.AQUA_model} {maps.AQUA_exp}"
+            if hasattr(maps, 'AQUA_season'):
+                description += f" ({maps.AQUA_season})"
+        elif isinstance(maps, list):
+            var = maps[0].shortName if hasattr(maps[0], 'shortName') else maps[0].long_name
+            description += f"({var}) "
+            for map in maps:
+                description += f"{map.AQUA_model} {map.AQUA_exp}, "
+            description = description[:-2]
+            if hasattr(maps[0], 'AQUA_season'):
+                description += f" ({maps[0].AQUA_season})"
+        if isinstance(ref_maps, xr.DataArray):
+            var = ref_maps.shortName if hasattr(ref_maps, 'shortName') else ref_maps.long_name
+            description += f" compared to {ref_maps.AQUA_model} {ref_maps.AQUA_exp}"
+        elif isinstance(ref_maps, list):
+            var = ref_maps[0].shortName if hasattr(ref_maps[0], 'shortName') else ref_maps[0].long_name
+            description += f" compared to {ref_maps[0].AQUA_model} {ref_maps[0].AQUA_exp}"
+            for map in ref_maps:
+                description += f"{map.AQUA_model} {map.AQUA_exp}, "
+            description = description[:-2]
+        description += "."
+        if ref_maps is not None:
+            description += f" The contour lines are the model regression map and the filled contour map is the defference between the model and the reference {statistic} map."
+
+        return description
+
+
+def _homogeneize_maps(maps, ref_maps=None, var=None):
     """
     Homogeneize the maps. If a list has length 1, we convert it to a single xarray.
 
     Args:
         maps (list): The list of maps to be homogenized.
         ref_maps (list): The list of reference maps to be homogenized.
+        var (str): The variable to be used. Default is None.
 
     Returns:
         tuple: The homogenized maps and reference maps.
     """
+    if var == 'msl':
+        maps = to_list(maps)
+        maps = [convert_data_units(data, var=var, units='hPa') for data in maps]
+        if ref_maps is not None:
+            ref_maps = to_list(ref_maps)
+            ref_maps = [convert_data_units(data, var=var, units='hPa') for data in ref_maps]
+
     if isinstance(maps, list) and len(maps) == 1:
         maps = maps[0]
     if isinstance(ref_maps, list) and len(ref_maps) == 1:
