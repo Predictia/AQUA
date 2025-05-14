@@ -15,11 +15,12 @@ from aqua.exceptions import NoDataError, NoRegridError
 from aqua.version import __version__ as aqua_version
 from aqua.regridder import Regridder
 from aqua.timstat import TimStat
+from aqua.fixer import Fixer
 from aqua.data_model import counter_reverse_coordinate
 import aqua.gsv
 
 from .streaming import Streaming
-from .fixer import Fixer
+
 from .reader_utils import set_attrs
 
 # set default options for xarray

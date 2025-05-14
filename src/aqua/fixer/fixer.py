@@ -13,7 +13,7 @@ from aqua.data_model import CoordTransformer
 
 
 class Fixer():
-    """Fixer for the Reader class"""
+    """Fixer module"""
 
     def __init__(self, model, exp, source, fixer_name=None, datamodel=None, fixes_dictionary=None, 
                  convention=None, metadata=None, loglevel='WARNING'):
