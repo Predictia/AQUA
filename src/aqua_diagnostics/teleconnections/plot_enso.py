@@ -29,7 +29,7 @@ class PlotENSO(PlotBaseMixin):
         indexes = self.indexes + self.ref_indexes
 
         labels = super().set_labels()
-        
+
         fig, axs = indexes_plot(indexes=indexes, thresh=thresh, suptitle='ENSO3.4 index',
                                 ylabel='ENSO3.4 index', labels=labels, loglevel=self.loglevel)
 
@@ -69,7 +69,7 @@ class PlotENSO(PlotBaseMixin):
 
     def set_index_description(self):
         return super().set_index_description(index_name='ENSO3.4')
-    
+
     def plot_maps(self, maps=None, ref_maps=None, statistic: str = None, vmin: float = None, vmax: float = None,
                   vmin_diff: float = None, vmax_diff: float = None, **kwargs):
         """
@@ -88,12 +88,14 @@ class PlotENSO(PlotBaseMixin):
         Returns:
             fig: Figure object.
         """
+        map_to_check = maps if isinstance(maps, xr.DataArray) else maps[0]
+        var = map_to_check.shortName if hasattr(map_to_check, 'shortName') else map_to_check.long_name
         if statistic == 'correlation' and vmin is None and vmax is None:
             vmin = -1.
             vmax = 1.
             vmin_diff = -0.5
             vmax_diff = 0.5
-        elif statistic == 'regression' and vmin is None and vmax is None:
+        elif statistic == 'regression' and vmin is None and vmax is None and var == 'tos':
             vmin = -2.5
             vmax = 2.5
             vmin_diff = -2.0
@@ -103,10 +105,9 @@ class PlotENSO(PlotBaseMixin):
 
         # Case 1: no reference maps
         if maps is not None and ref_maps is None:
-            
+
             # Case 1a: single map
             if isinstance(maps, xr.DataArray):
-                var = maps.shortName if hasattr(maps, 'shortName') else maps.long_name
                 title = f"ENSO {maps.AQUA_model} {maps.AQUA_exp} {statistic} map ({var})"
                 if hasattr(maps, 'AQUA_season'):
                     title += f" ({maps.AQUA_season})"
@@ -117,7 +118,6 @@ class PlotENSO(PlotBaseMixin):
             elif isinstance(maps, list):
                 titles = []
                 for map in maps:
-                    var = map.shortName if hasattr(map, 'shortName') else map.long_name
                     title = f"ENSO {map.AQUA_model} {map.AQUA_exp} {statistic} map ({var})"
                     if hasattr(map, 'AQUA_season'):
                         title += f" ({map.AQUA_season})"
@@ -130,7 +130,6 @@ class PlotENSO(PlotBaseMixin):
 
             # Case 2a: both maps and ref_maps are only one (we consider only both lists of one or both xarrays)
             if isinstance(maps, xr.DataArray) and isinstance(ref_maps, xr.DataArray):
-                var = maps.shortName if hasattr(maps, 'shortName') else maps.long_name
                 title = f"ENSO {maps.AQUA_model} {maps.AQUA_exp} {statistic} map ({var}) compared to {ref_maps.AQUA_model} {ref_maps.AQUA_exp}"
                 if hasattr(maps, 'AQUA_season'):
                     title += f" ({maps.AQUA_season})"
@@ -147,10 +146,8 @@ class PlotENSO(PlotBaseMixin):
             if isinstance(maps, list) and isinstance(ref_maps, xr.DataArray):
                 titles = []
                 for map in maps:
-                    var = map.shortName if hasattr(map, 'shortName') else map.long_name
                     title = f"{map.AQUA_model} {map.AQUA_exp}"
                     titles.append(title)
-                var = ref_maps.shortName if hasattr(ref_maps, 'shortName') else ref_maps.long_name
                 title = f"ENSO {statistic} map ({var}) compared to {ref_maps.AQUA_model} {ref_maps.AQUA_exp}"
                 if hasattr(ref_maps, 'AQUA_season'):
                     title += f" ({ref_maps.AQUA_season})"
@@ -166,15 +163,13 @@ class PlotENSO(PlotBaseMixin):
                                      sym_contour=True if vmax is None and vmin is None else False,
                                      titles=titles, title=title, return_fig=True,
                                      loglevel=self.loglevel, **kwargs)
-            
+
             # Case 2c: maps is only one and ref_maps is list
             if isinstance(maps, xr.DataArray) and isinstance(ref_maps, list):
                 titles = []
                 for map in ref_maps:
-                    var = map.shortName if hasattr(map, 'shortName') else map.long_name
                     title = f"Compared to {map.AQUA_model} {map.AQUA_exp}"
                     titles.append(title)
-                var = maps.shortName if hasattr(maps, 'shortName') else maps.long_name
                 title = f"ENSO {statistic} map ({var}) of {maps.AQUA_model} {maps.AQUA_exp}"
                 if hasattr(maps, 'AQUA_season'):
                     title += f" ({maps.AQUA_season})"
@@ -195,7 +190,7 @@ class PlotENSO(PlotBaseMixin):
             if isinstance(maps, list) and isinstance(ref_maps, list):
                 self.logger.error('Both maps and ref_maps are lists. This case is not implemented yet.')
                 fig = None
-        
+
         return fig
 
     def set_map_description(self, maps=None, ref_maps=None, statistic: str = None):
@@ -213,7 +208,7 @@ class PlotENSO(PlotBaseMixin):
         description = f"ENSO {statistic} map "
 
         maps, ref_maps = _homogeneize_maps(maps=maps, ref_maps=ref_maps)
-        
+
         if isinstance(maps, xr.DataArray):
             var = maps.shortName if hasattr(maps, 'shortName') else maps.long_name
             description += f"({var}) "
