@@ -3,38 +3,34 @@
 # --model, --exp, --source, --outputdir, --catalog
 
 # This yaml file will only have either annual or monthly
-models_monthly:
-  - model: 'IFS-NEMO'
+datasets:
+  - catalog: null
+    model: 'IFS-NEMO'
     exp: 'historical-1990'
     source: 'aqua-timeseries-monthly'
-    catalog: null
-  - model: 'IFS-FESOM'
+  - catalog: null  
+    model: 'IFS-FESOM'
     exp: 'historical-1990'
-    source: 'aqua-timeseries-monthly'
-    catalog: null 
-
-models_annual:
-  - model: 'IFS-NEMO'
+    source: 'aqua-timeseries-monthly' 
+  - catalog: null
+    model: 'IFS-NEMO'
     exp: 'historical-1990'
     source: 'aqua-timeseries-annual'
-    catalog: null
-  - model: 'IFS-FESOM'
+  - catalog: null
+    model: 'IFS-FESOM'
     exp: 'historical-1990'
     source: 'aqua-timeseries-annual'
-    catalog: null
 
 # Reference
-reference_model_monthly:  
-  - model: 'ERA5'
+reference:
+  - catalog: null  
+    model: 'ERA5'
     exp: 'era5'
     source: 'aqua-timeseries-monthly'
-    catalog: null
-
-reference_model_annual:  
-  - model: 'ERA5'
+  - catalog: null  
+    model: 'ERA5'
     exp: 'era5'
     source: 'aqua-timeseries-annual'
-    catalog: null
 
 outputdir: "./"
 

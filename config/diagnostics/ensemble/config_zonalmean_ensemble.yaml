@@ -2,11 +2,13 @@
 # in the command line by using:
 # --model, --exp, --source, --outputdir, --catalog
 # as an example two Zonal mean
-models:
-  - model: 'IFS-NEMO'
+datasets:
+  - catalog: null
+    model: 'IFS-NEMO'
     exp: 'historical-1990'
     source: 'aqua-zonalmean'
-  - model: 'IFS-NEMO'
+  - catalog: null
+    model: 'IFS-NEMO'
     exp: 'historical-1990'
     source: 'aqua-zonalmean'
 

@@ -2,11 +2,13 @@
 # in the command line by using:
 # --model, --exp, --source, --outputdir, --catalog
 #
-models:
-  - model: 'IFS-NEMO'
+datasets:
+  - catalog: Null
+    model: 'IFS-NEMO'
     exp: 'historical-1990'
     source: 'aqua-atmglobalmean'
-  - model: 'IFS-FESOM'
+  - catalog: Null
+    model: 'IFS-FESOM'
     exp: 'historical-1990'
     source: 'aqua-atmglobalmean'
 

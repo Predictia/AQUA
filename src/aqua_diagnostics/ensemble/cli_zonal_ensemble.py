@@ -33,8 +33,8 @@ def parse_arguments(args):
                         required=False, help="loglevel")
 
     # These will override the first one in the config file if provided
-    # parser.add_argument("--catalog", type=str,
-    #                    required=False, help="catalog name")
+    parser.add_argument("--catalog", type=str,
+                        required=False, help="catalog name")
     parser.add_argument("--model", type=str,
                         required=False, help="model name")
     parser.add_argument("--exp", type=str,
@@ -133,17 +133,18 @@ if __name__ == '__main__':
     outputdir = get_arg(args, "outputdir", config["outputdir"])
     plot_options = config.get("plot_options", {})
 
-    logger.info(f"Plotting {variable} Zonal average")
+    logger.info(f"Loading {variable} Zonal average lon-Lev data")
 
-    model = config['models']
+    models = config['datasets']
     model_list = []
     exp_list = []
     source_list = []
-    if model != None:
-        model[0]['model'] = get_arg(args, 'model', model[0]['model'])
-        model[0]['exp'] = get_arg(args, 'exp', model[0]['exp'])
-        model[0]['source'] = get_arg(args, 'source', model[0]['source'])
-        for model in model:
+    if models != None:
+        models[0]['catalog'] = get_arg(args, 'catalog', models[0]['catalog'])
+        models[0]['model'] = get_arg(args, 'model', models[0]['model'])
+        models[0]['exp'] = get_arg(args, 'exp', models[0]['exp'])
+        models[0]['source'] = get_arg(args, 'source', models[0]['source'])
+        for model in models:
             model_list.append(model['model'])
             exp_list.append(model['exp'])
             source_list.append(model['source'])

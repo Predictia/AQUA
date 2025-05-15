@@ -173,59 +173,57 @@ if __name__ == '__main__':
 
     logger.info(f"Loading {variable} timeseries")
 
-    # Monthly model data
-    mon_model = config['models_monthly']
+    # Model data
+    models = config['datasets']
+
     mon_model_list = []
     mon_exp_list = []
     mon_source_list = []
-    if mon_model != None:
-        mon_model[0]['model'] = get_arg(args, 'model', mon_model[0]['model'])
-        mon_model[0]['exp'] = get_arg(args, 'exp', mon_model[0]['exp'])
-        mon_model[0]['source'] = get_arg(args, 'source', mon_model[0]['source'])
-        for model in mon_model:
-            mon_model_list.append(model['model'])
-            mon_exp_list.append(model['exp'])
-            mon_source_list.append(model['source'])
+
+    ann_model_list = []
+    ann_exp_list = []
+    ann_source_list = []
+
+    if models != None:
+        models[0]['model'] = get_arg(args, 'model', models[0]['model'])
+        models[0]['exp'] = get_arg(args, 'exp', models[0]['exp'])
+        models[0]['source'] = get_arg(args, 'source', models[0]['source'])
+        for model in models:
+            if model['source'] == 'aqua-timeseries-monthly':
+                mon_model_list.append(model['model'])
+                mon_exp_list.append(model['exp'])
+                mon_source_list.append(model['source'])
+            if model['source'] == 'aqua-timeseries-annual':
+                ann_model_list.append(model['model'])
+                ann_exp_list.append(model['exp'])
+                ann_source_list.append(model['source'])
 
     # Reterive monthly data
     mon_startdate, mon_enddate, mon_dataset = retrieve_data(
         variable, models=mon_model_list, exps=mon_exp_list, sources=mon_source_list, startdate=startdate, enddate=enddate)
 
-    # Annual model data
-    ann_model = config['models_annual']
-    ann_model_list = []
-    ann_exp_list = []
-    ann_source_list = []
-    if ann_model != None:
-        ann_model[0]['model'] = get_arg(args, 'model', ann_model[0]['model'])
-        ann_model[0]['exp'] = get_arg(args, 'exp', ann_model[0]['exp'])
-        ann_model[0]['source'] = get_arg(args, 'source', ann_model[0]['source'])
-        for model in ann_model:
-            ann_model_list.append(model['model'])
-            ann_exp_list.append(model['exp'])
-            ann_source_list.append(model['source'])
-
     # Reterieve annual data
     ann_startdate, ann_enddate, ann_dataset = retrieve_data(
-        variable, models=mon_model_list, exps=mon_exp_list, sources=ann_source_list, startdate=startdate, enddate=enddate)
+        variable, models=ann_model_list, exps=ann_exp_list, sources=ann_source_list, startdate=startdate, enddate=enddate)
 
     # Reference monthly data
-    ref_mon = config['reference_model_monthly']
-    if ref_mon != None:
-        ref_mon_model = ref_mon[0]['model']
-        ref_mon_exp = ref_mon[0]['exp']
-        ref_mon_source = ref_mon[0]['source']
+    ref = config['reference']
+    ref[0]['model'] = get_arg(args, 'model', ref[0]['model'])
+    ref[0]['exp'] = get_arg(args, 'exp', ref[0]['exp'])
+    ref[0]['source'] = get_arg(args, 'source', ref[0]['source'])
+    for ref_model in ref:
+        if ref != None and ref_model['source'] == 'aqua-timeseries-monthly':
+            ref_mon_model = ref_model['model']
+            ref_mon_exp = ref_model['exp']
+            ref_mon_source = ref_model['source']
+        if ref != None and ref_model['source'] == 'aqua-timeseries-annual':
+            ref_ann_model = ref_model['model']
+            ref_ann_exp = ref_model['exp']
+            ref_ann_source = ref_model['source']
 
     reader = Reader(model=ref_mon_model, exp=ref_mon_exp, source=ref_mon_source,
                     startdate=mon_startdate, enddate=mon_enddate, areas=False,variable=variable)
     ref_mon_dataset = reader.retrieve(var=variable)
-
-    # Reference annual data
-    ref_ann = config['reference_model_annual']
-    if ref_ann != None:
-        ref_ann_model = ref_ann[0]['model']
-        ref_ann_exp = ref_ann[0]['exp']
-        ref_ann_source = ref_ann[0]['source']
 
     reader = Reader(model=ref_ann_model, exp=ref_ann_exp, source=ref_ann_source,
                     startdate=ann_startdate, enddate=ann_enddate, areas=False,variable=variable)
