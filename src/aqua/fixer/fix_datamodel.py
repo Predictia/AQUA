@@ -3,6 +3,8 @@ import xarray as xr
 from aqua.data_model import CoordTransformer
 from aqua.logger import log_history, log_configure
 
+DEFAULT_DATAMODEL = "aqua"
+
 class FixDataModel:
     """
     Class that uses the AQUA internal data model to apply to the data
@@ -32,9 +34,9 @@ class FixDataModel:
         if self.fixes is None:
             return data
         
-        src_datamodel = self.fixes.get("data_model")
-        if src_datamodel:
-            data = CoordTransformer(data, loglevel=self.loglevel).transform_coords()
+        datamodel = self.fixes.get("data_model", DEFAULT_DATAMODEL)
+        if datamodel:
+            data = CoordTransformer(data, loglevel=self.loglevel).transform_coords(name=datamodel)
 
         # Extra coordinate handling
         data = self._fix_dims(data)

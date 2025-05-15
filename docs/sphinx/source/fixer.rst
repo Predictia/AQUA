@@ -113,7 +113,6 @@ Here we show an example of a fixer file, including all the possible options:
 
     fixer_name:
         documentation-mother: 
-            data_model: ifs
             delete: 
                 - bad_variable
             vars:
@@ -123,7 +122,6 @@ Here we show an example of a fixer file, including all the possible options:
         documentation-fix:
             parent: documentation-to-merge
             convention: eccodes
-            data_model: ifs
             dims:
                 cells:
                     source: cells-to-rename
