@@ -5,7 +5,7 @@ from aqua.logger import log_history, log_configure
 
 DEFAULT_DATAMODEL = "aqua"
 
-class FixDataModel:
+class FixerDataModel:
     """
     Class that uses the AQUA internal data model to apply to the data
     Further fixes to coordinates and dimensions can be applied.
@@ -18,7 +18,7 @@ class FixDataModel:
     def __init__(self, fixes=None, loglevel=None):
 
         self.fixes = fixes
-        self.logger = log_configure(log_level=loglevel, log_name='FixDataModel')
+        self.logger = log_configure(log_level=loglevel, log_name='FixerDataModel')
         self.loglevel = loglevel
 
     def apply_datamodel(self, data: xr.Dataset):

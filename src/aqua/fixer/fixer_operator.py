@@ -8,7 +8,7 @@ import xarray as xr
 from aqua.logger import log_history, log_configure
 from aqua.util import to_list, normalize_units
 
-class FixOperator:
+class FixerOperator:
     """
     Base class for fix operators.
     Fix operators are method which apply specific fixes to the data.
@@ -24,7 +24,7 @@ class FixOperator:
 
         self.fixes = fixes
         self.loglevel = loglevel
-        self.logger = log_configure(log_level = loglevel, log_name="FixOperator")
+        self.logger = log_configure(log_level = loglevel, log_name="FixerOperator")
 
     def apply_unit_fix(self, data, time_correction=False):
         """

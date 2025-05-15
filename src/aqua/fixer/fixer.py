@@ -8,8 +8,8 @@ from aqua.util import eval_formula, get_eccodes_attr
 from aqua.util import to_list, convert_units
 from aqua.logger import log_history, log_configure
 
-from .fix_operator import FixOperator
-from .fix_datamodel import FixDataModel
+from .fixer_operator import FixerOperator
+from .fixer_datamodel import FixerDataModel
 
 DEFAULT_DELTAT = 1
 
@@ -38,8 +38,8 @@ class Fixer():
         self.fixes = self.find_fixes()
         self.deltat = self._define_deltat(default=DEFAULT_DELTAT)
         self.time_correction = False
-        self.operator = FixOperator(self.fixes, loglevel=loglevel)
-        self.datamodel = FixDataModel(self.fixes, loglevel=loglevel)
+        self.operator = FixerOperator(self.fixes, loglevel=loglevel)
+        self.datamodel = FixerDataModel(self.fixes, loglevel=loglevel)
 
 
     def find_fixes(self):
@@ -69,8 +69,6 @@ class Fixer():
         # convention dictionary.
         base_fixes = self._load_fixer_name()
         return self._combine_convention(base_fixes, convention_dictionary)
-
-
 
     def _load_convention_dictionary(self, version='2.39.0'):
         """
@@ -202,8 +200,8 @@ class Fixer():
         # if not fixes found, return fixes None
         return None
 
-
-    def _merge_fixes(self, base, specific):
+    @staticmethod
+    def _merge_fixes(base, specific):
         """
         Small function to merge fixes. Base fixes will be used as a default
         and specific fixes will replace where necessary. Dictionaries will be merged
@@ -481,7 +479,7 @@ class Fixer():
         return default
 
  
-
+    
     def _override_tgt_units(self, tgt_units, varfix, var):
         """
         Override destination units for the single variable
