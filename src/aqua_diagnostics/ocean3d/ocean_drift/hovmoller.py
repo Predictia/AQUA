@@ -79,7 +79,7 @@ class Hovmoller(Diagnostic):
         super().retrieve(var = var)
         self.logger.info("Data retrieved successfully")
         self.area_select()
-        self.stacked_data = self._data_process_for_drift(dim_mean=["lat", "lon"])
+        self.stacked_data = self.compute_hovmoller(dim_mean=["lat", "lon"])
         self.save_netcdf(diagnostic="Hovmoller", diagnostic_product="Hovmoller")
         self.logger.info("Hovmoller diagram saved to netCDF file")
 
@@ -143,7 +143,7 @@ class Hovmoller(Diagnostic):
         return 
 
 
-    def _data_process_for_drift(self, dim_mean: None):
+    def compute_hovmoller(self, dim_mean: None):
         """
         Processes input data for drift analysis by applying various transformations 
         and aggregations.
