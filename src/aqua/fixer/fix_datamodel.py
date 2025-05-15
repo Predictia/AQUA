@@ -4,7 +4,14 @@ from aqua.data_model import CoordTransformer
 from aqua.logger import log_history, log_configure
 
 class FixDataModel:
-        
+    """
+    Class that uses the AQUA internal data model to apply to the data
+    Further fixes to coordinates and dimensions can be applied.
+
+    Args:
+        fixes (dict): Dictionary containing the fixes to be applied.
+        loglevel (int, optional): Log level for logging. Defaults to None.
+    """ 
 
     def __init__(self, fixes=None, loglevel=None):
 

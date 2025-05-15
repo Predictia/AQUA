@@ -34,7 +34,7 @@ class Reader():
     def __init__(self, model=None, exp=None, source=None, catalog=None,
                  fix=True,
                  regrid=None, regrid_method=None,
-                 areas=True, datamodel=None,
+                 areas=True, 
                  streaming=False,
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4,
@@ -56,8 +56,6 @@ class Reader():
                                            If not specified anywhere, using "ycon".
             fix (bool, optional): Activate data fixing
             areas (bool, optional): Compute pixel areas if needed. Defaults to True.
-            datamodel (str, optional): Destination data model for coordinates, overrides the one in fixes.yaml.
-                                       Defaults to None.
             streaming (bool, optional): If to retrieve data in a streaming mode. Defaults to False.
             startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
             enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None.
