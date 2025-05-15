@@ -135,27 +135,9 @@ class Hovmoller(Diagnostic):
         return data
 
           
-    def _data_process_by_type(self, **kwargs):
-        """
-        Selects the type of timeseries and colormap based on the given parameters.
+    def _data_process_by_type(self, anomaly = None ,anomaly_ref = None, standardise = False):
 
-        Args:
-            data (DataArray): Input data containing temperature (thetao) and salinity (so).
-            anomaly (bool, optional): Specifies whether to compute anomalies. Defaults to False.
-            standardise (bool, optional): Specifies whether to standardize the data. Defaults to False.
-            anomaly_ref (str, optional): Reference for the anomaly computation. Valid options: "t0", "tmean". Defaults to None.
-
-        Returns:
-            process_data (Dataset): Processed data based on the selected preprocessing approach.
-            type (str): Type of preprocessing approach applied
-            cmap (str): Colormap to be used for the plot.
-        """
-        data = kwargs["data"]
-        anomaly = kwargs["anomaly"]
-        anomaly_ref = kwargs["anomaly_ref"]
-        standardise = kwargs["standardise"]
-
-        processed_data = self._get_std_anomaly(data, anomaly_ref, standardise, dim = "time")
+        processed_data = self._get_std_anomaly(self.data, anomaly_ref, standardise, dim = "time")
         type = processed_data.attrs["AQUA_type"]
         self.processed_data_dic[type] = processed_data
         return 
@@ -185,7 +167,6 @@ class Hovmoller(Diagnostic):
             [False, True], [False, True], ["t0", "tmean"]
         ):
             data_proc = self._data_process_by_type(
-                data = data,
                 anomaly = anomaly,
                 standardise = standardise,
                 anomaly_ref = anomaly_ref,
