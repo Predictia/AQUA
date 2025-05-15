@@ -11,6 +11,7 @@ from aqua.util import to_list, normalize_units, convert_units
 from aqua.logger import log_history, log_configure
 from aqua.data_model import CoordTransformer
 
+DEFAULT_DELTAT = 1
 
 class Fixer():
     """Fixer module
@@ -41,7 +42,7 @@ class Fixer():
         self.logger = log_configure(log_level=loglevel, log_name='fixer')
         self.loglevel = loglevel
         self.fixes = self.find_fixes()
-        self.deltat = 1
+        self.deltat = self._define_deltat(default=DEFAULT_DELTAT)
         self.time_correction = False
 
 
@@ -439,9 +440,7 @@ class Fixer():
         src_datamodel = self.fixes_dictionary["defaults"].get("src_datamodel", None)
         self.logger.debug("Default input datamodel: %s", src_datamodel)
 
-        # set deltat
-        self.deltat  = self._define_deltat()
-       
+      
         # Special case for monthly deltat
         if self.deltat == "monthly":
             self.logger.info('%s deltat found, we will estimate a correction based on number of days per month', self.deltat)
@@ -639,7 +638,7 @@ class Fixer():
 
         return data
 
-    def _define_deltat(self):
+    def _define_deltat(self, default):
         """
         Define the deltat for the fixer. 
         The priority is given to the metadata, then to the fixes and finally to the default value.
@@ -659,8 +658,8 @@ class Fixer():
             return fix_deltat
         
         # Third case: get from default
-        self.logger.debug('deltat = %s defined as Reader() default', self.deltat)
-        return self.deltat
+        self.logger.debug('deltat = %s defined as Fixer() default', default)
+        return default
 
     def _delete_variables(self, data):
         """

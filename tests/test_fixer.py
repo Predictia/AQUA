@@ -162,6 +162,6 @@ def test_fixer_deltat():
     reader2 = Reader(model='IFS', exp='test-tco79', source='long', loglevel=loglevel)
     data_fixer = reader2.retrieve(var='tnlwrf').isel(time=5)
     assert data_metadata.equals(data_fixer)
-    assert reader1.deltat == 3600
-    assert reader2.deltat == 3600
+    assert reader1.fixer.deltat == 3600
+    assert reader2.fixer.deltat == 3600
 

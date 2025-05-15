@@ -101,7 +101,6 @@ class Reader():
         self.regrid_method = regrid_method
         self.nproc = nproc
         self.vert_coord = None
-        self.deltat = 1  # time in seconds to be used for cumulated variables unit convrersion
         self.time_correction = False  # extra flag for correction data with cumulation time on monthly timescale
         self.aggregation = aggregation
         self.chunks = chunks
