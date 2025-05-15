@@ -172,7 +172,6 @@ class Reader():
         if self.fix:
             self.fixes_dictionary = load_multi_yaml(self.fixer_folder, loglevel=self.loglevel)
             self.fixer = Fixer(fixer_name=self.fixer_name,
-                               datamodel=datamodel,
                                convention=self.convention,
                                fixes_dictionary=self.fixes_dictionary,
                                metadata=self.esmcat.metadata,
@@ -240,7 +239,7 @@ class Reader():
             if self.fix:
                 # TODO: this should include the latitudes flipping fix.
                 # TODO: No check is done on the areas coords vs data coords
-                self.src_grid_area = self.fixer._fix_area(self.src_grid_area)
+                self.src_grid_area = self.fixer.datamodel.fix_area(self.src_grid_area)
 
         # configure regridder and generate weights
         if regrid:
@@ -256,7 +255,7 @@ class Reader():
             self.tgt_grid_area = self.regridder.areas(tgt_grid_name=self.tgt_grid_name, rebuild=rebuild)
             if self.fix:
                 # TODO: this should include the latitudes flipping fix
-                self.tgt_grid_area = self.fixer._fix_area(self.tgt_grid_area)
+                self.tgt_grid_area = self.fixer.datamodel.fix_area(self.tgt_grid_area)
             self.tgt_space_coord = self.regridder.tgt_horizontal_dims
 
         # activste time statistics
