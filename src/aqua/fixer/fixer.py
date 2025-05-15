@@ -17,11 +17,8 @@ class Fixer():
     """Fixer module
     
     Args:
-        model (str): The model name
-        exp (str): The experiment name
-        source (str): The source name
-        fixer_name (str): The fixer name
-        datamodel (str): The datamodel name
+        fixer_name (str): The fixer name defined in the fixes dictionary
+        datamodel (str): The target datamodel name
         fixes_dictionary (dict): The dictionary of fixes
         convention (name): The convention name
         metadata (dict): The metadata dictionary
@@ -29,12 +26,9 @@ class Fixer():
     
     """
 
-    def __init__(self, model, exp, source, fixer_name=None, datamodel=None, fixes_dictionary=None, 
+    def __init__(self, fixer_name=None, datamodel=None, fixes_dictionary=None, 
                  convention=None, metadata=None, loglevel='WARNING'):
 
-        self.model = model # we likely do not need this anymore
-        self.exp = exp # we likely do not need this anymore
-        self.source = source # we likely do not need this anymore
         self.fixes_dictionary = fixes_dictionary
         self.fixer_name = fixer_name
         self.convention = convention
@@ -79,40 +73,42 @@ class Fixer():
         # The merge is done only if the base_fixes dictionary has the 'convention' field matching the
         # convention dictionary.
         base_fixes = self._load_fixer_name()
-        base_fixes = self._combine_convention(base_fixes, convention_dictionary)
+        return self._combine_convention(base_fixes, convention_dictionary)
 
-        # Check the presence of model-specific fix
-        # If fix_model is found, we look for the specific source one and
-        # only in that case we merge it with the dictionary obtained so far.
-        # TODO: this is deprecated and will be removed in the future
-        fix_model = self.fixes_dictionary["models"].get(self.model, None)
 
-        # Browse for source-specific fixes and load them.
-        # TODO: this is deprecated and will be removed in the future
-        source_fixes = self._load_source_fixes(fix_model)
-        if source_fixes is not None:
-            self.logger.warning("Source-specific fixes are deprecated and they will be removed in the future")
+        # # Check the presence of model-specific fix
+        # # If fix_model is found, we look for the specific source one and
+        # # only in that case we merge it with the dictionary obtained so far.
+        # # TODO: this is deprecated and will be removed in the future
+        # fix_model = self.fixes_dictionary["models"].get(self.model, None)
 
-        # If only fixes family/default is available, return them
-        if source_fixes is None:
-            if base_fixes is None:
-                self.logger.warning("No fixes available for model %s, experiment %s, source %s",
-                                    self.model, self.exp, self.source)
-                return None
-            else:
-                self.logger.debug('Final fixes are: %s', base_fixes)
-                return base_fixes
+        # # Browse for source-specific fixes and load them.
+        # # TODO: this is deprecated and will be removed in the future
+        # source_fixes = self._load_source_fixes(fix_model)
+        # if source_fixes is not None:
+        #     self.logger.warning("Source-specific fixes are deprecated and they will be removed in the future")
 
-        # Join source specific fixes together with the found fixer_name
-        if base_fixes is not None and source_fixes is not None:
-            final_fixes = self._combine_fixes(base_fixes, source_fixes)
-        elif base_fixes is None:
-            final_fixes = source_fixes
-        else:  # source_fixes is None
-            final_fixes = base_fixes
+        # # If only fixes family/default is available, return them
+        # if source_fixes is None:
+        #     if base_fixes is None:
+        #         self.logger.warning("No fixes available for model %s, experiment %s, source %s",
+        #                             self.model, self.exp, self.source)
+        #         return None
+        #     else:
+        #         self.logger.debug('Final fixes are: %s', base_fixes)
+        #         return base_fixes
 
-        self.logger.debug('Final fixes are: %s', final_fixes)
-        return final_fixes
+        # # Join source specific fixes together with the found fixer_name
+        # if base_fixes is not None and source_fixes is not None:
+        #     final_fixes = self._combine_fixes(base_fixes, source_fixes)
+        # elif base_fixes is None:
+        #     final_fixes = source_fixes
+        # else:  # source_fixes is None
+        #     final_fixes = base_fixes 
+
+        # self.logger.debug('Final fixes are: %s', final_fixes)
+        # return final_fixes 
+
 
     def _load_convention_dictionary(self, version='2.39.0'):
         """
@@ -177,12 +173,10 @@ class Fixer():
         # TODO: version should be a parameter in the fixer_name and in the convention dictionary
         if base_convention is not None:
             if base_convention != convention and convention is not None:
-                raise ValueError("The convention in the convention dictionary: %s is different from the fixer_name: %s",
-                                 base_convention, convention)
+                raise ValueError(f"The convention in the convention dictionary: {base_convention} is different from the fixer_name: {convention}")
             if 'version' in base_fixes and 'version' in convention_dictionary:
                 if base_fixes['version'] != convention_dictionary['version']:
-                    raise ValueError("The version in the convention dictionary: %s is different from the fixer_name: %s",
-                                     base_fixes['version'], convention_dictionary['version'])
+                    raise ValueError(f"The version in the convention dictionary: {base_fixes['version']} is different from the fixer_name: {convention_dictionary['version']}")
         else:
             self.logger.info("No convention found in the fixer_name, the convention dictionary will not be used")
             return base_fixes
@@ -217,49 +211,49 @@ class Fixer():
 
         return base_fixes
 
-    def _combine_fixes(self, default_fixes, model_fixes):
-        """
-        Combine fixes from the default or the source/model specific or the family fixes
+    # def _combine_fixes(self, default_fixes, model_fixes):
+    #     """
+    #     Combine fixes from the default or the source/model specific or the family fixes
 
-        Args:
-            default_fixes: Model default or family fixes
-            model_fixes: Source specific fixes with ad hoc rules
+    #     Args:
+    #         default_fixes: Model default or family fixes
+    #         model_fixes: Source specific fixes with ad hoc rules
 
-        Returns:
-            Final fix configuration
-        """
+    #     Returns:
+    #         Final fix configuration
+    #     """
 
-        if model_fixes is None:
-            # TODO; to be removed when restructuring the fixes
-            # if default_fixes is None:
-            #     self.logger.warning("No default fixes found! No fixes available for model %s, experiment %s, source %s",
-            #                         self.model, self.exp, self.source)
-            #     return None
+    #     if model_fixes is None:
+    #         # TODO; to be removed when restructuring the fixes
+    #         # if default_fixes is None:
+    #         #     self.logger.warning("No default fixes found! No fixes available for model %s, experiment %s, source %s",
+    #         #                         self.model, self.exp, self.source)
+    #         #     return None
 
-            self.logger.info("Default model %s fixes found! Using it for experiment %s, source %s",
-                             self.model, self.exp, self.source)
-            return default_fixes
-        else:
-            # get method to combine fixes: replace is the default
-            method = model_fixes.get('method', 'replace')
-            self.logger.info("For source %s, method for fixes is: %s", self.source, method)
+    #         self.logger.info("Default model %s fixes found! Using it for experiment %s, source %s",
+    #                          self.model, self.exp, self.source)
+    #         return default_fixes
+    #     else:
+    #         # get method to combine fixes: replace is the default
+    #         method = model_fixes.get('method', 'replace')
+    #         self.logger.info("For source %s, method for fixes is: %s", self.source, method)
 
-            # if nothing specified or replace method, use the fixes
-            if method == 'replace':
-                self.logger.debug("Replacing fixes with source-specific fixes")
-                final_fixes = model_fixes
+    #         # if nothing specified or replace method, use the fixes
+    #         if method == 'replace':
+    #             self.logger.debug("Replacing fixes with source-specific fixes")
+    #             final_fixes = model_fixes
 
-            # if merge method is specified, replace/add to default fixes
-            elif method == 'merge':
-                self.logger.debug("Merging fixes with source-specific fixes")
-                final_fixes = self._merge_fixes(default_fixes, model_fixes)
+    #         # if merge method is specified, replace/add to default fixes
+    #         elif method == 'merge':
+    #             self.logger.debug("Merging fixes with source-specific fixes")
+    #             final_fixes = self._merge_fixes(default_fixes, model_fixes)
 
-            # if method is default, roll back to default
-            elif method == 'default':
-                self.logger.debug("Rolling back to default fixes")
-                final_fixes = default_fixes
+    #         # if method is default, roll back to default
+    #         elif method == 'default':
+    #             self.logger.debug("Rolling back to default fixes")
+    #             final_fixes = default_fixes
 
-            return final_fixes
+    #         return final_fixes
 
     def _load_fixer_name(self):
         """
@@ -337,70 +331,70 @@ class Fixer():
 
         return final
 
-    def _load_source_fixes(self, fix_model):
-        """
-        Browse for source/model specific fixes, return None if not found
+    # def _load_source_fixes(self, fix_model):
+    #     """
+    #     Browse for source/model specific fixes, return None if not found
 
-        Deprecated and will be removed in the future
-        """
-        if fix_model is None:  # Nothing to do and since this is deprecated we do not log
-            # self.logger.debug("No source-specific fixes available for model %s, using default fixes",
-            #                   self.model)
-            return None
+    #     Deprecated and will be removed in the future
+    #     """
+    #     if fix_model is None:  # Nothing to do and since this is deprecated we do not log
+    #         # self.logger.debug("No source-specific fixes available for model %s, using default fixes",
+    #         #                   self.model)
+    #         return None
 
-        # look for exp fix, if not found, set default fixes
-        fix_exp = fix_model.get(self.exp, None)
-        if fix_exp is None:
-            # self.logger.debug("No source-specific fixes available for model %s, experiment %s",
-            #                   self.model, self.exp)
-            return None
+    #     # look for exp fix, if not found, set default fixes
+    #     fix_exp = fix_model.get(self.exp, None)
+    #     if fix_exp is None:
+    #         # self.logger.debug("No source-specific fixes available for model %s, experiment %s",
+    #         #                   self.model, self.exp)
+    #         return None
 
-        fixes = fix_exp.get(self.source, None)
-        if fixes is None:
-            # self.logger.debug("No source-specific fixes available for model %s, experiment %s, source %s: checking for model default...",  # noqa: E501
-            #                   self.model, self.exp, self.source)
-            fixes = fix_exp.get('default', None)
-            # if fixes is None:
-            #     self.logger.debug("Nothing found! I will use with model default or family fixes...")
-            # else:
-            if fixes is not None:
-                self.logger.debug("Using experiment-specific default for model %s, experiment %s", self.model, self.exp)
-        else:
-            self.logger.debug("Source-specific fixes found for model %s, experiment %s, source %s",
-                              self.model, self.exp, self.source)
+    #     fixes = fix_exp.get(self.source, None)
+    #     if fixes is None:
+    #         # self.logger.debug("No source-specific fixes available for model %s, experiment %s, source %s: checking for model default...",  # noqa: E501
+    #         #                   self.model, self.exp, self.source)
+    #         fixes = fix_exp.get('default', None)
+    #         # if fixes is None:
+    #         #     self.logger.debug("Nothing found! I will use with model default or family fixes...")
+    #         # else:
+    #         if fixes is not None:
+    #             self.logger.debug("Using experiment-specific default for model %s, experiment %s", self.model, self.exp)
+    #     else:
+    #         self.logger.debug("Source-specific fixes found for model %s, experiment %s, source %s",
+    #                           self.model, self.exp, self.source)
 
-        return fixes
+    #     return fixes
 
-    def _load_default_fixes(self, fix_model):
-        """
-        Brief function to load the deafult fixes of single model.
-        It looks at both the model and the experiment level.
-        If default fixes are not found, return None
+    # def _load_default_fixes(self, fix_model):
+    #     """
+    #     Brief function to load the deafult fixes of single model.
+    #     It looks at both the model and the experiment level.
+    #     If default fixes are not found, return None
 
-        Args:
-            fix_model: The model dictionary of fixes
+    #     Args:
+    #         fix_model: The model dictionary of fixes
 
-        Returns:
-            dictionary of the default fixes
-        """
+    #     Returns:
+    #         dictionary of the default fixes
+    #     """
 
-        default_fix_exp = fix_model.get('default', None)
-        if default_fix_exp is None:
-            self.logger.debug("Default fixes not found for %s", self.model)
-            default_fixes = None
-        else:
-            if 'default' in default_fix_exp:
-                default_fixes = default_fix_exp.get('default', None)
-                if default_fixes is not None:
-                    self.logger.debug("Default based fixes found for %s-%s", self.model, self.exp)
-                    self.logger.warning("Default fixes are deprecated and they will be removed in the future")
+    #     default_fix_exp = fix_model.get('default', None)
+    #     if default_fix_exp is None:
+    #         self.logger.debug("Default fixes not found for %s", self.model)
+    #         default_fixes = None
+    #     else:
+    #         if 'default' in default_fix_exp:
+    #             default_fixes = default_fix_exp.get('default', None)
+    #             if default_fixes is not None:
+    #                 self.logger.debug("Default based fixes found for %s-%s", self.model, self.exp)
+    #                 self.logger.warning("Default fixes are deprecated and they will be removed in the future")
 
-            else:
-                self.logger.debug("Default based fixes found for %s", self.model)
-                self.logger.warning("Default fixes are deprecated and they will be removed in the future")
-                default_fixes = default_fix_exp
+    #         else:
+    #             self.logger.debug("Default based fixes found for %s", self.model)
+    #             self.logger.warning("Default fixes are deprecated and they will be removed in the future")
+    #             default_fixes = default_fix_exp
 
-        return default_fixes
+    #     return default_fixes
 
     def fixer(self, data, destvar, apply_unit_fix=True):
         """
@@ -989,8 +983,6 @@ class Fixer():
         if variables:
             self.logger.debug("Variables in the fixes: %s", variables)
         else:
-            self.logger.warning("No variables in the fixes for source %s",
-                                self.source)
             self.logger.warning("Returning the original variable")
             return var
 

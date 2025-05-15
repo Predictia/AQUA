@@ -171,8 +171,7 @@ class Reader():
 
         if self.fix:
             self.fixes_dictionary = load_multi_yaml(self.fixer_folder, loglevel=self.loglevel)
-            self.fixer = Fixer(model=model, exp=exp, source=source,
-                               fixer_name=self.fixer_name,
+            self.fixer = Fixer(fixer_name=self.fixer_name,
                                datamodel=datamodel,
                                convention=self.convention,
                                fixes_dictionary=self.fixes_dictionary,

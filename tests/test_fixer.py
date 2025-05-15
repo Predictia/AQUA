@@ -79,15 +79,6 @@ def test_fixer_ifs_long_mindate():
 
 
 @pytest.mark.aqua
-def test_fixer_ifs_short():
-    """Check alternative fix with replace method"""
-
-    reader = Reader(model="IFS", exp="test-tco79", source="short", loglevel=loglevel)
-    data = reader.retrieve()
-    assert data['2t'].attrs['mickey'] == 'mouse'
-
-
-@pytest.mark.aqua
 def test_fixer_ifs_names():
     """Check with fixer_name method"""
 
