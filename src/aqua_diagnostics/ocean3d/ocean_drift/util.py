@@ -49,11 +49,14 @@ def predefined_regions(region, loglevel="WARNING"):
           each region is defined with its boundaries (LatN, LatS, LonE, LonW).
     """
     logger = log_configure(loglevel, "predefined_regions")
-
-    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    Configurer = ConfigPath()
+    oceandir = os.path.join(Configurer.configdir, 'diagnostics', 'ocean3d')
+    regionfile =  os.path.join(oceandir, 'config', 'regions.yaml')
+    regions_dict = load_yaml(regionfile)
+            
     processed_region = region.replace(" ", "").replace("_", "").replace("-", "").lower()
-    regions_yaml = f"{current_dir}/../../../../config/diagnostics/ocean3d/regions.yaml"
-    regions_dict = load_yaml(regions_yaml)
+
     try:
         regions_dict = process_region_config(regions_dict["regions"])
         region_boundary = regions_dict[processed_region]

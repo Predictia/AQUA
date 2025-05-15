@@ -1,8 +1,9 @@
+import os
 import pandas as pd
 import xarray as xr
 from aqua.logger import log_configure
 from aqua.diagnostics.core import Diagnostic
-from aqua.util import area_selection
+from aqua.util import area_selection, ConfigPath
 from .util import predefined_regions
 from itertools import product
 
@@ -207,5 +208,4 @@ class Hovmoller(Diagnostic):
                 diagnostic_product = f"{diagnostic_product}_{key}",
                 outputdir = self.outputdir,
                 rebuild = rebuild,
-                loglevel = self.loglevel
             )
