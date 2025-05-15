@@ -1,15 +1,15 @@
 """Fixer mixin for the Reader class"""
 
 import re
-from datetime import timedelta
 import xarray as xr
 import numpy as np
-import pandas as pd
 
 from aqua.util import eval_formula, get_eccodes_attr
-from aqua.util import to_list, normalize_units, convert_units
+from aqua.util import to_list, convert_units
 from aqua.logger import log_history, log_configure
 from aqua.data_model import CoordTransformer
+
+from .fix_operator import FixOperator
 
 DEFAULT_DELTAT = 1
 
@@ -33,11 +33,12 @@ class Fixer():
         self.fixer_name = fixer_name
         self.convention = convention
         self.metadata = metadata
-        self.logger = log_configure(log_level=loglevel, log_name='fixer')
+        self.logger = log_configure(log_level=loglevel, log_name='Fixer')
         self.loglevel = loglevel
         self.fixes = self.find_fixes()
         self.deltat = self._define_deltat(default=DEFAULT_DELTAT)
         self.time_correction = False
+        self.operator = FixOperator(self.fixes, loglevel=loglevel)
 
 
         # find fixes for this model/exp/source
@@ -338,7 +339,7 @@ class Fixer():
 
                         # If a gribcode is the source match, convert it to shortname to access it
                         if str(source).isdigit():
-                            self.logger.info(f'The source {source} is a grib code, need to convert it')
+                            self.logger.info('The source %s is a grib code, need to convert it', source)
                             source = get_eccodes_attr(f'var{source}', loglevel=self.loglevel)['shortName']
 
                         # Here we update the fixd dictionary with the source and the variable
@@ -440,21 +441,21 @@ class Fixer():
 
         # decumulate if necessary and fix first of month if necessary
         if vars_to_fix:
-            data = self._wrapper_decumulate(data, vars_to_fix, varlist, jump)
+            data = self.operator.wrapper_decumulate(data, self.deltat, vars_to_fix, varlist, jump)
             if nanfirst_enddate:  # This is a temporary fix for IFS data, run ony if an end date is specified
-                data = self._wrapper_nanfirst(data, vars_to_fix, varlist,
+                data = self.operator.wrapper_nanfirst(data, vars_to_fix, varlist,
                                               startdate=nanfirst_startdate,
                                               enddate=nanfirst_enddate)
 
         if apply_unit_fix:
             for var in data.data_vars:
-                self.apply_unit_fix(data[var])
+                self.operator.apply_unit_fix(data[var], time_correction=self.time_correction)
 
         # apply time shift if necessary
-        data = self._timeshifter(data)
+        data = self.operator.timeshifter(data)
 
         # remove variables following the fixes request
-        data = self._delete_variables(data)
+        data = self.operator.delete_variables(data)
 
         # Fix coordinates according to a given data model
         src_datamodel = self.fixes.get("data_model", src_datamodel)
@@ -490,129 +491,7 @@ class Fixer():
         self.logger.debug('deltat = %s defined as Fixer() default', default)
         return default
 
-    def _delete_variables(self, data):
-        """
-        Remove variables which are set to be deleted in the fixer
-        """
-
-        # remove variables which should be deleted
-        dellist = [x for x in to_list(self.fixes.get("delete", [])) if x in data.variables]
-        if dellist:
-            data = data.drop_vars(dellist)
-
-        return data
-
-    def _timeshifter(self, data):
-        """
-        Apply a timeshift to the time coordinate of an xr.Dataset.
-
-        Parameters:
-        - data (xr.Dataset): The dataset containing a 'time' coordinate to be shifted.
-
-        Returns:
-        - xr.Dataset: The dataset with the 'time' coordinate shifted based on the specified timeshift
-                      which is retrieved from the fixes dictionary.
-        """
-        timeshift = self.fixes.get('timeshift', None)
-
-        if timeshift is None:
-            return data
-
-        if 'time' not in data:
-            raise KeyError("'time' coordinate not found in the dataset.")
-
-        field = data.copy()
-        if isinstance(timeshift, int):
-            self.logger.info('Shifting the time axis by %s timesteps.', timeshift)
-            time_interval = timeshift * data.time.diff("time").isel(time=0).values
-            field = field.assign_coords(time=data.time + time_interval)
-        elif isinstance(timeshift, str):
-            self.logger.info('Shifting time axis by %s following pandas timedelta.', timeshift)
-            field['time'] = field['time'] + pd.Timedelta(timeshift)
-        else:
-            raise TypeError('timeshift should be either a integer (timesteps) or a pandas Timedelta!')
-
-        return field
-
-    def _wrapper_decumulate(self, data, variables, varlist, jump):
-        """
-        Wrapper function for decumulation, which takes into account the requirement of
-        keeping into memory the last step for streaming/fdb purposes
-
-        Args:
-            Data: Xarray Dataset
-            variables: The fixes of the variables
-            varlist: the variable dictionary with the old and new names
-            jump: the jump for decumulation
-
-        Returns:
-            Dataset with decumulated fixes
-        """
-
-        for var in variables:
-            # Decumulate if required
-            if variables[var].get("decumulate", None):
-                varname = varlist[var]
-                if varname in data.variables:
-                    self.logger.debug("Starting decumulation for variable %s", varname)
-                    keep_first = variables[var].get("keep_first", True)
-                    data[varname] = self.simple_decumulate(data[varname],
-                                                            jump=jump,
-                                                            keep_first=keep_first)
-                    log_history(data[varname], f"Variable {varname} decumulated by fixer")
-
-        return data
-
-    def _wrapper_nanfirst(self, data, variables, varlist, startdate=None, enddate=None):
-        """
-        Wrapper function for settting to nan first step of each month.
-        This allows to fix an issue with IFS data where the first step of each month is corrupted.
-
-        Args:
-            Data: Xarray Dataset
-            variables: The fixes of the variables
-            varlist: the variable dictionary with the old and new names
-            startdate: date before which to fix the first timestep of each month (could be False)
-            enddate: date after which to fix the first timestep of each month (could be False)
-
-        Returns:
-            Dataset with data on first step of each month set to NaN
-        """
-
-        for var in variables:
-            fix = variables[var].get("nanfirst", False)
-            if fix:
-                varname = varlist[var]
-                if varname in data.variables:
-                    self.logger.debug("Setting first step of months before %s and after %s to NaN for variable %s",
-                                      enddate, startdate, varname)
-                    log_history(data[varname], f"Fixer set first step of months before {enddate} and after {startdate} to NaN")
-                    data[varname] = self.nanfirst(data[varname], startdate=startdate, enddate=enddate)
-
-        return data
-
-    def nanfirst(self, data, startdate=False, enddate=False):
-        """
-        Set to NaN the first step of each month before and/or after a given date for an xarray
-
-        Args:
-            data: Xarray DataArray
-            startdate: date before which to fix the first timestep of each month (defaults to False)
-            enddate: date after which to fix the first timestep of each month (defaults to False)
-
-        Returns:
-            DataArray in with data on first step of each month is set to NaN
-        """
-
-        first = data.time.groupby(data['time.year']*100+data['time.month']).first()
-        if enddate:
-            first = first.where(first < np.datetime64(str(enddate)), drop=True)
-        if startdate:
-            first = first.where(first > np.datetime64(str(startdate)), drop=True)
-        mask = data.time.isin(first)
-        data = data.where(~mask, np.nan)
-
-        return data
+ 
 
     def _override_tgt_units(self, tgt_units, varfix, var):
         """
@@ -855,77 +734,3 @@ class Fixer():
         self.logger.debug("Variables to be loaded: %s", loadvar)
         return loadvar
 
-    def simple_decumulate(self, data, jump=None, keep_first=True):
-        """
-        Remove cumulative effect on IFS fluxes.
-
-        Args:
-            data (xr.DataArray):     field to be processed
-            jump (str):              used to fix periodic jumps (a very specific NextGEMS IFS issue)
-                                     Examples: jump='month' (the NextGEMS case), jump='day')
-            keep_first (bool):       if to keep the first value as it is (True) or place a 0 (False)
-
-        Returns:
-            A xarray.DataArray where the cumulation has been removed
-        """
-
-        # get the derivatives
-        deltas = data.diff(dim='time')
-
-        # add a first timestep empty to align the original and derived fields
-
-        if keep_first:
-            zeros = data.isel(time=0)
-        else:
-            zeros = xr.zeros_like(data.isel(time=0))
-
-        deltas = xr.concat([zeros, deltas], dim='time').transpose('time', ...)
-
-        if jump:
-            # universal mask based on the change of month (shifted by one timestep)
-            dt = np.timedelta64(timedelta(seconds=self.deltat))
-            data1 = data.assign_coords(time=data.time - dt)
-            data2 = data.assign_coords(time=data1.time - dt)
-            # Mask of dates where month changed in the previous timestep
-            mask = data1[f'time.{jump}'].assign_coords(time=data.time) == data2[f'time.{jump}'].assign_coords(time=data.time)
-
-            # kaboom: exploit where
-            deltas = deltas.where(mask, data)
-
-        # add an attribute that can be later used to infer about decumulation
-        deltas.attrs['decumulated'] = 1
-
-        return deltas
-
-
-    def apply_unit_fix(self, data):
-        """
-        Applies unit fixes stored in variable attributes (target_units, factor and offset)
-
-        Arguments:
-            data (xr.DataArray):  input DataArray
-        """
-        tgt_units = data.attrs.get("tgt_units", None)
-        org_units = data.attrs.get("units", None)
-        self.logger.debug("%s: org_units is %s, tgt_units is %s",
-                          data.name, org_units, tgt_units)
-
-        # if units are not already updated and if a tgt_units exist
-        if tgt_units and org_units != tgt_units:
-            self.logger.debug("Applying unit fixes for %s ", data.name)
-
-            # define an old units
-            data.attrs.update({"src_units": org_units, "units_fixed": 1})
-            data.attrs["units"] = normalize_units(tgt_units)
-            factor = data.attrs.get("factor", 1)
-            offset = data.attrs.get("offset", 0)
-            time_conversion_flag = data.attrs.get("time_conversion_flag", 0)
-            if factor != 1:
-                data *= factor
-                # if a special dpm correction has been defined, apply it
-                if time_conversion_flag and self.time_correction is not False:
-                    data /=  self.time_correction
-            if offset != 0:
-                data += offset
-            log_history(data, f"Units changed to {tgt_units} by fixer")
-            data.attrs.pop('tgt_units', None)
