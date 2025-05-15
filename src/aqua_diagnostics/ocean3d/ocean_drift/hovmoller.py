@@ -132,7 +132,7 @@ class Hovmoller(Diagnostic):
         data.attrs["AQUA_cmap"] = "coolwarm"
         type_str = f"anom_{anomaly_ref}"
         data.attrs["AQUA_type"] = type_str
-        data = data.expand_dims(dim={"type": [type_str]})
+        # data = data.expand_dims(dim={"type": [type_str]})
         return data
 
     def _get_standardise(self, data, anomaly_ref=None, dim="time"):
@@ -201,10 +201,9 @@ class Hovmoller(Diagnostic):
 
         type = f"{Std}{anom}{anom_ref}"
         data.attrs["AQUA_type"] = type
-        data = data.expand_dims(dim={"type": [data.attrs["AQUA_type"]]})
         return data
 
-    def _data_process_by_type(self, anomaly=None, anomaly_ref=None, standardise=False):
+    def _data_process_by_type(self, anomaly_ref=None, standardise=False):
         """
         Processes the data by computing anomaly and/or standardised anomaly based on the specified parameters.
 
@@ -214,8 +213,6 @@ class Hovmoller(Diagnostic):
 
         Parameters
         ----------
-        anomaly : optional
-            Not used in this method, included for interface compatibility.
         anomaly_ref : str or None, optional
             Reference for anomaly calculation. Can be "t0", "tmean", or None.
         standardise : bool, default False
@@ -257,11 +254,10 @@ class Hovmoller(Diagnostic):
             data = self.data.mean(dim=dim_mean)
         self.processed_data_dic = {}
 
-        for anomaly, standardise, anomaly_ref in product(
-            [False, True], [False, True], ["t0", "tmean"]
+        for standardise, anomaly_ref in product(
+            [False, True], [None, "t0", "tmean"]
         ):
-            data_proc = self._data_process_by_type(
-                anomaly=anomaly,
+            self._data_process_by_type(
                 standardise=standardise,
                 anomaly_ref=anomaly_ref,
             )
