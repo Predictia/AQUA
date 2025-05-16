@@ -1,9 +1,7 @@
-import os
-import pandas as pd
 import xarray as xr
 from aqua.logger import log_configure
 from aqua.diagnostics.core import Diagnostic
-from aqua.util import area_selection, ConfigPath
+from aqua.util import area_selection
 from .util import predefined_regions
 from itertools import product
 
@@ -24,7 +22,6 @@ class Hovmoller(Diagnostic):
         var (list): List of variables to process.
         stacked_data (xarray.Dataset): Processed data for Hovmoller diagrams.
     """
-
     def __init__(
         self,
         catalog: str = None,
@@ -192,11 +189,11 @@ class Hovmoller(Diagnostic):
         if anomaly_ref is not None:
             if anomaly_ref in ["t0", "tmean"]:
                 data = self._get_anomaly(data, anomaly_ref, dim)
-        if standardise == True:
+        if standardise:
             data = self._get_standardise(data, anomaly_ref, dim)
 
         Std = "Std_" if standardise else ""
-        anom = "anom" if anomaly_ref != None else "full"
+        anom = "anom" if anomaly_ref is not None else "full"
         anom_ref = f"_{anomaly_ref}" if anomaly_ref else ""
 
         type = f"{Std}{anom}{anom_ref}"
