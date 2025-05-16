@@ -37,8 +37,8 @@ class GlobalBiases(Diagnostic):
                         loglevel=loglevel)
 
         self.logger = log_configure(log_level=loglevel, log_name='Global Biases')
-        self.plev = plev
         self.var = var
+        self.plev = plev
         self.save_netcdf = save_netcdf
         self.outputdir = outputdir
         self.startdate = startdate
@@ -76,134 +76,41 @@ class GlobalBiases(Diagnostic):
         elif 'plev' in self.data[self.var].dims:
             self.logger.warning(f"Variable {self.var} has multiple pressure levels but none was selected")
 
+    def compute_climatology(self, save_netcdf=True):
 
-    def compute_bias(self, data_ref, var=None): 
-        """
-        Computes the bias between two datasets.
-        Args:
-            data (xarray.DataArray): The dataset.
-            data_ref (xarray.DataArray): The reference dataset.
-            var (str): The variable to compute the bias for. If None, uses the class variable.
-        Returns:
-            xarray.DataArray: The bias between the two datasets.
-        """
-        var = var or self.var
+        save_netcdf = save_netcdf or self.save_netcdf
 
-        # Check if the variable has pressure levels but no specific level is selected
-        if 'plev' in self.data.get(self.var, {}).dims:
-            if self.plev is None:
-                self.logger.warning(
-                    f"Variable {self.var} has multiple pressure levels, but no specific level was selected. "
-                    "Skipping 2D bias plotting."
-                )
-                return None 
-        
-            # If a pressure level is specified, select it
-            self.logger.info(f"Selecting pressure level {self.plev} for variable {self.var}.")
-            data = select_pressure_level(self.data, self.plev, self.var)
-            data_ref = select_pressure_level(self.data_ref, self.plev, self.var)
+        self.logger.info(f'Computing climatology for variable {self.var}.')
 
-        # If a pressure level is specified but the variable has no pressure levels
-        elif self.plev is not None:
-            self.logger.warning(f"Variable {self.var} does not have pressure levels!")
+        self.climatology = xr.Dataset({self.var: self.data[self.var].mean(dim='time')})
+    
+        self.climatology.attrs['startdate'] = self.startdate
+        self.climatology.attrs['enddate'] = self.enddate
 
-        self.bias = self.data[self.var].mean(dim='time') - data_ref[self.var].mean(dim='time')
-
-        if self.save_netcdf:
-            super().save_netcdf(data=self.bias, diagnostic='global_biases', diagnostic_product='bias', 
+        if save_netcdf:
+            super().save_netcdf(data=self.climatology, diagnostic='global_biases', diagnostic_product='climatology', 
                                 default_path=self.outputdir)
 
-    def compute_seasonal_bias(self, data_ref, var=None, seasons_stat='mean'):
-        """
-        Computes the seasonal bias between two datasets.
-        Args:
-            data (xarray.DataArray): The dataset.
-            data_ref (xarray.DataArray): The reference dataset.  
-            var (str): The variable to compute the bias for. If None, uses the class variable.
-            seasons_stat (str): The statistic to compute for each season.
-                Options are 'mean', 'std', 'max', 'min'.
-        Returns:
-            xarray.Dataset: A dataset containing the seasonal biases for each season.
-        """
-        var = var or self.var
+    def compute_seasonal_climatology(self, seasons_stat='mean', save_netcdf=True):
 
-        # Check if the variable has pressure levels but no specific level is selected
-        if 'plev' in self.data.get(self.var, {}).dims:
-            if self.plev is None:
-                self.logger.warning(
-                    f"Variable {self.var} has multiple pressure levels, but no specific level was selected. "
-                    "Skipping 2D bias plotting."
-                )
-                return None 
-        
-            # If a pressure level is specified, select it
-            self.logger.info(f"Selecting pressure level {self.plev} for variable {self.var}.")
-            data = select_pressure_level(self.data, self.plev, self.var)
-            data_ref = select_pressure_level(self.data_ref, self.plev, self.var)
+        save_netcdf = save_netcdf or self.save_netcdf
 
-        # If a pressure level is specified but the variable has no pressure levels
-        elif self.plev is not None:
-            self.logger.warning(f"Variable {self.var} does not have pressure levels!")
-
-
+        self.logger.info(f'Computing seasonal climatology for variable {self.var}.')
         stat_funcs = {'mean': 'mean', 'max': 'max', 'min': 'min', 'std': 'std'}
         if seasons_stat not in stat_funcs:
             raise ValueError("Invalid statistic. Please choose one of 'mean', 'std', 'max', 'min'.")
+        season_list = ['DJF', 'MAM', 'JJA', 'SON']
+        seasonal_climatology = {}
+        for season in season_list:
+            data_season = select_season(self.data[self.var], season)
+            data_stat = getattr(data_season, stat_funcs[seasons_stat])(dim='time')
+            seasonal_climatology[season] = data_stat
+        self.seasonal_climatology = xr.Dataset(seasonal_climatology)
 
-        self.seasonal_bias = {}
-        seasons = ['DJF', 'MAM', 'JJA', 'SON']
+        self.seasonal_climatology.attrs['startdate'] = self.startdate
+        self.seasonal_climatology.attrs['enddate'] = self.enddate
 
-        for season in seasons:
-            # Select the seasonal data 
-            seasonal_data = select_season(self.data[self.var], season)
-            seasonal_data_ref = select_season(data_ref[self.var], season)
-            # Compute seasonal statistics
-            data_stat = getattr(seasonal_data, stat_funcs[seasons_stat])(dim='time')
-            data_ref_stat = getattr(seasonal_data_ref, stat_funcs[seasons_stat])(dim='time')
-            # Compute bias and store in dictionary
-            bias = data_stat - data_ref_stat
-            self.seasonal_bias[season] = bias
-
-        # Combine seasonal biases into an xarray.Dataset
-        self.seasonal_bias = xr.Dataset(self.seasonal_bias)
-        
-        if self.save_netcdf:
-            super().save_netcdf(data=self.seasonal_bias, diagnostic='global_biases', diagnostic_product='seasonal_bias', 
-                                default_path=self.outputdir)
-
-    def compute_vertical_bias(self, data_ref, plev_min=None, plev_max=None, var=None):
-        """
-        Computes the vertical bias between two datasets.
-        Args:
-            data_ref (xarray.DataArray): The reference dataset.
-            plev_min (float): Minimum pressure level to select. 
-            plev_max (float): Maximum pressure level to select.
-            var (str): The variable to compute the bias for. If None, uses the class variable.
-        Returns:
-            xarray.DataArray: The vertical bias between the two datasets.
-        """
-        
-        var = var or self.var
-
-        # Calculate the bias between the two datasets
-        bias = self.data[self.var].mean(dim='time') - data_ref[self.var].mean(dim='time')
-
-        # Filter pressure levels
-        if plev_min is None:
-            plev_min = bias['plev'].min().item()
-        if plev_max is None:
-            plev_max = bias['plev'].max().item()
-
-        bias = bias.sel(plev=slice(plev_max, plev_min))
-
-        # Calculate the zonal mean bias
-        self.vertical_bias = bias.mean(dim='lon')
-
-        if self.save_netcdf:
-            super().save_netcdf(data=self.vertical_bias, diagnostic='global_biases', diagnostic_product='vertical_bias', 
-                                default_path=self.outputdir)
-
-
-
-
+        if save_netcdf:
+            super().save_netcdf(data=self.seasonal_climatology, diagnostic='global_biases',
+                                diagnostic_product='seasonal_climatology', default_path=self.outputdir)
 
