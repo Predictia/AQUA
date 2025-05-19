@@ -12,6 +12,7 @@ from aqua.logger import log_configure
 from aqua.exceptions import NoObservationError, NoDataError
 from aqua.util import create_folder
 from aqua.util import add_pdf_metadata
+from dask import delayed, compute
 
 xr.set_options(keep_attrs=True)
 
@@ -56,7 +57,7 @@ class EnsembleTimeseries():
         self.ann_dataset_mean = None
         self.ann_dataset_std = None
         self.outputdir = outputdir + 'Ensemble_Timeseries'
-        self.outfile = f'ensemble_time_series_timeseries_{self.var}.pdf'
+        self.outfile = f'ensemble_time_series_timeseries_{self.var}'
 
         plot_options = kwargs.get('plot_options',{})
         self.plot_label = plot_options.get('plot_label',True)
@@ -69,38 +70,24 @@ class EnsembleTimeseries():
         self.ref_label = plot_options.get('ref_label','ERA5')
         self.plot_title = plot_options.get('plot_title','Ensemble statistics for '+self.var)
         self.label_ncol = plot_options.get('plot_options',3)
-        # self.units = plot_options.get('plot_options',None) # TODO
-        # TODO: save the ensemble mean and the std values as netcdf files
-        # self.netcdf_save = True
-
-    def ensemble_mean(self, dataset):
-        """
-        compute mean of the dataset
-        """
-        return dataset[self.var].mean(dim=self.dim)
-
-    def ensemble_std(self, dataset):
-        """
-        compute std of the dataset
-        """
-        return dataset[self.var].std(dim=self.dim)
-
-    def compute(self):
+        self.units = plot_options.get('plot_options',None) # TODO
+    
+    def compute_statistics(self):
         """
         A function to compute the mean and standard devivation of the input dataset
         It is import to make sure that the dim along which the mean is compute is correct.
-        The default dim="Ensembles". This can be reassianged with the method "edit_attributes".
+        The default dim="Ensembles". The DASK's .compute() function is also used here.
         """
+        
         if self.mon_model_dataset != None:
-            self.mon_dataset_mean = self.mon_model_dataset[self.var].mean(dim=self.dim)
+            self.mon_dataset_mean = self.mon_model_dataset[self.var].mean(dim=self.dim).compute()
         if self.ann_model_dataset != None:
-            self.ann_dataset_mean = self.ann_model_dataset[self.var].mean(dim=self.dim)
+            self.ann_dataset_mean = self.ann_model_dataset[self.var].mean(dim=self.dim).compute()
 
         if self.mon_model_dataset != None:
-            self.mon_dataset_std = self.mon_model_dataset[self.var].std(dim=self.dim)
+            self.mon_dataset_std = self.mon_model_dataset[self.var].std(dim=self.dim).compute()
         if self.ann_model_dataset != None:
-            self.ann_dataset_std = self.ann_model_dataset[self.var].std(dim=self.dim)
-
+            self.ann_dataset_std = self.ann_model_dataset[self.var].std(dim=self.dim).compute()
 
     def plot(self):
         """
@@ -177,15 +164,16 @@ class EnsembleTimeseries():
         self.logger.debug(f"Saving figure to {pdf_path}")
         create_folder(pdf_path, self.loglevel)
         self.logger.debug(f"pdf output: {self.outfile}")
-        fig.savefig(os.path.join(pdf_path, self.outfile),bbox_inches='tight', pad_inches=0.1)
+        fig.savefig(os.path.join(pdf_path, self.outfile)+'.pdf', bbox_inches='tight', pad_inches=0.1)
 
-    # TODO: separate .compute with .plot in order to implement DASK's .compute() 
-    # In order to use DASK's .compute() only on compute_statistics, the following function is commented out.
-    # Needs to be tested if it save's compute time when we use both functions with DASK's .compute()
-  
-    def run(self):
-        self.compute()
-        self.plot()
+        # Save plot as png
+        self.logger.info("Saving figure to png")
+        png_path = os.path.join(self.outputdir, 'png')
+        self.logger.debug(f"Saving figure to {png_path}")
+        create_folder(png_path, self.loglevel)
+        self.logger.debug(f"png output: {self.outfile}")
+        fig.savefig(os.path.join(png_path, self.outfile)+'.png', bbox_inches='tight', pad_inches=0.1)
+
 
 class EnsembleLatLon():
     """

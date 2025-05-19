@@ -12,6 +12,8 @@ import gc
 import xarray as xr
 from dask.distributed import Client, LocalCluster
 from dask.utils import format_bytes
+from dask import delayed
+from dask import compute
 import numpy as np
 import pandas as pd
 from aqua.util import load_yaml, get_arg, ConfigPath
@@ -232,7 +234,8 @@ if __name__ == '__main__':
     # Check if we need monthly and annual time variables
     ts = EnsembleTimeseries(var=variable, mon_model_dataset=mon_dataset, ann_model_dataset=ann_dataset,
                             mon_ref_data=ref_mon_dataset, ann_ref_data=ref_ann_dataset, outputdir=outputdir, plot_options=plot_options)
-    ts.run()
+    ts.compute_statistics()
+    ts.plot()
 
     logger.info(f"Finished Ensemble time series diagnostic for {variable}.")
     # Close the Dask client and cluster
