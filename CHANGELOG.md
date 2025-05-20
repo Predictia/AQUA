@@ -9,6 +9,8 @@ Unreleased in the current development version (target v0.16.0):
 
 AQUA core complete list:
 
+- Added support for TL63, TL255, eORCA1, ORCA2 grids for EC-EARTH4 model (#1940)
+
 AQUA diagnostics complete list:
 
 
