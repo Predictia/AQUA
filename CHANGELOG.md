@@ -13,6 +13,7 @@ AQUA core complete list:
 - Added support for TL63, TL255, eORCA1, ORCA2 grids for EC-EARTH4 model (#1940)
 
 AQUA diagnostics complete list:
+- Timeseries: fix in the new cli wich was ignoring the regrid option (#1940)
 
 
 ## [v0.15.0]
