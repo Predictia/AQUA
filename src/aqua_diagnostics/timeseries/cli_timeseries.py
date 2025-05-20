@@ -15,6 +15,7 @@ from aqua.util import get_arg
 from aqua.version import __version__ as aqua_version
 from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_cluster
 from aqua.diagnostics.core import load_diagnostic_config, merge_config_args
+from aqua.diagnostics.core import round_startdate, round_enddate
 from aqua.diagnostics.timeseries.util_cli import load_var_config
 from aqua.diagnostics.timeseries import Timeseries, SeasonalCycles, Gregory
 from aqua.diagnostics.timeseries import PlotTimeseries, PlotSeasonalCycles, PlotGregory
@@ -90,6 +91,9 @@ if __name__ == '__main__':
                     # Reference datasets are evaluated on the maximum time range of the datasets
                     startdate = min([ts[i].startdate for i in range(len(ts))])
                     enddate = max([ts[i].enddate for i in range(len(ts))])
+                    startdate = round_startdate(startdate)
+                    enddate = round_enddate(enddate)
+                    logger.info(f"Start date: {startdate}, End date: {enddate}")
 
                     # Initialize a list of len from the number of references
                     if 'references' in config_dict:
@@ -102,6 +106,7 @@ if __name__ == '__main__':
                                               'std_startdate': var_config.get('std_startdate'),
                                               'std_enddate': var_config.get('std_enddate'),
                                               'regrid': regrid if regrid is not None else reference.get('regrid', None)}
+                            logger.warning(f"Reference args: {reference_args}")
                             ts_ref[i] = Timeseries(**init_args, **reference_args)
                             ts_ref[i].run(**run_args, std=True)
 
@@ -152,8 +157,8 @@ if __name__ == '__main__':
                         ts[i].run(**run_args)
 
                     # Reference datasets are evaluated on the maximum time range of the datasets
-                    startdate = min([ts[i].startdate for i in range(len(ts))])
-                    enddate = max([ts[i].enddate for i in range(len(ts))])
+                    startdate = min([ts[i].plt_startdate for i in range(len(ts))])
+                    enddate = max([ts[i].plt_enddate for i in range(len(ts))])
 
                     # Initialize a list of len from the number of references
                     if 'references' in config_dict:
