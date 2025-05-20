@@ -7,6 +7,8 @@ from aqua.util import frequency_string_to_pandas, time_to_string
 from aqua.util import load_yaml, eval_formula, convert_units
 from aqua.diagnostics.core import Diagnostic, start_end_dates
 
+xr.set_options(keep_attrs=True)
+
 
 class BaseMixin(Diagnostic):
     """The BaseMixin class is used for the Timeseries and the SeasonalCycles classes."""
