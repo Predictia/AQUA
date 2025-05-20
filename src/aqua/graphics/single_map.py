@@ -21,7 +21,8 @@ from .styles import ConfigStyle
 
 def plot_single_map(data: xr.DataArray,
                     contour=True, sym=False,
-                    proj: ccrs.Projection = ccrs.Robinson(), extent=None,
+                    proj: ccrs.Projection = ccrs.Robinson(),
+                    extent=None, coastlines=True,
                     style=None, figsize=(11, 8.5), nlevels=11,
                     vmin=None, vmax=None, cmap='RdBu_r',
                     cbar: bool = True, cbar_label=None,
@@ -38,6 +39,7 @@ def plot_single_map(data: xr.DataArray,
         sym (bool, optional):        If True, set the colorbar to be symmetrical. Defaults to False.
         proj (cartopy.crs.Projection, optional): Projection to use. Defaults to PlateCarree.
         extent (list, optional):     Extent of the map to limit the projection. Defaults to None.
+        coastlines (bool, optional): If True, add coastlines. Defaults to True.
         style (str, optional):       Style to use. Defaults to None (aqua style).
         figsize (tuple, optional):   Figure size. Defaults to (11, 8.5).
         nlevels (int, optional):     Number of levels for the contour map. Defaults to 11.
@@ -132,8 +134,9 @@ def plot_single_map(data: xr.DataArray,
                                   vmin=vmin, vmax=vmax,
                                   add_colorbar=False)
 
-    logger.debug("Adding coastlines")
-    ax.coastlines()
+    if coastlines:
+        logger.debug("Adding coastlines")
+        ax.coastlines()
 
     # TODO: To reimplement, we need a meshgrid for this
     # if gridlines:
@@ -227,6 +230,7 @@ def plot_single_map_diff(data: xr.DataArray, data_ref: xr.DataArray,
 
     Keyword Args:
         contour (bool, optional):  Plot the difference as contour. False to plot a pcolormesh
+        coastlines (bool, optional): If True, add coastlines. Defaults to True.
 
     Raise:
         ValueError: If data or data_ref is not a DataArray.
