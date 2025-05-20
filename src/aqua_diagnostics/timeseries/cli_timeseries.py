@@ -51,6 +51,7 @@ if __name__ == '__main__':
     config_dict = merge_config_args(config=config_dict, args=args, loglevel=loglevel)
 
     regrid = get_arg(args, 'regrid', None)
+    logger.info(f"Regrid option is set to {regrid}")
 
     # Output options
     outputdir = config_dict['output'].get('outputdir', './')
@@ -81,7 +82,8 @@ if __name__ == '__main__':
                         logger.info(f'Running dataset: {dataset}, variable: {var}')
                         dataset_args = {'catalog': dataset['catalog'], 'model': dataset['model'],
                                         'exp': dataset['exp'], 'source': dataset['source'],
-                                        'regrid': dataset.get('regrid', regrid)}
+                                        'regrid': regrid if regrid is not None else dataset.get('regrid', None)}
+                        logger.debug(f"Dataset args: {dataset_args}")
                         ts[i] = Timeseries(**init_args, **dataset_args)
                         ts[i].run(**run_args)
 
@@ -99,7 +101,7 @@ if __name__ == '__main__':
                                               'startdate': startdate, 'enddate': enddate,
                                               'std_startdate': var_config.get('std_startdate'),
                                               'std_enddate': var_config.get('std_enddate'),
-                                              'regrid': reference.get('regrid', regrid)}
+                                              'regrid': regrid if regrid is not None else reference.get('regrid', None)}
                             ts_ref[i] = Timeseries(**init_args, **reference_args)
                             ts_ref[i].run(**run_args, std=True)
 
