@@ -2,6 +2,7 @@
 import xarray as xr
 import pandas as pd
 from aqua.util import to_list, frequency_string_to_pandas
+from aqua.diagnostics.core import round_startdate, round_enddate
 from .util import loop_seasonalcycle, center_timestamp
 from .base import BaseMixin
 
@@ -136,10 +137,10 @@ class Timeseries(BaseMixin):
             center_time (bool): If True, the time will be centered.
         """
         if freq == 'monthly' or freq == 'annual':
-            class_startdate = pd.Timestamp(self.startdate)
-            class_enddate = pd.Timestamp(self.enddate)
-            start_date = pd.Timestamp(self.data.time[0].values)
-            end_date = pd.Timestamp(self.data.time[-1].values)
+            class_startdate = round_startdate(pd.Timestamp(self.plt_startdate))
+            class_enddate = round_enddate(pd.Timestamp(self.plt_enddate))
+            start_date = round_startdate(pd.Timestamp(self.data.time[0].values))
+            end_date = round_enddate(pd.Timestamp(self.data.time[-1].values))
 
             # if the center_time is True, we need to center the time of the start_date and end_date
             # to be able to compare them with the class_startdate and class_enddate
