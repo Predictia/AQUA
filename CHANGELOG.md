@@ -14,6 +14,7 @@ AQUA core complete list:
 - Added support for TL63, TL255, eORCA1, ORCA2 grids for EC-EARTH4 model (#1940)
 
 AQUA diagnostics complete list:
+- Diagnostic core: new `round_startdate` and `round_enddate` functions for time management (#1940)
 - Timeseries: fix in the new cli wich was ignoring the regrid option and had bad time handling (#1940)
 
 
