@@ -21,15 +21,15 @@ class GlobalBiases(Diagnostic):
                          If None, all available data will be retrieved.
         enddate (str): The end date of the data to be retrieved.
                         If None, all available data will be retrieved.
-        plev (float): Pressure level to select.
         var (str): Name of the variable to analyze.
-        save_netcdf (bool): If True, the data will be saved as a NetCDF file.
+        plev (float): Pressure level to select.
+        save_netcdf (bool): If True, climatologies will be saved as a NetCDF file.
         outputdir (str): The directory where the NetCDF file will be saved.
         loglevel (str): The log level to be used. Default is 'WARNING'.
         """
     def __init__(self, catalog=None, model=None, exp=None, source=None,
                 regrid=None, startdate=None, enddate=None,
-                plev=None, var=None, 
+                var=None, plev=None,
                 save_netcdf=False, outputdir='./', loglevel='WARNING'):
                 
         super().__init__(catalog=catalog, model=model, exp=exp, source=source,
@@ -46,13 +46,15 @@ class GlobalBiases(Diagnostic):
 
     def retrieve(self, var=None, plev=None, units=None):
         """
-        Retrieves and pre-processes the dataset,    
-        Optionally selects a pressure level and converts variable units. 
+        Retrieves and preprocesses the dataset, optionally selecting pressure level and converting units.
 
         Args:
-            var (str): Variable to retrieve.
-            plev (int): Pressure level to select.
-            units (str) : Target units for conversion (e.g., 'mm/day').
+            var (str, optional): Variable to retrieve. If None, uses the default from initialization.
+            plev (float, optional): Pressure level to extract, if applicable.
+            units (str, optional): Target units for variable conversion (e.g., 'mm/day').
+
+        Raises:
+            NoDataError: If the variable is not found in the dataset.
         """
         self.var = var or self.var
         self.plev = plev or self.plev
@@ -76,41 +78,69 @@ class GlobalBiases(Diagnostic):
         elif 'plev' in self.data[self.var].dims:
             self.logger.warning(f"Variable {self.var} has multiple pressure levels but none was selected")
 
-    def compute_climatology(self, save_netcdf=True):
 
+    def compute_climatology(self, data=None, var=None, plev=None, save_netcdf=True,
+                        seasonal=False, seasons_stat='mean'):
+        """
+        Computes climatology (annual or seasonal) for the selected variable.
+
+        Args:
+            data (xarray.Dataset, optional): Input dataset. If None, uses self.data.
+            var (str, optional): Variable name. If None, uses self.var.
+            plev (float, optional): Pressure level (placeholder, not used).
+            save_netcdf (bool, optional): If True, saves output to NetCDF. Default is True.
+            seasonal (bool, optional): If True, computes seasonal climatology (DJF, MAM, JJA, SON).
+            seasons_stat (str, optional): Statistic to apply to each season ('mean', 'std', 'max', 'min').
+
+        Raises:
+            ValueError: If an invalid `seasons_stat` is provided.
+        """
+
+        data = data or self.data
+        var = var or self.var
         save_netcdf = save_netcdf or self.save_netcdf
 
-        self.logger.info(f'Computing climatology for variable {self.var}.')
+        self.logger.info(f'Computing {"seasonal " if seasonal else ""}climatology for variable {var}.')
 
-        self.climatology = xr.Dataset({self.var: self.data[self.var].mean(dim='time')})
-    
+        self.climatology = xr.Dataset({var: data[var].mean(dim='time')})
+
+        self.climatology.attrs['model'] = self.model
+        self.climatology.attrs['exp'] = self.exp
         self.climatology.attrs['startdate'] = self.startdate
         self.climatology.attrs['enddate'] = self.enddate
 
         if save_netcdf:
-            super().save_netcdf(data=self.climatology, diagnostic='global_biases', diagnostic_product='climatology', 
-                                default_path=self.outputdir)
+            super().save_netcdf(
+                data=self.climatology,
+                diagnostic='global_biases',
+                diagnostic_product='climatology',
+                default_path=self.outputdir
+            )
 
-    def compute_seasonal_climatology(self, seasons_stat='mean', save_netcdf=True):
+        if seasonal:
+            stat_funcs = {'mean': 'mean', 'max': 'max', 'min': 'min', 'std': 'std'}
+            if seasons_stat not in stat_funcs:
+                raise ValueError("Invalid statistic. Please choose one of 'mean', 'std', 'max', 'min'.")
 
-        save_netcdf = save_netcdf or self.save_netcdf
+            season_list = ['DJF', 'MAM', 'JJA', 'SON']
+            seasonal_climatology = {}
 
-        self.logger.info(f'Computing seasonal climatology for variable {self.var}.')
-        stat_funcs = {'mean': 'mean', 'max': 'max', 'min': 'min', 'std': 'std'}
-        if seasons_stat not in stat_funcs:
-            raise ValueError("Invalid statistic. Please choose one of 'mean', 'std', 'max', 'min'.")
-        season_list = ['DJF', 'MAM', 'JJA', 'SON']
-        seasonal_climatology = {}
-        for season in season_list:
-            data_season = select_season(self.data[self.var], season)
-            data_stat = getattr(data_season, stat_funcs[seasons_stat])(dim='time')
-            seasonal_climatology[season] = data_stat
-        self.seasonal_climatology = xr.Dataset(seasonal_climatology)
+            for season in season_list:
+                data_season = select_season(data[var], season)
+                data_stat = getattr(data_season, stat_funcs[seasons_stat])(dim='time')
+                seasonal_climatology[season] = data_stat
 
-        self.seasonal_climatology.attrs['startdate'] = self.startdate
-        self.seasonal_climatology.attrs['enddate'] = self.enddate
+            self.seasonal_climatology = xr.Dataset(seasonal_climatology)
+            self.seasonal_climatology.attrs['model'] = self.model
+            self.seasonal_climatology.attrs['exp'] = self.exp
+            self.seasonal_climatology.attrs['startdate'] = self.startdate
+            self.seasonal_climatology.attrs['enddate'] = self.enddate
 
-        if save_netcdf:
-            super().save_netcdf(data=self.seasonal_climatology, diagnostic='global_biases',
-                                diagnostic_product='seasonal_climatology', default_path=self.outputdir)
-
+            if save_netcdf:
+                super().save_netcdf(
+                    data=self.seasonal_climatology,
+                    diagnostic='global_biases',
+                    diagnostic_product='seasonal_climatology',
+                    default_path=self.outputdir
+                )
+                self.logger.info(f'Seasonal climatology saved to {self.outputdir}.')
