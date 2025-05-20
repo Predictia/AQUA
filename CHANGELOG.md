@@ -8,12 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.16.0):
 
 AQUA core complete list:
+- plot_single_map() can now handle high nlevels with a decreased cbar ticks density (#1940)
 - plot_single_map() now can avoid coastlines to support paleoclimate maps (#1940)
 - Fixes to support EC-EARTH4 conversion to GRIB2 (#1940)
 - Added support for TL63, TL255, eORCA1, ORCA2 grids for EC-EARTH4 model (#1940)
 
 AQUA diagnostics complete list:
-- Timeseries: fix in the new cli wich was ignoring the regrid option (#1940)
+- Timeseries: fix in the new cli wich was ignoring the regrid option and had bad time handling (#1940)
 
 
 ## [v0.15.0]
