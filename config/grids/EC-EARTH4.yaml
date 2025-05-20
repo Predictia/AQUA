@@ -11,7 +11,7 @@ grids:
     space_coord: ["x_grid_T", "y_grid_T"]
     vert_coord: ["deptht"]
     cellareas: '{{ grids }}/EC-EARTH4/cellarea_ORCA2_T.nc'
-    cellarea_var: areat
+    cellareas_var: areat
     regrid_method: 'bil'
 
   eORCA1-ece:
@@ -21,7 +21,7 @@ grids:
     space_coord: ["x_grid_T", "y_grid_T"]
     vert_coord: ["deptht"]
     cellareas: '{{ grids }}/EC-EARTH4/cellarea_eORCA1_T.nc'
-    cellarea_var: areat
+    cellareas_var: areat
     regrid_method: 'bil'
 
   eORCA1-ece-ice:
@@ -31,5 +31,5 @@ grids:
     space_coord: ["x", "y"]
     vert_coord: ["deptht"]
     cellareas: '{{ grids }}/EC-EARTH4/cellarea_eORCA1_T.nc'
-    cellarea_var: areat
+    cellareas_var: areat
     regrid_method: 'bil'
