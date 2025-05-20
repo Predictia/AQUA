@@ -170,13 +170,23 @@ def plot_single_map(data: xr.DataArray,
 
         cbar = fig.colorbar(cs, cax=cbar_ax, orientation='horizontal', label=cbar_label)
 
-        # Make tick of colorbar simmetric if sym=True
+        # Make tick of colorbar symmetric if sym=True
         cbar_ticks_rounding = kwargs.get('cbar_ticks_rounding', None)
         if sym:
             logger.debug("Setting colorbar ticks to be symmetrical")
             cbar_ticks = np.linspace(-vmax, vmax, nlevels + 1)
         else:
             cbar_ticks = np.linspace(vmin, vmax, nlevels + 1)
+
+        # If too many ticks, select a subset for readability
+        max_ticks = 15
+        if len(cbar_ticks) > max_ticks:
+            step = max(1, int(np.ceil(len(cbar_ticks) / max_ticks)))
+            cbar_ticks = cbar_ticks[::step]
+            # Ensure last tick is included
+            if cbar_ticks[-1] != (vmax if not sym else vmax):
+                cbar_ticks = np.append(cbar_ticks, vmax if not sym else vmax)
+
         if cbar_ticks_rounding is not None:
             logger.debug("Setting colorbar ticks rounding to %s", cbar_ticks_rounding)
             cbar_ticks = ticks_round(cbar_ticks, cbar_ticks_rounding)
