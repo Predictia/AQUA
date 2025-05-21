@@ -12,7 +12,9 @@ from aqua.logger import log_configure
 from aqua.exceptions import NoObservationError, NoDataError
 from aqua.util import create_folder
 from aqua.util import add_pdf_metadata
-from dask import delayed, compute
+from dask import compute
+
+from aqua.graphics import plot_single_map
 
 xr.set_options(keep_attrs=True)
 
@@ -58,7 +60,8 @@ class EnsembleTimeseries():
         self.ann_dataset_std = None
         self.outputdir = outputdir + 'Ensemble_Timeseries'
         self.outfile = f'ensemble_time_series_timeseries_{self.var}'
-
+        
+        self.figure = None
         plot_options = kwargs.get('plot_options',{})
         self.plot_label = plot_options.get('plot_label',True)
         self.plot_std =  plot_options.get('plot_std',True)
@@ -78,21 +81,34 @@ class EnsembleTimeseries():
         It is import to make sure that the dim along which the mean is compute is correct.
         The default dim="Ensembles". The DASK's .compute() function is also used here.
         """
-        
         if self.mon_model_dataset != None:
-            self.mon_dataset_mean = self.mon_model_dataset[self.var].mean(dim=self.dim).compute()
+            self.mon_dataset_mean = self.mon_model_dataset[self.var].mean(dim=self.dim)
         if self.ann_model_dataset != None:
-            self.ann_dataset_mean = self.ann_model_dataset[self.var].mean(dim=self.dim).compute()
+            self.ann_dataset_mean = self.ann_model_dataset[self.var].mean(dim=self.dim)
 
         if self.mon_model_dataset != None:
-            self.mon_dataset_std = self.mon_model_dataset[self.var].std(dim=self.dim).compute()
+            self.mon_dataset_std = self.mon_model_dataset[self.var].std(dim=self.dim)
         if self.ann_model_dataset != None:
-            self.ann_dataset_std = self.ann_model_dataset[self.var].std(dim=self.dim).compute()
+            self.ann_dataset_std = self.ann_model_dataset[self.var].std(dim=self.dim)
+
+        # TODO: Does it make sence to apply DASK's .compute() here?
+        #if self.mon_model_dataset != None:
+        #    self.mon_dataset_mean = self.mon_model_dataset[self.var].mean(dim=self.dim).compute()
+        #if self.ann_model_dataset != None:
+        #    self.ann_dataset_mean = self.ann_model_dataset[self.var].mean(dim=self.dim).compute()
+
+        #if self.mon_model_dataset != None:
+        #    self.mon_dataset_std = self.mon_model_dataset[self.var].std(dim=self.dim).compute()
+        #if self.ann_model_dataset != None:
+        #    self.ann_dataset_std = self.ann_model_dataset[self.var].std(dim=self.dim).compute()
 
     def plot(self):
         """
         This plots the ensemble mean and standard deviation of the ensemble statistics.
-        To edit the default settings please call the method "edit_attributes"
+        In this method, it is also possible to plot the individual ensemble members.
+        The difference between the timesereis diagnostics plotting methods and this plot() method is that, 
+        this method plots annual, monthly ref and model data along with modelled data's +/- 2 x STD around the mean.
+        It does not plots +/- 2 x STD for the referene. And, the reason is to show the spread between multi-model/ensembles of the same model.
         """
         self.logger.info('Plotting the ensemble timeseries')
         var = self.var  # Only one variable can be plotted at a time
@@ -158,22 +174,16 @@ class EnsembleTimeseries():
         ax.set_title(self.plot_title)
         ax.legend(ncol=self.label_ncol, fontsize=self.label_size, framealpha=0)
         
-        # Save plot as pdf
-        self.logger.info("Saving figure to pdf")
-        pdf_path = os.path.join(self.outputdir, 'pdf')
-        self.logger.debug(f"Saving figure to {pdf_path}")
-        create_folder(pdf_path, self.loglevel)
-        self.logger.debug(f"pdf output: {self.outfile}")
-        fig.savefig(os.path.join(pdf_path, self.outfile)+'.pdf', bbox_inches='tight', pad_inches=0.1)
-
-        # Save plot as png
-        self.logger.info("Saving figure to png")
-        png_path = os.path.join(self.outputdir, 'png')
-        self.logger.debug(f"Saving figure to {png_path}")
-        create_folder(png_path, self.loglevel)
-        self.logger.debug(f"png output: {self.outfile}")
-        fig.savefig(os.path.join(png_path, self.outfile)+'.png', bbox_inches='tight', pad_inches=0.1)
-
+        # Saving plots
+        self.logger.info("Saving plots as png and pdf the output folder {self.outputdir}/plots")
+        plots_path = os.path.join(self.outputdir, 'plots')
+        create_folder(plots_path, self.loglevel)
+        # pdf plots
+        fig.savefig(os.path.join(plots_path, self.outfile)+'.pdf', bbox_inches='tight', pad_inches=0.1)
+        # pdf plots
+        fig.savefig(os.path.join(plots_path, self.outfile)+'.png', bbox_inches='tight', pad_inches=0.1)
+        # for the AQUA tests, test if self.figure is None
+        self.figure = fig
 
 class EnsembleLatLon():
     """
@@ -203,13 +213,15 @@ class EnsembleLatLon():
         self.dim = ensemble_dimension_name
         self.outputdir = outputdir + 'Ensemble_LatLon'
         self.outputfile = f'global_2D_map_{var}'
-
+        
+        self.figure = None
         plot_options = kwargs.get('plot_options',{})
         self.plot_label = plot_options.get('plot_label',True)
         self.plot_std =  plot_options.get('plot_std',True)
         self.figure_size = plot_options.get('figure_size',[15, 15])
         self.units = plot_options.get('units',None)
         self.dpi = plot_options.get('dpi', 300)
+        self.draw_labels = plot_options.get('draw_labels',True)
         if self.units is None:
             self.units = self.dataset[self.var].units
         self.cbar_label = plot_options.get('cbar_label',None)
@@ -221,7 +233,7 @@ class EnsembleLatLon():
         # TODO: save the ensemble mean and the std values as netcdf files
         # self.netcdf_save = True
 
-    def compute(self):
+    def compute_statistics(self):
         """
         A function to compute the mean and standard devivation of the input dataset
         It is import to make sure that the dim along which the mean is compute is correct.
@@ -231,12 +243,17 @@ class EnsembleLatLon():
             self.dataset_mean = self.dataset.mean(dim=self.dim)
             self.dataset_std = self.dataset.std(dim=self.dim)
 
-
     def plot(self):
         """
         This plots the ensemble mean and standard deviation of the ensemble statistics.
         """
+        
         self.logger.info('Plotting the ensemble computation')
+        create_folder(self.outputdir, self.loglevel)
+        outfig = os.path.join(self.outputdir, 'plots')
+        self.logger.debug(f"Path to output diectory for plots: {outfig}")
+        create_folder(outfig, self.loglevel)
+
         projection = ccrs.PlateCarree()
         var = self.var
         if self.dataset_mean is not None:
@@ -244,68 +261,59 @@ class EnsembleLatLon():
                 dataset_mean = self.dataset_mean[var]
             else:
                 dataset_mean = self.dataset_mean
-            
-
-            fig0 = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
+            fig = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
             levels = np.linspace(dataset_mean.values.min(), dataset_mean.values.max(), num=21)
-            create_folder(self.outputdir, self.loglevel)
-            gs = gridspec.GridSpec(1, 1, figure=fig0)
-            ax0 = fig0.add_subplot(gs[0, :], projection=projection)
-            ax0.coastlines()
-            ax0.add_feature(cfeature.LAND, facecolor='lightgray')
-            ax0.add_feature(cfeature.OCEAN, facecolor='lightblue')
-            ax0.xaxis.set_major_formatter(LongitudeFormatter())
-            ax0.yaxis.set_major_formatter(LatitudeFormatter())
-            ax0.gridlines(draw_labels=True)
-            im = ax0.contourf(dataset_mean.lon, dataset_mean.lat,
+            gs = gridspec.GridSpec(1, 1, figure=fig)
+            ax = fig.add_subplot(gs[0, :], projection=projection)
+            ax.coastlines()
+            ax.add_feature(cfeature.LAND, facecolor='lightgray')
+            ax.add_feature(cfeature.OCEAN, facecolor='lightblue')
+            ax.xaxis.set_major_formatter(LongitudeFormatter())
+            ax.yaxis.set_major_formatter(LatitudeFormatter())
+            ax.gridlines(draw_labels=self.draw_labels)
+            im0 = ax.contourf(dataset_mean.lon, dataset_mean.lat,
                               dataset_mean, cmap='RdBu_r', levels=levels, extend='both')
-            ax0.set_title(self.mean_plot_title)
-            ax0.set_xlabel('Longitude')
-            ax0.set_ylabel('Latitude')
-            cbar = fig0.colorbar(im, ax=ax0, shrink=0.43, extend='both')
+            ax.set_title(self.mean_plot_title)
+            ax.set_xlabel('Longitude')
+            ax.set_ylabel('Latitude')
+            cbar = fig.colorbar(im0, ax=ax, shrink=0.43, extend='both')
             cbar.set_label(self.cbar_label)
-            self.logger.info("Saving ensemble mean map to pdf")
-            outfig = os.path.join(self.outputdir, 'mean_pdf')
-            self.logger.debug(f"Saving figure to {outfig}")
-            create_folder(outfig, self.loglevel)
-            outfile = self.outputfile + '_mean.pdf'
-            self.logger.debug(f"mean output file: {outfile}")
-            fig0.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
+            self.logger.debug(f"Saving 2D map of mean to {outfig}")
+            # 2D mean plot in pdf
+            fig.savefig(os.path.join(outfig, self.var+'_LatLon_mean.pdf'),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
+            # 2D mean plots in png
+            fig.savefig(os.path.join(outfig, self.var+'_LatLon_mean.png'),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
 
         if self.dataset_std is not None:
             if isinstance(self.dataset_std,xr.Dataset):
                 dataset_std = self.dataset_std[var]
             else:
                 dataset_std = self.dataset_std
-
-            fig1 = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
+            fig = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
             levels = np.linspace(dataset_std.values.min(), dataset_std.values.max(), num=21)
-            gs = gridspec.GridSpec(1, 1, figure=fig1)
-            ax1 = fig1.add_subplot(gs[0, :], projection=projection)
-            ax1.coastlines()
-            ax1.add_feature(cfeature.LAND, facecolor='lightgray')
-            ax1.add_feature(cfeature.OCEAN, facecolor='lightblue')
-            ax1.xaxis.set_major_formatter(LongitudeFormatter())
-            ax1.yaxis.set_major_formatter(LatitudeFormatter())
-            ax1.gridlines(draw_labels=True)
-            im = ax1.contourf(dataset_std.lon, dataset_std.lat,
-                              dataset_std, cmap='OrRd', levels=20, extend='both')
-            ax1.set_title(self.std_plot_title)
-            ax1.set_xlabel('Longitude')
-            ax1.set_ylabel('Latitude')
-            cbar = fig1.colorbar(im, ax=ax1, shrink=0.43, extend='both')
+            gs = gridspec.GridSpec(1, 1, figure=fig)
+            ax = fig.add_subplot(gs[0, :], projection=projection)
+            ax.coastlines()
+            ax.add_feature(cfeature.LAND, facecolor='lightgray')
+            ax.add_feature(cfeature.OCEAN, facecolor='lightblue')
+            ax.xaxis.set_major_formatter(LongitudeFormatter())
+            ax.yaxis.set_major_formatter(LatitudeFormatter())
+            ax.gridlines(draw_labels=self.draw_labels)
+            im1 = ax.contourf(dataset_std.lon, dataset_std.lat,
+                              dataset_std, cmap='OrRd', levels=21, extend='both')
+            ax.set_title(self.std_plot_title)
+            ax.set_xlabel('Longitude')
+            ax.set_ylabel('Latitude')
+            cbar = fig.colorbar(im1, ax=ax, shrink=0.43, extend='both')
             cbar.set_label(self.cbar_label)
-            self.logger.info("Saving ensemble std map to pdf")
-            outfig = os.path.join(self.outputdir, 'std_pdf')
-            self.logger.debug(f"Saving figure to {outfig}")
-            create_folder(outfig, self.loglevel)
-            outfile = self.outputfile + '_std.pdf'
-            self.logger.debug(f"std output file: {outfile}")
-            fig1.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
+            self.logger.debug(f"Saving 2D map of STD to {outfig}")
+            # 2D STD plot in pdf
+            fig.savefig(os.path.join(outfig, self.var+'_LatLon_STD.pdf'),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
+            # 2D STD plots in png
+            fig.savefig(os.path.join(outfig, self.var+'_LatLon_STD.png'),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
+            # for the AQUA tests, test if self.figure is None
+            self.figure = fig
 
-    def run(self):
-        self.compute()
-        self.plot()
 
 class EnsembleZonal():
     """
@@ -336,6 +344,7 @@ class EnsembleZonal():
         self.outputdir = outputdir + 'Ensemble_Zonal'
         self.outputfile = f'global_Zonal_plot_{var}'
 
+        self.figure = None
         plot_options = kwargs.get('plot_options',{})
         self.plot_label = plot_options.get('plot_label',True)
         self.plot_std =  plot_options.get('plot_std',True)
@@ -350,7 +359,7 @@ class EnsembleZonal():
         self.mean_plot_title = plot_options.get('mean_plot_title', f'Ensemble mean zonal average of {self.var}')
         self.std_plot_title = plot_options.get('std_plot_title', f'Ensemble standard deviation of zonal average of {self.var}')
 
-    def compute(self):
+    def compute_statistics(self):
         """
         A function to compute the mean and standard devivation of the input dataset
         It is import to make sure that the dim along which the mean is compute is correct.
@@ -365,7 +374,12 @@ class EnsembleZonal():
         This plots the ensemble mean and standard deviation of the ensemble statistics.
         To edit the default settings please call the method "edit_attributes"
         """
-        self.logger.info('Plotting the ensemble computation')
+        self.logger.info('Plotting the ensemble computation of Zonal-averages as mean and STD in Lev-Lon of var {self.var}')
+        create_folder(self.outputdir, self.loglevel)
+        outfig = os.path.join(self.outputdir, 'plots')
+        self.logger.debug(f"Path to output diectory for plots: {outfig}")
+        create_folder(outfig, self.loglevel)
+
         # projection = ccrs.PlateCarree()
         var = self.var
         if self.dataset_mean is not None:
@@ -373,50 +387,45 @@ class EnsembleZonal():
                 dataset_mean = self.dataset_mean[var]
             else:
                 dataset_mean = self.dataset_mean
- 
-            fig0 = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
-            ax0 = fig0.add_subplot(1,1,1)
-            im = ax0.contourf(dataset_mean.lat,dataset_mean.lev,dataset_mean,cmap='RdBu_r', levels=20, extend='both')
-            ax0.set_ylim((5500, 0))
-            ax0.set_ylabel("Depth (in m)", fontsize=9)
-            ax0.set_xlabel("Latitude (in deg North)", fontsize=9)
-            ax0.set_facecolor('grey')
-            ax0.set_title(self.mean_plot_title)
-            cbar = fig0.colorbar(im, ax=ax0, shrink=0.9, extend='both')
+            self.logger.info("Plotting ensemble-mean Zonal-average") 
+            fig = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
+            ax = fig.add_subplot(1,1,1)
+            im = ax.contourf(dataset_mean.lat,dataset_mean.lev,dataset_mean,cmap='RdBu_r', levels=20, extend='both')
+            ax.set_ylim((5500, 0))
+            ax.set_ylabel("Depth (in m)", fontsize=9)
+            ax.set_xlabel("Latitude (in deg North)", fontsize=9)
+            ax.set_facecolor('grey')
+            ax.set_title(self.mean_plot_title)
+            cbar = fig.colorbar(im, ax=ax, shrink=0.9, extend='both')
             cbar.set_label(self.cbar_label)
-            self.logger.info("Saving ensemble mean Zonal average to pdf")
-            outfig = os.path.join(self.outputdir, 'mean_pdf')
-            self.logger.debug(f"Saving figure to {outfig}")
-            create_folder(outfig, self.loglevel)
-            outfile = self.outputfile + '_mean.pdf'
-            self.logger.debug(f"Ensemble Zonal average mean file: {outfile}")
-            fig0.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi) 
+            self.logger.debug(f"Saving Lev-Lon Zonal-average ensemble-mean as pdf and png to {outfig}")
+            # Lev-Lon Zonal mean plot in pdf
+            fig.savefig(os.path.join(outfig, self.var+'_LevLon_mean.pdf'),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
+            # Lev-Lon Zonal mean plot in png
+            fig.savefig(os.path.join(outfig, self.var+'_LevLon_mean.png'),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
 
         if self.dataset_std is not None:
             if isinstance(self.dataset_std,xr.Dataset):
                 dataset_std = self.dataset_std[var]
             else:
                 dataset_std = self.dataset_std
- 
-            fig1 = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
-            ax1 = fig1.add_subplot(1,1,1)
-            #im = self.dataset_std[var].contourf(ax=ax1, cmap=cmap, levels=20, extend='both');
-            im = ax1.contourf(dataset_std.lat,dataset_std.lev,dataset_std,cmap='OrRd', levels=20, extend='both')
-            ax1.set_ylim((5500, 0))
-            ax1.set_ylabel("Depth (in m)", fontsize=9)
-            ax1.set_xlabel("Latitude (in deg North)", fontsize=9)
-            ax1.set_facecolor('grey')
-            ax1.set_title(self.std_plot_title)
-            cbar = fig1.colorbar(im, ax=ax1,shrink=0.9, extend='both')
+            self.logger.info("Plotting ensemble-STD Zonal-average") 
+            fig = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
+            ax = fig.add_subplot(1,1,1)
+            im = ax.contourf(dataset_std.lat,dataset_std.lev,dataset_std,cmap='OrRd', levels=20, extend='both')
+            ax.set_ylim((5500, 0))
+            ax.set_ylabel("Depth (in m)", fontsize=9)
+            ax.set_xlabel("Latitude (in deg North)", fontsize=9)
+            ax.set_facecolor('grey')
+            ax.set_title(self.std_plot_title)
+            cbar = fig.colorbar(im, ax=ax,shrink=0.9, extend='both')
             cbar.set_label(self.cbar_label)
-            self.logger.info("Saving ensemble std map to pdf")
-            outfig = os.path.join(self.outputdir, 'std_pdf')
-            self.logger.debug(f"Saving figure to {outfig}")
-            create_folder(outfig, self.loglevel)
-            outfile = self.outputfile + '_std.pdf'
-            self.logger.debug(f"Ensemble Zonal average std file: {outfile}")
-            fig1.savefig(os.path.join(outfig, outfile),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
+            self.logger.debug(f"Saving Lev-Lon Zonal-average ensemble-STD as pdf and png to {outfig}")
+            # Lev-Lon Zonal STD plot in pdf
+            fig.savefig(os.path.join(outfig, self.var+'_LevLon_STD.pdf'),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
+            # Lev-Lon Zonal STD plot in png
+            fig.savefig(os.path.join(outfig, self.var+'_LevLon_STD.png'),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
+            # for the AQUA tests, test if self.figure is None
+            self.figure = fig
 
-    def run(self):
-        self.compute()
-        self.plot()
+

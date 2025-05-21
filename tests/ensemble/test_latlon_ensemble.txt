@@ -4,18 +4,17 @@ import subprocess
 import pytest
 import xarray as xr
 import numpy as np
-
-try:
-    from aqua.diagnostics import EnsembleLatLon
-except ModuleNotFoundError:
-    print("Import error for the ensemble module.")
+from aqua import Reader
+from aqua.diagnostics import EnsembleLatLon
 
 @pytest.mark.ensemble
 def test_2D_datasets():
     """
-    load aqua-analysis output of timeseries.
+    load aqua-analysis output of 2D Map of 2t.
     """
-    dataset = xr.open_dataset('atmglobalmean.statistics_maps.2t.IFS-FESOM_historical-1990.nc')
+    #dataset = xr.open_dataset('../../AQUA_tests/models/FESOM/results/atmglobalmean.statistics_maps.2t.IFS-FESOM_historical-1990.nc')
+    reader = Reader(model='FESOM', exp='results', source='atmglobalmean2D', catalog='ci', areas=False)
+    dataset = reader.retrieve()
     dataset_list = [dataset,dataset]
     dataset = xr.concat(dataset_list, "Ensembles")
     del dataset_list
@@ -26,8 +25,9 @@ def test_ensemble_2D_compute():
     """Test the compute method of EnsembleLatLons."""
     sample_dataset = test_2D_datasets()
     latlon = EnsembleLatLon(var="2t", dataset=sample_dataset)
-    latlon.run()
-
+    latlon.compute_statistics()
+    latlon.plot()
     assert latlon.dataset_mean is not None
     assert latlon.dataset_std.all() == 0 
+    assert latlon.figure is not None
 

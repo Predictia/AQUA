@@ -153,7 +153,8 @@ if __name__ == '__main__':
     atm_dataset = retrieve_data(variable, models=model_list, exps=exp_list, sources=source_list)
 
     atmglobalmean_ens = EnsembleLatLon(var= variable, dataset=atm_dataset, outputdir=outputdir, plot_options=plot_options)
-    atmglobalmean_ens.run()
+    atmglobalmean_ens.compute_statistics()
+    atmglobalmean_ens.plot()
     logger.info(f"Finished Ensemble_latLon diagnostic for {variable}.")
     # Close the Dask client and cluster
     client.close()

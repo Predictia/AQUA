@@ -151,7 +151,8 @@ if __name__ == '__main__':
 
     zonal_dataset = retrieve_data(region=region, variable=variable, models=model_list, exps=exp_list, sources=source_list)
     zm = EnsembleZonal(var=variable, dataset=zonal_dataset, outputdir=outputdir, plot_options=plot_options)
-    zm.run()
+    zm.compute_statistics()
+    zm.plot()
     logger.info(f"Finished Ensemble Zonal Average diagnostic for {variable}.")
     # Close the Dask client and cluster
     client.close()
