@@ -63,8 +63,8 @@ diagnostic_config = {
     'ocean3d': [
         {
             'config_file': 'regions.yaml',
-            'source_path': 'diagnostics/ocean3d/config',
-            'target_path': 'diagnostics/ocean3d/config'
+            'source_path': 'config/diagnostics/ocean3d/',
+            'target_path': 'diagnostics/ocean3d/'
         },
         {
             'config_file': 'config.circulation.yaml',

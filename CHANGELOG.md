@@ -5,13 +5,57 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ## [Unreleased]
 
-Unreleased in the current development version (target v0.14.1):
+Unreleased in the current development version (target v0.16.0):
 
 AQUA core complete list:
+
+AQUA diagnostics complete list:
+
+
+## [v0.15.0]
+
+Main changes are:
+- Polytope support 
+- Plotting routines support cartopy projections and matplotlib styles
+- Major refactor of AQUA core functionalities: Regridder, Datamodel, OutputSaver, Timstat  
+- Major refactor of Timeseries, SeasonalCycle, GregoryPlot diagnostics
+
+Removed:
+- `aqua.slurm` has been removed.
+
+Workflow modifications:
+- `push_analysis.sh` (and the tool `push_s3.py` which it calls) now both return proper error codes if the transfer fails. 0 = ok, 1 = credentials not valid, 2 = bucket not found. This would allow the workflow to check return codes.
+As an alternative, connectivity could be tested before attempting to run push_analysis by pushing a small file (e.g. with `python push_s3.py aqua-web ping.txt`))
+
+AQUA core complete list:
+- Add FDB_HOME to debug logs (#1914)
+- Enabling support for DestinE STAC API to detect `bridge_start_date`and `bridge_end_date` (#1895)
+- Return codes for push_s3 and push_analysis utilities (#1903)
+- Polytope support (#1893)
+- Additional stats for LRA and other refinements (#1886) 
+- New OutputSaver class (#1837)
+- Introduce a `Timstat()` module independent from the `Reader()` (#1832)
+- Adapt Catalog Generator to Data-Portfolio v1.3.0 (#1848)
+- Introduction of a internal AQUA data model able to guess coordinates and convert toward required target data convention definition (#1862, #1877, #1883)
+- Custom `paths` in the `config-aqua.yaml` can now be defined and will take priority over the catalog paths (#1809)
+- Remove deprecated `aqua.slurm` module (#1860)
+- Refactor of `plot_maps()` and `plot_maps_diff()` functions with projection support and use their single map version internally (#1865)
+- Refactor of `plot_single_map()` and `plot_single_map_diff()` functions with projection support (#1854)
+- Refactor time handling: replacement of `datetime` objects and of `pd.Timestamp` lists (#1828)
+- Fix the `regrid_method` option in the Reader (#1859)
+- Add a GitHub Token for downloading ClimateDT catalogs (#1855)
+- Ignore `nonlocal` complaints by flake8 (#1855)
+- WOCE-ARGO ocean dataset grids and fixes added (#1846)
+- Upgrade of base container to FDB 5.15.11 (#1845)
 - Matplotlib styles can be set in the configuration file (#1729)
 - Graphics refactoring for timeseries plot functions (#1729, #1841)
 - Major refactor of the regrid options, with new modular `Regridder()` class replacing `Regrid()` mixin (#1768)
 - Refactor of the `retrieve_plain()` function with contextmanager and smmregrid GridInspector (#1768)
+
+AQUA diagnostics complete list:
+- Diagnostic core: refinement of OutputSaver metadata and name handling (#1901)
+- Diagnostic core: refactor of the documentation folder structure (#1891)
+- Timeseries: complete refactor of the timeseries diagnostic according to the Diagnostic, PlotDiagnostic schema (#1712, #1896)
 
 ## [v0.14.0]
 
@@ -63,6 +107,7 @@ AQUA core complete list:
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
 
 AQUA diagnostics complete list:
+- Ensemble: config file structure and tests (#1630)
 - Ocean3d: Tests for the Ocean3d diagnostic (#1780)
 - Diagnostic core: A common function to check and convert variable units is provided as `convert_data_units()` (#1806)
 - Ocean3d: Bug fix to regridding of observations in cli (#1811)
@@ -74,7 +119,7 @@ AQUA diagnostics complete list:
 - Global bias: Handling plev and using scientific notation in contour plots (#1649)
 - Ecmean: Fix net surface radiative flux and wind stresses in ecmean (#1696)
 - Diagnostic core: A common parser and fuctions to open/close the dask cluster are provided (#1703)
-- Ensemble: config file structure and tests (#1630)
+
 ## [v0.13.1]
 
 Main changes are:
@@ -877,7 +922,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.14.0...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.15.0...HEAD
+[v0.15.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.14.0...v0.15.0
 [v0.14.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.1...v0.14.0
 [v0.13.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.0...v0.13.1
 [v0.13.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-beta...v0.13.0

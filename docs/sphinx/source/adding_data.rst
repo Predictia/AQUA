@@ -209,17 +209,21 @@ Some of the parameters are here described:
 
     This optional date is used for cases where part of the data are on the HPC FDB and part on the databridge.
     This is the first date/time for which data are stored on the databridge. Previous data are assumed to be on the HPC.    
-    If set to "complete" then all data are assumed to be on the bridge. 
+    If set to ``complete`` then all data are assumed to be on the bridge. 
     If omitted, but ``bridge_end_date`` is set, it is assumed to be the same as ``data_start_date``.
     It can be set to a filename from which to read the date/time (in any format understood by pandas).
+    If set to ``stac``, the DestinE STAC API will be used to get both ``bridge_start_date`` and ``bridge_end_date``.
+    Only LUMI Bridge is supported for now.
 
 .. option:: bridge_end_date
 
     This optional date is used for cases where part of the data are on the HPC FDB and part on the databridge.
     This is the last date/time (included) for which data are stored on the databridge. Following data are assumed to be on the HPC.    
-    If set to "complete" then all data are assumed to be on the bridge (equivalent to setting ``data_end_date`` to "complete").
+    If set to ``complete`` then all data are assumed to be on the bridge (equivalent to setting ``data_end_date`` to "complete").
     If omitted, but ``bridge_start_date`` is set, it is assumed to be the same as ``data_end_date``.
     It can be set to a filename from which to read the date/time (in any format understood by pandas)
+    If set to ``stac``, the DestinE Bridge STAC API will be used to get both `bridge_start_date` and `bridge_end_date`.
+    Only LUMI Bridge is supported for now.
 
 .. option:: hpc_expver
 
@@ -452,7 +456,7 @@ As an example, we use the healpix grid for ICON and tco1279 for IFS:
   Specific for oceanic models where interpolation is changing at each depth level.
 - ``cdo_extra``: (if applicable): Additional CDO command to be used to process the files defined in ``path``.
 - ``cdo_options``: (if applicable): Additional CDO options to be used to process the files defined in ``path``.
-- ``cellareas``, ``cellarea_var``: (if applicable): Optional path and variable name where to specify a file to retrieve
+- ``cellareas``, ``cellareas_var``: (if applicable): Optional path and variable name where to specify a file to retrieve
   the grid area cells when the grid shape is too complex for being automatically computed by CDO.
 - ``regrid_method``: (if applicable): Alternative CDO regridding method which is not the ``ycon`` default.
   To be used when grid corners are not available. Alterntives might be ``bil``, ``bic`` or ``nn``.
