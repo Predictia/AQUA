@@ -12,8 +12,7 @@ from aqua.logger import log_configure
 from aqua.exceptions import NoObservationError, NoDataError
 from aqua.util import create_folder
 from aqua.util import add_pdf_metadata
-from dask import compute
-
+#from dask import compute
 from aqua.graphics import plot_single_map
 
 xr.set_options(keep_attrs=True)
