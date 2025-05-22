@@ -33,11 +33,14 @@ Input variables
 
 In order to use the `Ensemble` module, a pre-processing step is required. In this step one has to merge all the given `1D` timeseries, `2D` `Lat-Lon` Map and Zonal-averages `Lev-Lon` for `EnsembleTimeseries`, `EnsembleLatLon` and `EnsembleZonal` along a pesudo-dimension, respectively. The default dimension is simply named as `Ensmbles` and can be changed. One can load the data directly as `xarray.Dataset` or can use the `aqua` `Reader` class. 
 
-The default values for the plotting fuction has been already set as default values. These values can also be by simply defining a python `dictionary` e.g., in the case of the `EnsembleTimeseries`, ``plot_options = {'plot_std': True , 'plot_ensemble_members': True, 'ensemble_label': 'Multi-model', 'plot_title': 'Ensemble statistics for 2-meter temperature [K]', 'ref_label': 'ERA5', 'figure_size': [12,6] , 'label_ncol': 3, 'label_size': 7, 'units': None}``.
+The default values for the plotting fuction has been already set as default values. These values can also be by simply defining a python `dictionary` e.g., in the case of the `EnsembleTimeseries`,
+``plot_options = {'plot_std': True , 'plot_ensemble_members': True, 'ensemble_label': 'Multi-model', 'plot_title': 'Ensemble statistics for 2-meter temperature [K]', 'ref_label': 'ERA5', 'figure_size': [12,6] , 'label_ncol': 3, 'label_size': 7, 'units': None}``.
 
-For `EnsembleLatLon`, ``plot_options = {'figure_size': [15,14], 'cbar_label': '2-meter temperature in K','mean_plot_title': 'Map of 2t for Ensemble Multi-Model mean', 'std_plot_title': 'Map of 2t for Ensemble Multi-Model standard deviation'}``.
+For `EnsembleLatLon`, 
+``plot_options = {'figure_size': [15,14], 'cbar_label': '2-meter temperature in K','mean_plot_title': 'Map of 2t for Ensemble Multi-Model mean', 'std_plot_title': 'Map of 2t for Ensemble Multi-Model standard deviation'}``.
 
-For `EnsembleZonal`, ``plot_options = {'figure_size': [12,8], 'plot_label': True, 'plot_std': True, 'unit': None, 'mean_plot_title': 'Mean of Ensemble of Zonal average', 'std_plot_title':  'Standard deviation of Ensemble of Zonal average', 'cbar_label': 'temperature in K', 'dpi': 300}``.
+For `EnsembleZonal`, 
+``plot_options = {'figure_size': [12,8], 'plot_label': True, 'plot_std': True, 'unit': None, 'mean_plot_title': 'Mean of Ensemble of Zonal average', 'std_plot_title':  'Standard deviation of Ensemble of Zonal average', 'cbar_label': 'temperature in K', 'dpi': 300}``.
  
 Basic usage
 -----------
@@ -55,7 +58,7 @@ Example Plots
 
 Ensemble module provides output plots as PDF and PNG. 
 
-.. figure:: figures/.ensemble_time_series_timeseries_2t.png
+.. figure:: figures/ensemble_time_series_timeseries_2t.png
     :align: center
     :width: 100%
     
@@ -95,15 +98,4 @@ produced from the diagnostic function docstrings.
     :members:
     :undoc-members:
     :show-inheritance:
-
-
-
-
-
-
-
-
-
-
-
 
