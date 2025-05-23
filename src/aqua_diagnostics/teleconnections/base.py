@@ -74,7 +74,7 @@ class BaseMixin(Diagnostic):
             xr.DataArray: The regression of the data on the index.
         """
         data, index = self._prepare_statistic(var=var, season=season)
-        corr = xr.corr(index, data, dim=dim, skipna=True)
+        corr = xr.corr(index, data, dim=dim)
         return corr
 
     def _prepare_statistic(self, var: str = None, season: str = None):
