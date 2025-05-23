@@ -64,8 +64,74 @@ if __name__ == '__main__':
 
                 nao = [None] * len(config_dict['datasets'])
 
+                nao_config = config_dict['diagnostics']['teleconnections']['NAO']
+                seasons = nao_config.get('seasons', 'annual')
+
+                # Initialize a matrix to store the NAO regressions
+                # for each dataset and each season
+                nao_regressions = {season: [None] * len(config_dict['datasets']) for season in seasons}
+                nao_correlations = {season: [None] * len(config_dict['datasets']) for season in seasons}
+
+                init_args = {'loglevel': loglevel}
+
                 for i, dataset in enumerate(config_dict['datasets']):
                     logger.info(f'Running dataset: {dataset}')
+                    dataset_args = {'catalog': dataset['catalog'], 'model': dataset['model'],
+                                    'exp': dataset['exp'], 'source': dataset['source'],
+                                    'regrid': dataset.get('regrid', regrid)}
+                    nao[i] = NAO(**dataset_args, **init_args)
+                    nao[i].retrieve()
+                    nao[i].compute_index(months_window=nao_config.get('months_window', 3),
+                                         rebuild=rebuild)
+
+                    nao[i].save_netcdf(nao[i].index, diagnostic='nao', diagnostic_product='index',
+                                       default_path=outputdir, rebuild=rebuild)
+                    
+                    for season in seasons:
+                        nao_regressions[season][i] = nao[i].compute_regression(season=season)
+                        nao_correlations[season][i] = nao[i].compute_correlation(season=season)
+
+                        diagnostic_product_reg = f'regression_{season}' if season != 'annual' else 'regression'
+                        diagnostic_product_cor = f'correlation_{season}' if season != 'annual' else 'correlation'
+
+                        nao[i].save_netcdf(nao_regressions[season][i], diagnostic='nao', diagnostic_product=diagnostic_product_reg,
+                                           default_path=outputdir, rebuild=rebuild)
+                        nao[i].save_netcdf(nao_correlations[season][i], diagnostic='nao', diagnostic_product=diagnostic_product_cor,
+                                           default_path=outputdir, rebuild=rebuild)
+
+                nao_ref = [None] * len(common_dict['references'])
+
+                nao_ref_regressions = {season: [None] * len(config_dict['references']) for season in seasons}
+                nao_ref_correlations = {season: [None] * len(config_dict['references']) for season in seasons}
+
+                for i, reference in enumerate(config_dict['references']):
+                    logger.info(f'Running reference: {reference}')
+                    reference_args = {'catalog': reference['catalog'], 'model': reference['model'],
+                                      'exp': reference['exp'], 'source': reference['source'],
+                                      'regrid': reference.get('regrid', regrid)}
+                    nao_ref[i] = NAO(**reference_args, **init_args)
+                    nao_ref[i].retrieve()
+                    nao_ref[i].compute_index(months_window=nao_config.get('months_window', 3),
+                                             rebuild=rebuild)
+                    
+                    nao_ref[i].save_netcdf(nao_ref[i].index, diagnostic='nao', diagnostic_product='index',
+                                           default_path=outputdir, rebuild=rebuild)
+                    
+                    for season in seasons:
+                        nao_ref_regressions[season][i] = nao_ref[i].compute_regression(season=season)
+                        nao_ref_correlations[season][i] = nao_ref[i].compute_correlation(season=season)
+
+                        diagnostic_product_reg = f'regression_{season}' if season != 'annual' else 'regression'
+                        diagnostic_product_cor = f'correlation_{season}' if season != 'annual' else 'correlation'
+
+                        nao_ref[i].save_netcdf(nao_ref_regressions[season][i], diagnostic='nao', diagnostic_product=diagnostic_product_reg,
+                                               default_path=outputdir, rebuild=rebuild)
+                        nao_ref[i].save_netcdf(nao_ref_correlations[season][i], diagnostic='nao', diagnostic_product=diagnostic_product_cor,
+                                               default_path=outputdir, rebuild=rebuild)
+
+                # Plot NAO regressions
+                if save_pdf or save_png:
+                    logger.info('Plotting NAO regressions')
 
         if 'ENSO' in config_dict['diagnostics']['teleconnections']:
             if config_dict['diagnostics']['teleconnections']['ENSO']['run']:
