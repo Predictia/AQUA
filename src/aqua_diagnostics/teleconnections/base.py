@@ -194,6 +194,9 @@ class PlotBaseMixin():
 
         Args:
             diagnostic (str): The name of the diagnostic. Default is None.
+        
+        Returns:
+            str: The title of the index plot.
         """
         titles_dataset = [f'{diagnostic} index for {self.models[i]} {self.exps[i]}'
                           for i in range(self.len_data)]
