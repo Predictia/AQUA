@@ -99,7 +99,7 @@ if __name__ == '__main__':
                         nao[i].save_netcdf(nao_correlations[season][i], diagnostic='nao', diagnostic_product=diagnostic_product_cor,
                                            default_path=outputdir, rebuild=rebuild)
 
-                nao_ref = [None] * len(common_dict['references'])
+                nao_ref = [None] * len(config_dict['references'])
 
                 nao_ref_regressions = {season: [None] * len(config_dict['references']) for season in seasons}
                 nao_ref_correlations = {season: [None] * len(config_dict['references']) for season in seasons}
@@ -132,6 +132,52 @@ if __name__ == '__main__':
                 # Plot NAO regressions
                 if save_pdf or save_png:
                     logger.info('Plotting NAO regressions')
+                    plot_args = {'indexes': [nao[i].index for i in range(len(nao))],
+                                 'ref_indexes': [nao_ref[i].index for i in range(len(nao_ref))],
+                                 'outputdir': outputdir, 'rebuild': rebuild,
+                                 'loglevel': loglevel}
+                    
+                    plot_nao = PlotNAO(**plot_args)
+
+                    # Plot the NAO index
+                    fig_index, _ = plot_nao.plot_index()
+                    index_description = plot_nao.set_index_description()
+                    if save_pdf:
+                        plot_nao.save_plot(fig_index, diagnostic_product='index', format='pdf',
+                                           metadata={'description': index_description}, dpi=dpi)
+                    if save_png:
+                        plot_nao.save_plot(fig_index, diagnostic_product='index', format='png',
+                                           metadata={'description': index_description}, dpi=dpi)
+
+                    # Plot regressions and correlations
+                    for season in seasons:
+                        nao_regressions[season].load()
+                        nao_ref_regressions[season].load()
+                        fig_reg = plot_nao.plot_maps(maps=nao_regressions[season], ref_maps=nao_ref_regressions[season],
+                                                        statistic='regression')
+                        fig_cor = plot_nao.plot_maps(maps=nao_correlations[season], ref_maps=nao_ref_correlations[season],
+                                                        statistic='correlation')
+
+                        regression_description = plot_nao.set_map_description(maps=nao_regressions[season],
+                                                                             ref_maps=nao_ref_regressions[season],
+                                                                             statistic='regression')
+                        correlation_description = plot_nao.set_map_description(maps=nao_regressions[season],
+                                                                             ref_maps=nao_ref_regressions[season],
+                                                                             statistic='correlation')
+
+                        reg_product = f'regression_{season}' if season != 'annual' else 'regression'
+                        cor_product = f'correlation_{season}' if season != 'annual' else 'correlation'
+
+                        if save_pdf:
+                            plot_nao.save_plot(fig_reg, diagnostic_product=reg_product, format='pdf',
+                                               metadata={'description': regression_description}, dpi=dpi)
+                            plot_nao.save_plot(fig_cor, diagnostic_product=cor_product, format='pdf',
+                                               metadata={'description': correlation_description}, dpi=dpi)
+                        if save_png:
+                            plot_nao.save_plot(fig_reg, diagnostic_product=reg_product, format='png',
+                                               metadata={'description': regression_description}, dpi=dpi)
+                            plot_nao.save_plot(fig_cor, diagnostic_product=cor_product, format='png',
+                                               metadata={'description': correlation_description}, dpi=dpi)
 
         if 'ENSO' in config_dict['diagnostics']['teleconnections']:
             if config_dict['diagnostics']['teleconnections']['ENSO']['run']:
