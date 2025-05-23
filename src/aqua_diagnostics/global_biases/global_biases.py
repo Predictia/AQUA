@@ -123,14 +123,16 @@ class GlobalBiases(Diagnostic):
                 raise ValueError("Invalid statistic. Please choose one of 'mean', 'std', 'max', 'min'.")
 
             season_list = ['DJF', 'MAM', 'JJA', 'SON']
-            seasonal_climatology = {}
+            seasonal_data = []
 
             for season in season_list:
                 data_season = select_season(data[var], season)
                 data_stat = getattr(data_season, stat_funcs[seasons_stat])(dim='time')
-                seasonal_climatology[season] = data_stat
+                seasonal_data.append(data_stat.expand_dims(season=[season]))
 
-            self.seasonal_climatology = xr.Dataset(seasonal_climatology)
+            self.seasonal_climatology = xr.concat(seasonal_data, dim='season')
+            self.seasonal_climatology = self.seasonal_climatology.to_dataset(name=var)
+
             self.seasonal_climatology.attrs['model'] = self.model
             self.seasonal_climatology.attrs['exp'] = self.exp
             self.seasonal_climatology.attrs['startdate'] = self.startdate
