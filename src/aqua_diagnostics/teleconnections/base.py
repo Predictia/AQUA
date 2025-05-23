@@ -263,7 +263,7 @@ class PlotBaseMixin():
         """
         if format == 'png':
             _ = self.outputsaver.save_png(fig, diagnostic_product=diagnostic_product,
-                                          extra_keys=extra_keys, metadata=metadata)
+                                          extra_keys=extra_keys, metadata=metadata, dpi=dpi)
         elif format == 'pdf':
             _ = self.outputsaver.save_pdf(fig, diagnostic_product=diagnostic_product,
                                           extra_keys=extra_keys, metadata=metadata)
