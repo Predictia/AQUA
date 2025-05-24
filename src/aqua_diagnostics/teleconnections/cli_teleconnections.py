@@ -67,7 +67,7 @@ if __name__ == '__main__':
                 nao_config = config_dict['diagnostics']['teleconnections']['NAO']
                 seasons = nao_config.get('seasons', 'annual')
 
-                # Initialize a matrix to store the NAO regressions
+                # Initialize a matrix to store the NAO regressions and correlations
                 # for each dataset and each season
                 nao_regressions = {season: [None] * len(config_dict['datasets']) for season in seasons}
                 nao_correlations = {season: [None] * len(config_dict['datasets']) for season in seasons}
@@ -131,7 +131,7 @@ if __name__ == '__main__':
 
                 # Plot NAO regressions
                 if save_pdf or save_png:
-                    logger.info('Plotting NAO regressions')
+                    logger.info('Plotting NAO')
                     plot_args = {'indexes': [nao[i].index for i in range(len(nao))],
                                  'ref_indexes': [nao_ref[i].index for i in range(len(nao_ref))],
                                  'outputdir': outputdir, 'rebuild': rebuild,
@@ -185,8 +185,120 @@ if __name__ == '__main__':
 
                 enso = [None] * len(config_dict['datasets'])
 
+                enso_config = config_dict['diagnostics']['teleconnections']['ENSO']
+                seasons = enso_config.get('seasons', 'annual')
+
+                # Initialize a matrix to store the ENSO regressions and correlations
+                # for each dataset and each season
+                enso_regressions = {season: [None] * len(config_dict['datasets']) for season in seasons}
+                enso_correlations = {season: [None] * len(config_dict['datasets']) for season in seasons}
+
+                init_args = {'loglevel': loglevel}
+
                 for i, dataset in enumerate(config_dict['datasets']):
                     logger.info(f'Running dataset: {dataset}')
+
+                    dataset_args = {'catalog': dataset['catalog'], 'model': dataset['model'],
+                                    'exp': dataset['exp'], 'source': dataset['source'],
+                                    'regrid': dataset.get('regrid', regrid)}
+                    enso[i] = ENSO(**dataset_args, **init_args)
+                    enso[i].retrieve()
+                    enso[i].compute_index(months_window=enso_config.get('months_window', 3),
+                                          rebuild=rebuild)
+                    enso[i].save_netcdf(enso[i].index, diagnostic='enso', diagnostic_product='index',
+                                       default_path=outputdir, rebuild=rebuild)
+
+                    for season in seasons:
+                        enso_regressions[season][i] = enso[i].compute_regression(season=season)
+                        enso_correlations[season][i] = enso[i].compute_correlation(season=season)
+
+                        diagnostic_product_reg = f'regression_{season}' if season != 'annual' else 'regression'
+                        diagnostic_product_cor = f'correlation_{season}' if season != 'annual' else 'correlation'
+
+                        enso[i].save_netcdf(enso_regressions[season][i], diagnostic='enso', diagnostic_product=diagnostic_product_reg,
+                                            default_path=outputdir, rebuild=rebuild)
+                        enso[i].save_netcdf(enso_correlations[season][i], diagnostic='enso', diagnostic_product=diagnostic_product_cor,
+                                            default_path=outputdir, rebuild=rebuild)
+
+                enso_ref = [None] * len(config_dict['references'])
+
+                enso_ref_regressions = {season: [None] * len(config_dict['references']) for season in seasons}
+                enso_ref_correlations = {season: [None] * len(config_dict['references']) for season in seasons}
+
+                for i, reference in enumerate(config_dict['references']):
+                    logger.info(f'Running reference: {reference}')
+                    reference_args = {'catalog': reference['catalog'], 'model': reference['model'],
+                                      'exp': reference['exp'], 'source': reference['source'],
+                                      'regrid': reference.get('regrid', regrid)}
+                    enso_ref[i] = ENSO(**reference_args, **init_args)
+                    enso_ref[i].retrieve()
+                    enso_ref[i].compute_index(months_window=enso_config.get('months_window', 3),
+                                              rebuild=rebuild)
+
+                    enso_ref[i].save_netcdf(enso_ref[i].index, diagnostic='enso', diagnostic_product='index',
+                                            default_path=outputdir, rebuild=rebuild)
+
+                    for season in seasons:
+                        enso_ref_regressions[season][i] = enso_ref[i].compute_regression(season=season)
+                        enso_ref_correlations[season][i] = enso_ref[i].compute_correlation(season=season)
+
+                        diagnostic_product_reg = f'regression_{season}' if season != 'annual' else 'regression'
+                        diagnostic_product_cor = f'correlation_{season}' if season != 'annual' else 'correlation'
+
+                        enso_ref[i].save_netcdf(enso_ref_regressions[season][i], diagnostic='enso', diagnostic_product=diagnostic_product_reg,
+                                                default_path=outputdir, rebuild=rebuild)
+                        enso_ref[i].save_netcdf(enso_ref_correlations[season][i], diagnostic='enso', diagnostic_product=diagnostic_product_cor,
+                                                default_path=outputdir, rebuild=rebuild)
+
+                # Plot ENSO regressions
+                if save_pdf or save_png:
+                    logger.info('Plotting ENSO')
+                    plot_args = {'indexes': [enso[i].index for i in range(len(enso))],
+                                 'ref_indexes': [enso_ref[i].index for i in range(len(enso_ref))],
+                                 'outputdir': outputdir, 'rebuild': rebuild,
+                                 'loglevel': loglevel}
+
+                    plot_enso = PlotENSO(**plot_args)
+
+                    # Plot the ENSO index
+                    fig_index, _ = plot_enso.plot_index()
+                    index_description = plot_enso.set_index_description()
+                    if save_pdf:
+                        plot_enso.save_plot(fig_index, diagnostic_product='index', format='pdf',
+                                            metadata={'description': index_description}, dpi=dpi)
+                    if save_png:
+                        plot_enso.save_plot(fig_index, diagnostic_product='index', format='png',
+                                            metadata={'description': index_description}, dpi=dpi)
+
+                    # Plot regressions and correlations
+                    for season in seasons:
+                        enso_regressions[season].load()
+                        enso_ref_regressions[season].load()
+                        fig_reg = plot_enso.plot_maps(maps=enso_regressions[season], ref_maps=enso_ref_regressions[season],
+                                                      statistic='regression')
+                        fig_cor = plot_enso.plot_maps(maps=enso_correlations[season], ref_maps=enso_ref_correlations[season],
+                                                      statistic='correlation')
+
+                        regression_description = plot_enso.set_map_description(maps=enso_regressions[season],
+                                                                             ref_maps=enso_ref_regressions[season],
+                                                                             statistic='regression')
+                        correlation_description = plot_enso.set_map_description(maps=enso_regressions[season],
+                                                                             ref_maps=enso_ref_regressions[season],
+                                                                             statistic='correlation')
+
+                        reg_product = f'regression_{season}' if season != 'annual' else 'regression'
+                        cor_product = f'correlation_{season}' if season != 'annual' else 'correlation'
+
+                        if save_pdf:
+                            plot_enso.save_plot(fig_reg, diagnostic_product=reg_product, format='pdf',
+                                               metadata={'description': regression_description})
+                            plot_enso.save_plot(fig_cor, diagnostic_product=cor_product, format='pdf',
+                                               metadata={'description': correlation_description})
+                        if save_png:
+                            plot_enso.save_plot(fig_reg, diagnostic_product=reg_product, format='png',
+                                               metadata={'description': regression_description}, dpi=dpi)
+                            plot_enso.save_plot(fig_cor, diagnostic_product=cor_product, format='png',
+                                               metadata={'description': correlation_description}, dpi=dpi)
 
     close_cluster(client=client, cluster=cluster, private_cluster=private_cluster, loglevel=loglevel)
 
