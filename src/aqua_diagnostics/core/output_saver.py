@@ -221,3 +221,63 @@ class OutputSaver:
         # Merge with provided metadata
         metadata = update_metadata(base_metadata, metadata)
         return metadata
+
+    def generate_catalog_entry(self):
+        """
+        Create an entry in the catalog for the LRA
+        TODO: How to take care of multi-model ensemble where the models come from different catalogs
+        """
+        entry_name = f'{self.diagnostic}'
+        if self.region:
+            entry_name = f'{entry_name}-{self.region["name"]}'
+        self.logger.info('Creating catalog entry %s %s %s', self.model, self.exp, entry_name)
+
+        # modify filename if realization is there
+        if 'realization' in self.kwargs:
+            if self.region:
+                urlpath = os.path.join(self.outdir, f"*{self.exp}_r{self.kwargs['realization']}__{self.region['name']}_*.nc")
+            else:
+                urlpath = os.path.join(self.outdir, f"*{self.exp}_r{self.kwargs['realization']}_{self.resolution}_{self.frequency}_*.nc")
+        else:
+            if self.region:
+                urlpath = os.path.join(self.outdir, f"*{self.exp}_{self.resolution}_{self.frequency}_{self.region['name']}_*.nc")
+            else:
+                urlpath = os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_*.nc')
+
+        self.logger.info('Fully expanded urlpath %s', urlpath)
+        urlpath = replace_intake_vars(catalog=self.catalog, path=urlpath)
+        self.logger.info('New urlpath with intake variables is %s', urlpath)
+
+        # find the catalog of my experiment and load it
+        catalogfile = os.path.join(self.configdir, 'catalogs', self.catalog,
+                                   'catalog', self.model, self.exp + '.yaml')
+        cat_file = load_yaml(catalogfile)
+
+        # if the entry already exists, update the urlpath if requested and return
+        if entry_name in cat_file['sources']:
+            self.logger.info('Catalog entry for %s %s %s already exists', self.model, self.exp, entry_name)
+            self.logger.info('Updating the urlpath to %s', urlpath)
+            cat_file['sources'][entry_name]['args']['urlpath'] = urlpath
+
+        else: 
+            # if the entry is not there, define the block to be uploaded into the catalog
+            block_cat = {
+                'driver': 'netcdf',
+                'description': f'LRA data {self.frequency} at {self.resolution}',
+                'args': {
+                    'urlpath': urlpath,
+                    'chunks': {},
+                    'xarray_kwargs': {
+                        'decode_times': True,
+                        'combine': 'by_coords'
+                    },
+                },
+                'metadata': {
+                    'source_grid_name': 'lon-lat',
+                }
+            }
+
+            cat_file['sources'][entry_name] = block_cat
+
+        # dump the update file
+        dump_yaml(outfile=catalogfile, cfg=cat_file)
