@@ -151,8 +151,14 @@ if __name__ == '__main__':
 
                     # Plot regressions and correlations
                     for season in seasons:
-                        nao_regressions[season].load()
-                        nao_ref_regressions[season].load()
+                        # Load the regression and correlation maps for each season
+                        # to greatly speed up the plotting process
+                        for i in range(len(nao)):
+                            nao_regressions[season][i].load()
+                            nao_ref_regressions[season][i].load()
+                            nao_correlations[season][i].load()
+                            nao_ref_correlations[season][i].load()
+
                         fig_reg = plot_nao.plot_maps(maps=nao_regressions[season], ref_maps=nao_ref_regressions[season],
                                                         statistic='regression')
                         fig_cor = plot_nao.plot_maps(maps=nao_correlations[season], ref_maps=nao_ref_correlations[season],
@@ -272,8 +278,14 @@ if __name__ == '__main__':
 
                     # Plot regressions and correlations
                     for season in seasons:
-                        enso_regressions[season].load()
-                        enso_ref_regressions[season].load()
+                        # Load the regression and correlation maps for each season
+                        # to greatly speed up the plotting process
+                        for i in range(len(enso)):
+                            enso_regressions[season][i].load()
+                            enso_ref_regressions[season][i].load()
+                            enso_correlations[season][i].load()
+                            enso_ref_correlations[season][i].load()
+
                         fig_reg = plot_enso.plot_maps(maps=enso_regressions[season], ref_maps=enso_ref_regressions[season],
                                                       statistic='regression')
                         fig_cor = plot_enso.plot_maps(maps=enso_correlations[season], ref_maps=enso_ref_correlations[season],
