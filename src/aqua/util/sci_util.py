@@ -257,5 +257,7 @@ def select_season(xr_data, season: str):
         # Add AQUA_season attribute
         selected.attrs['AQUA_season'] = season
         return selected
+    elif season == 'annual':
+        return xr_data
     else:
         raise ValueError("Invalid season abbreviation. Please use one of the provided abbreviations.")
