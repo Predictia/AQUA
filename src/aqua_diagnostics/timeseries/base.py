@@ -412,7 +412,7 @@ class PlotBaseMixin():
             format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
             diagnostic (str): Diagnostic name to be used in the filename as diagnostic_product.
         """
-        outputsaver = OutputSaver(diagnostic='dummy', 
+        outputsaver = OutputSaver(diagnostic='Timeseries', 
                                   catalog=self.catalogs[0],
                                   model=self.models[0],
                                   exp=self.exps[0],
@@ -429,8 +429,8 @@ class PlotBaseMixin():
             extra_keys.update({'region': region})
 
         if format == 'png':
-            outputsaver.save_png(fig, diagnostic_product=diagnostic_product, extra_keys=extra_keys, metadata=metadata)
+            outputsaver.save_png(fig, diagnostic_product=diagnostic, extra_keys=extra_keys, metadata=metadata)
         elif format == 'pdf':
-            outputsaver.save_pdf(fig, diagnostic_product=diagnostic_product, extra_keys=extra_keys, metadata=metadata)
+            outputsaver.save_pdf(fig, diagnostic_product=diagnostic, extra_keys=extra_keys, metadata=metadata)
         else:
             raise ValueError(f'Format {format} not supported. Use png or pdf.')
