@@ -10,6 +10,11 @@ from .tc_statistics import reg_evaluation, cor_evaluation
 xr.set_options(keep_attrs=True)
 
 
+# TO DO: This code is not ufficially tested, it is a legacy code.
+# In order to be able to use it, the reg_evaluation and cor_evaluation functions
+# should be taken from old modules. However, a new refactor may be done
+# to use the new evaluation functions if needed.
+
 def bootstrap_teleconnections(map: xr.DataArray,
                               index: xr.DataArray,
                               index_ref: xr.DataArray,
