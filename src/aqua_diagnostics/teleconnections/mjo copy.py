@@ -1,47 +1,14 @@
+"""
+Module to evaluate the MJO teleconnection.
+"""
 import xarray as xr
+
 from aqua.logger import log_configure
-from .base import BaseMixin
+from aqua.util import area_selection
+from .tools import TeleconnectionsConfig
 
 # set default options for xarray
 xr.set_options(keep_attrs=True)
-
-class MJO(BaseMixin):
-    """
-    MJO (Madden-Julian Oscillation) class.
-    """
-    def __init__(self, catalog: str = None, model: str = None,
-                 exp: str = None, source: str = None,
-                 regrid: str = None,
-                 startdate: str = None, enddate: str = None,
-                 configdir: str = None,
-                 interface: str = 'teleconnections-destine',
-                 loglevel: str = 'WARNING'):
-        """
-        Initialize the MJO class.
-
-        Args:
-            catalog (str): Catalog name.
-            model (str): Model name.
-            exp (str): Experiment name.
-            source (str): Source name.
-            regrid (str): Regrid method.
-            startdate (str): Start date for data retrieval.
-            enddate (str): End date for data retrieval.
-            configdir (str): Configuration directory. Default is the installation directory.
-            interface (str): Interface filename. Default is 'teleconnections-destine'.
-            loglevel (str): Logging level. Default is 'WARNING'.
-        """
-        super().__init__(telecname='MJO', catalog=catalog, model=model, exp=exp, source=source,
-                         regrid=regrid, startdate=startdate, enddate=enddate,
-                         configdir=configdir, interface=interface,
-                         loglevel=loglevel)
-        self.logger = log_configure(log_name='MJO', log_level=loglevel)
-
-        self.var = self.interface.get('field')
-
-        # Delete the self.index attribute if it exists
-        if hasattr(self, 'index'):
-            del self.index
 
 
 def mjo_hovmoller(data=None,
