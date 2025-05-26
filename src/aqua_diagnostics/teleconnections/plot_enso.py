@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import xarray as xr
+from aqua.logger import log_configure
 from aqua.graphics import indexes_plot
 from aqua.graphics import plot_maps, plot_single_map
 from aqua.graphics import plot_maps_diff, plot_single_map_diff
@@ -22,6 +23,7 @@ class PlotENSO(PlotBaseMixin):
         """
         super().__init__(indexes=indexes, ref_indexes=ref_indexes, diagnostic='enso',
                          outputdir=outputdir, rebuild=rebuild, loglevel=loglevel)
+        self.logger = log_configure(log_name='PlotENSO', log_level=loglevel)
 
     def plot_index(self, thresh: float = 0.5):
 

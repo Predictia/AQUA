@@ -4,8 +4,8 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import matplotlib.path as mpath
 from cartopy.crs import NorthPolarStereo
-from aqua.graphics import indexes_plot
-from aqua.graphics import plot_single_map, plot_single_map_diff
+from aqua.logger import log_configure
+from aqua.graphics import indexes_plot, plot_single_map, plot_single_map_diff
 from .base import PlotBaseMixin, _homogeneize_maps
 
 
@@ -25,6 +25,7 @@ class PlotNAO(PlotBaseMixin):
         """
         super().__init__(indexes=indexes, ref_indexes=ref_indexes, diagnostic='nao',
                          outputdir=outputdir, rebuild=rebuild, loglevel=loglevel)
+        self.logger = log_configure(log_name='PlotNAO', log_level=loglevel)
 
     def plot_index(self, thresh: float = 0.):
 
