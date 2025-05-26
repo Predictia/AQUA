@@ -7,7 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 Unreleased in the current development version (target v0.16.0):
 
+Workflow modifications:
+- `push_analysis.sh` now updates and pushes to LUMI-O the file `experiments.yaml`  which is used by the 
+  dashboard to know which experiments to list. the file is downloaded from the object store, updated and 
+  pushed back.
+
 AQUA core complete list:
+- Update and push to lumi-o the a file listing experiments needed by the dashboard (#1950)
 
 AQUA diagnostics complete list:
 
