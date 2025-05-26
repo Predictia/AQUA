@@ -154,10 +154,10 @@ if __name__ == '__main__':
                         # Load the regression and correlation maps for each season
                         # to greatly speed up the plotting process
                         for i in range(len(nao)):
-                            nao_regressions[season][i].load()
-                            nao_ref_regressions[season][i].load()
-                            nao_correlations[season][i].load()
-                            nao_ref_correlations[season][i].load()
+                            nao_regressions[season][i].load(keep_attrs=True)
+                            nao_ref_regressions[season][i].load(keep_attrs=True)
+                            nao_correlations[season][i].load(keep_attrs=True)
+                            nao_ref_correlations[season][i].load(keep_attrs=True)
 
                         fig_reg = plot_nao.plot_maps(maps=nao_regressions[season], ref_maps=nao_ref_regressions[season],
                                                         statistic='regression')
@@ -167,8 +167,8 @@ if __name__ == '__main__':
                         regression_description = plot_nao.set_map_description(maps=nao_regressions[season],
                                                                              ref_maps=nao_ref_regressions[season],
                                                                              statistic='regression')
-                        correlation_description = plot_nao.set_map_description(maps=nao_regressions[season],
-                                                                             ref_maps=nao_ref_regressions[season],
+                        correlation_description = plot_nao.set_map_description(maps=nao_correlations[season],
+                                                                             ref_maps=nao_ref_correlations[season],
                                                                              statistic='correlation')
 
                         reg_product = f'regression_{season}' if season != 'annual' else 'regression'
@@ -176,9 +176,9 @@ if __name__ == '__main__':
 
                         if save_pdf:
                             plot_nao.save_plot(fig_reg, diagnostic_product=reg_product, format='pdf',
-                                               metadata={'description': regression_description}, dpi=dpi)
+                                               metadata={'description': regression_description})
                             plot_nao.save_plot(fig_cor, diagnostic_product=cor_product, format='pdf',
-                                               metadata={'description': correlation_description}, dpi=dpi)
+                                               metadata={'description': correlation_description})
                         if save_png:
                             plot_nao.save_plot(fig_reg, diagnostic_product=reg_product, format='png',
                                                metadata={'description': regression_description}, dpi=dpi)
@@ -271,7 +271,7 @@ if __name__ == '__main__':
                     index_description = plot_enso.set_index_description()
                     if save_pdf:
                         plot_enso.save_plot(fig_index, diagnostic_product='index', format='pdf',
-                                            metadata={'description': index_description}, dpi=dpi)
+                                            metadata={'description': index_description})
                     if save_png:
                         plot_enso.save_plot(fig_index, diagnostic_product='index', format='png',
                                             metadata={'description': index_description}, dpi=dpi)
@@ -281,10 +281,10 @@ if __name__ == '__main__':
                         # Load the regression and correlation maps for each season
                         # to greatly speed up the plotting process
                         for i in range(len(enso)):
-                            enso_regressions[season][i].load()
-                            enso_ref_regressions[season][i].load()
-                            enso_correlations[season][i].load()
-                            enso_ref_correlations[season][i].load()
+                            enso_regressions[season][i].load(keep_attrs=True)
+                            enso_ref_regressions[season][i].load(keep_attrs=True)
+                            enso_correlations[season][i].load(keep_attrs=True)
+                            enso_ref_correlations[season][i].load(keep_attrs=True)
 
                         fig_reg = plot_enso.plot_maps(maps=enso_regressions[season], ref_maps=enso_ref_regressions[season],
                                                       statistic='regression')
@@ -294,8 +294,8 @@ if __name__ == '__main__':
                         regression_description = plot_enso.set_map_description(maps=enso_regressions[season],
                                                                              ref_maps=enso_ref_regressions[season],
                                                                              statistic='regression')
-                        correlation_description = plot_enso.set_map_description(maps=enso_regressions[season],
-                                                                             ref_maps=enso_ref_regressions[season],
+                        correlation_description = plot_enso.set_map_description(maps=enso_correlations[season],
+                                                                             ref_maps=enso_ref_correlations[season],
                                                                              statistic='correlation')
 
                         reg_product = f'regression_{season}' if season != 'annual' else 'regression'
