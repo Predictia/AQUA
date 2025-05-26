@@ -116,6 +116,7 @@ class PlotNAO(PlotBaseMixin):
                 title = f"ENSO {maps.AQUA_model} {maps.AQUA_exp} {statistic} map ({var}) compared to {ref_maps.AQUA_model} {ref_maps.AQUA_exp}"
                 if hasattr(maps, 'AQUA_season'):
                     title += f" ({maps.AQUA_season})"
+                self.logger.critical(f'vmin={vmin}, vmax={vmax}, vmin_diff={vmin_diff}, vmax_diff={vmax_diff}')
                 fig, ax = plot_single_map_diff(data=maps, data_ref=ref_maps,
                                                fig=fig, ax=ax,
                                                vmin_contour=vmin if vmin is not None else None,
