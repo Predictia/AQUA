@@ -412,7 +412,7 @@ class PlotBaseMixin():
             format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
             diagnostic (str): Diagnostic name to be used in the filename as diagnostic_product.
         """
-        outputsaver = OutputSaver(diagnostic='Timeseries', 
+        outputsaver = OutputSaver(diagnostic='timeseries', 
                                   catalog=self.catalogs[0],
                                   model=self.models[0],
                                   exp=self.exps[0],
