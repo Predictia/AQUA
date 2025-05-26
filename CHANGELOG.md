@@ -11,6 +11,7 @@ AQUA core complete list:
 
 AQUA diagnostics complete list:
 - Teleconnections: complete refactor according to the Diagnostic, PlotDiagnostic schema (#1884)
+- Timeseries: Use new OutputSaver in Timeseries diagnostics (#1948)
 
 
 ## [v0.15.0]
