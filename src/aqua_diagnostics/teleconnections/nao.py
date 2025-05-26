@@ -42,6 +42,7 @@ class NAO(BaseMixin):
         self.var = self.interface.get('field')
 
     def retrieve(self):
+        """Retrieve the data for the NAO index."""
         # Assign self.data, self.reader, self.catalog
         super().retrieve(var=self.var)
 

@@ -18,6 +18,22 @@ class ENSO(BaseMixin):
                  configdir: str = None,
                  interface: str = 'teleconnections-destine',
                  loglevel: str = 'WARNING'):
+        """
+        Initialize the ENSO class.
+        
+        Args:
+            catalog (str): Catalog name.
+            model (str): Model name.
+            exp (str): Experiment name.
+            source (str): Source name.
+            regrid (str): Regrid target. Default is None.
+            startdate (str): Start date for data retrieval. Default is None.
+            enddate (str): End date for data retrieval. Default is None.
+            configdir (str): Configuration directory. Default is None.
+            interface (str): Interface filename. Default is 'teleconnections-destine'.
+                             This is used to deduce the variable name and the lat/lon for the index.
+            loglevel (str): Logging level. Default is 'WARNING'.
+        """
         super().__init__(telecname='ENSO', catalog=catalog, model=model, exp=exp, source=source,
                          regrid=regrid, startdate=startdate, enddate=enddate,
                          configdir=configdir, interface=interface,
@@ -27,6 +43,7 @@ class ENSO(BaseMixin):
         self.var = self.interface.get('field')
 
     def retrieve(self):
+        """Retrieve the data for the ENSO index."""
         # Assign self.data, self.reader, self.catalog
         super().retrieve(var=self.var)
 
