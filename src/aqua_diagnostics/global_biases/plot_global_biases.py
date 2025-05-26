@@ -149,8 +149,8 @@ class PlotGlobalBiases:
 
             self.logger.info('Plotting seasonal biases.')
 
-           # data = self._handle_pressure_level(data, var, plev)
-            #data_ref = self._handle_pressure_level(data_ref, var, plev)
+            data = self._handle_pressure_level(data, var, plev)
+            data_ref = self._handle_pressure_level(data_ref, var, plev)
 
             # Prepare seasonal data and compute biases
             season_list = ['DJF', 'MAM', 'JJA', 'SON']
@@ -161,7 +161,7 @@ class PlotGlobalBiases:
 
             # Plot seasonal biases
             plot_kwargs = {
-                'maps': [data[var].sel(season=season)-data_ref[var].sel(season=season) for season in season_list],
+                'maps': [data[var].sel(season=season) - data_ref[var].sel(season=season) for season in season_list],
                 'return_fig': True,
                 'titles': season_list,
                 'contour': True,
