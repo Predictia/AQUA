@@ -115,6 +115,7 @@ class PlotENSO(PlotBaseMixin):
                     title += f" ({maps.AQUA_season})"
                 fig, _ = plot_single_map(data=maps, vmin=vmin, vmax=vmax, title=title,
                                          return_fig=True, loglevel=self.loglevel, **kwargs)
+                return fig
 
             # Case 1b: multiple maps
             elif isinstance(maps, list):
@@ -126,6 +127,7 @@ class PlotENSO(PlotBaseMixin):
                     titles.append(title)
                 fig = plot_maps(maps=maps, vmin=vmin, vmax=vmax, titles=titles,
                                 return_fig=True, loglevel=self.loglevel, **kwargs)
+                return fig
 
         # # Case 2: reference maps (maps and ref_maps are not None)
         if ref_maps is not None:
@@ -143,6 +145,7 @@ class PlotENSO(PlotBaseMixin):
                                               sym=True if vmax_diff is None and vmin_diff is None else False,
                                               sym_contour=True if vmax is None and vmin is None else False,
                                               title=title, return_fig=True, loglevel=self.loglevel, **kwargs)
+                return fig
 
             # Case 2b: maps are list and ref_maps is only one
             if isinstance(maps, list) and isinstance(ref_maps, xr.DataArray):
@@ -165,9 +168,11 @@ class PlotENSO(PlotBaseMixin):
                                      sym_contour=True if vmax is None and vmin is None else False,
                                      titles=titles, title=title, return_fig=True,
                                      loglevel=self.loglevel, **kwargs)
+                return fig
 
             # Case 2c: maps is only one and ref_maps is list
             if isinstance(maps, xr.DataArray) and isinstance(ref_maps, list):
+                self.logger.critical('maps is a single map, ref_maps is a list.')
                 titles = []
                 for map in ref_maps:
                     title = f"Compared to {map.AQUA_model} {map.AQUA_exp}"
@@ -187,13 +192,13 @@ class PlotENSO(PlotBaseMixin):
                                      sym_contour=True if vmax is None and vmin is None else False,
                                      titles=titles, title=title, return_fig=True,
                                      loglevel=self.loglevel, **kwargs)
+                self.logger.critical(f'Fig: {fig}')
+                return fig
 
             # Case 2d: maps and ref_maps are lists
             if isinstance(maps, list) and isinstance(ref_maps, list):
                 self.logger.error('Both maps and ref_maps are lists. This case is not implemented yet.')
-                fig = None
-
-        return fig
+                return None
 
     def set_map_description(self, maps=None, ref_maps=None, statistic: str = None):
         """
