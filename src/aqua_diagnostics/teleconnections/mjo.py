@@ -98,7 +98,7 @@ class PlotMJO():
         Initialize the PlotMJO class.
 
         Args:
-            data (list or xarray.DataArray): The list of data to be plot.
+            data (xarray.DataArray): Data to be plot.
             outputdir (str): Directory where the plots will be saved. Default is './'.
             rebuild (bool): If True, the plots will be rebuilt. Default is True.
             loglevel (str): Logging level. Default is 'WARNING'.
@@ -106,37 +106,13 @@ class PlotMJO():
         # Data info initalized as empty
         self.loglevel = loglevel
         self.logger = log_configure(self.loglevel, 'PlotMJO')
-        self.catalogs = None
-        self.models = None
-        self.exps = None
-
-        self.data = to_list(data)
-        self.len_data = len(self.data)
-
-        if self.len_data > 1:
-            self.logger.warning("Multiple datasets provided. Only the first one will be used for plotting.")
-            self.logger.error("Multiple datasets are not supported yet.")
-        self.data = self.data[0]
-
-        self.get_data_info()
+        self.catalogs = data.AQUA_catalog if hasattr(data, 'AQUA_catalog') else None
+        self.models = data.AQUA_model if hasattr(data, 'AQUA_model') else None
+        self.exps = data.AQUA_exp if hasattr(data, 'AQUA_exp') else None
+        self.data = data
 
         self.outputsaver = OutputSaver(diagnostic='mjo',  catalog=self.catalogs, model=self.models,
                                        exp=self.exps, outdir=outputdir, rebuild=rebuild, loglevel=self.loglevel)
-
-
-    def get_data_info(self):
-        """
-        We extract the data needed for labels, description etc
-        from the data arrays attributes.
-
-        The attributes are:
-        - AQUA_catalog
-        - AQUA_model
-        - AQUA_exp
-        """
-        self.catalogs = [d.AQUA_catalog for d in self.data]
-        self.models = [d.AQUA_model for d in self.data]
-        self.exps = [d.AQUA_exp for d in self.data]
 
     def plot_hovmoller(self, invert_axis: bool = True,
                        invert_time: bool = True,
