@@ -10,6 +10,7 @@ Unreleased in the current development version (target v0.16.0):
 AQUA core complete list:
 
 AQUA diagnostics complete list:
+- Teleconnections: complete refactor according to the Diagnostic, PlotDiagnostic schema (#1884)
 
 
 ## [v0.15.0]
@@ -24,8 +25,7 @@ Removed:
 - `aqua.slurm` has been removed.
 
 Workflow modifications:
-- `push_analysis.sh` (and the tool `push_s3.py` which it calls) now both return proper error codes if the transfer fails. 0 = ok, 1 = credentials not valid, 2 = bucket not found. This would allow the workflow to check return codes.
-As an alternative, connectivity could be tested before attempting to run push_analysis by pushing a small file (e.g. with `python push_s3.py aqua-web ping.txt`))
+- `push_analysis.sh` (and the tool `push_s3.py` which it calls) now both return proper error codes if the transfer fails. 0 = ok, 1 = credentials not valid, 2 = bucket not found. This would allow the workflow to check return codes. As an alternative, connectivity could be tested before attempting to run push_analysis by pushing a small file (e.g. with `python push_s3.py aqua-web ping.txt`))
 
 AQUA core complete list:
 - Add FDB_HOME to debug logs (#1914)
