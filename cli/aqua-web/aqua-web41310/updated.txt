@@ -1,3 +1,0 @@
-Updated figures in bucket aqua-web
-on Mon 26 May 2025 02:32:19 PM EEST for the following experiments:
-climatedt-phase1/IFS-NEMO/ssp370
