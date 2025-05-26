@@ -72,3 +72,11 @@ def test_NAO(tmp_path):
     assert description == 'NAO correlation map (Pearson_correlation) IFS test-tco79.'
     plot_single.save_plot(fig_cor, diagnostic_product=f'correlation', metadata={'description': description}, format='pdf')
     assert (os.path.exists(os.path.join(tmp_path, 'pdf', 'nao.correlation.ci.IFS.test-tco79.pdf'))) is True
+
+    # Not implemented maps
+    fig_not_implemented = plot_ref.plot_maps(maps=[reg_DJF, reg_DJF], ref_maps=reg_DJF, statistic='not_implemented')
+    assert fig_not_implemented is None, "Plotting with not implemented statistic should return None"
+    fig_not_implemented = plot_ref.plot_maps(maps=reg_DJF, ref_maps=[reg_DJF, reg_DJF], statistic='regression')
+    assert fig_not_implemented is None, "Plotting with not implemented statistic should return None"
+    fig_not_implemented = plot_ref.plot_maps(maps=[reg_DJF, reg_DJF], ref_maps=[reg_DJF, reg_DJF], statistic='regression')
+    assert fig_not_implemented is None, "Plotting with not implemented statistic should return None"
