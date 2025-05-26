@@ -10,7 +10,7 @@ Unreleased in the current development version (target v0.16.0):
 AQUA core complete list:
 
 AQUA diagnostics complete list:
-- Use new OutputSaver in Timeseries diagnostics (#1948)
+- Timeseries: Use new OutputSaver in Timeseries diagnostics (#1948)
 
 
 ## [v0.15.0]
