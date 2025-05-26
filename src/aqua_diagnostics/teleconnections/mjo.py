@@ -2,6 +2,7 @@ import xarray as xr
 from aqua.graphics import plot_hovmoller
 from aqua.logger import log_configure
 from aqua.util import area_selection, to_list
+from aqua.diagnostics.core import OutputSaver
 from .base import BaseMixin
 
 # set default options for xarray
@@ -119,6 +120,10 @@ class PlotMJO():
 
         self.get_data_info()
 
+        self.outputsaver = OutputSaver(diagnostic='mjo',  catalog=self.catalogs, model=self.models,
+                                       exp=self.exps, outdir=outputdir, rebuild=rebuild, loglevel=self.loglevel)
+
+
     def get_data_info(self):
         """
         We extract the data needed for labels, description etc
@@ -148,8 +153,11 @@ class PlotMJO():
             cmap (str): Colormap to use for the plot. Default is 'PuOr'.
             vmin (float): Minimum value for the colorbar. Default is -90.
             vmax (float): Maximum value for the colorbar. Default is 90.
+
+        Returns:
+            fig (matplotlib.figure.Figure): The Hovmoller plot figure.
         """
-        fig, ax = plot_hovmoller(self.data, dim='lat', 
+        fig, _ = plot_hovmoller(self.data, dim='lat', 
                                  invert_axis=invert_axis,
                                  invert_time=invert_time,
                                  nlevels=nlevels,
@@ -158,3 +166,26 @@ class PlotMJO():
                                  display=False, return_fig=True,
                                  loglevel=self.loglevel)
         
+        return fig
+    
+    def save_plot(self, fig, diagnostic_product: str = 'hovmoller', extra_keys: dict = None,
+                  dpi: int = 300, format: str = 'png', metadata: dict = None):
+        """
+        Save the plot to a file.
+
+        Args:
+            fig (matplotlib.figure.Figure): The figure to be saved.
+            diagnostic_product (str): The name of the diagnostic product. Default is None.
+            extra_keys (dict): Extra keys to be used for the filename (e.g. season). Default is None.
+            dpi (int): The dpi of the figure. Default is 300.
+            format (str): The format of the figure. Default is 'png'.
+            metadata (dict): The metadata to be used for the figure. Default is None.
+                             They will be complemented with the metadata from the outputsaver.
+                             We usually want to add here the description of the figure.
+        """
+        if format == 'png':
+            _ = self.outputsaver.save_png(fig, diagnostic_product=diagnostic_product,
+                                          extra_keys=extra_keys, metadata=metadata, dpi=dpi)
+        elif format == 'pdf':
+            _ = self.outputsaver.save_pdf(fig, diagnostic_product=diagnostic_product,
+                                          extra_keys=extra_keys, metadata=metadata)
