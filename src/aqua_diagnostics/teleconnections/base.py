@@ -75,6 +75,12 @@ class BaseMixin(Diagnostic):
         """
         data, index = self._prepare_statistic(var=var, season=season)
         corr = xr.corr(index, data, dim=dim)
+
+        # Modify the attributes to match the correlation
+        corr.attrs['long_name'] = f'Correlation of {data.long_name} with {index.long_name}'
+        corr.attrs['shortName'] = f'Pearson_correlation'
+        corr.attrs['units'] = '1'
+
         return corr
 
     def _prepare_statistic(self, var: str = None, season: str = None):
