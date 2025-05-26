@@ -1,4 +1,5 @@
 import xarray as xr
+from aqua.graphics import plot_hovmoller
 from aqua.logger import log_configure
 from aqua.util import area_selection, to_list
 from .base import BaseMixin
@@ -49,6 +50,7 @@ class MJO(BaseMixin):
     def retrieve(self):
         # Assign self.data, self.reader, self.catalog
         super().retrieve(var=self.var)
+        self.data = self.data[self.var]
 
         self.reader.timmean(self.data, freq='D')
 
@@ -85,7 +87,7 @@ class MJO(BaseMixin):
             self.data_hovmoller = data_anom
 
 
-class PlotMJO:
+class PlotMJO():
     """
     PlotMJO class for plotting the MJO Hovmoller data.
     This class is a placeholder for future plotting methods.
@@ -110,6 +112,11 @@ class PlotMJO:
         self.data = to_list(data)
         self.len_data = len(self.data)
 
+        if self.len_data > 1:
+            self.logger.warning("Multiple datasets provided. Only the first one will be used for plotting.")
+            self.logger.error("Multiple datasets are not supported yet.")
+        self.data = self.data[0]
+
         self.get_data_info()
 
     def get_data_info(self):
@@ -126,8 +133,28 @@ class PlotMJO:
         self.models = [d.AQUA_model for d in self.data]
         self.exps = [d.AQUA_exp for d in self.data]
 
-    def plot(self):
+    def plot_hovmoller(self, invert_axis: bool = True,
+                       invert_time: bool = True,
+                       nlevels: int = 21,
+                       cmap: str = 'PuOr',
+                       vmin: float = -90, vmax: float = 90):
         """
-        Placeholder method for plotting the MJO Hovmoller data.
+        Plot the Hovmoller diagram for the MJO data.
+
+        Args:
+            invert_axis (bool): If True, invert the axis. Default is True.
+            invert_time (bool): If True, invert the time axis. Default is True.
+            nlevels (int): Number of contour levels. Default is 21.
+            cmap (str): Colormap to use for the plot. Default is 'PuOr'.
+            vmin (float): Minimum value for the colorbar. Default is -90.
+            vmax (float): Maximum value for the colorbar. Default is 90.
         """
-        raise NotImplementedError("Plotting method not implemented yet.")
+        fig, ax = plot_hovmoller(self.data, dim='lat', 
+                                 invert_axis=invert_axis,
+                                 invert_time=invert_time,
+                                 nlevels=nlevels,
+                                 cmap=cmap,
+                                 vmin=vmin, vmax=vmax,
+                                 display=False, return_fig=True,
+                                 loglevel=self.loglevel)
+        
