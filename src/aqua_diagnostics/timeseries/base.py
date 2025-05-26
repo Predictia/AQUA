@@ -420,9 +420,9 @@ class PlotBaseMixin():
                                   rebuild=rebuild,
                                   loglevel=self.loglevel)
 
-        metadata = {"Description": description}
-        extra_keys = {'diagnostic_product': diagnostic,
-                     'dpi': dpi}
+        metadata = {"Description": description, "dpi": dpi }
+        extra_keys = {'diagnostic_product': diagnostic}
+
         if var is not None:
             extra_keys.update({'var': var})
         if region is not None:
