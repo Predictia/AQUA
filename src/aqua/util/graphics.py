@@ -349,7 +349,7 @@ def get_nside(data):
     Raises:
         ValueError: If the input data is not a valid HEALPix map.
     """
-    # Chech if the input is a numpy array or xarray DataArray
+    # Check if the input is a numpy array or xarray DataArray
     if not isinstance(data, (np.ndarray, xr.DataArray)): 
         raise ValueError("Input data must be a numpy array or xarray DataArray")
 
