@@ -120,6 +120,11 @@ Additional options
     The syntax is for example:
     ``--rsync user@myremotemachine.csc.fi:/path/to/my/dest/dir``
 
+Returns
+^^^^^^^
+
+When pushing to a LUMI-O bucket, the script returns 0 if the upload was successful, 1 if the credentials are not valid, 2 if the bucket does not exist and 3 for other errors.
+If the rsync option option is used, it will return the return codes from the rsysnc command.
 
 Grouping configuration file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -181,6 +186,12 @@ Options
 
     Optional destination path.
 
+.. option:: -g, --get
+
+    Flag to download a single file from the S3 bucket instead of uploading.
+    When this option is used, the ``-d`` flag is meant as the path on the destination 
+    bucket and the source is the name of the local file to write to.
+    
 .. option:: -k <aws_access_key_id>, --aws_access_key_id <aws_access_key_id>
 
     AWS access key ID.
@@ -193,6 +204,10 @@ Options
 
     Custom endpoint URL for S3. Default is https://lumidata.eu.
 
+Returns
+^^^^^^^
+
+The script returns 0 if the upload was successful, 1 if the credentials are not valid, 2 if the bucket does not exist and 3 for other errors.
 
 .. _submit-aqua-web:
 
