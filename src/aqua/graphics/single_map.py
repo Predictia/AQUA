@@ -80,8 +80,6 @@ def plot_single_map(data: xr.DataArray,
     if nside is not None:
         logger.info(f"Input data is in HEALPix format with nside={nside}.")
         data = healpix_resample(data)
-    else:
-        logger.debug("Input data is not in HEALPix format.")
 
     # We load in memory the data, to speed up the plotting, Dask is slow with matplotlib
     logger.debug("Loading data in memory")
@@ -251,11 +249,9 @@ def plot_single_map_diff(data: xr.DataArray, data_ref: xr.DataArray,
     nside = hp.npix2nside(npix) if hp.isnpixok(npix) else None
 
     if nside is not None:
-        logger.warning(f"Input data is in HEALPix format with nside={nside}.")
+        logger.info(f"Input data is in HEALPix format with nside={nside}.")
         data = healpix_resample(data)
         logger.debug("resampling HEALPix data")
-    else:
-        logger.debug("Input data is not in HEALPix format.")
 
 
     # Check if the data is in HEALPix format
@@ -263,11 +259,9 @@ def plot_single_map_diff(data: xr.DataArray, data_ref: xr.DataArray,
     nside_ref = hp.npix2nside(npix_ref) if hp.isnpixok(npix_ref) else None
 
     if nside_ref is not None:
-        logger.warning(f"Reference data is in HEALPix format with nside={nside_ref}.")
+        logger.info(f"Reference data is in HEALPix format with nside={nside_ref}.")
         data_ref = healpix_resample(data_ref)
         logger.debug("resampling HEALPix data_ref")
-    else:
-        logger.debug("Reference data is not in HEALPix format.")
 
     if isinstance(data_ref, xr.DataArray) is False or isinstance(data, xr.DataArray) is False:
         raise ValueError("Both data and data_ref must be an xarray.DataArray")
