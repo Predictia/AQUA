@@ -144,7 +144,7 @@ class PlotGlobalBiases:
                 vmax (float, optional): Maximum colorbar value.
 
             Returns:
-                tuple: Matplotlib figure and an xarray.Dataset of the calculated seasonal biases.
+                tuple: Matplotlib figure
             """
 
             self.logger.info('Plotting seasonal biases.')
@@ -157,8 +157,6 @@ class PlotGlobalBiases:
             
             # Set 'sym' to True if either 'vmin' or 'vmax' is None, indicating a symmetric colorbar.
             sym = vmin is None or vmax is None
-            
-
             # Plot seasonal biases
             plot_kwargs = {
                 'maps': [data[var].sel(season=season) - data_ref[var].sel(season=season) for season in season_list],
@@ -190,80 +188,54 @@ class PlotGlobalBiases:
 
 
 
-    def plot_vertical_bias(self, var=None, plev_min=None, plev_max=None, vmin=None, vmax=None):
-            """
-            Calculates and plots the vertical bias between two datasets.
+    def plot_vertical_bias(self, data, data_ref, var, plev_min=None, plev_max=None, vmin=None, vmax=None, nlevels=18):
+        """
+        Calculates and plots the vertical bias between two datasets.
 
-            Args:
-                var (str, optional): Variable name to analyze.
-                plev_min (float, optional): Minimum pressure level.
-                plev_max (float, optional): Maximum pressure level.
-                vmin (float, optional): Minimum colorbar value.
-                vmax (float, optional): Maximum colorbar value.
+        Args:
+            data (xarray.Dataset): Dataset to analyze.
+            data_ref (xarray.Dataset): Reference dataset for comparison.
+            var (str, optional): Variable name to analyze.
+            plev_min (float, optional): Minimum pressure level.
+            plev_max (float, optional): Maximum pressure level.
+            vmin (float, optional): Minimum colorbar value.
+            vmax (float, optional): Maximum colorbar value.
+            nlevels (int, optional): Number of contour levels for the plot.
+        """
 
-            Returns:
-                tuple: Matplotlib figure, axis objects, and xarray Dataset of the calculated bias.
-            """
+        self.logger.info('Plotting vertical biases for variable: %s', var)
 
-            self.logger.info('Plotting vertical biases.')
+        # Calculate the bias between the two datasets
+        self.logger.debug("Computing bias between input and reference datasets.")
+        bias = data[var] - data_ref[var]
 
-            var = var or self.var
+        # Determine pressure level bounds if not provided
+        if plev_min is None:
+            plev_min = bias['plev'].min().item()
+        if plev_max is None:
+            plev_max = bias['plev'].max().item()
 
-            # Compute climatology for reference dataset
-            ref_climatology = self.data_ref[var].mean(dim='time')
+        self.logger.debug("Selected pressure level range: %.2f - %.2f", plev_min, plev_max)
 
-            # Calculate the bias between the two datasets
-            bias = self.data[var] - ref_climatology
+        # Slice pressure levels in decreasing order (assuming pressure decreases with height)
+        bias = bias.sel(plev=slice(plev_max, plev_min))
 
-            # Filter pressure levels
-            if plev_min is None:
-                plev_min = bias['plev'].min().item()
-            if plev_max is None:
-                plev_max = bias['plev'].max().item()
+        # Ensure reasonable number of levels
+        nlevels = max(2, int(nlevels))
 
-            bias = bias.sel(plev=slice(plev_max, plev_min))
+        # Calculate the zonal mean bias
+        self.logger.debug("Computing zonal mean bias.")
+        zonal_bias = bias.mean(dim='lon')
 
-            # Calculate the mean bias along the time axis
-            mean_bias = bias.mean(dim='time')
-            nlevels = 18
+        # Determine colorbar limits if not provided
+        if vmin is None or vmax is None:
+            self.logger.debug("Determining colorbar limits from data.")
+            vmin, vmax = float(zonal_bias.min()), float(zonal_bias.max())
+            if vmin * vmax < 0:
+                vmax = max(abs(vmin), abs(vmax))
+                vmin = -vmax
 
-            # Calculate the zonal mean bias
-            zonal_bias = mean_bias.mean(dim='lon')
+        levels = np.linspace(vmin, vmax, nlevels)
 
-            # Determine colorbar limits if not provided
-            if vmin is None or vmax is None:
-                vmin, vmax = zonal_bias.min(), zonal_bias.max()
-                if vmin * vmax < 0:  # if vmin and vmax have different signs
-                    vmax = max(abs(vmin), abs(vmax))
-                    vmin = -vmax
-
-            levels = np.linspace(vmin, vmax, nlevels)
-
-            title = (f"{var} vertical bias of {self.model} {self.exp} {self.startdate}/{self.enddate}\n" 
-                f"relative to {self.model_ref} climatology {self.startdate_ref}/{self.enddate_ref}\n")
-
-            # Plotting the zonal bias
-            fig, ax = plt.subplots(figsize=(10, 8))
-            cax = ax.contourf(zonal_bias['lat'], zonal_bias['plev'], zonal_bias, cmap='RdBu_r', levels=levels, extend='both')
-            ax.set_title(title)
-            ax.set_yscale('log')
-            ax.set_ylabel('Pressure Level (Pa)')
-            ax.set_xlabel('Latitude')
-            ax.invert_yaxis()
-            fig.colorbar(cax, ax=ax, label=f'{var} [{self.data[var].attrs.get("units", "")}]')
-            ax.grid(True)
-
-            if self.save_png or self.save_pdf:
-                description = (
-                            f"Vertical bias plot of the variable {self.var} across pressure levels from {self.startdate} to {self.enddate} "
-                            f"for the {self.model} model, experiment {self.exp}, with {self.model_ref} used as reference data. "
-                        )
-                metadata = {"Description": description}
-
-                output_saver = OutputSaver(diagnostic='global_biases', model=self.model, exp=self.exp, loglevel=self.loglevel,
-                            default_path=self.outdir)
-
-                output_saver.save_netcdf(dataset=zonal_bias, diagnostic_product='vertical_bias_map', path=self.outdir, metadata=metadata)
-                if self.save_pdf: output_saver.save_pdf(fig=fig, diagnostic_product='vertical_bias_map', path=self.outdir, metadata=metadata)
-                if self.save_png: output_saver.save_png(fig=fig, diagnostic_product='vertical_bias_map', path=self.outdir, metadata=metadata)
-
+        title = (
+            f"{var} vertical bias of {data.model} {dat
