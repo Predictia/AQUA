@@ -5,7 +5,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ## [Unreleased]
 
-Unreleased in the current development version (target v0.14.1):
+Unreleased in the current development version (target v0.16.0):
+
+AQUA core complete list:
+- Use scientific notation in multiple maps plotting to avoid label overlapping (#1953)
+
+AQUA diagnostics complete list:
+- Timeseries: Use new OutputSaver in Timeseries diagnostics (#1948)
+
+
+## [v0.15.0]
+
+Main changes are:
+- Polytope support 
+- Plotting routines support cartopy projections and matplotlib styles
+- Major refactor of AQUA core functionalities: Regridder, Datamodel, OutputSaver, Timstat  
+- Major refactor of Timeseries, SeasonalCycle, GregoryPlot diagnostics
 
 Removed:
 - `aqua.slurm` has been removed.
@@ -25,7 +40,7 @@ AQUA core complete list:
 - Introduce a `Timstat()` module independent from the `Reader()` (#1832)
 - Adapt Catalog Generator to Data-Portfolio v1.3.0 (#1848)
 - Introduction of a internal AQUA data model able to guess coordinates and convert toward required target data convention definition (#1862, #1877, #1883)
-- Custom `paths` in the `confi-aqua.yaml` can now be defined and will take priority over the catalog paths (#1809)
+- Custom `paths` in the `config-aqua.yaml` can now be defined and will take priority over the catalog paths (#1809)
 - Remove deprecated `aqua.slurm` module (#1860)
 - Refactor of `plot_maps()` and `plot_maps_diff()` functions with projection support and use their single map version internally (#1865)
 - Refactor of `plot_single_map()` and `plot_single_map_diff()` functions with projection support (#1854)
@@ -910,7 +925,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.14.0...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.15.0...HEAD
+[v0.15.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.14.0...v0.15.0
 [v0.14.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.1...v0.14.0
 [v0.13.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.0...v0.13.1
 [v0.13.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13-beta...v0.13.0
