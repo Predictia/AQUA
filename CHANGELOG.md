@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.16.0):
 
 AQUA core complete list:
+- Integration of HEALPix data with `plot_single_map()` (#1897)
 - Use scientific notation in multiple maps plotting to avoid label overlapping (#1953)
 
 AQUA diagnostics complete list:
@@ -30,7 +31,6 @@ Workflow modifications:
 As an alternative, connectivity could be tested before attempting to run push_analysis by pushing a small file (e.g. with `python push_s3.py aqua-web ping.txt`))
 
 AQUA core complete list:
-- Integration of HEALPix data with `plot_single_map()` (#1897)
 - Add FDB_HOME to debug logs (#1914)
 - Enabling support for DestinE STAC API to detect `bridge_start_date`and `bridge_end_date` (#1895)
 - Return codes for push_s3 and push_analysis utilities (#1903)
