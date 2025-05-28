@@ -150,7 +150,12 @@ diagnostic_config = {
             'target_path': 'diagnostics/teleconnections/config'
         },
         {
-            'config_file': 'config_teleconnections.yaml',
+            'config_file': 'config_teleconnections_atm.yaml',
+            'source_path': 'config/diagnostics/teleconnections',
+            'target_path': 'diagnostics/teleconnections'
+        },
+        {
+            'config_file': 'config_teleconnections_oce.yaml',
             'source_path': 'config/diagnostics/teleconnections',
             'target_path': 'diagnostics/teleconnections'
         },
