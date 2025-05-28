@@ -91,7 +91,6 @@ class FldStat():
             if stat in ["mean"]:
                 self.logger.info("Computing unweighted %s on %s dimensions", stat, self.horizontal_dims)
                 return getattr(data, stat)(dim=self.horizontal_dims)
-            raise KeyError(f'{stat} is not a statistic supported by AQUA FldStat()')
 
         # align dimensions naming of area to match data
         self.area = self.align_area_dimensions(data)
@@ -112,8 +111,6 @@ class FldStat():
             weighted_data = data.weighted(weights=self.area.fillna(0))
             self.logger.info("Computing area-weighted %s on %s dimensions", stat, self.horizontal_dims)
             out = getattr(weighted_data, stat)(dim=self.horizontal_dims)
-        else:
-            raise KeyError(f'{stat} is not a statistic supported by AQUA FldStat()')
 
         if self.grid_name is not None:
             log_history(data, f"Spatially reduced by fld{stat} from {self.grid_name} grid")
