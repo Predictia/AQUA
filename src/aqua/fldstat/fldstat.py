@@ -47,6 +47,13 @@ class FldStat():
     def fldmean(self, data, **kwargs):
         """
         Perform a weighted global average. Builds on fldstat.
+
+        Args:
+            data (xr.DataArray or xarray.DataDataset):  the input data
+            **kwargs: additional arguments passed to fldstat
+
+        Returns:
+            the value of the averaged field
         """
         return self.fldstat(data, stat="mean", **kwargs)
 
@@ -55,7 +62,7 @@ class FldStat():
         Perform a weighted global average.
         If a subset of the data is provided, the average is performed only on the subset.
 
-        Arguments:
+        Args:
             data (xr.DataArray or xarray.DataDataset):  the input data
             stat (str):  the statistic to compute, only supported is "mean"
             lon_limits (list, optional):  the longitude limits of the subset
@@ -66,7 +73,7 @@ class FldStat():
                                   Default is True
 
         Returns:
-            the value of the averaged field
+            The value of the averaged field
         """
         
         if stat not in ["mean"]:
@@ -90,6 +97,7 @@ class FldStat():
             # compact call, equivalent of "out = data.mean()"
             if stat in ["mean"]:
                 self.logger.info("Computing unweighted %s on %s dimensions", stat, self.horizontal_dims)
+                log_history(data, f"Unweighted {stat} computed on {self.horizontal_dims} dimensions")
                 return getattr(data, stat)(dim=self.horizontal_dims)
 
         # align dimensions naming of area to match data
@@ -113,7 +121,7 @@ class FldStat():
             out = getattr(weighted_data, stat)(dim=self.horizontal_dims)
 
         if self.grid_name is not None:
-            log_history(data, f"Spatially reduced by fld{stat} from {self.grid_name} grid")
+            log_history(out, f"Spatially reduced by fld{stat} from {self.grid_name} grid")
 
         return out
 
@@ -121,6 +129,9 @@ class FldStat():
         """
         Align the area dimensions with the data dimensions.
         If the area and data have different number of horizontal dimensions, try to rename them.
+
+        Args:
+            data (xr.DataArray or xr.Dataset): The input data to align with the area.
         """
 
         # verify that horizontal dimensions area the same in the two datasets.
@@ -150,6 +161,12 @@ class FldStat():
         """
         Check if the coordinates of the area and data are aligned.
         If they are not aligned, try to flip the coordinates.
+
+        Args:
+            data (xr.DataArray or xr.Dataset): The input data to align with the area.
+
+        Returns:
+            xr.DataArray or xr.Dataset: The area with aligned coordinates.
         """
 
         # area.coords should be only lon-lat
