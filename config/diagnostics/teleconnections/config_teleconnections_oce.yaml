@@ -30,7 +30,7 @@ output:
 diagnostics:
   teleconnections:
     NAO:
-      run: true
+      run: false
       months_window: 3
       seasons: ['DJF']
       cbar_range: [-5, 5]
