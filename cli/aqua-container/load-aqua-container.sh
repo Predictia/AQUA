@@ -214,6 +214,7 @@ function setup_envs(){
           "PYTHONUSERBASE=1" #this is used to remove reference to .local
           "AQUA=$AQUA" #this is common to all machines
           "PYTHONPATH=$AQUA" #this is common to all machines
+          "CARTOPY_DATA_DIR=/opt/conda/share/cartopy" #this is internal to the container
           "ESMFMKFILE=$ESMFMKFILE")
 
     echo "${envs[@]}"
