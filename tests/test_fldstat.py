@@ -32,6 +32,11 @@ class TestFldModule():
         fldmodule = FldStat(area=reader.src_grid_area.cell_area, loglevel=LOGLEVEL)
         assert fldmodule.fldmean(reverted)['2t'].size == 3
 
+    def test_fldmean_raise(self):
+        """test Fldmean class raise error if no area provided"""
+        with pytest.raises(ValueError, match="Area must be an xarray DataArray or Dataset."):
+            FldStat(loglevel=LOGLEVEL, area='pippo')
+
 @pytest.mark.aqua
 class TestFldmean():
     """Test class for fldmean"""
