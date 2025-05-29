@@ -121,7 +121,7 @@ class BaseMixin(Diagnostic):
             definition = f'{definition}.yaml'
         if not configdir:
             configdir = ConfigPath().get_config_dir()
-            configdir = os.path.join(configdir, 'diagnostics', 'teleconnections', 'config')
+            configdir = os.path.join(configdir, 'diagnostics', 'teleconnections', 'definitions')
 
         definition_file = os.path.join(configdir, definition)
         self.logger.debug(f'Loading definition file: {definition_file}')
@@ -324,26 +324,37 @@ class PlotBaseMixin():
 
 def _homogeneize_maps(maps, ref_maps=None, var=None):
     """
-    Homogeneize the maps. If a list has length 1, we convert it to a single xarray.
+    Homogenize the maps. If a list has length 1, convert it to a single xarray.
+    If the units are in 'Pa', convert to 'hPa'. If var is None, it is inferred
+    from the data variable name.
 
     Args:
-        maps (list): The list of maps to be homogenized.
-        ref_maps (list): The list of reference maps to be homogenized.
-        var (str): The variable to be used. Default is None.
+        maps (list or xarray.DataArray): The list of maps or a single map.
+        ref_maps (list or xarray.DataArray): The list of reference maps or a single map.
+        var (str, optional): The variable name to pass to the unit conversion. 
+                             If None, inferred from each DataArray.
 
     Returns:
         tuple: The homogenized maps and reference maps.
     """
-    if var == 'msl':
-        maps = to_list(maps)
-        maps = [convert_data_units(data, var=var, units='hPa') for data in maps]
-        if ref_maps is not None:
-            ref_maps = to_list(ref_maps)
-            ref_maps = [convert_data_units(data, var=var, units='hPa') for data in ref_maps]
+    maps = to_list(maps)
+    maps = [
+        convert_data_units(data, var=data.name if var is None else var, units='hPa')
+        if getattr(data, 'units', None) == 'Pa' else data
+        for data in maps
+    ]
 
-    if isinstance(maps, list) and len(maps) == 1:
+    if ref_maps is not None:
+        ref_maps = to_list(ref_maps)
+        ref_maps = [
+            convert_data_units(data, var=data.name if var is None else var, units='hPa')
+            if getattr(data, 'units', None) == 'Pa' else data
+            for data in ref_maps
+        ]
+
+    if len(maps) == 1:
         maps = maps[0]
-    if isinstance(ref_maps, list) and len(ref_maps) == 1:
+    if ref_maps is not None and len(ref_maps) == 1:
         ref_maps = ref_maps[0]
 
     return maps, ref_maps
