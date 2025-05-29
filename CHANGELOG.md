@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 Unreleased in the current development version (target v0.16.0):
 
+Removed:
+- Removed source or experiment specific fixes; only the `fixer_name` is now supported.
+
 Workflow modifications:
 - `push_analysis.sh` now updates and pushes to LUMI-O the file `experiments.yaml`, which is used by the 
   dashboard to know which experiments to list. The file is downloaded from the object store, updated and 
@@ -18,6 +21,8 @@ AQUA core complete list:
 - plot_single_map() now can avoid coastlines to support paleoclimate maps (#1940)
 - Fixes to support EC-EARTH4 conversion to GRIB2 (#1940)
 - Added support for TL63, TL255, eORCA1, ORCA2 grids for EC-EARTH4 model (#1940)
+- `FldStat()` as independent module for area-weighted operations (#1835)
+- Refactor of `Fixer()`, now independent from the `Reader()` and supported by classes `FixerDataModel` and `FixerOperator` (#1929) 
 - Update and push to lumi-o the a file listing experiments needed by the dashboard (#1950)
 - Integration of HEALPix data with `plot_single_map()` (#1897)
 - Use scientific notation in multiple maps plotting to avoid label overlapping (#1953)
@@ -27,7 +32,6 @@ AQUA diagnostics complete list:
 - Diagnostic core: new `round_startdate` and `round_enddate` functions for time management (#1940)
 - Timeseries: fix in the new cli wich was ignoring the regrid option and had bad time handling (#1940)
 - Timeseries: Use new OutputSaver in Timeseries diagnostics (#1948)
-
 
 ## [v0.15.0]
 
