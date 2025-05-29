@@ -209,7 +209,7 @@ class BaseMixin(Diagnostic):
         if region is not None:
             region_file = ConfigPath().get_config_dir()
             region_file = os.path.join(region_file, 'diagnostics',
-                                       'timeseries', 'interface', 'regions.yaml')
+                                       'timeseries', 'definitions', 'regions.yaml')
             if os.path.exists(region_file):
                 regions = load_yaml(region_file)
                 if region in regions['regions']:
