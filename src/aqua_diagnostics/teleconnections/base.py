@@ -14,7 +14,7 @@ class BaseMixin(Diagnostic):
                  regrid: str = None,
                  startdate: str = None, enddate: str = None,
                  configdir: str = None,
-                 interface: str = 'teleconnections-destine',
+                 definition: str = 'teleconnections-destine',
                  loglevel: str = 'WARNING'):
         """
         Initialize the Base class.
@@ -29,16 +29,16 @@ class BaseMixin(Diagnostic):
                              If None, all available data will be retrieved.
             enddate (str): The end date of the data to be retrieved.
                            If None, all available data will be retrieved.
-            configdir (str): The directory where the interface file is located.
+            configdir (str): The directory where the definition file is located.
                              If None, the default directory will be used.
-            interface (str): The filename of the interface file.
+            definition (str): The filename of the definition file.
                              Default is 'teleconnections-destine'.
             loglevel (str): The log level to be used. Default is 'WARNING'.
         """
         super().__init__(catalog=catalog, model=model, exp=exp, source=source, regrid=regrid,
                          startdate=startdate, enddate=enddate, loglevel=loglevel)
 
-        self.interface = self.load_interface(configdir=configdir, interface=interface,
+        self.definition = self.load_definition(configdir=configdir, definition=definition,
                                              telecname=telecname)
         # Initialize the possible results
         self.index = None
@@ -101,34 +101,34 @@ class BaseMixin(Diagnostic):
 
         return data, index
 
-    def load_interface(self, configdir: str = None, interface: str = 'teleconnections-destine',
+    def load_definition(self, configdir: str = None, definition: str = 'teleconnections-destine',
                        telecname: str = None):
         """
-        Load the interface for the teleconnections.
+        Load the definition for the teleconnections.
 
         Args:
-            configdir (str): The directory where the interface file is located.
+            configdir (str): The directory where the definition file is located.
                               If None, the default directory will be used.
-            interface (str): The filename of the interface file.
+            definition (str): The filename of the definition file.
                              Default is 'teleconnections-destine'.
-            telecname (str): The name of the teleconnection. It selects the subset of the interface.
+            telecname (str): The name of the teleconnection. It selects the subset of the definition.
 
         Returns:
-            dict: The interface file as a dictionary.
+            dict: The definition file as a dictionary.
         """
-        # Add yaml to interface if not present
-        if not interface.endswith('.yaml'):
-            interface = f'{interface}.yaml'
+        # Add yaml to definition if not present
+        if not definition.endswith('.yaml'):
+            definition = f'{definition}.yaml'
         if not configdir:
             configdir = ConfigPath().get_config_dir()
             configdir = os.path.join(configdir, 'diagnostics', 'teleconnections', 'config')
 
-        interface_file = os.path.join(configdir, interface)
-        self.logger.debug(f'Loading interface file: {interface_file}')
+        definition_file = os.path.join(configdir, definition)
+        self.logger.debug(f'Loading definition file: {definition_file}')
 
-        interface_dict = load_yaml(interface_file)
+        definition_dict = load_yaml(definition_file)
 
-        return interface_dict[telecname] if telecname else interface_dict
+        return definition_dict[telecname] if telecname else definition_dict
 
 
 class PlotBaseMixin():
