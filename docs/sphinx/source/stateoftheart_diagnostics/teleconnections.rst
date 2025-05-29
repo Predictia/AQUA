@@ -182,6 +182,13 @@ Available demo notebooks
 - `concordance_map <https://github.com/DestinE-Climate-DT/AQUA/blob/main/notebooks/diagnostics/teleconnections/concordance_map.ipynb>`_
 - `MJO <https://github.com/DestinE-Climate-DT/AQUA/blob/main/notebooks/diagnostics/teleconnections/MJO.ipynb>`_
 
+Authors and contributors
+------------------------
+
+This diagnostic is maintained by Matteo Nurisso (@mnurisso, `mailto:m.nurisso@isac.cnr.it`).
+Contributions are welcome, please open an issue or a pull request.
+If you have any doubt or suggestion, please contact the AQUA team or the maintainers.
+
 Detailed API
 ------------
 
