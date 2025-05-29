@@ -260,4 +260,4 @@ def select_season(xr_data, season: str):
     elif season == 'annual':
         return xr_data
     else:
-        raise ValueError("Invalid season abbreviation. Please use one of the provided abbreviations.")
+        raise ValueError(f"Invalid season abbreviation. Available options are: {', '.join(triplet_months.keys())}, or 'annual' to perform no season selection.")
