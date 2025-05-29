@@ -3,9 +3,10 @@ import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
 from aqua.logger import log_configure
-from aqua.util import ConfigPath, OutputSaver
+from aqua.util import ConfigPath
 from aqua.util import create_folder, select_season
 from aqua.util import evaluate_colorbar_limits, ticks_round
+from aqua.diagnostics.core import OutputSaver
 from aqua.graphics import plot_single_map, plot_single_map_diff, plot_maps
 from .util import select_pressure_level
 
@@ -55,6 +56,52 @@ class PlotGlobalBiases:
         return data
 
 
+    def _save_figure(self, fig, diagnostic_product,
+                     data, description, var, data_ref=None,
+                     plev=None, format='png'):
+        """
+        Handles the saving of a figure using OutputSaver.
+
+        Args:
+            fig (matplotlib.Figure): The figure to save.
+            data (xarray.Dataset): Dataset 
+            data_ref (xarray.Dataset, optional): Reference dataset 
+            diagnostic_product (str): Name of the diagnostic product.
+            description (str): Description of the figure.
+            var (str, optional): Variable name.
+            plev (float, optional): Pressure level.
+            format (str, optional): Format to save the figure ('png' or 'pdf').
+        """
+
+        outputsaver = OutputSaver(
+            diagnostic='globalbiases',
+            catalog=data.catalog,
+            model=data.model,
+            exp=data.exp,
+            model_ref=data_ref.model if data_ref else None,
+            exp_ref=data_ref.exp if data_ref else None,
+            outdir=self.outdir,
+            loglevel=self.loglevel
+        )
+
+        metadata = {"Description": description}
+        extra_keys = {}
+
+        if var is not None:
+            extra_keys.update({'var': var})
+        if plev is not None:
+            extra_keys.update({'plev': plev})
+
+        if format == 'pdf':
+            outputsaver.save_pdf(fig, diagnostic_product=diagnostic_product,
+                                extra_keys=extra_keys, metadata=metadata)
+        elif format == 'png':
+            outputsaver.save_png(fig, diagnostic_product=diagnostic_product,
+                                extra_keys=extra_keys, metadata=metadata)
+        else:
+            raise ValueError(f'Format {format} not supported. Use png or pdf.')
+            
+
 
     def plot_climatology(self, data, var, plev=None, vmin=None, vmax=None):
         """
@@ -88,8 +135,16 @@ class PlotGlobalBiases:
         )
         ax.set_xlabel("Longitude")
         ax.set_ylabel("Latitude")
-        return fig, ax
 
+        description = (
+                f"Spatial map of the total bias of the variable {var} from {data.startdate} to {data.enddate} "
+                f"for the {data.model} model, experiment {data.exp}, with {data_ref.model} used as reference data. "
+        )
+
+        if self.save_pdf: self._save_figure(fig=fig, format='pdf', data=data, diagnostic_product='climatology', 
+                                            description=description, var=var, plev=plev)
+        if self.save_png: self._save_figure(fig=fig, format='png', data=data, diagnostic_product='climatology',
+                                            description=description, var=var, plev=plev)
 
     def plot_bias(self, data, data_ref, var, plev=None, vmin=None, vmax=None ):
 
@@ -97,9 +152,6 @@ class PlotGlobalBiases:
 
         data = self._handle_pressure_level(data, var, plev)
         data_ref = self._handle_pressure_level(data_ref, var, plev)
-
-      #  if data or data_ref is None:
-       #     return None  # Nothing to plot
         
         self.logger.info('Plotting bias map between two datasets.')
 
@@ -124,14 +176,11 @@ class PlotGlobalBiases:
                 f"Spatial map of the total bias of the variable {var} from {data.startdate} to {data.enddate} "
                 f"for the {data.model} model, experiment {data.exp}, with {data_ref.model} used as reference data. "
         )
-        metadata = {"Description": description}
 
-        output_saver = OutputSaver(diagnostic='global_biases', model=data.model, exp=data.exp, loglevel=self.loglevel,
-                    default_path=self.outdir)
-
-        if self.save_pdf: output_saver.save_pdf(fig=fig, diagnostic_product='total_bias_map', path=self.outdir, metadata=metadata)
-        if self.save_png: output_saver.save_png(fig=fig, diagnostic_product='total_bias_map', path=self.outdir, metadata=metadata)
-
+        if self.save_pdf: self._save_figure(fig=fig, format='pdf', data=data, data_ref=data_ref, diagnostic_product='bias_map', 
+                                            description=description, var=var, plev=plev)
+        if self.save_png: self._save_figure(fig=fig, format='png', data=data, data_ref=data_ref, diagnostic_product='bias_map',
+                                            description=description, var=var, plev=plev)
 
     def plot_seasonal_bias(self, data, data_ref, var, plev=None, vmin=None, vmax=None):
             """
@@ -178,15 +227,11 @@ class PlotGlobalBiases:
                         f", using {data_ref.model} as reference data. "
                         f"The bias is computed for each season over the period from {data.startdate} to {data.enddate}"
                     )
-            metadata = {"Description": description}
 
-            output_saver = OutputSaver(diagnostic='global_biases', model=data.model, exp=data.exp, loglevel=self.loglevel,
-                        default_path=self.outdir)
-
-            if self.save_pdf: output_saver.save_pdf(fig=fig, diagnostic_product='seasonal_bias_map', path=self.outdir, metadata=metadata)
-            if self.save_png: output_saver.save_png(fig=fig, diagnostic_product='seasonal_bias_map', path=self.outdir, metadata=metadata)
-
-
+            if self.save_pdf: self._save_figure(fig=fig, format='pdf', data=data, data_ref=data_ref, diagnostic_product='seasonal_bias_map', 
+                                            description=description, var=var, plev=plev)
+            if self.save_png: self._save_figure(fig=fig, format='png', data=data, data_ref=data_ref, diagnostic_product='seasonal_bias_map',
+                                            description=description, var=var, plev=plev)
 
     def plot_vertical_bias(self, data, data_ref, var, plev_min=None, plev_max=None, vmin=None, vmax=None, nlevels=18):
         """
@@ -236,6 +281,35 @@ class PlotGlobalBiases:
                 vmin = -vmax
 
         levels = np.linspace(vmin, vmax, nlevels)
-
         title = (
-            f"{var} vertical bias of {data.model} {dat
+            f"{var} vertical bias of {data.model} {data.exp} {data.startdate}/{data.enddate}\n"
+            f"relative to {data_ref.model} climatology\n"
+        )
+
+        # Plotting
+        self.logger.info("Creating contour plot.")
+        fig, ax = plt.subplots(figsize=(10, 8))
+        cax = ax.contourf(
+            zonal_bias['lat'], zonal_bias['plev'], zonal_bias,
+            cmap='RdBu_r', levels=levels, extend='both'
+        )
+        ax.set_title(title)
+        ax.set_yscale('log')
+        ax.set_ylabel('Pressure Level (Pa)')
+        ax.set_xlabel('Latitude')
+        ax.invert_yaxis()
+        fig.colorbar(cax, ax=ax, label=f'{var} [{data[var].attrs.get("units", "")}]')
+        ax.grid(True)
+
+        # Save plot if needed
+        self.logger.info("Saving output plot.")
+        description = (
+            f"Vertical bias plot of the variable {var} across pressure levels from {data.startdate} to {data.enddate} "
+            f"for the {data.model} model, experiment {data.exp}, with {data_ref.model} used as reference data."
+        )
+
+        if self.save_pdf: self._save_figure(fig=fig, format='pdf', data=data, data_ref=data_ref, diagnostic_product='vertical_bias', 
+                                            description=description, var=var)
+        if self.save_png: self._save_figure(fig=fig, format='png', data=data, data_ref=data_ref, diagnostic_product='vertical_bias',
+                                            description=description, var=var)
+        self.logger.info("Vertical bias plot completed successfully.")
