@@ -185,7 +185,7 @@ Available demo notebooks
 Authors and contributors
 ------------------------
 
-This diagnostic is maintained by Matteo Nurisso (@mnurisso, `mailto:m.nurisso@isac.cnr.it`).
+This diagnostic is maintained by Matteo Nurisso (`@mnurisso <https://github.com/mnurisso>`_, `m.nurisso@isac.cnr.it <mailto:m.nurisso@isac.cnr.it>`_).
 Contributions are welcome, please open an issue or a pull request.
 If you have any doubt or suggestion, please contact the AQUA team or the maintainers.
 
