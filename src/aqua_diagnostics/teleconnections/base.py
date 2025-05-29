@@ -86,6 +86,10 @@ class BaseMixin(Diagnostic):
     def _prepare_statistic(self, var: str = None, season: str = None):
         """Hidden method to prepare the data and index for the statistic."""
         # Preparing data and index. Both have to be xr.DataArray
+        if self.index is None:
+            raise ValueError("Index is not set. Please compute the index first.")
+        else:
+            index = self.index
         if not var:
             data = self.data[self.var]
         else:
@@ -94,7 +98,6 @@ class BaseMixin(Diagnostic):
                                            enddate=self.enddate, regrid=self.regrid, loglevel=self.loglevel)
             data = data[var]
 
-        index = self.index
         if season:
             data = select_season(data, season)
             index = select_season(index, season)
