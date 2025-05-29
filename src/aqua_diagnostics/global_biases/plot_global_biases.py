@@ -14,7 +14,7 @@ from .util import select_pressure_level
 class PlotGlobalBiases: 
     def __init__(self,
                  save_pdf=True, 
-                 save_png=True, dpi=300, outdir='./',
+                 save_png=True, dpi=300, outputdir='./',
                  loglevel='WARNING'):
         """
         Initialize the PlotGlobalBiases class
@@ -22,7 +22,7 @@ class PlotGlobalBiases:
         self.save_pdf = save_pdf
         self.save_png = save_png
         self.dpi = dpi
-        self.outdir = outdir
+        self.outputdir = outputdir
         self.loglevel = loglevel
 
         self.logger = log_configure(log_level=loglevel, log_name='Global Biases')
@@ -80,7 +80,7 @@ class PlotGlobalBiases:
             exp=data.exp,
             model_ref=data_ref.model if data_ref else None,
             exp_ref=data_ref.exp if data_ref else None,
-            outdir=self.outdir,
+            outdir=self.outputdir,
             loglevel=self.loglevel
         )
 
@@ -123,7 +123,7 @@ class PlotGlobalBiases:
         if data is None:
             return None  # Nothing to plot
 
-        title = (f"{var} map {data.model} {data.exp} {data.startdate}/{data.enddate}" 
+        title = (f"{var} map {data.model} {data.exp}" 
                 + (f" at {int(plev / 100)} hPa" if plev else ""))
 
         fig, ax = plot_single_map(
@@ -282,7 +282,7 @@ class PlotGlobalBiases:
 
         levels = np.linspace(vmin, vmax, nlevels)
         title = (
-            f"{var} vertical bias of {data.model} {data.exp} {data.startdate}/{data.enddate}\n"
+            f"{var} vertical bias of {data.model} {data.exp}\n"
             f"relative to {data_ref.model} climatology\n"
         )
 

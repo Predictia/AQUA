@@ -46,6 +46,7 @@ if __name__ == '__main__':
     # Output options
     outputdir = config_dict['output'].get('outputdir', './')
     rebuild = config_dict['output'].get('rebuild', True)
+    save_netcdf = config_dict['output'].get('save_netcdf', True)
     save_pdf = config_dict['output'].get('save_pdf', True)
     save_png = config_dict['output'].get('save_png', True)
     dpi = config_dict['output'].get('dpi', 300) 
@@ -78,6 +79,7 @@ if __name__ == '__main__':
             biases_dataset = GlobalBiases(**dataset_args, startdate=startdate_data, enddate=enddate_data, loglevel=loglevel)
             biases_reference = GlobalBiases(**reference_args, startdate=startdate_ref, enddate=enddate_ref, loglevel=loglevel)
 
+
             for var in variables:
                 logger.info(f"Running Global Biases diagnostic for variable: {var}")
                 plot_params = config_dict['diagnostics']['globalbiases']['plot_params']['limits']['2d_maps'].get(var, {})
@@ -87,6 +89,9 @@ if __name__ == '__main__':
                 biases_dataset.retrieve(var=var, units=units)
                 biases_reference.retrieve(var=var, units=units)
 
+                biases_dataset.compute_climatology(seasonal=seasons, seasons_stat=seasons_stat)
+                biases_reference.compute_climatology(seasonal=seasons, seasons_stat=seasons_stat)
+
                 if 'plev' in biases_dataset.data.get(var, {}).dims and plev:
                     plev_list = to_list(plev)
                 else: 
@@ -94,19 +99,19 @@ if __name__ == '__main__':
 
                 for plev in plev_list:
 
-                    plot_biases = PlotGlobalBiases(data=biases_dataset.data, data_ref=biases_reference.data, var=var,
-                                model=biases_dataset.model, exp=biases_dataset.exp, model_ref=biases_reference.model, 
-                                save_pdf=save_pdf, save_png=save_png, loglevel=loglevel)
-
-                    plot_biases.plot_bias(plev=plev, vmin=vmin, vmax=vmax) 
-                    
+                    plot_biases = PlotGlobalBiases(save_pdf=save_pdf, save_png=save_png, dpi=dpi, outputdir=outputdir, loglevel=loglevel)
+                   
+                    plot_biases.plot_bias(data=biases_dataset.climatology, data_ref=biases_reference.climatology,
+                                          var=var, plev=plev, vmin=vmin, vmax=vmax) 
                     if seasons:
-                        plot_biases.plot_seasonal_bias(plev=plev, vmin=vmin, vmax=vmax)
+                        plot_biases.plot_seasonal_bias(data=biases_dataset.seasonal_climatology, 
+                                                       data_ref=biases_reference.seasonal_climatology,
+                                                       var=var, plev=plev, vmin=vmin, vmax=vmax)
 
                 if vertical and 'plev' in biases_dataset.data.get(var, {}).dims:
                     plot_params = config_dict['diagnostics']['globalbiases']['plot_params']['limits']['vertical_maps'].get(var, {})
                     vmin, vmax = plot_params.get('vmin'), plot_params.get('vmax')
-                    plot_biases.plot_vertical_bias(vmin=vmin, vmax=vmax)
+                    plot_biases.plot_vertical_bias(data=biases_dataset.climatology, data_ref=biases_reference.climatology, var=var)
 
     close_cluster(client=client, cluster=cluster, private_cluster=private_cluster, loglevel=loglevel)
 

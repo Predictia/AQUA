@@ -107,15 +107,16 @@ class GlobalBiases(Diagnostic):
         self.climatology.attrs['catalog'] = self.catalog
         self.climatology.attrs['model'] = self.model
         self.climatology.attrs['exp'] = self.exp
-        self.climatology.attrs['startdate'] = self.startdate
-        self.climatology.attrs['enddate'] = self.enddate
+        self.climatology.attrs['startdate'] = str(self.startdate)
+        self.climatology.attrs['enddate'] = str(self.enddate)
 
         if save_netcdf:
             super().save_netcdf(
                 data=self.climatology,
                 diagnostic='global_biases',
                 diagnostic_product='climatology',
-                default_path=self.outputdir
+                default_path=self.outputdir,
+                var= var
             )
 
         if seasonal:
@@ -137,14 +138,15 @@ class GlobalBiases(Diagnostic):
             self.seasonal_climatology.attrs['catalog'] = self.catalog
             self.seasonal_climatology.attrs['model'] = self.model
             self.seasonal_climatology.attrs['exp'] = self.exp
-            self.seasonal_climatology.attrs['startdate'] = self.startdate
-            self.seasonal_climatology.attrs['enddate'] = self.enddate
+            self.seasonal_climatology.attrs['startdate'] = str(self.startdate)
+            self.seasonal_climatology.attrs['enddate'] = str(self.enddate)
 
             if save_netcdf:
                 super().save_netcdf(
                     data=self.seasonal_climatology,
                     diagnostic='global_biases',
                     diagnostic_product='seasonal_climatology',
-                    default_path=self.outputdir
+                    default_path=self.outputdir,
+                    var=var
                 )
                 self.logger.info(f'Seasonal climatology saved to {self.outputdir}.')
