@@ -18,7 +18,7 @@ class MJO(BaseMixin):
                  regrid: str = None,
                  startdate: str = None, enddate: str = None,
                  configdir: str = None,
-                 interface: str = 'teleconnections-destine',
+                 definition: str = 'teleconnections-destine',
                  loglevel: str = 'WARNING'):
         """
         Initialize the MJO class.
@@ -32,16 +32,16 @@ class MJO(BaseMixin):
             startdate (str): Start date for data retrieval.
             enddate (str): End date for data retrieval.
             configdir (str): Configuration directory. Default is the installation directory.
-            interface (str): Interface filename. Default is 'teleconnections-destine'.
+            definition (str): definition filename. Default is 'teleconnections-destine'.
             loglevel (str): Logging level. Default is 'WARNING'.
         """
         super().__init__(telecname='MJO', catalog=catalog, model=model, exp=exp, source=source,
                          regrid=regrid, startdate=startdate, enddate=enddate,
-                         configdir=configdir, interface=interface,
+                         configdir=configdir, definition=definition,
                          loglevel=loglevel)
         self.logger = log_configure(log_name='MJO', log_level=loglevel)
 
-        self.var = self.interface.get('field')
+        self.var = self.definition.get('field')
         self.data_hovmoller = None
 
         # Delete the self.index attribute if it exists
@@ -65,13 +65,13 @@ class MJO(BaseMixin):
             day_window (int, optional): Number of days to be used in the smoothing window.
                                         If None, no smoothing is performed. Default is None.
         """
-        if self.interface.get('flip_sign', True):
+        if self.definition.get('flip_sign', True):
             self.logger.info("Flipping the sign of the variable.")
             self.data = -self.data
         
         # Acquiring MJO box
-        lat = [self.interface['latS'], self.interface['latN']]
-        lon = [self.interface['lonW'], self.interface['lonE']]
+        lat = [self.definition['latS'], self.definition['latN']]
+        lon = [self.definition['lonW'], self.definition['lonE']]
 
         # Selecting the MJO box
         data_sel = area_selection(self.data, lat=lat, lon=lon, drop=True)

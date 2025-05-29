@@ -16,7 +16,7 @@ class NAO(BaseMixin):
                  regrid: str = None,
                  startdate: str = None, enddate: str = None,
                  configdir: str = None,
-                 interface: str = 'teleconnections-destine',
+                 definition: str = 'teleconnections-destine',
                  loglevel: str = 'WARNING'):
         """
         Initialize the NAO class.
@@ -30,16 +30,16 @@ class NAO(BaseMixin):
             startdate (str): Start date for data retrieval.
             enddate (str): End date for data retrieval.
             configdir (str): Configuration directory. Default is the installation directory.
-            interface (str): Interface filename. Default is 'teleconnections-destine'.
+            definition (str): definition filename. Default is 'teleconnections-destine'.
             loglevel (str): Logging level. Default is 'WARNING'.
         """
         super().__init__(telecname='NAO', catalog=catalog, model=model, exp=exp, source=source,
                          regrid=regrid, startdate=startdate, enddate=enddate,
-                         configdir=configdir, interface=interface,
+                         configdir=configdir, definition=definition,
                          loglevel=loglevel)
         self.logger = log_configure(log_name='NAO', log_level=loglevel)
 
-        self.var = self.interface.get('field')
+        self.var = self.definition.get('field')
 
     def retrieve(self):
         """Retrieve the data for the NAO index."""
@@ -65,10 +65,10 @@ class NAO(BaseMixin):
         if len(self.data[self.var].time) < 24:
             raise NotEnoughDataError('Data have less than 24 months')
         
-        lat1 = self.interface.get('lat1')
-        lat2 = self.interface.get('lat2')
-        lon1 = self.interface.get('lon1')
-        lon2 = self.interface.get('lon2')
+        lat1 = self.definition.get('lat1')
+        lat2 = self.definition.get('lat2')
+        lon1 = self.definition.get('lon1')
+        lon2 = self.definition.get('lon2')
 
         if self.data[self.var].lon.min() >= 0:
             lon1 = _lon_180_to_360(lon1)

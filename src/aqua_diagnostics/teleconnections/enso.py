@@ -16,7 +16,7 @@ class ENSO(BaseMixin):
                  regrid: str = None,
                  startdate: str = None, enddate: str = None,
                  configdir: str = None,
-                 interface: str = 'teleconnections-destine',
+                 definition: str = 'teleconnections-destine',
                  loglevel: str = 'WARNING'):
         """
         Initialize the ENSO class.
@@ -30,17 +30,17 @@ class ENSO(BaseMixin):
             startdate (str): Start date for data retrieval. Default is None.
             enddate (str): End date for data retrieval. Default is None.
             configdir (str): Configuration directory. Default is None.
-            interface (str): Interface filename. Default is 'teleconnections-destine'.
+            definition (str): definition filename. Default is 'teleconnections-destine'.
                              This is used to deduce the variable name and the lat/lon for the index.
             loglevel (str): Logging level. Default is 'WARNING'.
         """
         super().__init__(telecname='ENSO', catalog=catalog, model=model, exp=exp, source=source,
                          regrid=regrid, startdate=startdate, enddate=enddate,
-                         configdir=configdir, interface=interface,
+                         configdir=configdir, definition=definition,
                          loglevel=loglevel)
         self.logger = log_configure(log_name='ENSO', log_level=loglevel)
 
-        self.var = self.interface.get('field')
+        self.var = self.definition.get('field')
 
     def retrieve(self):
         """Retrieve the data for the ENSO index."""
@@ -68,10 +68,10 @@ class ENSO(BaseMixin):
         if len(self.data[self.var].time) < 24:
             raise NotEnoughDataError('Data have less than 24 months')
         
-        latN = self.interface.get('latN')
-        latS = self.interface.get('latS')
-        lonW = self.interface.get('lonW')
-        lonE = self.interface.get('lonE')
+        latN = self.definition.get('latN')
+        latS = self.definition.get('latS')
+        lonW = self.definition.get('lonW')
+        lonE = self.definition.get('lonE')
 
         if self.data[self.var].lon.min() >= 0:
             lonW = _lon_180_to_360(lonW)
