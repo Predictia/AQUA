@@ -104,6 +104,7 @@ class GlobalBiases(Diagnostic):
 
         self.climatology = xr.Dataset({var: data[var].mean(dim='time')})
 
+        self.climatology.attrs['catalog'] = self.catalog
         self.climatology.attrs['model'] = self.model
         self.climatology.attrs['exp'] = self.exp
         self.climatology.attrs['startdate'] = self.startdate
@@ -133,6 +134,7 @@ class GlobalBiases(Diagnostic):
             self.seasonal_climatology = xr.concat(seasonal_data, dim='season')
             self.seasonal_climatology = self.seasonal_climatology.to_dataset(name=var)
 
+            self.seasonal_climatology.attrs['catalog'] = self.catalog
             self.seasonal_climatology.attrs['model'] = self.model
             self.seasonal_climatology.attrs['exp'] = self.exp
             self.seasonal_climatology.attrs['startdate'] = self.startdate
