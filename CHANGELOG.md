@@ -18,6 +18,7 @@ Workflow modifications:
 
 AQUA core complete list:
 - `cartopy_offlinedata` is added on container and path is set in cli call, to support MN5 no internet for coastlines download (#1960)
+- `FldStat()` as independent module for area-weighted operations (#1835)
 - Refactor of `Fixer()`, now independent from the `Reader()` and supported by classes `FixerDataModel` and `FixerOperator` (#1929) 
 - Update and push to lumi-o the a file listing experiments needed by the dashboard (#1950)
 - Integration of HEALPix data with `plot_single_map()` (#1897)
@@ -25,7 +26,6 @@ AQUA core complete list:
 
 AQUA diagnostics complete list:
 - Timeseries: Use new OutputSaver in Timeseries diagnostics (#1948)
-
 
 ## [v0.15.0]
 
