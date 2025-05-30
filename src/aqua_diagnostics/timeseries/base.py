@@ -428,7 +428,6 @@ class PlotBaseMixin():
                                   ref_model=self.ref_models,
                                   ref_exp=self.ref_exps,
                                   outdir=outputdir,
-                                  rebuild=rebuild,
                                   loglevel=self.loglevel)
 
         metadata = {"Description": description, "dpi": dpi }
@@ -440,8 +439,8 @@ class PlotBaseMixin():
             extra_keys.update({'region': region})
 
         if format == 'png':
-            outputsaver.save_png(fig, diagnostic_product=diagnostic, extra_keys=extra_keys, metadata=metadata)
+            outputsaver.save_png(fig, diagnostic_product=diagnostic, rebuild=rebuild, extra_keys=extra_keys, metadata=metadata)
         elif format == 'pdf':
-            outputsaver.save_pdf(fig, diagnostic_product=diagnostic, extra_keys=extra_keys, metadata=metadata)
+            outputsaver.save_pdf(fig, diagnostic_product=diagnostic, rebuild=rebuild, extra_keys=extra_keys, metadata=metadata)
         else:
             raise ValueError(f'Format {format} not supported. Use png or pdf.')
