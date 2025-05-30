@@ -10,11 +10,6 @@ from aqua.diagnostics.teleconnections import NAO, ENSO
 xr.set_options(keep_attrs=True)
 
 
-# TO DO: This code is not officially tested, it is a legacy code.
-# In order to be able to use it, the reg_evaluation and cor_evaluation functions
-# should be taken from old modules. However, a new refactor may be done
-# to use the new evaluation functions if needed.
-
 def bootstrap_teleconnections(telec_model,
                               telec_ref,
                               var: str,
