@@ -1,7 +1,7 @@
 import xarray as xr
 from aqua import Reader
 from aqua.logger import log_configure
-from aqua.diagnostics.core import OutputSaver
+from .output_saver import OutputSaver
 
 
 class Diagnostic():
