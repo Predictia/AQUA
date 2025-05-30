@@ -422,9 +422,11 @@ class PlotBaseMixin():
             diagnostic (str): Diagnostic name to be used in the filename as diagnostic_product.
         """
         outputsaver = OutputSaver(diagnostic='timeseries', 
-                                  catalog=self.catalogs[0],
-                                  model=self.models[0],
-                                  exp=self.exps[0],
+                                  catalog=self.catalogs,
+                                  model=self.models,
+                                  exp=self.exps,
+                                  ref_model=self.ref_models,
+                                  ref_exp=self.ref_exps,
                                   outdir=outputdir,
                                   rebuild=rebuild,
                                   loglevel=self.loglevel)
