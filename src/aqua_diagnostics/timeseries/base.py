@@ -199,12 +199,12 @@ class BaseMixin(Diagnostic):
         diagnostic_product += f'.{self.region}' if self.region is not None else ''
         self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
         super().save_netcdf(data=data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                            default_path=outputdir, rebuild=rebuild)
+                            outdir=outputdir, rebuild=rebuild)
         if data_std is not None:
             diagnostic_product = f'{diagnostic_product}.std'
             self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
             super().save_netcdf(data=data_std, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                                default_path=outputdir, rebuild=rebuild)
+                            outdir=outputdir, rebuild=rebuild)
 
     def _set_region(self, region: str = None, lon_limits: list = None, lat_limits: list = None):
         """
