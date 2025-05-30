@@ -179,7 +179,7 @@ Available demo notebooks
 
 - `NAO <https://github.com/DestinE-Climate-DT/AQUA/blob/main/notebooks/diagnostics/teleconnections/NAO.ipynb>`_
 - `ENSO <https://github.com/DestinE-Climate-DT/AQUA/blob/main/notebooks/diagnostics/teleconnections/ENSO.ipynb>`_
-- `concordance_map <https://github.com/DestinE-Climate-DT/AQUA/blob/main/notebooks/diagnostics/teleconnections/concordance_map.ipynb>`_
+- `statistical_validation <https://github.com/DestinE-Climate-DT/AQUA/blob/main/notebooks/diagnostics/teleconnections/statistical_validation.ipynb>`_
 - `MJO <https://github.com/DestinE-Climate-DT/AQUA/blob/main/notebooks/diagnostics/teleconnections/MJO.ipynb>`_
 
 Authors and contributors
