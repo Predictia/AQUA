@@ -91,7 +91,8 @@ class BaseMixin(Diagnostic):
         else:
             index = self.index
         if not var:
-            data = self.data[self.var]
+            if isinstance(self.data, xr.Dataset):
+                data = self.data[self.var]
         else:
             data, _, _ = super()._retrieve(model=self.model, exp=self.exp, source=self.source,
                                            var=var, catalog=self.catalog, startdate=self.startdate,
