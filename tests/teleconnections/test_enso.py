@@ -1,6 +1,7 @@
 import os
 import matplotlib
 import pytest
+from aqua.exceptions import NotEnoughDataError
 from aqua.diagnostics.teleconnections import ENSO, PlotENSO
 
 # pytest approximation, to bear with different machines
@@ -23,8 +24,15 @@ def test_ENSO(tmp_path):
 
     # Init test
     enso = ENSO(**init_dict)
+
+    with pytest.raises(NotEnoughDataError):
+        assert enso.compute_index(), "Data not retrieved should raise NotEnoughDataError"
+
     enso.retrieve()
     assert enso.data is not None, "Data should not be None"
+
+    with pytest.raises(ValueError):
+        assert enso.compute_regression(season='annual'), "Regression without index should raise ValueError"
 
     # Index computation and saving
     enso.compute_index()

@@ -65,6 +65,8 @@ class ENSO(BaseMixin):
         if self.index is not None and not rebuild:
             self.logger.info('ENSO index already calculated, skipping.')
             return
+        if self.data is None:
+            raise NotEnoughDataError('Data not retrieved')
         if len(self.data[self.var].time) < 24:
             raise NotEnoughDataError('Data have less than 24 months')
         
