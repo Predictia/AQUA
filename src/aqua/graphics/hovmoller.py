@@ -17,13 +17,17 @@ xr.set_options(keep_attrs=True)
 def plot_hovmoller(data: xr.DataArray,
                    invert_axis=False,
                    invert_time=False,
+                   invert_yaxis=False,
                    sym=False,
                    contour=True, save=False,
                    dim='lon', figsize=(8, 13),
                    vmin=None, vmax=None, cmap='PuOr_r', # defaul map for MJO
+                   cbar: bool = True,
                    nlevels=8, cbar_label=None,
                    outputdir='.', filename='hovmoller.pdf',
                    display=True, return_fig=False,
+                   fig: plt.Figure = None, ax: plt.Axes = None,
+                   ax_pos: tuple = (1, 1, 1),
                    loglevel: str = "WARNING",
                    **kwargs):
     """"
@@ -83,7 +87,10 @@ def plot_hovmoller(data: xr.DataArray,
     data_mean = data.mean(dim=dim)
 
     # Create figure and axes
-    fig, ax = plt.subplots(figsize=figsize)
+    if fig is None:
+        fig = plt.figure(figsize=figsize)
+    if ax is None:
+        ax = fig.add_subplot(ax_pos[0], ax_pos[1], ax_pos[2])
 
     # Plot the data
     if invert_axis:
@@ -101,6 +108,8 @@ def plot_hovmoller(data: xr.DataArray,
         ax.set_ylabel(data_mean.dims[-1])
         if invert_time:
             plt.gca().invert_xaxis()
+        if invert_yaxis:
+            plt.gca().invert_yaxis()
 
     if vmin is None or vmax is None:
         vmin, vmax = evaluate_colorbar_limits(maps=[data], sym=sym)
@@ -139,8 +148,9 @@ def plot_hovmoller(data: xr.DataArray,
     fig.subplots_adjust(bottom=0.25, top=0.9, left=0.05, right=0.95,
                         wspace=0.1, hspace=0.5)
 
-    # Add a colorbar axis at the bottom of the graph
-    cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.02])
+    if cbar:
+        # Add a colorbar axis at the bottom of the graph
+        cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.02])
 
     # Add min and max values of the dim on the top right corner
     ax.text(0.99, 0.99, f'{dim} = {dim_min:.2f} to {dim_max:.2f}',
