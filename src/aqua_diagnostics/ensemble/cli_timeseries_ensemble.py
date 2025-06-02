@@ -6,88 +6,84 @@ This CLI allows to plot ensemle of global timeseries of a variable
 defined in a yaml configuration file for multiple models.
 """
 import argparse
+import gc
 import os
 import sys
-import gc
-import xarray as xr
-from dask.distributed import Client, LocalCluster
-from dask.utils import format_bytes
-from dask import delayed
-from dask import compute
-import numpy as np
+
 import pandas as pd
-from aqua.util import load_yaml, get_arg, ConfigPath
-from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
-from aqua.logger import log_configure
+import xarray as xr
 from aqua import Reader
 from aqua.diagnostics import EnsembleTimeseries
+from aqua.exceptions import NoDataError
+from aqua.logger import log_configure
+from aqua.util import ConfigPath, get_arg, load_yaml
+from dask.distributed import Client, LocalCluster
+from dask.utils import format_bytes
+
 
 def parse_arguments(args):
     """Parse command line arguments."""
 
     parser = argparse.ArgumentParser(description="Global time series CLI")
 
-    parser.add_argument("-c", "--config",
-                        type=str, required=False,
-                        help="yaml configuration file")
-    parser.add_argument('-n', '--nworkers', type=int,
-                        help='number of dask distributed workers')
-    parser.add_argument("--loglevel", "-l", type=str,
-                        required=False, help="loglevel")
+    parser.add_argument("-c", "--config", type=str, required=False, help="yaml configuration file")
+    parser.add_argument("-n", "--nworkers", type=int, help="number of dask distributed workers")
+    parser.add_argument("--loglevel", "-l", type=str, required=False, help="loglevel")
 
     # These will override the first one in the config file if provided
-    parser.add_argument("--catalog", type=str,
-                        required=False, help="catalog name")
-    parser.add_argument("--model", type=str,
-                        required=False, help="model name")
-    parser.add_argument("--exp", type=str,
-                        required=False, help="experiment name")
-    parser.add_argument("--source", type=str,
-                        required=False, help="source name")
-    parser.add_argument("--startdate", type=str,
-                        required=False, help="start date")
-    parser.add_argument("--enddate", type=str,
-                        required=False, help="end date")
-    parser.add_argument("--outputdir", type=str,
-                        required=False, help="output directory")
-    parser.add_argument("--cluster", type=str, 
-                        required=False, help="dask cluster address")
+    parser.add_argument("--catalog", type=str, required=False, help="catalog name")
+    parser.add_argument("--model", type=str, required=False, help="model name")
+    parser.add_argument("--exp", type=str, required=False, help="experiment name")
+    parser.add_argument("--source", type=str, required=False, help="source name")
+    parser.add_argument("--startdate", type=str, required=False, help="start date")
+    parser.add_argument("--enddate", type=str, required=False, help="end date")
+    parser.add_argument("--outputdir", type=str, required=False, help="output directory")
+    parser.add_argument("--cluster", type=str, required=False, help="dask cluster address")
 
     return parser.parse_args(args)
 
-def retrieve_data(variable=None, models=None, exps=None, sources=None, startdate=None, enddate=None, ens_dim="Ensembles"):
+
+def retrieve_data(
+    variable=None,
+    models=None,
+    exps=None,
+    sources=None,
+    startdate=None,
+    enddate=None,
+    ens_dim="Ensembles",
+):
     """
-    Retrieves, merges, and slices datasets based on specified models, experiments, 
+    Retrieves, merges, and slices datasets based on specified models, experiments,
     sources, and time boundaries.
 
-    This function reads data for a given variable (`variable`) from multiple models, experiments, 
-    and sources, combines the datasets along the specified ensemble dimension, and slices 
+    This function reads data for a given variable (`variable`) from multiple models, experiments,
+    and sources, combines the datasets along the specified ensemble dimension, and slices
     the merged dataset to the given start and end dates.
 
     Args:
         variable (str): The variable to retrieve data for. Defaults to None.
-        models (list): A list of model names. Each model corresponds to an 
-            experiment and source in the `exps` and `sources` lists, respectively. 
+        models (list): A list of model names. Each model corresponds to an
+            experiment and source in the `exps` and `sources` lists, respectively.
             Defaults to None.
-        exps (list): A list of experiment names. Each experiment corresponds 
-            to a model and source in the `models` and `sources` lists, respectively. 
+        exps (list): A list of experiment names. Each experiment corresponds
+            to a model and source in the `models` and `sources` lists, respectively.
             Defaults to None.
-        sources (list): A list of data source names. Each source corresponds 
-            to a model and experiment in the `models` and `exps` lists, respectively. 
+        sources (list): A list of data source names. Each source corresponds
+            to a model and experiment in the `models` and `exps` lists, respectively.
             Defaults to None.
-        startdate (str or datetime): The start date for slicing the merged dataset. 
+        startdate (str or datetime): The start date for slicing the merged dataset.
             If None, the maximum start date across all datasets is used. Defaults to None.
-        enddate (str or datetime): The end date for slicing the merged dataset. 
+        enddate (str or datetime): The end date for slicing the merged dataset.
             If None, the minimum end date across all datasets is used. Defaults to None.
-        ens_dim (str, optional): The name of the dimension along which the datasets are 
+        ens_dim (str, optional): The name of the dimension along which the datasets are
             concatenated. Defaults to "Ensembles".
 
     Returns:
         tuple:
             - startdate (datetime): The resolved start date for the sliced dataset.
             - enddate (datetime): The resolved end date for the sliced dataset.
-            - xarray.Dataset: The merged dataset containing data from all specified models, 
-              experiments, and sources, concatenated along `ens_dim` and sliced 
+            - xarray.Dataset: The merged dataset containing data from all specified models,
+              experiments, and sources, concatenated along `ens_dim` and sliced
               to the time range `[startdate, enddate]`.
     """
     dataset_list = []
@@ -97,24 +93,31 @@ def retrieve_data(variable=None, models=None, exps=None, sources=None, startdate
         raise NoDataError("No models, exps or sources provided")
     else:
         for i, model in enumerate(models):
-            reader = Reader(model=model, exp=exps[i], source=sources[i], areas=False, startdate=startdate, enddate=enddate)
+            reader = Reader(
+                model=model,
+                exp=exps[i],
+                source=sources[i],
+                areas=False,
+                startdate=startdate,
+                enddate=enddate,
+            )
             data = reader.retrieve(var=variable)
             dataset_list.append(data)
             startdate_list.append(data.time[0].values)
             enddate_list.append(data.time[-1].values)
     merged_dataset = xr.concat(dataset_list, ens_dim)
-    
-    if startdate != None:
+
+    if startdate is not None:
         istartdate = max(startdate_list)
-        startdate = pd.to_datetime(startdate) 
+        startdate = pd.to_datetime(startdate)
         startdate = max(istartdate, startdate)
-    if enddate != None:
+    if enddate is not None:
         ienddate = min(enddate_list)
         enddate = pd.to_datetime(enddate)
         enddate = min(ienddate, enddate)
-    if startdate == None:        
+    if startdate is None:
         startdate = max(startdate_list)
-    if enddate == None:
+    if enddate is None:
         enddate = min(enddate_list)
 
     merged_dataset = merged_dataset.sel(time=slice(startdate, enddate))
@@ -126,33 +129,35 @@ def retrieve_data(variable=None, models=None, exps=None, sources=None, startdate
     gc.collect()
     return startdate, enddate, merged_dataset
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
 
     args = parse_arguments(sys.argv[1:])
 
     loglevel = get_arg(args, "loglevel", "WARNING")
-    logger = log_configure(loglevel, 'CLI multi-model Timeseries ensemble')
+    logger = log_configure(loglevel, "CLI multi-model Timeseries ensemble")
     logger.info("Starting Ensemble Time Series diagnostic")
 
     # Load configuration file
     configdir = ConfigPath(loglevel=loglevel).configdir
-    default_config = os.path.join(configdir, "diagnostics", "ensemble",
-                                  "config_timeseries_ensemble.yaml")
+    default_config = os.path.join(
+        configdir, "diagnostics", "ensemble", "config_timeseries_ensemble.yaml"
+    )
     file = get_arg(args, "config", default_config)
     logger.info(f"Reading configuration file {file}")
     config = load_yaml(file)
 
     # Initialize the Dask cluster
-    nworkers = get_arg(args, 'nworkers', None)
-    config_cluster = get_arg(args, 'cluster', None)
+    nworkers = get_arg(args, "nworkers", None)
+    config_cluster = get_arg(args, "cluster", None)
 
     # If nworkers is not provided, use the value from the config
     if nworkers is None or config_cluster is None:
-        config_cluster = config['cluster'].copy()
+        config_cluster = config["cluster"].copy()
     if nworkers is not None:
-        config_cluster['nworkers'] = nworkers
+        config_cluster["nworkers"] = nworkers
 
-    cluster = LocalCluster(n_workers=config_cluster['nworkers'], threads_per_worker=1)
+    cluster = LocalCluster(n_workers=config_cluster["nworkers"], threads_per_worker=1)
     client = Client(cluster)
 
     # Get the Dask dashboard URL
@@ -160,11 +165,12 @@ if __name__ == '__main__':
     workers = client.scheduler_info()["workers"]
     worker_count = len(workers)
     total_memory = format_bytes(
-        sum(w["memory_limit"] for w in workers.values() if w["memory_limit"]))
+        sum(w["memory_limit"] for w in workers.values() if w["memory_limit"])
+    )
     memory_text = f"Workers={worker_count}, Memory={total_memory}"
     logger.info(memory_text)
 
-    variable = config['variable']
+    variable = config["variable"]
     logger.info(f"Variable under consideration: {variable}")
     outputdir = get_arg(args, "outputdir", config["outputdir"])
 
@@ -176,7 +182,7 @@ if __name__ == '__main__':
     logger.info(f"Loading {variable} timeseries")
 
     # Model data
-    models = config['datasets']
+    models = config["datasets"]
 
     mon_model_list = []
     mon_exp_list = []
@@ -186,54 +192,87 @@ if __name__ == '__main__':
     ann_exp_list = []
     ann_source_list = []
 
-    if models != None:
-        models[0]['model'] = get_arg(args, 'model', models[0]['model'])
-        models[0]['exp'] = get_arg(args, 'exp', models[0]['exp'])
-        models[0]['source'] = get_arg(args, 'source', models[0]['source'])
+    if models is not None:
+        models[0]["model"] = get_arg(args, "model", models[0]["model"])
+        models[0]["exp"] = get_arg(args, "exp", models[0]["exp"])
+        models[0]["source"] = get_arg(args, "source", models[0]["source"])
         for model in models:
-            if model['source'] == 'aqua-timeseries-monthly':
-                mon_model_list.append(model['model'])
-                mon_exp_list.append(model['exp'])
-                mon_source_list.append(model['source'])
-            if model['source'] == 'aqua-timeseries-annual':
-                ann_model_list.append(model['model'])
-                ann_exp_list.append(model['exp'])
-                ann_source_list.append(model['source'])
+            if model["source"] == "aqua-timeseries-monthly":
+                mon_model_list.append(model["model"])
+                mon_exp_list.append(model["exp"])
+                mon_source_list.append(model["source"])
+            if model["source"] == "aqua-timeseries-annual":
+                ann_model_list.append(model["model"])
+                ann_exp_list.append(model["exp"])
+                ann_source_list.append(model["source"])
 
     # Reterive monthly data
     mon_startdate, mon_enddate, mon_dataset = retrieve_data(
-        variable, models=mon_model_list, exps=mon_exp_list, sources=mon_source_list, startdate=startdate, enddate=enddate)
+        variable,
+        models=mon_model_list,
+        exps=mon_exp_list,
+        sources=mon_source_list,
+        startdate=startdate,
+        enddate=enddate,
+    )
 
     # Reterieve annual data
     ann_startdate, ann_enddate, ann_dataset = retrieve_data(
-        variable, models=ann_model_list, exps=ann_exp_list, sources=ann_source_list, startdate=startdate, enddate=enddate)
+        variable,
+        models=ann_model_list,
+        exps=ann_exp_list,
+        sources=ann_source_list,
+        startdate=startdate,
+        enddate=enddate,
+    )
 
     # Reference monthly data
-    ref = config['reference']
-    ref[0]['model'] = get_arg(args, 'model', ref[0]['model'])
-    ref[0]['exp'] = get_arg(args, 'exp', ref[0]['exp'])
-    ref[0]['source'] = get_arg(args, 'source', ref[0]['source'])
+    ref = config["reference"]
+    ref[0]["model"] = get_arg(args, "model", ref[0]["model"])
+    ref[0]["exp"] = get_arg(args, "exp", ref[0]["exp"])
+    ref[0]["source"] = get_arg(args, "source", ref[0]["source"])
     for ref_model in ref:
-        if ref != None and ref_model['source'] == 'aqua-timeseries-monthly':
-            ref_mon_model = ref_model['model']
-            ref_mon_exp = ref_model['exp']
-            ref_mon_source = ref_model['source']
-        if ref != None and ref_model['source'] == 'aqua-timeseries-annual':
-            ref_ann_model = ref_model['model']
-            ref_ann_exp = ref_model['exp']
-            ref_ann_source = ref_model['source']
+        if ref is not None and ref_model["source"] == "aqua-timeseries-monthly":
+            ref_mon_model = ref_model["model"]
+            ref_mon_exp = ref_model["exp"]
+            ref_mon_source = ref_model["source"]
+        if ref is not None and ref_model["source"] == "aqua-timeseries-annual":
+            ref_ann_model = ref_model["model"]
+            ref_ann_exp = ref_model["exp"]
+            ref_ann_source = ref_model["source"]
 
-    reader = Reader(model=ref_mon_model, exp=ref_mon_exp, source=ref_mon_source,
-                    startdate=mon_startdate, enddate=mon_enddate, areas=False,variable=variable)
+    reader = Reader(
+        model=ref_mon_model,
+        exp=ref_mon_exp,
+        source=ref_mon_source,
+        startdate=mon_startdate,
+        enddate=mon_enddate,
+        areas=False,
+        variable=variable,
+    )
     ref_mon_dataset = reader.retrieve(var=variable)
 
-    reader = Reader(model=ref_ann_model, exp=ref_ann_exp, source=ref_ann_source,
-                    startdate=ann_startdate, enddate=ann_enddate, areas=False,variable=variable)
+    reader = Reader(
+        model=ref_ann_model,
+        exp=ref_ann_exp,
+        source=ref_ann_source,
+        startdate=ann_startdate,
+        enddate=ann_enddate,
+        areas=False,
+        variable=variable,
+    )
     ref_ann_dataset = reader.retrieve(var=variable)
-    
+
     # Check if we need monthly and annual time variables
-    ts = EnsembleTimeseries(var=variable, mon_model_dataset=mon_dataset, ann_model_dataset=ann_dataset,
-                            mon_ref_data=ref_mon_dataset, ann_ref_data=ref_ann_dataset, outputdir=outputdir, plot_options=plot_options)
+    ts = EnsembleTimeseries(
+        var=variable,
+        mon_model_dataset=mon_dataset,
+        ann_model_dataset=ann_dataset,
+        mon_ref_data=ref_mon_dataset,
+        ann_ref_data=ref_ann_dataset,
+        outputdir=outputdir,
+        plot_options=plot_options,
+    )
     ts.compute_statistics()
     ts.plot()
 
