@@ -110,7 +110,6 @@ class EnsembleTimeseries():
         It does not plots +/- 2 x STD for the referene. And, the reason is to show the spread between multi-model/ensembles of the same model.
         """
         self.logger.info('Plotting the ensemble timeseries')
-        var = self.var  # Only one variable can be plotted at a time
         plt.rcParams["figure.figsize"] = (self.figure_size[0], self.figure_size[1])
         fig, ax = plt.subplots(1, 1)
         color_list = ["#1898e0", "#8bcd45", "#f89e13", "#d24493", "#00b2ed", "#dbe622",
@@ -119,11 +118,11 @@ class EnsembleTimeseries():
         # Plotting monthly ensemble data
         if self.mon_dataset_mean is not None:
             if isinstance(self.mon_dataset_mean,xr.Dataset):
-                mon_dataset_mean = self.mon_dataset_mean[var]
+                mon_dataset_mean = self.mon_dataset_mean[self.var]
             else:
                 mon_dataset_mean = self.mon_dataset_mean
             if isinstance(self.mon_dataset_std,xr.Dataset):
-                mon_dataset_std = self.mon_dataset_std[var]
+                mon_dataset_std = self.mon_dataset_std[self.var]
             else:
                 mon_dataset_std = self.mon_dataset_std
             mon_dataset_mean.plot(ax=ax, label=self.ensemble_label+'-mon-mean', color=color_list[0], zorder=2)
@@ -131,13 +130,13 @@ class EnsembleTimeseries():
                 ax.fill_between(mon_dataset_mean.time, mon_dataset_mean - 2.*mon_dataset_std, mon_dataset_mean +
                                 2.*mon_dataset_std, facecolor=color_list[0], alpha=0.25, label=self.ensemble_label+'-mon-mean'+r'$\pm2$std', zorder=0)
             if self.plot_ensemble_members:
-                for i in range(0,len(self.mon_model_dataset[var][:,0])):
-                    self.mon_model_dataset[var][i, :].plot(ax=ax, color='grey', lw=0.7, zorder=1)
+                for i in range(0,len(self.mon_model_dataset[self.var][:,0])):
+                    self.mon_model_dataset[self.var][i, :].plot(ax=ax, color='grey', lw=0.7, zorder=1)
         
         # Plotting monthy reference
         if self.mon_ref_data is not None:
             if isinstance(self.mon_ref_data,xr.Dataset):
-                mon_ref_data = self.mon_ref_data[var]
+                mon_ref_data = self.mon_ref_data[self.var]
             else:
                  mon_ref_data = self.mon_ref_data
             mon_ref_data.plot(ax=ax, label=self.ref_label+'-mon', color='black', lw=0.95, zorder=2)
@@ -145,12 +144,12 @@ class EnsembleTimeseries():
         # Plotting annual ensemble data
         if self.ann_dataset_mean is not None:
             if isinstance(self.ann_dataset_mean,xr.Dataset):
-                ann_dataset_mean = self.ann_dataset_mean[var]
+                ann_dataset_mean = self.ann_dataset_mean[self.var]
             else:
                 ann_dataset_mean = self.ann_dataset_mean
 
             if isinstance(self.ann_dataset_std,xr.Dataset):
-                ann_dataset_std = self.ann_dataset_std[var]
+                ann_dataset_std = self.ann_dataset_std[self.var]
             else:
                 ann_dataset_std = self.ann_dataset_std
             ann_dataset_mean.plot(ax=ax, label=self.ensemble_label+'-ann-mean',
@@ -159,13 +158,13 @@ class EnsembleTimeseries():
                 ax.fill_between(ann_dataset_mean.time,ann_dataset_mean - 2.*ann_dataset_std,ann_dataset_mean +
                                 2.*ann_dataset_std, facecolor=color_list[2], alpha=0.25, label=self.ensemble_label+'-ann-mean'+r'$\pm2$std', zorder=0)
             if self.plot_ensemble_members:
-                for i in range(0,len(self.ann_model_dataset[var][:,0])):
-                    self.ann_model_dataset[var][i, :].plot(ax=ax, color='grey', lw=0.7, linestyle='--', zorder=1)
+                for i in range(0,len(self.ann_model_dataset[self.var][:,0])):
+                    self.ann_model_dataset[self.var][i, :].plot(ax=ax, color='grey', lw=0.7, linestyle='--', zorder=1)
         
         # Plotting annual reference
         if self.ann_ref_data is not None:
             if isinstance(self.ann_ref_data,xr.Dataset):
-                ann_ref_data = self.ann_ref_data[var]
+                ann_ref_data = self.ann_ref_data[self.var]
             else:
                 ann_ref_data = self.ann_ref_data
             ann_ref_data.plot(ax=ax, label=self.ref_label+'-ann', color='black', linestyle='--', lw=0.95, zorder=2)
@@ -181,8 +180,6 @@ class EnsembleTimeseries():
         fig.savefig(os.path.join(plots_path, self.outfile)+'.pdf', bbox_inches='tight', pad_inches=0.1)
         # pdf plots
         fig.savefig(os.path.join(plots_path, self.outfile)+'.png', bbox_inches='tight', pad_inches=0.1)
-        # for the AQUA tests, test if self.figure is None
-        self.figure = fig
 
 class EnsembleLatLon():
     """
@@ -218,9 +215,23 @@ class EnsembleLatLon():
         self.plot_label = plot_options.get('plot_label',True)
         self.plot_std =  plot_options.get('plot_std',True)
         self.figure_size = plot_options.get('figure_size',[15, 15])
-        self.units = plot_options.get('units',None)
-        self.dpi = plot_options.get('dpi', 300)
+        self.dpi = plot_options.get('dpi', 600)
         self.draw_labels = plot_options.get('draw_labels',True)
+       
+        #TODO: mention is the config file
+        # Specific for colorbars is mean and std plots 
+        self.vmin_mean = plot_options.get('vmin_mean',None)
+        self.vmax_mean = plot_options.get('vmax_mean',None)
+        self.vmin_std = plot_options.get('vmin_std',None)
+        self.vmax_std = plot_options.get('vmax_std',None)
+        
+        self.proj = plot_options.get('projection',ccrs.PlateCarree())
+        self.transform_first = plot_options.get('transform_first',False)
+        self.cyclic_lon = plot_options.get('cyclic_lon',False)
+        self.contour = plot_options.get('contour',True)
+        self.coastlines = plot_options.get('coastlines',True)
+        
+        self.units = plot_options.get('units',None)
         if self.units is None:
             self.units = self.dataset[self.var].units
         self.cbar_label = plot_options.get('cbar_label',None)
@@ -253,30 +264,18 @@ class EnsembleLatLon():
         self.logger.debug(f"Path to output diectory for plots: {outfig}")
         create_folder(outfig, self.loglevel)
 
-        projection = ccrs.PlateCarree()
-        var = self.var
         if self.dataset_mean is not None:
             if isinstance(self.dataset_mean,xr.Dataset):
-                dataset_mean = self.dataset_mean[var]
+                self.dataset_mean = self.dataset_mean[self.var]
             else:
-                dataset_mean = self.dataset_mean
-            fig = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
-            levels = np.linspace(dataset_mean.values.min(), dataset_mean.values.max(), num=21)
-            gs = gridspec.GridSpec(1, 1, figure=fig)
-            ax = fig.add_subplot(gs[0, :], projection=projection)
-            ax.coastlines()
-            ax.add_feature(cfeature.LAND, facecolor='lightgray')
-            ax.add_feature(cfeature.OCEAN, facecolor='lightblue')
-            ax.xaxis.set_major_formatter(LongitudeFormatter())
-            ax.yaxis.set_major_formatter(LatitudeFormatter())
-            ax.gridlines(draw_labels=self.draw_labels)
-            im0 = ax.contourf(dataset_mean.lon, dataset_mean.lat,
-                              dataset_mean, cmap='RdBu_r', levels=levels, extend='both')
-            ax.set_title(self.mean_plot_title)
-            ax.set_xlabel('Longitude')
-            ax.set_ylabel('Latitude')
-            cbar = fig.colorbar(im0, ax=ax, shrink=0.43, extend='both')
-            cbar.set_label(self.cbar_label)
+                self.dataset_mean = self.dataset_mean
+            if self.vmin_mean is None:
+                self.vmin_mean = self.dataset_mean.values.min()
+            if self.vmax_mean is None:
+                self.vmax_mean = self.dataset_mean.values.max()
+            fig, ax = plot_single_map(self.dataset_mean, proj=self.proj, contour=self.contour, cyclic_lon=self.cyclic_lon, coastlines=self.coastlines, transform_first=self.transform_first, return_fig=True, title=self.mean_plot_title, vmin=self.vmin_mean, vmax=self.vmax_mean)
+            ax.set_xlabel("Longitude")
+            ax.set_ylabel("Latitude")
             self.logger.debug(f"Saving 2D map of mean to {outfig}")
             # 2D mean plot in pdf
             fig.savefig(os.path.join(outfig, self.var+'_LatLon_mean.pdf'),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
@@ -285,34 +284,21 @@ class EnsembleLatLon():
 
         if self.dataset_std is not None:
             if isinstance(self.dataset_std,xr.Dataset):
-                dataset_std = self.dataset_std[var]
+                self.dataset_std = self.dataset_std[self.var]
             else:
-                dataset_std = self.dataset_std
-            fig = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
-            levels = np.linspace(dataset_std.values.min(), dataset_std.values.max(), num=21)
-            gs = gridspec.GridSpec(1, 1, figure=fig)
-            ax = fig.add_subplot(gs[0, :], projection=projection)
-            ax.coastlines()
-            ax.add_feature(cfeature.LAND, facecolor='lightgray')
-            ax.add_feature(cfeature.OCEAN, facecolor='lightblue')
-            ax.xaxis.set_major_formatter(LongitudeFormatter())
-            ax.yaxis.set_major_formatter(LatitudeFormatter())
-            ax.gridlines(draw_labels=self.draw_labels)
-            im1 = ax.contourf(dataset_std.lon, dataset_std.lat,
-                              dataset_std, cmap='OrRd', levels=21, extend='both')
-            ax.set_title(self.std_plot_title)
-            ax.set_xlabel('Longitude')
-            ax.set_ylabel('Latitude')
-            cbar = fig.colorbar(im1, ax=ax, shrink=0.43, extend='both')
-            cbar.set_label(self.cbar_label)
+                self.dataset_std = self.dataset_std
+            if self.vmin_std is None:
+                self.vmin_std = self.dataset_std.values.min()
+            if self.vmax_std is None:
+                self.vmax_std = self.dataset_std.values.max()
+            fig, ax = plot_single_map(self.dataset_std, proj=self.proj, contour=self.contour, cyclic_lon=self.cyclic_lon, coastlines=self.coastlines, transform_first=self.transform_first, return_fig=True, title=self.std_plot_title, vmin=self.vmin_std, vmax=self.vmax_std)
+            ax.set_xlabel("Longitude")
+            ax.set_ylabel("Latitude")
             self.logger.debug(f"Saving 2D map of STD to {outfig}")
             # 2D STD plot in pdf
             fig.savefig(os.path.join(outfig, self.var+'_LatLon_STD.pdf'),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
             # 2D STD plots in png
             fig.savefig(os.path.join(outfig, self.var+'_LatLon_STD.png'),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
-            # for the AQUA tests, test if self.figure is None
-            self.figure = fig
-
 
 class EnsembleZonal():
     """
@@ -424,7 +410,5 @@ class EnsembleZonal():
             fig.savefig(os.path.join(outfig, self.var+'_LevLon_STD.pdf'),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
             # Lev-Lon Zonal STD plot in png
             fig.savefig(os.path.join(outfig, self.var+'_LevLon_STD.png'),bbox_inches='tight', pad_inches=0.1, dpi=self.dpi)
-            # for the AQUA tests, test if self.figure is None
-            self.figure = fig
 
 
