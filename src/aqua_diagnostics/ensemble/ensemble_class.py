@@ -2,16 +2,10 @@ import os
 import gc
 
 import xarray as xr
-import numpy as np
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
-import cartopy.feature as cfeature
-import matplotlib.gridspec as gridspec
-from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 from aqua.logger import log_configure
-from aqua.exceptions import NoObservationError, NoDataError
 from aqua.util import create_folder
-from aqua.util import add_pdf_metadata
 #from dask import compute
 from aqua.graphics import plot_single_map
 
@@ -71,8 +65,8 @@ class EnsembleTimeseries():
         self.ensemble_label = plot_options.get('ensemble_label','Ensemble')
         self.ref_label = plot_options.get('ref_label','ERA5')
         self.plot_title = plot_options.get('plot_title','Ensemble statistics for '+self.var)
-        self.label_ncol = plot_options.get('plot_options',3)
-        self.units = plot_options.get('plot_options',None) # TODO
+        self.label_ncol = plot_options.get('label_ncol',3)
+        self.units = plot_options.get('units',None) # TODO
     
     def compute_statistics(self):
         """
@@ -118,17 +112,17 @@ class EnsembleTimeseries():
         # Plotting monthly ensemble data
         if self.mon_dataset_mean is not None:
             if isinstance(self.mon_dataset_mean,xr.Dataset):
-                mon_dataset_mean = self.mon_dataset_mean[self.var]
+                self.mon_dataset_mean = self.mon_dataset_mean[self.var]
             else:
-                mon_dataset_mean = self.mon_dataset_mean
+                self.mon_dataset_mean = self.mon_dataset_mean
             if isinstance(self.mon_dataset_std,xr.Dataset):
-                mon_dataset_std = self.mon_dataset_std[self.var]
+                self.mon_dataset_std = self.mon_dataset_std[self.var]
             else:
-                mon_dataset_std = self.mon_dataset_std
-            mon_dataset_mean.plot(ax=ax, label=self.ensemble_label+'-mon-mean', color=color_list[0], zorder=2)
+                self.mon_dataset_std = self.mon_dataset_std
+            self.mon_dataset_mean.plot(ax=ax, label=self.ensemble_label+'-mon-mean', color=color_list[0], zorder=2)
             if self.plot_std:
-                ax.fill_between(mon_dataset_mean.time, mon_dataset_mean - 2.*mon_dataset_std, mon_dataset_mean +
-                                2.*mon_dataset_std, facecolor=color_list[0], alpha=0.25, label=self.ensemble_label+'-mon-mean'+r'$\pm2$std', zorder=0)
+                ax.fill_between(self.mon_dataset_mean.time, self.mon_dataset_mean - 2.*self.mon_dataset_std, self.mon_dataset_mean +
+                                2.*self.mon_dataset_std, facecolor=color_list[0], alpha=0.25, label=self.ensemble_label+'-mon-mean'+r'$\pm2$std', zorder=0)
             if self.plot_ensemble_members:
                 for i in range(0,len(self.mon_model_dataset[self.var][:,0])):
                     self.mon_model_dataset[self.var][i, :].plot(ax=ax, color='grey', lw=0.7, zorder=1)
@@ -136,27 +130,26 @@ class EnsembleTimeseries():
         # Plotting monthy reference
         if self.mon_ref_data is not None:
             if isinstance(self.mon_ref_data,xr.Dataset):
-                mon_ref_data = self.mon_ref_data[self.var]
+                self.mon_ref_data = self.mon_ref_data[self.var]
             else:
-                 mon_ref_data = self.mon_ref_data
-            mon_ref_data.plot(ax=ax, label=self.ref_label+'-mon', color='black', lw=0.95, zorder=2)
+                 self.mon_ref_data = self.mon_ref_data
+            self.mon_ref_data.plot(ax=ax, label=self.ref_label+'-mon', color='black', lw=0.95, zorder=2)
         
         # Plotting annual ensemble data
         if self.ann_dataset_mean is not None:
             if isinstance(self.ann_dataset_mean,xr.Dataset):
-                ann_dataset_mean = self.ann_dataset_mean[self.var]
+                self.ann_dataset_mean = self.ann_dataset_mean[self.var]
             else:
-                ann_dataset_mean = self.ann_dataset_mean
-
+                self.ann_dataset_mean = self.ann_dataset_mean
             if isinstance(self.ann_dataset_std,xr.Dataset):
-                ann_dataset_std = self.ann_dataset_std[self.var]
+                self.ann_dataset_std = self.ann_dataset_std[self.var]
             else:
-                ann_dataset_std = self.ann_dataset_std
-            ann_dataset_mean.plot(ax=ax, label=self.ensemble_label+'-ann-mean',
+                self.ann_dataset_std = self.ann_dataset_std
+            self.ann_dataset_mean.plot(ax=ax, label=self.ensemble_label+'-ann-mean',
                                             color=color_list[2], linestyle='--', zorder=2)
             if self.plot_std:
-                ax.fill_between(ann_dataset_mean.time,ann_dataset_mean - 2.*ann_dataset_std,ann_dataset_mean +
-                                2.*ann_dataset_std, facecolor=color_list[2], alpha=0.25, label=self.ensemble_label+'-ann-mean'+r'$\pm2$std', zorder=0)
+                ax.fill_between(self.ann_dataset_mean.time,self.ann_dataset_mean - 2.*self.ann_dataset_std,self.ann_dataset_mean +
+                                2.*self.ann_dataset_std, facecolor=color_list[2], alpha=0.25, label=self.ensemble_label+'-ann-mean'+r'$\pm2$std', zorder=0)
             if self.plot_ensemble_members:
                 for i in range(0,len(self.ann_model_dataset[self.var][:,0])):
                     self.ann_model_dataset[self.var][i, :].plot(ax=ax, color='grey', lw=0.7, linestyle='--', zorder=1)
@@ -164,10 +157,10 @@ class EnsembleTimeseries():
         # Plotting annual reference
         if self.ann_ref_data is not None:
             if isinstance(self.ann_ref_data,xr.Dataset):
-                ann_ref_data = self.ann_ref_data[self.var]
+                self.ann_ref_data = self.ann_ref_data[self.var]
             else:
-                ann_ref_data = self.ann_ref_data
-            ann_ref_data.plot(ax=ax, label=self.ref_label+'-ann', color='black', linestyle='--', lw=0.95, zorder=2)
+                self.ann_ref_data = self.ann_ref_data
+            self.ann_ref_data.plot(ax=ax, label=self.ref_label+'-ann', color='black', linestyle='--', lw=0.95, zorder=2)
 
         ax.set_title(self.plot_title)
         ax.legend(ncol=self.label_ncol, fontsize=self.label_size, framealpha=0)
@@ -208,7 +201,7 @@ class EnsembleLatLon():
         self.dataset_std = None
         self.dim = ensemble_dimension_name
         self.outputdir = outputdir + 'Ensemble_LatLon'
-        self.outputfile = f'global_2D_map_{var}'
+        self.outputfile = f'global_2D_map_{self.var}'
         
         self.figure = None
         plot_options = kwargs.get('plot_options',{})
@@ -230,6 +223,7 @@ class EnsembleLatLon():
         self.cyclic_lon = plot_options.get('cyclic_lon',False)
         self.contour = plot_options.get('contour',True)
         self.coastlines = plot_options.get('coastlines',True)
+        #
         
         self.units = plot_options.get('units',None)
         if self.units is None:
@@ -369,13 +363,13 @@ class EnsembleZonal():
         var = self.var
         if self.dataset_mean is not None:
             if isinstance(self.dataset_mean,xr.Dataset):
-                dataset_mean = self.dataset_mean[var]
+                self.dataset_mean = self.dataset_mean[self.var]
             else:
-                dataset_mean = self.dataset_mean
+                self.dataset_mean = self.dataset_mean
             self.logger.info("Plotting ensemble-mean Zonal-average") 
             fig = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
             ax = fig.add_subplot(1,1,1)
-            im = ax.contourf(dataset_mean.lat,dataset_mean.lev,dataset_mean,cmap='RdBu_r', levels=20, extend='both')
+            im = ax.contourf(self.dataset_mean.lat,self.dataset_mean.lev,self.dataset_mean,cmap='RdBu_r', levels=20, extend='both')
             ax.set_ylim((5500, 0))
             ax.set_ylabel("Depth (in m)", fontsize=9)
             ax.set_xlabel("Latitude (in deg North)", fontsize=9)
@@ -391,13 +385,13 @@ class EnsembleZonal():
 
         if self.dataset_std is not None:
             if isinstance(self.dataset_std,xr.Dataset):
-                dataset_std = self.dataset_std[var]
+                self.dataset_std = self.dataset_std[self.var]
             else:
-                dataset_std = self.dataset_std
+                self.dataset_std = self.dataset_std
             self.logger.info("Plotting ensemble-STD Zonal-average") 
             fig = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
             ax = fig.add_subplot(1,1,1)
-            im = ax.contourf(dataset_std.lat,dataset_std.lev,dataset_std,cmap='OrRd', levels=20, extend='both')
+            im = ax.contourf(self.dataset_std.lat,self.dataset_std.lev,self.dataset_std,cmap='OrRd', levels=20, extend='both')
             ax.set_ylim((5500, 0))
             ax.set_ylabel("Depth (in m)", fontsize=9)
             ax.set_xlabel("Latitude (in deg North)", fontsize=9)
