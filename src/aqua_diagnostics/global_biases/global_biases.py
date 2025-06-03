@@ -3,38 +3,43 @@ import xarray as xr
 from aqua.logger import log_configure
 from aqua.diagnostics.core import Diagnostic, convert_data_units
 from aqua.util import select_season
-from .util import select_pressure_level
+from .util import handle_pressure_level
+
 
 xr.set_options(keep_attrs=True)
 
+
 class GlobalBiases(Diagnostic):
     """
-    Initialize the Base class.
+    Diagnostic class for computing global and seasonal climatologies of a given variable.
+
+    This class handles data retrieval, pressure level selection, unit conversion, 
+    and computation of mean climatologies (annual or seasonal).
+
+    Inherits from `Diagnostic`.
 
     Args:
-        catalog (str): The catalog to be used. If None, the catalog will be determined by the Reader.
-        model (str): The model to be used.
-        exp (str): The experiment to be used.
-        source (str): The source to be used.
-        regrid (str): The target grid to be used for regridding. If None, no regridding will be done.
-        startdate (str): The start date of the data to be retrieved.
-                         If None, all available data will be retrieved.
-        enddate (str): The end date of the data to be retrieved.
-                        If None, all available data will be retrieved.
-        var (str): Name of the variable to analyze.
-        plev (float): Pressure level to select.
-        save_netcdf (bool): If True, climatologies will be saved as a NetCDF file.
-        outputdir (str): The directory where the NetCDF file will be saved.
-        loglevel (str): The log level to be used. Default is 'WARNING'.
-        """
+        catalog (str): The catalog to be used. If None, inferred from Reader.
+        model (str): Model to be used.
+        exp (str): Experiment name.
+        source (str): Source name.
+        regrid (str): Target grid for regridding. If None, no regridding.
+        startdate (str): Start date for data selection.
+        enddate (str): End date for data selection.
+        var (str): Variable name to analyze.
+        plev (float): Pressure level to select (if applicable).
+        save_netcdf (bool): If True, saves output climatologies.
+        outputdir (str): Output directory for NetCDF files.
+        loglevel (str): Log level. Default is 'WARNING'.
+    """
     def __init__(self, catalog=None, model=None, exp=None, source=None,
-                regrid=None, startdate=None, enddate=None,
-                var=None, plev=None,
-                save_netcdf=False, outputdir='./', loglevel='WARNING'):
-                
+                 regrid=None, startdate=None, enddate=None,
+                 var=None, plev=None,
+                 save_netcdf=False, outputdir='./', loglevel='WARNING'):
+
         super().__init__(catalog=catalog, model=model, exp=exp, source=source,
-                        regrid=regrid, startdate=startdate, enddate=enddate,
-                        loglevel=loglevel)
+                         regrid=regrid, startdate=startdate, enddate=enddate,
+                         loglevel=loglevel)
 
         self.logger = log_configure(log_level=loglevel, log_name='Global Biases')
         self.var = var
@@ -44,71 +49,86 @@ class GlobalBiases(Diagnostic):
         self.startdate = startdate
         self.enddate = enddate
 
-    def retrieve(self, var=None, plev=None, units=None):
+    def retrieve(self, var: str = None, plev: float = None, units: str = None) -> None:
         """
-        Retrieves and preprocesses the dataset, optionally selecting pressure level and converting units.
+        Retrieve and preprocess dataset, selecting pressure level and/or converting units if needed.
 
         Args:
-            var (str, optional): Variable to retrieve. If None, uses the default from initialization.
-            plev (float, optional): Pressure level to extract, if applicable.
-            units (str, optional): Target units for variable conversion (e.g., 'mm/day').
+            var (str, optional): Variable to retrieve. If None, uses self.var.
+            plev (float, optional): Pressure level to extract.
+            units (str, optional): Target units (e.g., 'mm/day').
 
         Raises:
-            NoDataError: If the variable is not found in the dataset.
+            NoDataError: If variable not found in dataset.
+            KeyError: If the variable is missing from the data.
         """
-        self.var = var or self.var
-        self.plev = plev or self.plev
+        if var is not None:
+            self.var = var
+        if plev is not None:
+            self.plev = plev
 
         super().retrieve(var=self.var)
-        
+
         if self.data is None:
-            self.logger.error(f"Variable {var} not found in dataset {self.model}, {self.exp}, {self.source}")
+            self.logger.error(f"Variable {self.var} not found in dataset {self.model}, {self.exp}, {self.source}")
             raise NoDataError("Variable not found in dataset")
-        
+
+        if self.var not in self.data:
+            raise KeyError(f"Variable '{self.var}' not found in dataset variables: {list(self.data.data_vars)}")
+
         self.startdate = self.startdate or pd.to_datetime(self.data.time[0].values).strftime('%Y-%m-%d')
         self.enddate = self.enddate or pd.to_datetime(self.data.time[-1].values).strftime('%Y-%m-%d')
-        
-        if units is not None:
+
+        if units:
             self.logger.info(f'Adjusting units for variable {self.var} to {units}.')
             self.data = convert_data_units(self.data, self.var, units, loglevel=self.loglevel)
-            
+
         if self.plev is not None:
             self.logger.info(f'Selecting pressure level {self.plev} for variable {self.var}.')
-            self.data = select_pressure_level(self.data, self.plev, self.var)
+            self.data = handle_pressure_level(self.data, self.plev, self.var, loglevel=self.loglevel)
         elif 'plev' in self.data[self.var].dims:
-            self.logger.warning(f"Variable {self.var} has multiple pressure levels but none was selected")
+            self.logger.warning(f"Variable {self.var} has multiple pressure levels but none was selected.")
 
-
-    def compute_climatology(self, data=None, var=None, plev=None, save_netcdf=True,
-                        seasonal=False, seasons_stat='mean'):
+    def compute_climatology(self,
+                            data: xr.Dataset = None,
+                            var: str = None,
+                            plev: float = None,
+                            save_netcdf: bool = None,
+                            seasonal: bool = False,
+                            seasons_stat: str = 'mean') -> None:
         """
-        Computes climatology (annual or seasonal) for the selected variable.
+        Compute annual and optionally seasonal climatology for a variable.
 
         Args:
             data (xarray.Dataset, optional): Input dataset. If None, uses self.data.
             var (str, optional): Variable name. If None, uses self.var.
-            plev (float, optional): Pressure level (placeholder, not used).
-            save_netcdf (bool, optional): If True, saves output to NetCDF. Default is True.
-            seasonal (bool, optional): If True, computes seasonal climatology (DJF, MAM, JJA, SON).
-            seasons_stat (str, optional): Statistic to apply to each season ('mean', 'std', 'max', 'min').
+            plev (float, optional): Pressure level (currently unused).
+            save_netcdf (bool, optional): If True, save output to NetCDF.
+            seasonal (bool): If True, compute seasonal climatology (DJF, MAM, JJA, SON).
+            seasons_stat (str): Aggregation statistic: 'mean', 'std', 'max', 'min'.
 
         Raises:
-            ValueError: If an invalid `seasons_stat` is provided.
+            ValueError: If `seasons_stat` is invalid.
         """
-
         data = data or self.data
         var = var or self.var
-        save_netcdf = save_netcdf or self.save_netcdf
 
-        self.logger.info(f'Computing {"seasonal " if seasonal else ""}climatology for variable {var}.')
+        if save_netcdf is None:
+            save_netcdf = self.save_netcdf
+
+        if data is None:
+            raise ValueError("No data provided or retrieved; cannot compute climatology.")
+
+        self.logger.info(f'Computing climatology for variable {var}.')
 
         self.climatology = xr.Dataset({var: data[var].mean(dim='time')})
-
-        self.climatology.attrs['catalog'] = self.catalog
-        self.climatology.attrs['model'] = self.model
-        self.climatology.attrs['exp'] = self.exp
-        self.climatology.attrs['startdate'] = str(self.startdate)
-        self.climatology.attrs['enddate'] = str(self.enddate)
+        self.climatology.attrs.update({
+            'catalog': self.catalog,
+            'model': self.model,
+            'exp': self.exp,
+            'startdate': str(self.startdate),
+            'enddate': str(self.enddate)
+        })
 
         if save_netcdf:
             super().save_netcdf(
@@ -116,30 +136,32 @@ class GlobalBiases(Diagnostic):
                 diagnostic='global_biases',
                 diagnostic_product='climatology',
                 default_path=self.outputdir,
-                var= var
+                var=var
             )
 
         if seasonal:
             stat_funcs = {'mean': 'mean', 'max': 'max', 'min': 'min', 'std': 'std'}
             if seasons_stat not in stat_funcs:
-                raise ValueError("Invalid statistic. Please choose one of 'mean', 'std', 'max', 'min'.")
+                raise ValueError("Invalid statistic. Choose one of 'mean', 'std', 'max', 'min'.")
+
+            self.logger.info(f'Computing seasonal climatology for variable {var}.')
 
             season_list = ['DJF', 'MAM', 'JJA', 'SON']
             seasonal_data = []
 
             for season in season_list:
-                data_season = select_season(data[var], season)
-                data_stat = getattr(data_season, stat_funcs[seasons_stat])(dim='time')
-                seasonal_data.append(data_stat.expand_dims(season=[season]))
+                season_data = select_season(data[var], season)
+                season_stat = getattr(season_data, stat_funcs[seasons_stat])(dim='time')
+                seasonal_data.append(season_stat.expand_dims(season=[season]))
 
-            self.seasonal_climatology = xr.concat(seasonal_data, dim='season')
-            self.seasonal_climatology = self.seasonal_climatology.to_dataset(name=var)
-
-            self.seasonal_climatology.attrs['catalog'] = self.catalog
-            self.seasonal_climatology.attrs['model'] = self.model
-            self.seasonal_climatology.attrs['exp'] = self.exp
-            self.seasonal_climatology.attrs['startdate'] = str(self.startdate)
-            self.seasonal_climatology.attrs['enddate'] = str(self.enddate)
+            self.seasonal_climatology = xr.concat(seasonal_data, dim='season').to_dataset(name=var)
+            self.seasonal_climatology.attrs.update({
+                'catalog': self.catalog,
+                'model': self.model,
+                'exp': self.exp,
+                'startdate': str(self.startdate),
+                'enddate': str(self.enddate)
+            })
 
             if save_netcdf:
                 super().save_netcdf(
