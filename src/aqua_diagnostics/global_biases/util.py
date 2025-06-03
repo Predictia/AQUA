@@ -1,34 +1,46 @@
 """Utility for the GlobalBiases module"""
 
 import xarray as xr
+from aqua.logger import log_configure
 from aqua.exceptions import NoDataError
 
-def select_pressure_level(data, plev, var):
+def handle_pressure_level(data, var, plev, loglevel='WARNING'):
     """
-    Selects a specified pressure level from the dataset if necessary.
+    Handles selection of a specific pressure level from the dataset.
 
     Args:
-        data (xr.Dataset): Dataset to select from.
-        plev (float): Desired pressure level.
+        data (xarray.Dataset): Dataset to select from.
         var (str): Variable name to filter by.
-
+        plev (float, optional): Desired pressure level.
+        loglevel (str): The logging level (default 'WARNING')
     Returns:
-        xr.Dataset: Filtered dataset at the specified pressure level.
+        xarray.Dataset or None: Dataset at specified pressure level, or None if skipped.
     """
+    logger = log_configure(loglevel, 'loop_seasonalcycle')
+
     if var not in data:
         raise NoDataError(f"Variable '{var}' not found in the dataset.")
 
-    # Check if 'plev' is a dimension
+    # if the variable does not have a 'plev' dimension, return the data as is
     if 'plev' in data[var].dims:
-        # If 'plev' is already in coordinates and matches the selected level, return as is
+        if plev is None:
+            self.logger.warning(
+                f"Variable '{var}' has multiple pressure levels, but no specific level was selected. ")
+            return data  
+
+        # if 'plev' has already a single value, check if it matches the requested plev
         if 'plev' in data[var].coords and data[var].coords['plev'].size == 1:
             if data[var].coords['plev'].values[0] == plev:
-                return data  
-        # Otherwise, try selecting the specified pressure level
+                return data
+
+        # try to select the closest pressure level
         try:
+            logger.info(f"Selecting pressure level {plev} for variable '{var}'.")
             return data.sel(plev=plev, method="nearest")
         except KeyError:
             raise NoDataError(f"The specified pressure level {plev} is not in the dataset.")
-    else:
-        raise NoDataError(f"Variable '{var}' does not have a 'plev' dimension.")
 
+    # if the variable does not have a 'plev' dimension, log a warning
+    elif plev is not None:
+        raise ValueError(f"Variable '{var}' does not have a 'plev' dimension, but a pressure level was requested.")
+    return data
