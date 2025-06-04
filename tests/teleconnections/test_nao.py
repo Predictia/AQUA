@@ -69,7 +69,7 @@ def test_NAO(tmp_path):
     fig_cor = plot_single.plot_maps(maps=cor, statistic='correlation')
     assert isinstance(fig_cor, matplotlib.figure.Figure), "Figure should be a matplotlib Figure"
     description = plot_single.set_map_description(maps=cor, statistic='correlation')
-    assert description == 'NAO correlation map (Pearson_correlation) IFS test-tco79.'
+    assert description == 'NAO correlation map (Correlation of Mean sea level pressure with index evaluated with Mean sea level pressure) IFS test-tco79.'
     plot_single.save_plot(fig_cor, diagnostic_product=f'correlation', metadata={'description': description}, format='pdf')
     assert (os.path.exists(os.path.join(tmp_path, 'pdf', 'nao.correlation.ci.IFS.test-tco79.pdf'))) is True
 

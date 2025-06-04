@@ -77,7 +77,7 @@ class BaseMixin(Diagnostic):
         corr = xr.corr(index, data, dim=dim)
 
         # Modify the attributes to match the correlation
-        corr.attrs['long_name'] = f'Correlation of {data.long_name} with {index.long_name}'
+        corr.attrs['long_name'] = f'Correlation of {data.long_name} with index evaluated with {index.long_name}'
         corr.attrs['shortName'] = f'Pearson_correlation'
         corr.attrs['units'] = '1'
 
@@ -296,7 +296,10 @@ class PlotBaseMixin():
         maps, ref_maps = _homogeneize_maps(maps=maps, ref_maps=ref_maps)
 
         if isinstance(maps, xr.DataArray):
-            var = maps.shortName if hasattr(maps, 'shortName') else maps.long_name
+            if statistic == 'correlation':
+                var = maps.long_name if hasattr(maps, 'long_name') else maps.shortName
+            else:
+                var = maps.shortName if hasattr(maps, 'shortName') else maps.long_name
             description += f"({var}) "
             description += f"{maps.AQUA_model} {maps.AQUA_exp}"
             if hasattr(maps, 'AQUA_season'):
