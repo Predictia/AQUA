@@ -15,7 +15,24 @@ def plot_lat_lon_profiles(mean_type: str,
                           ax: plt.Axes = None,
                           loglevel='WARNING',
                           **kwargs):
+    """
+    Plot latitude or longitude profiles of data, averaging over the specified axis.
 
+    Args:
+        mean_type (str): Type of mean to calculate ('zonal' for latitude, 'meridional' for longitude).
+        monthly_data (xr.DataArray, optional): Monthly data to plot.
+        annual_data (xr.DataArray, optional): Annual data to plot.
+        data_list (list, optional): List of xarray DataArrays to plot.
+        data_labels (list, optional): Labels for the data in `data_list`.
+        style (str, optional): Style for the plot.
+        fig (plt.Figure, optional): Matplotlib figure object.
+        ax (plt.Axes, optional): Matplotlib axes object.
+        loglevel (str, optional): Logging level.
+        **kwargs: Additional keyword arguments for customization.
+
+    Returns:
+        tuple: Matplotlib figure and axes objects.
+    """
 
     logger = log_configure(loglevel, 'plot_lat_lon_profiles')
     ConfigStyle(style=style, loglevel=loglevel)
@@ -31,12 +48,14 @@ def plot_lat_lon_profiles(mean_type: str,
             return data.mean(dim='lat')
         else:
             raise ValueError("mean_type must be 'zonal' or 'meridional'")
-        
+
 
     if data_list is not None:
         if fig is None and ax is None:
             fig_size = kwargs.get('figsize', (10, 5))
             fig, ax = plt.subplots(1, 1, figsize=fig_size)
+
+        logger.debug(f"Plotting {len(data_list)} data arrays")
         for i, data in enumerate(data_list):
             averaged_data = data_coordinate_means(data, mean_type)
             if data_labels is not None and i < len(data_labels):
@@ -52,13 +71,13 @@ def plot_lat_lon_profiles(mean_type: str,
             data = annual_data
         else:
             raise ValueError("No data provided for plotting")
-        
+
 
     if fig is None and ax is None:
         fig_size = kwargs.get('figsize', (10, 5))
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
-    averaged_data = data_coordinate_means(data, mean_type)
+    averaged_data = data_coordinate_means(data, mean_type).load()
 
     if monthly_data is not None:
         plot_monthly_data(ax, averaged_data, data_labels, logger, lw=3)
