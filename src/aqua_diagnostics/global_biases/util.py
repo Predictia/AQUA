@@ -24,7 +24,7 @@ def handle_pressure_level(data, var, plev, loglevel='WARNING'):
     # if the variable does not have a 'plev' dimension, return the data as is
     if 'plev' in data[var].dims:
         if plev is None:
-            self.logger.warning(
+            logger.warning(
                 f"Variable '{var}' has multiple pressure levels, but no specific level was selected. ")
             return data  
 
