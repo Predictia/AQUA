@@ -1,15 +1,16 @@
+# Currently, the diagnostic supports comparing one dataset against one reference dataset at a time.
 datasets:
   - catalog: null
-    model: 'IFS-NEMO'
-    exp: 'historical-1990'
-    source: 'lra-r100-monthly'
+    model: null
+    exp: null
+    source: null
     regrid: null
 
 references:
-  - catalog: 'obs'
-    model: 'ERA5'
-    exp: 'era5'
-    source: 'monthly'
+  - catalog: null
+    model: null
+    exp: null
+    source: null
     regrid: null
 
 setup:
