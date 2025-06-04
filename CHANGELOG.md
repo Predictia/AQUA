@@ -17,6 +17,7 @@ Workflow modifications:
   are not correct.
 
 AQUA core complete list:
+- `Trender()` class to include both `trend()` and `detrend()` method (#1980)
 - `cartopy_offlinedata` is added on container and path is set in cli call, to support MN5 no internet for coastlines download (#1960)
 - plot_single_map() can now handle high nlevels with a decreased cbar ticks density (#1940)
 - plot_single_map() now can avoid coastlines to support paleoclimate maps (#1940)
@@ -30,6 +31,7 @@ AQUA core complete list:
 
 AQUA diagnostics complete list:
 - GlobalBiases: major refactor (#1803)
+- Ocean Drift: using the `_set_region` method from the `Diagnostic` class (#1981)
 - Diagnostic core: new `_set_region` method in `Diagnostic` class to find region name, lon and lat limits (#1979)
 - Timeseries: regions are now in the `definitions` folder (not `interface` anymore) (#1884)
 - Teleconnections: complete refactor according to the Diagnostic, PlotDiagnostic schema (#1884)
