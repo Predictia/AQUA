@@ -4,6 +4,7 @@ from aqua import Reader
 from aqua.logger import log_configure
 from aqua.util import OutputSaver, ConfigPath
 from aqua.util import load_yaml, convert_units
+from aqua.util import area_selection
 
 
 class Diagnostic():
@@ -194,4 +195,27 @@ class Diagnostic():
             region = None
             self.logger.info('No region provided, using lon_limits: %s, lat_limits: %s', lon_limits, lat_limits)
 
+        return region, lon_limits, lat_limits
+
+    def _select_region(self, region: str = None, diagnostic: str = None):
+        """
+        Applies area selection to the retrieved data.
+
+        If a region is specified, the data is filtered based on the
+        predefined region's latitude and longitude bounds.
+
+        Args:
+            region (str, optional): Region for area selection. If None, no area selection is applied.
+        """
+        if region is not None:
+            region, lon_limits, lat_limits = self._set_region(region=region, diagnostic=diagnostic)
+            self.logger.info(f"Applying area selection for region: {region}")
+            self.data = area_selection(
+                data=self.data, lat=lat_limits, lon=lon_limits, drop=True, loglevel=self.loglevel
+            )
+            self.data.attrs['AQUA_region'] = region
+        else:
+            self.logger.warning(
+                "Since region name is not specified, processing whole region in the dataset"
+            )
         return region, lon_limits, lat_limits
