@@ -56,6 +56,16 @@ if __name__ == '__main__':
         if config_dict['diagnostics']['globalbiases']['run']:
             logger.info("GlobalBiases diagnostic is enabled.")
 
+            if len(config_dict['datasets']) > 1:
+                logger.warning(
+                    "Only the first entry in 'datasets' will be used.\n"
+                    "Multiple datasets are not supported by this diagnostic."
+                )
+            if len(config_dict['references']) > 1:
+                logger.warning(
+                    "Only the first entry in 'references' will be used.\n"
+                    "Multiple references are not supported by this diagnostic."
+                )
             dataset = config_dict['datasets'][0]
             reference = config_dict['references'][0]
             dataset_args = {'catalog': dataset['catalog'], 'model': dataset['model'],
