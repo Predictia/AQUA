@@ -11,6 +11,7 @@ AQUA core complete list:
 - Use scientific notation in multiple maps plotting to avoid label overlapping (#1953)
 
 AQUA diagnostics complete list:
+- GlobalBiases: major refactor (#1803)
 - Timeseries: Use new OutputSaver in Timeseries diagnostics (#1948)
 
 
