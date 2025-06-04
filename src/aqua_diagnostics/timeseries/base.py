@@ -2,9 +2,9 @@ import os
 import xarray as xr
 
 from aqua.logger import log_configure
-from aqua.util import ConfigPath 
+from aqua.util import ConfigPath
 from aqua.util import frequency_string_to_pandas, time_to_string
-from aqua.util import load_yaml, eval_formula, convert_units
+from aqua.util import load_yaml, eval_formula
 from aqua.diagnostics.core import Diagnostic, start_end_dates, OutputSaver
 
 xr.set_options(keep_attrs=True)
@@ -58,7 +58,8 @@ class BaseMixin(Diagnostic):
         self.logger.debug(f"Std start date: {self.std_startdate}, Std end date: {self.std_enddate}")
 
         # Set the region based on the region name or the lon and lat limits
-        self._set_region(region=region, lon_limits=lon_limits, lat_limits=lat_limits)
+        self.region, self.lon_limits, self.lat_limits = self._set_region(region=region, diagnostic='timeseries',
+                                                                         lon_limits=lon_limits, lat_limits=lat_limits)
 
         # Initialize the possible results
         self.hourly = None
@@ -205,38 +206,6 @@ class BaseMixin(Diagnostic):
             self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
             super().save_netcdf(data=data_std, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
                                 default_path=outputdir, rebuild=rebuild)
-
-    def _set_region(self, region: str = None, lon_limits: list = None, lat_limits: list = None):
-        """
-        Set the region to be used.
-
-        Args:
-            region (str): The region to select. This will define the lon and lat limits.
-            lon_limits (list): The longitude limits to be used. Overridden by region.
-            lat_limits (list): The latitude limits to be used. Overridden by region.
-        """
-        if region is not None:
-            region_file = ConfigPath().get_config_dir()
-            region_file = os.path.join(region_file, 'diagnostics',
-                                       'timeseries', 'definitions', 'regions.yaml')
-            if os.path.exists(region_file):
-                regions = load_yaml(region_file)
-                if region in regions['regions']:
-                    self.lon_limits = regions['regions'][region].get('lon_limits', None)
-                    self.lat_limits = regions['regions'][region].get('lat_limits', None)
-                    self.region = regions['regions'][region].get('logname', region)
-                    self.logger.info(f'Region {self.region} found, using lon: {self.lon_limits}, lat: {self.lat_limits}')
-                else:
-                    self.logger.error('Region %s not found', region)
-                    raise ValueError(f'Region {region} not found')
-            else:
-                self.logger.error('Region file not found')
-                raise FileNotFoundError('Region file not found')
-        else:
-            self.lon_limits = lon_limits
-            self.lat_limits = lat_limits
-            self.region = None
-            self.logger.debug('No region provided, using lon_limits: %s, lat_limits: %s', lon_limits, lat_limits)
 
     def _check_data(self, var: str, units: str):
         """
