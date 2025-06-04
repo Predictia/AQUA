@@ -33,7 +33,7 @@ Some extra options are available:
 
 
 Trend and Detrend
-----------
+-----------------
 
 For some analysis, computing or removing a linear (or polynominial) trend can be helpful to highlight the internal variability.
 The ``trend`` and ``detrend`` method can be used as a high-level wrapper of xarray polyfit functionalities to achieve this goal.
