@@ -16,7 +16,7 @@ def handle_pressure_level(data, var, plev, loglevel='WARNING'):
     Returns:
         xarray.Dataset or None: Dataset at specified pressure level, or None if skipped.
     """
-    logger = log_configure(loglevel, 'loop_seasonalcycle')
+    logger = log_configure(loglevel, 'Pressure levels')
 
     if var not in data:
         raise NoDataError(f"Variable '{var}' not found in the dataset.")
