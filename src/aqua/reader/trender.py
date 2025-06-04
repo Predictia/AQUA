@@ -1,3 +1,5 @@
+"""Class for handling trend and detrending of xarray objects."""
+
 import xarray as xr
 from aqua.logger import log_configure, log_history
 
@@ -53,7 +55,11 @@ class Trender:
         """
         Internal dispatcher for trend/detrend logic.
         """
-        action = func.__name__.capitalize()  # Get the action name (Trend or Detrend)
+        action = func.__name__.capitalize() # Get the action name (Trend or Detrend)
+        
+        self.logger.info(
+            "Applying %s with polynomial of order %d along '%s' dimension.", action, degree, dim
+        )
 
         if isinstance(data, xr.DataArray):
             final = func(data=data, dim=dim, degree=degree, skipna=skipna)
