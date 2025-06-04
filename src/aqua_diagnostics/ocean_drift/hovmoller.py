@@ -2,7 +2,6 @@ import xarray as xr
 from aqua.logger import log_configure
 from aqua.diagnostics.core import Diagnostic
 from aqua.util import area_selection
-from .util import predefined_regions
 from itertools import product
 
 xr.set_options(keep_attrs=True)
@@ -86,7 +85,7 @@ class Hovmoller(Diagnostic):
             region (str, optional): Region for area selection. If None, no area selection is applied.
         """
         if region is not None:
-            lon_limits, lat_limits = predefined_regions(region)
+            region, lon_limits, lat_limits = super()._set_region(region=region, diagnostic='ocean3d')
             self.logger.info(f"Applying area selection for region: {region}")
             self.data = area_selection(
                 data=self.data, lat=lat_limits, lon=lon_limits, drop=True, loglevel=self.loglevel
