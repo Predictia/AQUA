@@ -29,6 +29,7 @@ AQUA core complete list:
 - Use scientific notation in multiple maps plotting to avoid label overlapping (#1953)
 
 AQUA diagnostics complete list:
+- Diagnostic core: new `_set_region` method in `Diagnostic` class to find region name, lon and lat limits (#1979)
 - Timeseries: regions are now in the `definitions` folder (not `interface` anymore) (#1884)
 - Teleconnections: complete refactor according to the Diagnostic, PlotDiagnostic schema (#1884)
 - Radiations: timeseries correctly working for exps with enddate before 2000 (#1940)
