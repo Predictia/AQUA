@@ -103,7 +103,8 @@ class PlotGlobalBiases:
             return_fig=True,
             title=title,
             vmin=vmin,
-            vmax=vmax
+            vmax=vmax,
+            loglevel=self.loglevel
         )
         ax.set_xlabel("Longitude")
         ax.set_ylabel("Latitude")
@@ -154,7 +155,8 @@ class PlotGlobalBiases:
             title=title,
             sym=sym,
             vmin_fill=vmin, 
-            vmax_fill=vmax
+            vmax_fill=vmax,
+            loglevel=self.loglevel
         )
         ax.set_xlabel("Longitude")
         ax.set_ylabel("Latitude")
@@ -202,7 +204,8 @@ class PlotGlobalBiases:
             'return_fig': True,
             'titles': season_list,
             'contour': True,
-            'sym': sym
+            'sym': sym,
+            'loglevel': self.loglevel
         }
 
         if vmin is not None:
