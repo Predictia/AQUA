@@ -3,6 +3,7 @@ import xarray as xr
 from aqua.logger import log_configure
 from aqua.diagnostics.core import Diagnostic, convert_data_units
 from aqua.util import select_season
+from aqua.exceptions import NoDataError
 from .util import handle_pressure_level
 
 
