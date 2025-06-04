@@ -40,11 +40,11 @@ jobs:
       GRID_DEFINITION_PATH: /tmp
       # This is needed for the FDB tests.
       FDB5_CONFIG_FILE: /app/etc/fdb/config.yaml
-      # github token
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # github token: this is a personal access token (PAT) with read access to the repository.
+      # It is used to download the AQUA catalog and is available also to dependabot.
+      GITHUB_TOKEN: ${{ secrets.AQUA_GITHUB_PAT }} 
 
-      # This is needed to avoid FDB errors with ClimateDT specific keys.
-      # METKIT_RAW_PARAM: 1
+
     runs-on: ubuntu-latest
     # This option applies to the individual job of a matrix.
     continue-on-error: false
