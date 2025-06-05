@@ -90,15 +90,10 @@ class Hovmoller(Diagnostic):
         super().retrieve(var=var)
         self.logger.info("Data retrieved successfully")
         # If a region is specified, apply area selection to self.data
-<<<<<<< HEAD
-        self.area_select(region=region)
-        self.stacked_data = self.compute_hovmoller(anomaly_ref = anomaly_ref, dim_mean = dim_mean)
-=======
         super().select_region(region=region, diagnostic="ocean3d")
         self.stacked_data = self.compute_hovmoller(
             dim_mean=dim_mean, anomaly_ref=anomaly_ref
         )
->>>>>>> origin
         self.save_netcdf(outputdir=outputdir, rebuild=rebuild, region=region)
         self.logger.info("Hovmoller diagram saved to netCDF file")
 
@@ -150,7 +145,7 @@ class Hovmoller(Diagnostic):
         data.attrs["AQUA_standardise"] = f"Standardised with {dim}"
         type_str = f"Std_{data.attrs.get('AQUA_type', 'full')}"
         data.attrs["AQUA_type"] = type_str
-        # data = data.expand_dims(dim={"type": [type_str]})
+        data = data.expand_dims(dim={"type": [type_str]})
         return data
 
     def _get_std_anomaly(
@@ -193,30 +188,7 @@ class Hovmoller(Diagnostic):
         data.attrs["AQUA_ocean_drift_type"] = type
         return data
 
-<<<<<<< HEAD
-    def _data_process_by_type(self, anomaly_ref: str = None, standardise: bool = False):
-        """
-        Processes the data by computing anomaly and/or standardised anomaly based on the specified parameters.
-
-        This method uses _get_std_anomaly to apply anomaly and/or standardisation transformations
-        to self.data, according to the given anomaly_ref and standardise arguments. The processed
-        data is stored in the processed_data_list dictionary, keyed by its transformation type.
-
-        Args:
-            anomaly_ref (str or None, optional: Reference for anomaly calculation. Can be "t0", "tmean", or None.
-            standardise (bool, optional): If True, standardises the anomaly. Default is False.
-
-        Attributes:
-            Updates the processed_data_list attribute with the processed data, keyed by its type.
-        """
-        processed_data = self._get_std_anomaly(self.data, anomaly_ref, standardise, dim="time")
-        type = processed_data.attrs["AQUA_type"]
-        self.processed_data_list.append(processed_data)
-
-    def compute_hovmoller(self, anomaly_ref: str= None, dim_mean: str = None):
-=======
     def compute_hovmoller(self, dim_mean: str = None, anomaly_ref: str|list = None):
->>>>>>> origin
         """
         Processes input data for drift analysis by applying various transformations
         and aggregations.
@@ -236,24 +208,10 @@ class Hovmoller(Diagnostic):
         if dim_mean is not None:
             self.logger.debug(f"Computing mean over dimension: {dim_mean}")
             self.data = self.data.mean(dim=dim_mean)
-        if isinstance(anomaly_ref, list):
-            anomaly_ref.append(None)
-        elif not isinstance(anomaly_ref, list):
-            anomaly_ref = [None, anomaly_ref]
 
-<<<<<<< HEAD
-        for standardise, anomaly_ref in product(
-            [False, True], anomaly_ref
-        ):
-            self.logger.info(f"Processing data with standardise={standardise}, anomaly_ref={anomaly_ref}")
-            self._data_process_by_type(
-                standardise=standardise,
-                anomaly_ref=anomaly_ref,
-=======
         for standardise, anomaly_ref in product([False, True], anomaly_ref):
             self.logger.info(
                 f"Processing data with standardise={standardise}, anomaly_ref={anomaly_ref}"
->>>>>>> origin
             )
             processed_data = self._get_std_anomaly(
                 self.data, anomaly_ref, standardise, dim="time"
@@ -287,11 +245,7 @@ class Hovmoller(Diagnostic):
             super().save_netcdf(
                 data=processed_data,
                 diagnostic=diagnostic,
-<<<<<<< HEAD
-                diagnostic_product=f"{diagnostic_product}_{processed_data.attrs["AQUA_type"]}",
-=======
                 diagnostic_product=f"{diagnostic_product}_{processed_data.attrs["AQUA_ocean_drift_type"]}",
->>>>>>> origin
                 default_path=outputdir,
                 rebuild=rebuild,
                 **save_kwargs,
