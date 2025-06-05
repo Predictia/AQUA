@@ -71,24 +71,28 @@ class GlobalBiases(Diagnostic):
         super().retrieve(var=self.var)
 
         if self.data is None:
-            self.logger.error(f"Variable {self.var} not found in dataset {self.model}, {self.exp}, {self.source}")
-            raise NoDataError("Variable not found in dataset")
-
-        if self.var and self.var not in self.data:
-            raise KeyError(f"Variable '{self.var}' not found in dataset variables: {list(self.data.data_vars)}")
+            self.logger.error(f"Data could not be retrieved for {self.model}, {self.exp}, {self.source}")
+            raise NoDataError("No data retrieved.")
 
         self.startdate = self.startdate or pd.to_datetime(self.data.time[0].values).strftime('%Y-%m-%d')
         self.enddate = self.enddate or pd.to_datetime(self.data.time[-1].values).strftime('%Y-%m-%d')
 
-        if units:
-            self.logger.info(f'Adjusting units for variable {self.var} to {units}.')
-            self.data = convert_data_units(self.data, self.var, units, loglevel=self.loglevel)
+        if self.var:
+            if self.var not in self.data:
+                raise KeyError(f"Variable '{self.var}' not found in dataset variables: {list(self.data.data_vars)}")
 
-        if self.plev is not None:
-            self.logger.info(f'Selecting pressure level {self.plev} for variable {self.var}.')
-            self.data = handle_pressure_level(self.data, self.plev, self.var, loglevel=self.loglevel)
-        elif 'plev' in self.data[self.var].dims:
-            self.logger.warning(f"Variable {self.var} has multiple pressure levels but none was selected.")
+            if units:
+                self.logger.info(f'Adjusting units for variable {self.var} to {units}.')
+                self.data = convert_data_units(self.data, self.var, units, loglevel=self.loglevel)
+
+            if self.plev is not None:
+                self.logger.info(f'Selecting pressure level {self.plev} for variable {self.var}.')
+                self.data = handle_pressure_level(self.data, self.var, self.plev, loglevel=self.loglevel)
+            elif 'plev' in self.data[self.var].dims:
+                self.logger.warning(f"Variable {self.var} has multiple pressure levels but none was selected.")
+        else:
+            self.logger.info("All variables were retrieved. No variable-specific operations applied.")
+
 
     def compute_climatology(self,
                             data: xr.Dataset = None,
