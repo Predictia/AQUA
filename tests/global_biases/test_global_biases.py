@@ -12,7 +12,7 @@ tmp_path = "./"
 var = 'q'
 gb = GlobalBiases(catalog='ci', model='ERA5', exp='era5-hpz3', source='monthly', regrid='r100')
 plotgb = PlotGlobalBiases()
-gb.retrieve(var=var)
+gb.retrieve()
 
 @pytest.mark.diagnostics
 def test_climatology():
@@ -40,6 +40,7 @@ def test_climatology():
     png = os.path.join(tmp_path, 'png', 'globalbiases.climatology.ci.ERA5.era5-hpz3.q.85000.png')
     assert os.path.exists(png)
 
+@pytest.mark.diagnostics
 def test_bias():
     plotgb.plot_bias(data=gb.climatology, data_ref=gb.climatology, var=var, plev=85000)
     pdf = os.path.join(tmp_path, 'pdf', 'globalbiases.bias.ci.ERA5.era5-hpz3.ERA5.era5-hpz3.q.85000.pdf')
@@ -47,7 +48,7 @@ def test_bias():
     png = os.path.join(tmp_path, 'png', 'globalbiases.bias.ci.ERA5.era5-hpz3.ERA5.era5-hpz3.q.85000.png')
     assert os.path.exists(png)
 
-
+@pytest.mark.diagnostics
 def test_seasonal_bias():
     plotgb.plot_seasonal_bias(data=gb.seasonal_climatology, data_ref=gb.seasonal_climatology, var=var, plev=85000)
     pdf = os.path.join(tmp_path, 'pdf', 'globalbiases.seasonal_bias.ci.ERA5.era5-hpz3.ERA5.era5-hpz3.q.85000.pdf')
@@ -55,8 +56,9 @@ def test_seasonal_bias():
     png = os.path.join(tmp_path, 'png', 'globalbiases.seasonal_bias.ci.ERA5.era5-hpz3.ERA5.era5-hpz3.q.85000.png')
     assert os.path.exists(png)
 
+@pytest.mark.diagnostics
 def test_vertical_bias():
-    plotgb.plot_vertical_bias(data=gb.climatology, data_ref=gb.climatology, var=var, vmin= -0.002, vmax= 0.002)
+    plotgb.plot_vertical_bias(data=gb.climatology, data_ref=gb.climatology, var=var)
     pdf = os.path.join(tmp_path, 'pdf', 'globalbiases.vertical_bias.ci.ERA5.era5-hpz3.ERA5.era5-hpz3.q.pdf')
     assert os.path.exists(pdf)
     png = os.path.join(tmp_path, 'png', 'globalbiases.vertical_bias.ci.ERA5.era5-hpz3.ERA5.era5-hpz3.q.png')
