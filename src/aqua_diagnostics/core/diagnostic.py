@@ -182,7 +182,7 @@ class Diagnostic():
                 if region in regions['regions']:
                     lon_limits = regions['regions'][region].get('lon_limits', None)
                     lat_limits = regions['regions'][region].get('lat_limits', None)
-                    region = regions['regions'][region].get('logname', region)
+                    region = regions['regions'][region].get('longname', region)
                     self.logger.info(f'Region {region} found, using lon: {lon_limits}, lat: {lat_limits}')
                 else:
                     self.logger.error('Region %s not found', region)
