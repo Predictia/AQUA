@@ -197,23 +197,30 @@ class Diagnostic():
 
         return region, lon_limits, lat_limits
 
-    def _select_region(self, region: str = None, diagnostic: str = None):
+    def _select_region(self, region: str = None, diagnostic: str = None, drop: bool = True):
         """
-        Applies area selection to the retrieved data.
+        Selects a geographic region from the dataset and updates self.data accordingly.
 
-        If a region is specified, the data is filtered based on the
-        predefined region's latitude and longitude bounds.
+        If a region name is provided, the method filters the data using the region's
+        predefined latitude and longitude bounds. The selected region name is stored
+        in the dataset attributes.
 
         Args:
-            region (str, optional): Region for area selection. If None, no area selection is applied.
+            region (str, optional): Name of the region to select. If None, no filtering is applied.
+            diagnostic (str, optional): Diagnostic category used to determine region bounds.
+            drop (bool, optional): Whether to drop coordinates outside the selected region. Default is True.
+
+        Returns:
+            tuple: (region, lon_limits, lat_limits)
         """
         if region is not None:
             region, lon_limits, lat_limits = self._set_region(region=region, diagnostic=diagnostic)
             self.logger.info(f"Applying area selection for region: {region}")
             self.data = area_selection(
-                data=self.data, lat=lat_limits, lon=lon_limits, drop=True, loglevel=self.loglevel
+                data=self.data, lat=lat_limits, lon=lon_limits, drop=drop, loglevel=self.loglevel
             )
             self.data.attrs['AQUA_region'] = region
+            self.logger.info(f"Modified longname of the region: {region}")
         else:
             self.logger.warning(
                 "Since region name is not specified, processing whole region in the dataset"
