@@ -39,7 +39,7 @@ AQUA diagnostics complete list:
 - Diagnostic core: new `round_startdate` and `round_enddate` functions for time management (#1940)
 - Timeseries: fix in the new cli wich was ignoring the regrid option and had bad time handling (#1940)
 - Timeseries: Use new OutputSaver in Timeseries diagnostics (#1948)
-- Diagnostic core: new `select_region` to crop a region based on `_set_region` and `area_selection` menthod.
+- Diagnostic core: new `select_region` to crop a region based on `_set_region` and `area_selection` method (#1984)
 
 ## [v0.15.0]
 
