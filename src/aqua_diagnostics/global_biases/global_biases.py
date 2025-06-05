@@ -36,7 +36,7 @@ class GlobalBiases(Diagnostic):
     def __init__(self, catalog=None, model=None, exp=None, source=None,
                  regrid=None, startdate=None, enddate=None,
                  var=None, plev=None,
-                 save_netcdf=False, outputdir='./', loglevel='WARNING'):
+                 save_netcdf=True, outputdir='./', loglevel='WARNING'):
 
         super().__init__(catalog=catalog, model=model, exp=exp, source=source,
                          regrid=regrid, startdate=startdate, enddate=enddate,
@@ -74,7 +74,7 @@ class GlobalBiases(Diagnostic):
             self.logger.error(f"Variable {self.var} not found in dataset {self.model}, {self.exp}, {self.source}")
             raise NoDataError("Variable not found in dataset")
 
-        if self.var not in self.data:
+        if self.var and self.var not in self.data:
             raise KeyError(f"Variable '{self.var}' not found in dataset variables: {list(self.data.data_vars)}")
 
         self.startdate = self.startdate or pd.to_datetime(self.data.time[0].values).strftime('%Y-%m-%d')
@@ -134,7 +134,7 @@ class GlobalBiases(Diagnostic):
         if save_netcdf:
             super().save_netcdf(
                 data=self.climatology,
-                diagnostic='global_biases',
+                diagnostic='globalbiases',
                 diagnostic_product='climatology',
                 default_path=self.outputdir,
                 var=var
@@ -167,7 +167,7 @@ class GlobalBiases(Diagnostic):
             if save_netcdf:
                 super().save_netcdf(
                     data=self.seasonal_climatology,
-                    diagnostic='global_biases',
+                    diagnostic='globalbiases',
                     diagnostic_product='seasonal_climatology',
                     default_path=self.outputdir,
                     var=var
