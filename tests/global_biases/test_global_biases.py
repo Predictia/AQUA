@@ -58,7 +58,7 @@ def test_seasonal_bias():
 
 @pytest.mark.diagnostics
 def test_vertical_bias():
-    plotgb.plot_vertical_bias(data=gb.climatology, data_ref=gb.climatology, var=var)
+    plotgb.plot_vertical_bias(data=gb.climatology, data_ref=gb.climatology, var=var, vmin= -0.002, vmax= 0.002)
     pdf = os.path.join(tmp_path, 'pdf', 'globalbiases.vertical_bias.ci.ERA5.era5-hpz3.ERA5.era5-hpz3.q.pdf')
     assert os.path.exists(pdf)
     png = os.path.join(tmp_path, 'png', 'globalbiases.vertical_bias.ci.ERA5.era5-hpz3.ERA5.era5-hpz3.q.png')
