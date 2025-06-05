@@ -9,6 +9,19 @@ loglevel = "DEBUG"
 class TestTrender:
     """Test class for Trender functionality."""
 
+    def test_coeffs_dataset(self):
+        """Test for polynomial coefficients on Dataset"""
+
+        reader = Reader(model="IFS", exp="test-tco79", source='long', loglevel='info')
+        data = reader.retrieve()
+        block1 = data.isel(time=slice(0, 1000))
+        coeffs = reader.trender.coeffs(block1, degree=1)
+        avg = coeffs['2t'].sel(degree=1).mean().values
+        assert float(avg) == pytest.approx(-7.91903731e-17, rel=1e-5)
+        coeffs = reader.trender.coeffs(block1, degree=1, normalize=True)
+        avg = coeffs['2t'].sel(degree=1).mean().values
+        assert float(avg) == pytest.approx(-0.0002850853431, rel=1e-5)
+
 
     def test_trend_dataarray(self):
         """Trivial test for trend on DataArray"""

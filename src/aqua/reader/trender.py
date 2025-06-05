@@ -80,6 +80,9 @@ class Trender:
         """
         coeffs = data.polyfit(dim=dim, deg=degree, skipna=skipna)
 
+        # keep consistency with datasets
+        # coeffs.rename_vars({"polyfit_coefficients": data.name})
+
         # time axis are scaled to nanoseconds, which is not very user-friendly.
         # we try to adjust the coefficients to the input data frequency
         if dim == 'time' and normalize:
