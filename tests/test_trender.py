@@ -16,7 +16,7 @@ class TestTrender:
         data = reader.retrieve()
 
         block1 = data['2t'].isel(time=slice(0, 1000))
-        trend1 = reader.trend(block1).aqua.fldmean()
+        trend1 = reader.trender.trend(block1).aqua.fldmean()
 
         assert trend1.shape == (1000,)
         assert pytest.approx(trend1.values[300]) == 285.908
