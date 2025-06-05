@@ -1,7 +1,6 @@
 import xarray as xr
 from aqua.logger import log_configure
 from aqua.diagnostics.core import Diagnostic
-from aqua.util import area_selection
 from itertools import product
 
 xr.set_options(keep_attrs=True)
@@ -50,11 +49,11 @@ class Hovmoller(Diagnostic):
                          startdate=startdate, enddate=enddate,
                          loglevel=loglevel)
         self.logger = log_configure(log_name="Hovmoller", log_level=loglevel)
-        # Initialize the results dictionary
-        self.processed_data_dic = {}
+        # Initialize the results list
+        self.processed_data_list = []
 
     def run(self, outputdir: str = ".", rebuild: bool = True,
-            region: str = None, var: list = ["thetao", "so"]):
+            region: str = None, var: list = ["thetao", "so"], dim_mean=["lat", "lon"], anomaly_ref: str = None):
         """
         Executes the Hovmoller diagram generation process.
 
@@ -69,31 +68,10 @@ class Hovmoller(Diagnostic):
         super().retrieve(var=var)
         self.logger.info("Data retrieved successfully")
         # If a region is specified, apply area selection to self.data
-        self.area_select(region=region)
-        self.stacked_data = self.compute_hovmoller(dim_mean=["lat", "lon"])
+        super().select_region(region=region, diagnostic='ocean3d')
+        self.stacked_data = self.compute_hovmoller(dim_mean=["lat", "lon"], anomaly_ref=anomaly_ref)
         self.save_netcdf(outputdir=outputdir, rebuild=rebuild, region=region)
         self.logger.info("Hovmoller diagram saved to netCDF file")
-
-    def area_select(self, region: str = None):
-        """
-        Applies area selection to the retrieved data.
-
-        If a region is specified, the data is filtered based on the
-        predefined region's latitude and longitude bounds.
-
-        Args:
-            region (str, optional): Region for area selection. If None, no area selection is applied.
-        """
-        if region is not None:
-            region, lon_limits, lat_limits = super()._set_region(region=region, diagnostic='ocean3d')
-            self.logger.info(f"Applying area selection for region: {region}")
-            self.data = area_selection(
-                data=self.data, lat=lat_limits, lon=lon_limits, drop=True, loglevel=self.loglevel
-            )
-        else:
-            self.logger.warning(
-                "Since region name is not specified, processing whole region in the dataset"
-            )
 
     def _get_anomaly(self, data: xr.DataArray, anomaly_ref: str = None, dim: str = "time"):
         """
@@ -122,7 +100,6 @@ class Hovmoller(Diagnostic):
         data.attrs["AQUA_cmap"] = "coolwarm"
         type_str = f"anom_{anomaly_ref}"
         data.attrs["AQUA_type"] = type_str
-        # data = data.expand_dims(dim={"type": [type_str]})
         return data
 
     def _get_standardise(self, data, dim="time"):
@@ -186,20 +163,20 @@ class Hovmoller(Diagnostic):
 
         This method uses _get_std_anomaly to apply anomaly and/or standardisation transformations
         to self.data, according to the given anomaly_ref and standardise arguments. The processed
-        data is stored in the processed_data_dic dictionary, keyed by its transformation type.
+        data is stored in the processed_data_list list, keyed by its transformation type.
 
         Args:
             anomaly_ref (str or None, optional: Reference for anomaly calculation. Can be "t0", "tmean", or None.
             standardise (bool, optional): If True, standardises the anomaly. Default is False.
 
         Attributes:
-            Updates the processed_data_dic attribute with the processed data, keyed by its type.
+            Updates the processed_data_list attribute with the processed data, keyed by its type.
         """
         processed_data = self._get_std_anomaly(self.data, anomaly_ref, standardise, dim="time")
         type = processed_data.attrs["AQUA_type"]
-        self.processed_data_dic[type] = processed_data
 
-    def compute_hovmoller(self, dim_mean: str = None):
+
+    def compute_hovmoller(self, dim_mean: str = None, anomaly_ref: str = None):
         """
         Processes input data for drift analysis by applying various transformations
         and aggregations.
@@ -216,15 +193,17 @@ class Hovmoller(Diagnostic):
         if dim_mean is not None:
             self.logger.debug(f"Computing mean over dimension: {dim_mean}")
             self.data = self.data.mean(dim=dim_mean)
+        if isinstance(anomaly_ref, list):
+            anomaly_ref.append(None)
+        elif not isinstance(anomaly_ref, list):
+            anomaly_ref = [None, anomaly_ref]
 
         for standardise, anomaly_ref in product(
-            [False, True], [None, "t0", "tmean"]
+            [False, True], anomaly_ref
         ):
             self.logger.info(f"Processing data with standardise={standardise}, anomaly_ref={anomaly_ref}")
-            self._data_process_by_type(
-                standardise=standardise,
-                anomaly_ref=anomaly_ref,
-            )
+            processed_data = self._get_std_anomaly(self.data, anomaly_ref, standardise, dim="time")
+            self.processed_data_list.append(processed_data)
 
     def save_netcdf(self, diagnostic: str = "ocean_drift",
                     diagnostic_product: str = "hovmoller",
@@ -245,11 +224,11 @@ class Hovmoller(Diagnostic):
         if region is not None:
             save_kwargs["region"] = region
 
-        for key, processed_data in self.processed_data_dic.items():
+        for processed_data in self.processed_data_list:
             super().save_netcdf(
                 data=processed_data,
                 diagnostic=diagnostic,
-                diagnostic_product=f"{diagnostic_product}_{key}",
+                diagnostic_product=f"{diagnostic_product}_{processed_data.attrs["AQUA_type"]}",
                 default_path=outputdir,
                 rebuild=rebuild,
                 **save_kwargs
