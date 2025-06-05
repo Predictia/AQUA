@@ -115,6 +115,11 @@ def plot_single_map(data: xr.DataArray,
     if contour:
         levels = np.linspace(vmin, vmax, nlevels + 1)
 
+    # Disable contour if map is zero
+    if np.allclose(data, 0):
+        logger.warning("The map is zero, skipping contour plot.")
+        contour = False 
+
     # Plot the data
     if contour:
         try:
