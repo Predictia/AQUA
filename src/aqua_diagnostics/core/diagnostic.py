@@ -222,6 +222,7 @@ class Diagnostic():
             self.data.attrs['AQUA_region'] = region
             self.logger.info(f"Modified longname of the region: {region}")
         else:
+            region, lon_limits, lat_limits = None, None, None
             self.logger.warning(
                 "Since region name is not specified, processing whole region in the dataset"
             )
