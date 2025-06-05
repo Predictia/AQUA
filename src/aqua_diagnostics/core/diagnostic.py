@@ -197,7 +197,7 @@ class Diagnostic():
 
         return region, lon_limits, lat_limits
 
-    def _select_region(self, region: str = None, diagnostic: str = None, drop: bool = True):
+    def select_region(self, region: str = None, diagnostic: str = None, drop: bool = True):
         """
         Selects a geographic region from the dataset and updates self.data accordingly.
 
@@ -213,7 +213,7 @@ class Diagnostic():
         Returns:
             tuple: (region, lon_limits, lat_limits)
         """
-        if region is not None:
+        if region is not None and diagnostic is not None:
             region, lon_limits, lat_limits = self._set_region(region=region, diagnostic=diagnostic)
             self.logger.info(f"Applying area selection for region: {region}")
             self.data = area_selection(
