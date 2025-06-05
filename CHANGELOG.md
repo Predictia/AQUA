@@ -17,6 +17,7 @@ Workflow modifications:
   are not correct.
 
 AQUA core complete list:
+- Upgrade to eccodes==2.41.0 (#1890)
 - `plot_timeseries` can handle multiple references and ensemble mean and std (#1988)
 - Support for CDO 2.5.0, modified test files accordingly (v6) (#1987)
 - Remove DOCKER secrets and prepare ground for dependabot action e.g introduce AQUA_GITHUB_PAT (#1983)
