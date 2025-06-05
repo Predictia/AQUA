@@ -1,9 +1,9 @@
+from itertools import product
 import xarray as xr
 from aqua.logger import log_configure
 from aqua.diagnostics.core import Diagnostic
-from aqua.util import area_selection
-from .util import predefined_regions
-from itertools import product
+from aqua.util import to_list
+
 
 xr.set_options(keep_attrs=True)
 
@@ -22,6 +22,7 @@ class Hovmoller(Diagnostic):
         var (list): List of variables to process.
         stacked_data (xarray.Dataset): Processed data for Hovmoller diagrams.
     """
+
     def __init__(
         self,
         catalog: str = None,
@@ -46,57 +47,64 @@ class Hovmoller(Diagnostic):
             enddate (str, optional): End date for data retrieval.
             loglevel (str, optional): Logging level. Defaults to "WARNING".
         """
-        super().__init__(catalog=catalog, model=model,
-                         exp=exp, source=source, regrid=regrid,
-                         startdate=startdate, enddate=enddate,
-                         loglevel=loglevel)
+        super().__init__(
+            catalog=catalog,
+            model=model,
+            exp=exp,
+            source=source,
+            regrid=regrid,
+            startdate=startdate,
+            enddate=enddate,
+            loglevel=loglevel,
+        )
         self.logger = log_configure(log_name="Hovmoller", log_level=loglevel)
-        # Initialize the results dictionary
+        # Initialize the results list. Elements of the list are dataset with different anomanly ref. 
         self.processed_data_list = []
 
-    def run(self, anomaly_ref: str = ["t0", "tmean"], outputdir: str = ".", rebuild: bool = True,
-            region: str = None, var: list = ["thetao", "so"], dim_mean: str = ["lat"]):
+    def run(
+        self,
+        outputdir: str = ".",
+        rebuild: bool = True,
+        region: str = None,
+        var: list = ["thetao", "so"],
+        dim_mean=["lat", "lon"],
+        anomaly_ref: str = None,
+    ):
         """
-        Executes the Hovmoller diagram generation process.
+        Run the Hovmoller diagram generation workflow.
+
+        This method retrieves the specified variables, applies region selection if provided,
+        computes Hovmoller diagrams with optional mean and anomaly processing, and saves the
+        results to netCDF files.
 
         Args:
-            outputdir (str, optional): Directory to save the output files.
+            outputdir (str, optional): Directory to save the output files. Defaults to ".".
             rebuild (bool, optional): Whether to rebuild the netCDF file. Defaults to True.
-            region (str, optional): Region for area selection.
+            region (str, optional): Region for area selection. Defaults to None.
             var (list, optional): List of variables to process. Defaults to ["thetao", "so"].
+            dim_mean (list, optional): List of dimensions over which to compute the mean. Defaults to ["lat", "lon"].
+            anomaly_ref (str or None, optional): Reference for anomaly calculation. Can be "t0", "tmean", or None.
         """
         self.logger.info("Running Hovmoller diagram generation")
         # This will populate self.data
         super().retrieve(var=var)
         self.logger.info("Data retrieved successfully")
         # If a region is specified, apply area selection to self.data
+<<<<<<< HEAD
         self.area_select(region=region)
         self.stacked_data = self.compute_hovmoller(anomaly_ref = anomaly_ref, dim_mean = dim_mean)
+=======
+        super().select_region(region=region, diagnostic="ocean3d")
+        self.stacked_data = self.compute_hovmoller(
+            dim_mean=dim_mean, anomaly_ref=anomaly_ref
+        )
+>>>>>>> origin
         self.save_netcdf(outputdir=outputdir, rebuild=rebuild, region=region)
         self.logger.info("Hovmoller diagram saved to netCDF file")
 
-    def area_select(self, region: str = None):
-        """
-        Applies area selection to the retrieved data.
-
-        If a region is specified, the data is filtered based on the
-        predefined region's latitude and longitude bounds.
-
-        Args:
-            region (str, optional): Region for area selection. If None, no area selection is applied.
-        """
-        if region is not None:
-            lon_limits, lat_limits = predefined_regions(region)
-            self.logger.info(f"Applying area selection for region: {region}")
-            self.data = area_selection(
-                data=self.data, lat=lat_limits, lon=lon_limits, drop=True, loglevel=self.loglevel
-            )
-        else:
-            self.logger.warning(
-                "Since region name is not specified, processing whole region in the dataset"
-            )
-
-    def _get_anomaly(self, data: xr.DataArray, anomaly_ref: str = None, dim: str = "time"):
+    def _get_anomaly(
+        self, data: xr.DataArray, anomaly_ref: str = None, dim: str = "time"
+    ):
         """
         Compute anomaly for the given data along a specified dimension.
 
@@ -123,7 +131,6 @@ class Hovmoller(Diagnostic):
         data.attrs["AQUA_cmap"] = "coolwarm"
         type_str = f"anom_{anomaly_ref}"
         data.attrs["AQUA_type"] = type_str
-        # data = data.expand_dims(dim={"type": [type_str]})
         return data
 
     def _get_standardise(self, data, dim="time"):
@@ -146,8 +153,13 @@ class Hovmoller(Diagnostic):
         # data = data.expand_dims(dim={"type": [type_str]})
         return data
 
-    def _get_std_anomaly(self, data: xr.DataArray, anomaly_ref: str = None,
-                         standardise: bool = False, dim: str = "time"):
+    def _get_std_anomaly(
+        self,
+        data: xr.DataArray,
+        anomaly_ref: str = None,
+        standardise: bool = False,
+        dim: str = "time",
+    ):
         """
         Compute anomaly and/or standardised anomaly for the given data along a specified dimension.
 
@@ -178,9 +190,10 @@ class Hovmoller(Diagnostic):
         anom_ref = f"_{anomaly_ref}" if anomaly_ref else ""
 
         type = f"{Std}{anom}{anom_ref}"
-        data.attrs["AQUA_type"] = type
+        data.attrs["AQUA_ocean_drift_type"] = type
         return data
 
+<<<<<<< HEAD
     def _data_process_by_type(self, anomaly_ref: str = None, standardise: bool = False):
         """
         Processes the data by computing anomaly and/or standardised anomaly based on the specified parameters.
@@ -201,6 +214,9 @@ class Hovmoller(Diagnostic):
         self.processed_data_list.append(processed_data)
 
     def compute_hovmoller(self, anomaly_ref: str= None, dim_mean: str = None):
+=======
+    def compute_hovmoller(self, dim_mean: str = None, anomaly_ref: str|list = None):
+>>>>>>> origin
         """
         Processes input data for drift analysis by applying various transformations
         and aggregations.
@@ -208,12 +224,15 @@ class Hovmoller(Diagnostic):
         Args:
             dim_mean (str or None): The dimension along which to compute the mean.
                 If None, no mean is computed.
+            anomaly_ref (str or list, optional): Reference for anomaly calculation. Can be "t0", "tmean", or None. By default, full values are used.
 
         Returns:
             xarray.DataArray: A concatenated DataArray containing processed data
             for different combinations of anomaly, standardization, and anomaly reference types.
         """
-
+        anomaly_ref = to_list(anomaly_ref)
+        anomaly_ref.append(None)
+        
         if dim_mean is not None:
             self.logger.debug(f"Computing mean over dimension: {dim_mean}")
             self.data = self.data.mean(dim=dim_mean)
@@ -222,6 +241,7 @@ class Hovmoller(Diagnostic):
         elif not isinstance(anomaly_ref, list):
             anomaly_ref = [None, anomaly_ref]
 
+<<<<<<< HEAD
         for standardise, anomaly_ref in product(
             [False, True], anomaly_ref
         ):
@@ -229,12 +249,25 @@ class Hovmoller(Diagnostic):
             self._data_process_by_type(
                 standardise=standardise,
                 anomaly_ref=anomaly_ref,
+=======
+        for standardise, anomaly_ref in product([False, True], anomaly_ref):
+            self.logger.info(
+                f"Processing data with standardise={standardise}, anomaly_ref={anomaly_ref}"
+>>>>>>> origin
             )
+            processed_data = self._get_std_anomaly(
+                self.data, anomaly_ref, standardise, dim="time"
+            )
+            self.processed_data_list.append(processed_data)
 
-    def save_netcdf(self, diagnostic: str = "ocean_drift",
-                    diagnostic_product: str = "hovmoller",
-                    region: str = None,
-                    outputdir: str = '.', rebuild: bool = True):
+    def save_netcdf(
+        self,
+        diagnostic: str = "ocean_drift",
+        diagnostic_product: str = "hovmoller",
+        region: str = None,
+        outputdir: str = ".",
+        rebuild: bool = True,
+    ):
         """
         Saves the processed data to a netCDF file.
 
@@ -254,8 +287,12 @@ class Hovmoller(Diagnostic):
             super().save_netcdf(
                 data=processed_data,
                 diagnostic=diagnostic,
+<<<<<<< HEAD
                 diagnostic_product=f"{diagnostic_product}_{processed_data.attrs["AQUA_type"]}",
+=======
+                diagnostic_product=f"{diagnostic_product}_{processed_data.attrs["AQUA_ocean_drift_type"]}",
+>>>>>>> origin
                 default_path=outputdir,
                 rebuild=rebuild,
-                **save_kwargs
+                **save_kwargs,
             )
