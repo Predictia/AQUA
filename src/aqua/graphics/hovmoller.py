@@ -17,60 +17,20 @@ xr.set_options(keep_attrs=True)
 def plot_hovmoller(data: xr.DataArray,
                    invert_axis=False,
                    invert_time=False,
-                   invert_yaxis=False,
+                   invert_space_coord=False,
                    sym=False,
                    contour=True, save=False,
                    dim='lon', figsize=(8, 13),
                    vmin=None, vmax=None, cmap='PuOr_r', # defaul map for MJO
+                   box_text=True,
                    cbar: bool = True,
                    nlevels=8, cbar_label=None,
-                   outputdir='.', filename='hovmoller.pdf',
-                   display=True, return_fig=False,
+                   return_fig=False,
                    fig: plt.Figure = None, ax: plt.Axes = None,
                    ax_pos: tuple = (1, 1, 1),
                    loglevel: str = "WARNING",
-                   **kwargs):
-    """"
-    Plot a hovmoller diagram of a DataArray.
-
-    Args:
-        data (xr.DataArray):    xr.DataArray to be plot
-        invert_axis (bool,opt): enable or disable axis inversion,
-                                default is False
-        invert_time (bool,opt): enable or disable time inversion,
-                                if False, time will increase with
-                                the increasing axis direction.
-        sym (bool,opt):         center the cbar around zero,
-                                default is False
-        contour (bool,opt):     True for contour plot, False for pcolormesh,
-                                default is True
-        save (bool,opt):        save the figure, default is False
-        dim (str,opt):          dimension to be averaged over,
-                                default is 'lon'
-        figsize (tuple,opt):    figure size, default is (11, 8.5)
-        vmin (float,opt):       minimum value for the colorbar
-        vmax (float,opt):       maximum value for the colorbar
-        cmap (str,opt):         colormap, default is 'RdBu_r'
-        nlevels (int,opt):      number of contour levels, default is 8
-        cbar_label (str,opt):   colorbar label, default is None
-        outputdir (str,opt):    output directory, default is '.'
-        filename (str,opt):     output filename, default is 'hovmoller.png'
-        show_dim_values (bool,opt): show the values of the dimension
-                                    over which the mean was taken (round them to int)
-                                    Default is True
-        display (bool, optional):   If True, display the figure. Defaults to True.
-        return_fig (bool, optional): If True, return the figure (fig, ax). Defaults to False.
-        loglevel (str,opt):     log level for the logger,
-                                default is 'WARNING'
-
-    Keyword Args:
-        format (str, optional):      Format of the figure. Defaults to 'pdf'.
-        dpi (int, optional):         Dots per inch. Defaults to 100 for pcolormesh
-                                     and 300 for contour plots.
-
-    Returns:
-        fig, ax: tuple with the figure and axes
-    """
+                   ):
+    
     logger = log_configure(log_level=loglevel, log_name='Hovmoller')
 
     # Check if data is a DataArray
@@ -101,6 +61,8 @@ def plot_hovmoller(data: xr.DataArray,
         ax.set_ylabel('time')
         if invert_time:
             plt.gca().invert_yaxis()
+        if invert_space_coord:
+            plt.gca().invert_xaxis()
     else:
         x = data_mean.coords['time']
         y = data_mean.coords[data_mean.dims[-1]]
@@ -108,7 +70,7 @@ def plot_hovmoller(data: xr.DataArray,
         ax.set_ylabel(data_mean.dims[-1])
         if invert_time:
             plt.gca().invert_xaxis()
-        if invert_yaxis:
+        if invert_space_coord:
             plt.gca().invert_yaxis()
 
     if vmin is None or vmax is None:
@@ -152,11 +114,12 @@ def plot_hovmoller(data: xr.DataArray,
         # Add a colorbar axis at the bottom of the graph
         cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.02])
 
-    # Add min and max values of the dim on the top right corner
-    ax.text(0.99, 0.99, f'{dim} = {dim_min:.2f} to {dim_max:.2f}',
-            verticalalignment='top', horizontalalignment='right',
-            transform=ax.transAxes, fontsize=12,
-            bbox=dict(facecolor='white', alpha=0.5))
+    if box_text:
+        # Add min and max values of the dim on the top right corner
+        ax.text(0.99, 0.99, f'{dim} = {dim_min:.2f} to {dim_max:.2f}',
+                verticalalignment='top', horizontalalignment='right',
+                transform=ax.transAxes, fontsize=12,
+                bbox=dict(facecolor='white', alpha=0.5))
 
     # cbar label
     if cbar_label is None:
@@ -182,33 +145,6 @@ def plot_hovmoller(data: xr.DataArray,
 
     fig.colorbar(im, cax=cbar_ax, orientation='horizontal',
                  label=cbar_label)
-
-    # Save the figure
-    if save:
-        logger.debug("Saving figure to %s", outputdir)
-        create_folder(outputdir, loglevel=loglevel)
-        plot_format = kwargs.get('format', 'pdf')
-        if filename.endswith(plot_format):
-            logger.debug("Format already set in the filename")
-        else:
-            filename = f"{filename}.{plot_format}"
-        logger.debug("Setting filename to %s", filename)
-
-        logger.info("Saving figure as %s/%s", outputdir, filename)
-        if contour:
-            dpi = kwargs.get('dpi', 300)
-        else:
-            dpi = kwargs.get('dpi', 100)
-            if dpi == 100:
-                logger.info("Setting dpi to 100 by default, use dpi kwarg to change it")
-
-        logger.info('Saving figure to {}/{}'.format(outputdir, filename))
-        fig.savefig('{}/{}'.format(outputdir, filename),
-                    dpi=dpi, bbox_inches='tight')
-
-    if display is False and not return_fig:
-        logger.debug("Display is set to False, closing figure")
-        plt.close(fig)
 
     if return_fig:
         logger.debug("Returning figure and axes")
