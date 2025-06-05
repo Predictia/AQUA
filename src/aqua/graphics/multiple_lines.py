@@ -63,7 +63,7 @@ def plot_lines(maps,
 
     # If maps is a list of DataArrays, calculate seasonal and annual means for each
     elif isinstance(maps, list) and all(isinstance(m, xr.DataArray) for m in maps):
-        logger.info("getting seasonal and annual means from a list of DataArrays")
+        logger.debug("Getting seasonal and annual means from a list of DataArrays")
         seasonal_and_annual = [get_seasonal_and_annual_means(m) for m in maps]
 
         # List of lists for each season/annual
@@ -99,6 +99,7 @@ def plot_lines(maps,
                                       )
             ax.set_title(season_names[i])
             ax.grid(True, linestyle='--', alpha=0.7)
+            ax.legend_.remove() if ax.legend_ else None
 
         # Annual mean
         for j, data in enumerate(maps[4]):
