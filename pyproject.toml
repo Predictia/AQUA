@@ -38,7 +38,7 @@ dependencies = [
     "cartopy",
     "cfgrib",
     "dask",
-    "eccodes==2.40.0",
+    "eccodes==2.41.0",
     "docker",
     "gcsfs", # Google Cloud Storage File System
     "pandas",
@@ -107,7 +107,7 @@ version = {attr = "aqua.version.__version__"}
 
 [tool.pytest.ini_options]
 # verbose to have full test, run coverage on src folder and use pyproject as a configuration file
-addopts = "-v --cov=aqua"
+addopts = "--durations=10 -v --cov=aqua" 
 testpaths = [
     "tests"
 ]
