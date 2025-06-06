@@ -75,6 +75,10 @@ def test_plev_selection():
     
 @pytest.mark.diagnostics
 def test_variables():
+    gb = GlobalBiases(catalog='ci', model='ERA5', exp='era5-hpz3', source='monthly')
+    with pytest.raises(ValueError):  
+        gb.retrieve(var='pippo')
+
     gb.retrieve(var='tprate', units='mm/day')
     gb.compute_climatology(var='tprate')
     assert gb.climatology['tprate'].attrs.get('units') == 'mm/day' 
