@@ -29,7 +29,6 @@ def handle_pressure_level(data, var, plev, loglevel='WARNING'):
             return data  
 
         # if 'plev' has already a single value, check if it matches the requested plev
-        logger.info(f"CIAOOOOOOOO")
         if 'plev' in data[var].coords and data[var].coords['plev'].size == 1:
             if data[var].coords['plev'].values[0] == plev:
                 return data
