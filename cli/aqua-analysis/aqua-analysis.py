@@ -211,7 +211,6 @@ def main():
     # This avoids to add the --regrid argument to the command line
     # if it is not needed
     regrid = args.regrid or config.get('job', {}).get('regrid', False)
-    print(type(regrid))
     if regrid is False or regrid.lower() == 'false':
         regrid = None
 
@@ -252,7 +251,9 @@ def main():
         logger.info("Running setup checker")
         checker_script = os.path.join(aqua_path, "src/aqua_diagnostics/cli/cli_checker.py")
         output_log_path = os.path.expandvars(f"{output_dir}/setup_checker.log")
-        command = f"python {checker_script} --model {model} --exp {exp} --source {source} --regrid {regrid} -l {loglevel} --yaml {output_dir}"
+        command = f"python {checker_script} --model {model} --exp {exp} --source {source} -l {loglevel} --yaml {output_dir}"
+        if regrid:
+            command += f" --regrid {regrid}"
         if catalog:
             command += f" --catalog {catalog}"
         logger.debug(f"Command: {command}")
