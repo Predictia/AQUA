@@ -70,7 +70,7 @@ def run_diagnostic(diagnostic: str, script_path: str, extra_args: str,
         logger.error(f"Failed to run diagnostic {diagnostic}: {e}")
 
 
-def run_diagnostic_func(diagnostic: str, parallel: bool = False,
+def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = None,
                         config=None, catalog=None, model='default_model', exp='default_exp',
                         source='default_source', output_dir='./output', loglevel='INFO',
                         logger=None, aqua_path='', cluster=None):
@@ -111,6 +111,9 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False,
     if cfg:
         extra_args += f" --config {cfg}"
 
+    if regrid:
+        extra_args += f" --regrid {regrid}"
+
     if parallel:
         nworkers = diagnostic_config.get('nworkers')
         if nworkers is not None:
@@ -148,6 +151,8 @@ def get_args():
     parser.add_argument("-f", "--config", type=str, default="$AQUA/cli/aqua-analysis/config.aqua-analysis.yaml",
                         help="Configuration file")
     parser.add_argument("-c", "--catalog", type=str, help="Catalog")
+    parser.add_argument("--regrid", type=str, default="False",
+                        help="Regrid option (Target grid/False). If False, no regridding will be performed.")
     parser.add_argument("--local_clusters", action="store_true",
                         help="Use separate local clusters instead of single global one")
     parser.add_argument("-p", "--parallel", action="store_true", help="Run diagnostics in parallel with a cluster")
@@ -202,7 +207,13 @@ def main():
     model = args.model or config.get('job', {}).get('model')
     exp = args.exp or config.get('job', {}).get('exp')
     source = args.source or config.get('job', {}).get('source', 'lra-r100-monthly')
-    regrid = config.get('job', {}).get('regrid', False)
+    # We get regrid option and then we set it to None if it is False
+    # This avoids to add the --regrid argument to the command line
+    # if it is not needed
+    regrid = args.regrid or config.get('job', {}).get('regrid', False)
+    print(type(regrid))
+    if regrid is False or regrid.lower() == 'false':
+        regrid = None
 
     if not all([model, exp, source]):
         logger.error("Model, experiment, and source must be specified either in config or as command-line arguments.")
@@ -291,6 +302,7 @@ def main():
                 model=model,
                 exp=exp,
                 source=source,
+                regrid=regrid,
                 output_dir=output_dir,
                 loglevel=loglevel,
                 logger=logger,
