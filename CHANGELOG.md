@@ -18,7 +18,7 @@ Workflow modifications:
   are not correct.
 
 AQUA core complete list:
-
+- `aqua-analysis` can accept a `--regrid` argument in order to activate the regrid on each diagnostics supporting it (#1947)
 - `--no-mount /etc/localtime` option added to the `load_aqua_container.sh` script for all HPC (#1975)
 - Upgrade to eccodes==2.41.0 (#1890)
 - Fix HPC2020 (ECMWF) installation (#1994)
