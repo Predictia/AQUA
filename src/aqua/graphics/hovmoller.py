@@ -9,6 +9,7 @@ import xarray as xr
 
 from aqua.util import create_folder, evaluate_colorbar_limits
 from aqua.logger import log_configure
+from .styles import ConfigStyle
 
 # set default options for xarray
 xr.set_options(keep_attrs=True)
@@ -19,12 +20,17 @@ def plot_hovmoller(data: xr.DataArray,
                    invert_time=False,
                    invert_space_coord=False,
                    sym=False,
-                   contour=True, save=False,
+                   style=None,
+                   contour=True,
                    dim='lon', figsize=(8, 13),
                    vmin=None, vmax=None, cmap='PuOr_r', # defaul map for MJO
+                   title = None,
                    box_text=True,
                    cbar: bool = True,
-                   nlevels=8, cbar_label=None,
+                   nlevels=8,
+                   cbar_label=None,
+                   cbar_pos: list = [0.2, 0.15, 0.6, 0.02],
+                   cbar_orientation: str = 'horizontal',
                    return_fig=False,
                    fig: plt.Figure = None, ax: plt.Axes = None,
                    ax_pos: tuple = (1, 1, 1),
@@ -32,6 +38,7 @@ def plot_hovmoller(data: xr.DataArray,
                    ):
     
     logger = log_configure(log_level=loglevel, log_name='Hovmoller')
+    ConfigStyle(style=style, loglevel=loglevel)
 
     # Check if data is a DataArray
     if not isinstance(data, xr.DataArray):
@@ -112,7 +119,8 @@ def plot_hovmoller(data: xr.DataArray,
 
     if cbar:
         # Add a colorbar axis at the bottom of the graph
-        cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.02])
+        cbar_ax = fig.add_axes(cbar_pos)
+
 
     if box_text:
         # Add min and max values of the dim on the top right corner
@@ -143,8 +151,9 @@ def plot_hovmoller(data: xr.DataArray,
             cbar_label = None
             logger.warning('Could not find a label for the colorbar')
 
-    fig.colorbar(im, cax=cbar_ax, orientation='horizontal',
+    fig.colorbar(im, cax=cbar_ax, orientation=cbar_orientation,
                  label=cbar_label)
+    ax.set_title(title, fontsize=20)
 
     if return_fig:
         logger.debug("Returning figure and axes")
