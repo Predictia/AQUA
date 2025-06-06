@@ -381,8 +381,8 @@ class PlotBaseMixin():
                                   catalog=self.catalogs,
                                   model=self.models,
                                   exp=self.exps,
-                                  ref_model=self.ref_models,
-                                  ref_exp=self.ref_exps,
+                                  model_ref=self.ref_models,
+                                  exp_ref=self.ref_exps,
                                   outdir=outputdir,
                                   loglevel=self.loglevel)
 
