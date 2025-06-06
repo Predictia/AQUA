@@ -80,11 +80,9 @@ class GlobalBiases(Diagnostic):
         if self.var:
             if self.var not in self.data:
                 raise KeyError(f"Variable '{self.var}' not found in dataset variables: {list(self.data.data_vars)}")
-
             if units:
                 self.logger.info(f'Adjusting units for variable {self.var} to {units}.')
                 self.data = convert_data_units(self.data, self.var, units, loglevel=self.loglevel)
-
             if self.plev is not None:
                 self.logger.info(f'Selecting pressure level {self.plev} for variable {self.var}.')
                 self.data = handle_pressure_level(self.data, self.var, self.plev, loglevel=self.loglevel)
