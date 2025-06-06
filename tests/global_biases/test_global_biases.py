@@ -63,3 +63,21 @@ def test_vertical_bias():
     assert os.path.exists(pdf)
     png = os.path.join(tmp_path, 'png', 'globalbiases.vertical_bias.ci.ERA5.era5-hpz3.ERA5.era5-hpz3.q.png')
     assert os.path.exists(png)
+
+@pytest.mark.diagnostics
+def test_plev_selection():
+    gb.retrieve(var='q', plev=85000)
+    gb.compute_climatology(var=var, plev=85000)
+    assert gb.climatology['q'].coords['plev'] == 85000
+
+    with pytest.raises(ValueError):
+       gb.retrieve('tprate', plev=85000)
+    
+@pytest.mark.diagnostics
+def test_variables():
+    gb.retrieve(var='tprate', units='mm/day')
+    gb.compute_climatology(var='tprate')
+    assert gb.climatology['tprate'].attrs.get('units') == 'mm/day' 
+
+
+ 
