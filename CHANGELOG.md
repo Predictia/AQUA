@@ -11,13 +11,16 @@ Removed:
 - Removed source or experiment specific fixes; only the `fixer_name` is now supported.
 
 Workflow modifications:
+- Due to a bug in Singularity, `--no-mount /etc/localtime` has to be implemented into the AQUA container call 
 - `push_analysis.sh` now updates and pushes to LUMI-O the file `experiments.yaml`, which is used by the 
   dashboard to know which experiments to list. The file is downloaded from the object store, updated and 
   pushed back. Additionally it exit with different error codes if the bucket is missing or the S3 credential
   are not correct.
 
 AQUA core complete list:
-- Raise an error if retrieve() returns an empty dataset (#1997)
+
+- `--no-mount /etc/localtime` option added to the `load_aqua_container.sh` script for all HPC (#1975)
+- Upgrade to eccodes==2.41.0 (#1890)
 - Fix HPC2020 (ECMWF) installation (#1994)
 - `plot_timeseries` can handle multiple references and ensemble mean and std (#1988)
 - Support for CDO 2.5.0, modified test files accordingly (v6) (#1987)
@@ -35,6 +38,7 @@ AQUA core complete list:
 - Use scientific notation in multiple maps plotting to avoid label overlapping (#1953)
 
 AQUA diagnostics complete list:
+- Diagnostic core: raise an error if retrieve() returns an empty dataset (#1997)
 - GlobalBiases: major refactor (#1803)
 - Ocean Drift: using the `_set_region` method from the `Diagnostic` class (#1981)
 - Diagnostic core: new `_set_region` method in `Diagnostic` class to find region name, lon and lat limits (#1979)
