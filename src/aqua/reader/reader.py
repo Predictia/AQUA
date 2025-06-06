@@ -386,6 +386,10 @@ class Reader():
                          'AQUA_version': aqua_version}
         data = set_attrs(data, info_metadata)
 
+        # If the data is empty, raise an error
+        if not data:
+            raise NoDataError(f"No data found for {self.model} {self.exp} {self.source} with variable {var}")
+
         return data
 
     def _add_index(self, data):
