@@ -1,10 +1,8 @@
 import os
 import xarray as xr
-
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
-from aqua.util import frequency_string_to_pandas, time_to_string
-from aqua.util import load_yaml, eval_formula
+from aqua.util import frequency_string_to_pandas, time_to_string, eval_formula
 from aqua.diagnostics.core import Diagnostic, start_end_dates, OutputSaver
 
 xr.set_options(keep_attrs=True)
@@ -12,7 +10,8 @@ xr.set_options(keep_attrs=True)
 
 class BaseMixin(Diagnostic):
     """The BaseMixin class is used for the Timeseries and the SeasonalCycles classes."""
-    def __init__(self, catalog: str = None, model: str = None,
+    def __init__(self, diagnostic_name: str = 'timeseries',
+                 catalog: str = None, model: str = None,
                  exp: str = None, source: str = None,
                  regrid: str = None,
                  startdate: str = None, enddate: str = None,
@@ -23,6 +22,8 @@ class BaseMixin(Diagnostic):
         Initialize the Base class.
 
         Args:
+            diagnostic_name (str): The name of the diagnostic. Default is 'timeseries'.
+                                   This will be used to configure the logger and the output files.
             catalog (str): The catalog to be used. If None, the catalog will be determined by the Reader.
             model (str): The model to be used.
             exp (str): The experiment to be used.
@@ -41,8 +42,10 @@ class BaseMixin(Diagnostic):
         """
         super().__init__(catalog=catalog, model=model, exp=exp, source=source, regrid=regrid,
                          loglevel=loglevel)
-
-        self.logger = log_configure(log_level=loglevel, log_name='BaseTimeseries')
+        
+        # Log name is the diagnostic name with the first letter capitalized
+        log_name = diagnostic_name.capitalize()
+        self.logger = log_configure(log_level=loglevel, log_name=log_name)
 
         # We want to make sure we retrieve the required amount of data with a single Reader instance
         self.startdate, self.enddate = start_end_dates(startdate=startdate, enddate=enddate,
@@ -60,6 +63,7 @@ class BaseMixin(Diagnostic):
         # Set the region based on the region name or the lon and lat limits
         self.region, self.lon_limits, self.lat_limits = self._set_region(region=region, diagnostic='timeseries',
                                                                          lon_limits=lon_limits, lat_limits=lat_limits)
+        self.logger.debug(f"Region: {self.region}, Lon limits: {self.lon_limits}, Lat limits: {self.lat_limits}")
 
         # Initialize the possible results
         self.hourly = None
@@ -90,11 +94,13 @@ class BaseMixin(Diagnostic):
             self.logger.debug("Evaluating formula %s", var)
             self.data = eval_formula(mystring=var, xdataset=self.data)
             if self.data is None:
-                self.logger.error('Error evaluating formula %s', var)
+                raise ValueError(f'Error evaluating formula {var}. '
+                                 'Check the variable names and the formula syntax.')
         else:
             super().retrieve(var=var)
             if self.data is None:
-                self.logger.error('Error retrieving variable %s', var)
+                raise ValueError(f'Variable {var} not found in the data. '
+                                 'Check the variable name and the data source.')
             # Get the xr.DataArray to be aligned with the formula code
             self.data = self.data[var]
 
