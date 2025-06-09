@@ -175,13 +175,13 @@ class BaseMixin(Diagnostic):
         elif str_freq == 'annual':
             self.std_annual = data
 
-    def save_netcdf(self, diagnostic: str, freq: str,
+    def save_netcdf(self, diagnostic_product: str, freq: str,
                     outputdir: str = './', rebuild: bool = True):
         """
         Save the data to a netcdf file.
 
         Args:
-            diagnostic (str): The diagnostic to be saved.
+            diagnostic_product (str): The product name to be used in the filename (e.g., 'timeseries or 'seasonalcycles').
             freq (str): The frequency of the data.
             outputdir (str): The directory to save the data.
             rebuild (bool): If True, rebuild the data from the original files.
@@ -201,7 +201,7 @@ class BaseMixin(Diagnostic):
             data = self.annual if self.annual is not None else self.logger.error('No annual data available')
             data_std = self.std_annual if self.std_annual is not None else None
 
-        diagnostic_product = getattr(data, 'standard_name', None)
+        diagnostic_product +=f'.{getattr(data, 'standard_name', None)}'
         diagnostic_product += f'.{str_freq}'
         region = self.region.replace(' ', '').lower() if self.region is not None else None
         diagnostic_product += f'.{region}' if region is not None else ''
