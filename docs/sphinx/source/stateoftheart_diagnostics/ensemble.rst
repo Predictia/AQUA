@@ -31,10 +31,10 @@ Structure
 Input variables
 ---------------
 
-In order to use the `Ensemble` module, a pre-processing step is required. In this step one has to merge all the given `1D` timeseries, `2D` `Lat-Lon` Map and Zonal-averages `Lev-Lon` for `EnsembleTimeseries`, `EnsembleLatLon` and `EnsembleZonal` along a pesudo-dimension, respectively. The default dimension is simply named as `Ensmbles` and can be changed. One can load the data directly as `xarray.Dataset` or can use the `aqua` `Reader` class. 
+In order to use the `Ensemble` module, a pre-processing step is required. To load and to merge the input data, `aqua.diagnostics.core.retrieve_merge_ensemble_data` can be used which takes the list of paths of data or uses catalog entries. In this step one has to merge all the given `1D` timeseries, `2D` `Lat-Lon` Map and Zonal-averages `Lev-Lon` for `EnsembleTimeseries`, `EnsembleLatLon` and `EnsembleZonal` along a pesudo-dimension, respectively. The default dimension is simply named as `Ensmbles` and can be changed. One can load the data directly as `xarray.Dataset` or can use the `aqua` `Reader` class. 
 
 The default values for the plotting fuction has been already set as default values. These values can also be by simply defining a python `dictionary` e.g., in the case of the `EnsembleTimeseries`,
-``plot_options = {'plot_std': True , 'plot_ensemble_members': True, 'ensemble_label': 'Multi-model', 'plot_title': 'Ensemble statistics for 2-meter temperature [K]', 'ref_label': 'ERA5', 'figure_size': [12,6] , 'label_ncol': 3, 'label_size': 7, 'units': None}``.
+``plot_options = {'plot_ensemble_members': True, 'ensemble_label': 'Multi-model', 'plot_title': 'Ensemble statistics for 2-meter temperature [K]', 'ref_label': 'ERA5', 'figure_size': [12,6]}``.
 
 For `EnsembleLatLon`, 
 ``plot_options = {'figure_size': [15,14], 'cbar_label': '2-meter temperature in K','mean_plot_title': 'Map of 2t for Ensemble Multi-Model mean', 'std_plot_title': 'Map of 2t for Ensemble Multi-Model standard deviation'}``.
@@ -91,7 +91,7 @@ Ensemble module provides output plots as PDF and PNG.
 Detailed API
 ------------
 
-This section provides a detailed reference for the Application Programming Interface (API) of the ``timeseries`` diagnostic,
+This section provides a detailed reference for the Application Programming Interface (API) of the ``ensemble`` diagnostic,
 produced from the diagnostic function docstrings.
 
 .. automodule:: aqua.diagnostics.ensemble

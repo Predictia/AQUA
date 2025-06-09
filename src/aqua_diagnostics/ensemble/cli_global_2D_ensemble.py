@@ -16,7 +16,7 @@ from aqua import Reader
 from aqua.util import load_yaml, get_arg, ConfigPath
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.logger import log_configure
-
+from aqua.diagnostics.core import retrieve_merge_ensemble_data
 from aqua.diagnostics import EnsembleLatLon
 
 def parse_arguments(args):
@@ -48,48 +48,6 @@ def parse_arguments(args):
 
     return parser.parse_args(args)
 
-def retrieve_data(variable=None, models=None, exps=None, sources=None, ens_dim="Ensembles"):
-    """
-    Retrieves and merges datasets based on specified models, experiments, and sources.
-
-    This function reads data for a given variable (` variable`) from multiple models, experiments, 
-    and sources, combines them along the specified ensemble dimension, and returns the 
-    merged dataset.
-
-    Args:
-        variable (str): The variable to retrieve data for. Defaults to None.
-        models (list): A list of model names. Each model corresponds to an 
-            experiment and source in the `exps` and `sources` lists, respectively. 
-            Defaults to None.
-        exps (list): A list of experiment names. Each experiment corresponds 
-            to a model and source in the `models` and `sources` lists, respectively. 
-            Defaults to None.
-        sources (list): A list of data source names. Each source corresponds 
-            to a model and experiment in the `models` and `exps` lists, respectively. 
-            Defaults to None.
-        ens_dim (str, optional): The name of the dimension along which the datasets 
-            are concatenated. Defaults to "Ensembles".
-
-    Returns:
-        xarray.Dataset: A merged dataset containing data from all specified models, 
-        experiments, and sources, concatenated along the `ens_dim` dimension.
-    """
-    dataset_list = []
-    if models is None or exps is None or sources is None:
-        raise NoDataError("No models, exps or sources provided")
-    else:
-        for i, model in enumerate(models):
-            reader = Reader(model=model, exp=exps[i], source=sources[i], areas=False)
-            data = reader.retrieve(var=variable)
-            dataset_list.append(data)
-    merged_dataset = xr.concat(dataset_list, ens_dim)
-    del reader
-    del data
-    del dataset_list
-    gc.collect()
-    return merged_dataset
-
-
 if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
@@ -101,7 +59,7 @@ if __name__ == '__main__':
     # Load configuration file
     configdir = ConfigPath(loglevel=loglevel).configdir
     default_config = os.path.join(configdir, "diagnostics", "ensemble",
-                                  "config_atmglobalmean_ensemble.yaml")
+                                  "config_global_2D_ensemble.yaml")
     file = get_arg(args, "config", default_config)
     logger.info(f"Reading configuration file {file}")
     config = load_yaml(file)
@@ -137,6 +95,7 @@ if __name__ == '__main__':
     logger.info(f"Loading {variable} atmglobalmean 2D-data")
 
     models = config['datasets']
+    catalog_list = []
     model_list = []
     exp_list = []
     source_list = []
@@ -146,15 +105,15 @@ if __name__ == '__main__':
         models[0]['exp'] = get_arg(args, 'exp', models[0]['exp'])
         models[0]['source'] = get_arg(args, 'source', models[0]['source'])
         for model in models:
+            catalog_list.append(model['catalog'])
             model_list.append(model['model'])
             exp_list.append(model['exp'])
             source_list.append(model['source'])
 
-    atm_dataset = retrieve_data(variable, models=model_list, exps=exp_list, sources=source_list)
-
-    atmglobalmean_ens = EnsembleLatLon(var= variable, dataset=atm_dataset, outputdir=outputdir, plot_options=plot_options)
+    ens_dataset = retrieve_merge_ensemble_data(variable=variable, catalog_list=catalog_list, models_catalog_list=model_list, exps_catalog_list=exp_list, sources_catalog_list=source_list, log_level = "WARNING",ens_dim="ensemble")
+    atmglobalmean_ens = EnsembleLatLon(var=variable, dataset=ens_dataset, ensemble_dimension_name="ensemble", plot_options=plot_options)
     atmglobalmean_ens.compute_statistics()
-    atmglobalmean_ens.plot()
+    plot_dict = atmglobalmean_ens.plot()
     logger.info(f"Finished Ensemble_latLon diagnostic for {variable}.")
     # Close the Dask client and cluster
     client.close()

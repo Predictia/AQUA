@@ -12,11 +12,10 @@ import gc
 import xarray as xr
 from dask.distributed import Client, LocalCluster
 from dask.utils import format_bytes
-from aqua import Reader
 from aqua.util import load_yaml, get_arg, ConfigPath
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.logger import log_configure
-
+from aqua.diagnostics.core import retrieve_merge_ensemble_data
 from aqua.diagnostics import EnsembleZonal
 
 def parse_arguments(args):
@@ -47,48 +46,6 @@ def parse_arguments(args):
                         required=False, help="dask cluster address")
 
     return parser.parse_args(args)
-
-def retrieve_data(region=None,variable=None, models=None, exps=None, sources=None, ens_dim="Ensembles"):
-    """
-    Retrieves and merges datasets based on specified models, experiments, and sources.
-
-    This function reads data for a given variable (`variable`) from multiple models, experiments, 
-    and sources, combines them along the specified ensemble dimension, and returns the 
-    merged dataset.
-
-    Args:
-        region (str): The region variable to retrieve data for. Defaults to None. Example: 'atlantic'
-        variable (str): The variable to retrieve data for. Default to None. Example 'so', 'thetao'
-        models (list): A list of model names. Each model corresponds to an 
-            experiment and source in the `exps` and `sources` lists, respectively. 
-            Defaults to None.
-        exps (list): A list of experiment names. Each experiment corresponds 
-            to a model and source in the `models` and `sources` lists, respectively. 
-            Defaults to None.
-        sources (list): A list of data source names. Each source corresponds 
-            to a model and experiment in the `models` and `exps` lists, respectively. 
-            Defaults to None.
-        ens_dim (str, optional): The name of the dimension along which the datasets are 
-            concatenated. Defaults to "Ensembles".
-
-    Returns:
-        xarray.Dataset: A merged dataset containing data from all specified models, 
-        experiments, and sources, concatenated along the `ens_dim` dimension.
-    """
-    dataset_list = []
-    if models is None or exps is None or sources is None:
-        raise NoDataError("No models, exps or sources provided")
-    else:
-        for i, model in enumerate(models):
-            reader = Reader(model=model, exp=exps[i], source=sources[i], areas=False,region=region)
-            data = reader.retrieve(var=variable)
-            dataset_list.append(data)
-    merged_dataset = xr.concat(dataset_list, ens_dim)
-    del reader
-    del data
-    del dataset_list
-    gc.collect()
-    return merged_dataset
 
 if __name__ == '__main__':
 
@@ -149,7 +106,7 @@ if __name__ == '__main__':
             exp_list.append(model['exp'])
             source_list.append(model['source'])
 
-    zonal_dataset = retrieve_data(region=region, variable=variable, models=model_list, exps=exp_list, sources=source_list)
+    zonal_dataset = retrieve_merge_ensemble_data(region=region, variable=variable, models_catalog_list=model_list, exps_catalog_list=exp_list, sources_catalog_list=source_list)
     zm = EnsembleZonal(var=variable, dataset=zonal_dataset, outputdir=outputdir, plot_options=plot_options)
     zm.compute_statistics()
     zm.plot()

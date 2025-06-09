@@ -19,7 +19,7 @@ from aqua.logger import log_configure
 from aqua.util import ConfigPath, get_arg, load_yaml
 from dask.distributed import Client, LocalCluster
 from dask.utils import format_bytes
-
+from aqua.diagnostics.core import retrieve_merge_ensemble_data
 
 def parse_arguments(args):
     """Parse command line arguments."""
@@ -41,94 +41,6 @@ def parse_arguments(args):
     parser.add_argument("--cluster", type=str, required=False, help="dask cluster address")
 
     return parser.parse_args(args)
-
-
-def retrieve_data(
-    variable=None,
-    models=None,
-    exps=None,
-    sources=None,
-    startdate=None,
-    enddate=None,
-    ens_dim="Ensembles",
-):
-    """
-    Retrieves, merges, and slices datasets based on specified models, experiments,
-    sources, and time boundaries.
-
-    This function reads data for a given variable (`variable`) from multiple models, experiments,
-    and sources, combines the datasets along the specified ensemble dimension, and slices
-    the merged dataset to the given start and end dates.
-
-    Args:
-        variable (str): The variable to retrieve data for. Defaults to None.
-        models (list): A list of model names. Each model corresponds to an
-            experiment and source in the `exps` and `sources` lists, respectively.
-            Defaults to None.
-        exps (list): A list of experiment names. Each experiment corresponds
-            to a model and source in the `models` and `sources` lists, respectively.
-            Defaults to None.
-        sources (list): A list of data source names. Each source corresponds
-            to a model and experiment in the `models` and `exps` lists, respectively.
-            Defaults to None.
-        startdate (str or datetime): The start date for slicing the merged dataset.
-            If None, the maximum start date across all datasets is used. Defaults to None.
-        enddate (str or datetime): The end date for slicing the merged dataset.
-            If None, the minimum end date across all datasets is used. Defaults to None.
-        ens_dim (str, optional): The name of the dimension along which the datasets are
-            concatenated. Defaults to "Ensembles".
-
-    Returns:
-        tuple:
-            - startdate (datetime): The resolved start date for the sliced dataset.
-            - enddate (datetime): The resolved end date for the sliced dataset.
-            - xarray.Dataset: The merged dataset containing data from all specified models,
-              experiments, and sources, concatenated along `ens_dim` and sliced
-              to the time range `[startdate, enddate]`.
-    """
-    dataset_list = []
-    startdate_list = []
-    enddate_list = []
-    if models is None or exps is None or sources is None:
-        raise NoDataError("No models, exps or sources provided")
-    else:
-        for i, model in enumerate(models):
-            reader = Reader(
-                model=model,
-                exp=exps[i],
-                source=sources[i],
-                areas=False,
-                startdate=startdate,
-                enddate=enddate,
-            )
-            data = reader.retrieve(var=variable)
-            dataset_list.append(data)
-            startdate_list.append(data.time[0].values)
-            enddate_list.append(data.time[-1].values)
-    merged_dataset = xr.concat(dataset_list, ens_dim)
-
-    if startdate is not None:
-        istartdate = max(startdate_list)
-        startdate = pd.to_datetime(startdate)
-        startdate = max(istartdate, startdate)
-    if enddate is not None:
-        ienddate = min(enddate_list)
-        enddate = pd.to_datetime(enddate)
-        enddate = min(ienddate, enddate)
-    if startdate is None:
-        startdate = max(startdate_list)
-    if enddate is None:
-        enddate = min(enddate_list)
-
-    merged_dataset = merged_dataset.sel(time=slice(startdate, enddate))
-    del reader
-    del data
-    del dataset_list
-    del startdate_list
-    del enddate_list
-    gc.collect()
-    return startdate, enddate, merged_dataset
-
 
 if __name__ == "__main__":
 
@@ -207,72 +119,75 @@ if __name__ == "__main__":
                 ann_source_list.append(model["source"])
 
     # Reterive monthly data
-    mon_startdate, mon_enddate, mon_dataset = retrieve_data(
-        variable,
-        models=mon_model_list,
-        exps=mon_exp_list,
-        sources=mon_source_list,
-        startdate=startdate,
-        enddate=enddate,
-    )
+    mon_dataset = retrieve_merge_ensemble_data(variable=variable, models_catalog_list=mon_model_list, exps_catalog_list=mon_exp_list, sources_catalog_list=mon_source_list) 
 
     # Reterieve annual data
-    ann_startdate, ann_enddate, ann_dataset = retrieve_data(
-        variable,
-        models=ann_model_list,
-        exps=ann_exp_list,
-        sources=ann_source_list,
-        startdate=startdate,
-        enddate=enddate,
-    )
+    ann_dataset = retrieve_merge_ensemble_data(variable=variable, models_catalog_list=ann_model_list, exps_catalog_list=ann_exp_list, sources_catalog_list=ann_source_list) 
 
-    # Reference monthly data
-    ref = config["reference"]
-    ref[0]["model"] = get_arg(args, "model", ref[0]["model"])
-    ref[0]["exp"] = get_arg(args, "exp", ref[0]["exp"])
-    ref[0]["source"] = get_arg(args, "source", ref[0]["source"])
-    for ref_model in ref:
-        if ref is not None and ref_model["source"] == "aqua-timeseries-monthly":
-            ref_mon_model = ref_model["model"]
-            ref_mon_exp = ref_model["exp"]
-            ref_mon_source = ref_model["source"]
-        if ref is not None and ref_model["source"] == "aqua-timeseries-annual":
-            ref_ann_model = ref_model["model"]
-            ref_ann_exp = ref_model["exp"]
-            ref_ann_source = ref_model["source"]
 
-    reader = Reader(
-        model=ref_mon_model,
-        exp=ref_mon_exp,
-        source=ref_mon_source,
-        startdate=mon_startdate,
-        enddate=mon_enddate,
-        areas=False,
-        variable=variable,
-    )
-    ref_mon_dataset = reader.retrieve(var=variable)
+    ## Reference monthly data
+    #ref = config["reference"]
+    #ref[0]["model"] = get_arg(args, "model", ref[0]["model"])
+    #ref[0]["exp"] = get_arg(args, "exp", ref[0]["exp"])
+    #ref[0]["source"] = get_arg(args, "source", ref[0]["source"])
+    #for ref_model in ref:
+    #    if ref is not None and ref_model["source"] == "aqua-timeseries-monthly":
+    #        ref_mon_model = ref_model["model"]
+    #        ref_mon_exp = ref_model["exp"]
+    #        ref_mon_source = ref_model["source"]
+    #    if ref is not None and ref_model["source"] == "aqua-timeseries-annual":
+    #        ref_ann_model = ref_model["model"]
+    #        ref_ann_exp = ref_model["exp"]
+    #        ref_ann_source = ref_model["source"]
 
-    reader = Reader(
-        model=ref_ann_model,
-        exp=ref_ann_exp,
-        source=ref_ann_source,
-        startdate=ann_startdate,
-        enddate=ann_enddate,
-        areas=False,
-        variable=variable,
-    )
-    ref_ann_dataset = reader.retrieve(var=variable)
+    #reader = Reader(
+    #    model=ref_mon_model,
+    #    exp=ref_mon_exp,
+    #    source=ref_mon_source,
+    #    startdate=mon_startdate,
+    #    enddate=mon_enddate,
+    #    areas=False,
+    #    variable=variable,
+    #)
+    #ref_mon_dataset = reader.retrieve(var=variable)
+
+    #reader = Reader(
+    #    model=ref_ann_model,
+    #    exp=ref_ann_exp,
+    #    source=ref_ann_source,
+    #    startdate=ann_startdate,
+    #    enddate=ann_enddate,
+    #    areas=False,
+    #    variable=variable,
+    #)
+    #ref_ann_dataset = reader.retrieve(var=variable)
+
+    # loading the reference data as xarrays
+
+    # Monthly reference data
+    ERA5_mon = '/work/ab0995/a270260/pre_computed_aqua_analysis/IFS-FESOM/historical-1990/global_time_series/netcdf/global_time_series_timeseries_2t_ERA5_era5_mon.nc'
+    mon_ref_data = xr.open_dataset(ERA5_mon, drop_variables=[var for var in xr.open_dataset(ERA5_mon).data_vars if var != variable])
+    # selection ERA5 data on the same time interval -> xarray.DataArray 
+    mon_ref_data = mon_ref_data[variable].sel(time=slice(mon_dataset.time[0],mon_dataset.time[-1]))
+
+    # Annual reference data
+    ERA5_ann = '/work/ab0995/a270260/pre_computed_aqua_analysis/IFS-FESOM/historical-1990/global_time_series/netcdf/global_time_series_timeseries_2t_ERA5_era5_ann.nc'
+    ann_ref_data = xr.open_dataset(ERA5_ann, drop_variables=[var for var in xr.open_dataset(ERA5_ann).data_vars if var != variable])
+    # selection ERA5 data on the same time interval -> xarray.DataArray 
+    ann_ref_data = ann_ref_data[variable].sel(time=slice(ann_dataset.time[0],ann_dataset.time[-1]))
+
 
     # Check if we need monthly and annual time variables
+
     ts = EnsembleTimeseries(
         var=variable,
         mon_model_dataset=mon_dataset,
         ann_model_dataset=ann_dataset,
-        mon_ref_data=ref_mon_dataset,
-        ann_ref_data=ref_ann_dataset,
-        outputdir=outputdir,
-        plot_options=plot_options,
+        mon_ref_data=mon_ref_data,
+        ann_ref_data=ann_ref_data,
+        plot_options=plot_options
     )
+
     ts.compute_statistics()
     ts.plot()
 

@@ -1,10 +1,10 @@
 import os
-
+from collections import Counter
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import xarray as xr
 # from dask import compute
-from aqua.graphics import plot_single_map
+from aqua.graphics import plot_timeseries, plot_single_map
 from aqua.logger import log_configure
 from aqua.util import create_folder
 
@@ -66,12 +66,12 @@ class EnsembleTimeseries:
         self.plot_ensemble_members = plot_options.get("plot_ensemble_members", True)
         self.plot_ref = plot_options.get("plot_ref", True)
         self.figure_size = plot_options.get("figure_size", [10, 5])
-        self.label_size = plot_options.get("label_size", 7.5)
+        #self.label_size = plot_options.get("label_size", 7.5)
         self.ensemble_label = plot_options.get("ensemble_label", "Ensemble")
         self.ref_label = plot_options.get("ref_label", "ERA5")
         self.plot_title = plot_options.get("plot_title", "Ensemble statistics for " + self.var)
-        self.label_ncol = plot_options.get("label_ncol", 3)
-        self.units = plot_options.get("units", None)  # TODO
+        #self.label_ncol = plot_options.get("label_ncol", 3)
+        #self.units = plot_options.get("units", None)  # TODO
 
     def compute_statistics(self):
         """
@@ -79,15 +79,17 @@ class EnsembleTimeseries:
         It is import to make sure that the dim along which the mean is compute is correct.
         The default dim="ensemble". The DASK's .compute() function is also used here.
         """
-        if self.mon_model_dataset is not None:
-            self.mon_dataset_mean = self.mon_model_dataset[self.var].mean(dim=self.dim)
-        if self.ann_model_dataset is not None:
-            self.ann_dataset_mean = self.ann_model_dataset[self.var].mean(dim=self.dim)
+       
+        if self.model_list is not None and self.mon_model_dataset is not None:
+            pass # <---- HERE
+        else:
+            if self.mon_model_dataset is not None:
+                self.mon_dataset_mean = self.mon_model_dataset[self.var].mean(dim=self.dim)
+                self.mon_dataset_std = self.mon_model_dataset[self.var].std(dim=self.dim)
 
-        if self.mon_model_dataset is not None:
-            self.mon_dataset_std = self.mon_model_dataset[self.var].std(dim=self.dim)
-        if self.ann_model_dataset is not None:
-            self.ann_dataset_std = self.ann_model_dataset[self.var].std(dim=self.dim)
+            if self.ann_model_dataset is not None:
+                self.ann_dataset_mean = self.ann_model_dataset[self.var].mean(dim=self.dim)
+                self.ann_dataset_std = self.ann_model_dataset[self.var].std(dim=self.dim)
 
         # TODO: Does it make sence to apply DASK's .compute() here?
         # if self.mon_model_dataset != None:
@@ -102,119 +104,42 @@ class EnsembleTimeseries:
 
     def plot(self):
         """
-        This plots the ensemble mean and standard deviation of the ensemble statistics.
+        This plots the ensemble mean and +/- 2 x standard deviation of the ensemble statistics
+        around the ensemble mean.
         In this method, it is also possible to plot the individual ensemble members.
-        The difference between the timesereis diagnostics plotting methods and this plot() method is that,
-        this method plots annual, monthly ref and model data along with modelled data's +/- 2 x STD around the mean.
-        It does not plots +/- 2 x STD for the referene. And, the reason is to show the spread between multi-model/ensembles of the same model.
+        It does not plots +/- 2 x STD for the referene. 
+        
+        Returns:
+            fig, ax
         """
         self.logger.info("Plotting the ensemble timeseries")
-        plt.rcParams["figure.figsize"] = (self.figure_size[0], self.figure_size[1])
-        fig, ax = plt.subplots(1, 1)
-        color_list = [
-            "#1898e0",
-            "#8bcd45",
-            "#f89e13",
-            "#d24493",
-            "#00b2ed",
-            "#dbe622",
-            "#fb4c27",
-            "#8f57bf",
-            "#00bb62",
-            "#f9c410",
-            "#fb4865",
-            "#645ccc",
-        ]
 
-        # Plotting monthly ensemble data
-        if self.mon_dataset_mean is not None:
-            if isinstance(self.mon_dataset_mean, xr.Dataset):
-                self.mon_dataset_mean = self.mon_dataset_mean[self.var]
-            else:
-                self.mon_dataset_mean = self.mon_dataset_mean
-            if isinstance(self.mon_dataset_std, xr.Dataset):
-                self.mon_dataset_std = self.mon_dataset_std[self.var]
-            else:
-                self.mon_dataset_std = self.mon_dataset_std
-            self.mon_dataset_mean.plot(
-                ax=ax, label=self.ensemble_label + "-mon-mean", color=color_list[0], zorder=2
-            )
-            if self.plot_std:
-                ax.fill_between(
-                    self.mon_dataset_mean.time,
-                    self.mon_dataset_mean - 2.0 * self.mon_dataset_std,
-                    self.mon_dataset_mean + 2.0 * self.mon_dataset_std,
-                    facecolor=color_list[0],
-                    alpha=0.25,
-                    label=self.ensemble_label + "-mon-mean" + r"$\pm2$std",
-                    zorder=0,
+        fig, ax = plot_timeseries( 
+            ref_monthly_data=self.mon_ref_data, 
+            ref_annual_data=self.ann_ref_data, 
+            ens_monthly_data=self.mon_dataset_mean, 
+            ens_annual_data=self.ann_dataset_mean, 
+            std_ens_monthly_data=self.mon_dataset_std, 
+            std_ens_annual_data=self.ann_dataset_std,
+            ref_label=self.ref_label,
+            ens_label=self.ensemble_label,
+            figsize=self.figure_size,
+            title=self.plot_title,
+            loglevel=self.loglevel,
+        )
+        # Loop over if need to plot the ensemble members
+        if self.plot_ensemble_members:
+            for i in range(0, len(self.mon_model_dataset[self.var][:, 0])):
+                fig1, ax1 = plot_timeseries(
+                    fig=fig, ax=ax,
+                    ens_monthly_data=self.mon_dataset_mean,
+                    ens_annual_data=self.ann_dataset_mean,
+                    monthly_data=self.mon_model_dataset[self.var][i, :], 
+                    annual_data=self.ann_model_dataset[self.var][i, :],
+                    figsize=self.figure_size,
+                    title=self.plot_title,
+                    loglevel=self.loglevel,
                 )
-            if self.plot_ensemble_members:
-                for i in range(0, len(self.mon_model_dataset[self.var][:, 0])):
-                    self.mon_model_dataset[self.var][i, :].plot(
-                        ax=ax, color="grey", lw=0.7, zorder=1
-                    )
-
-        # Plotting monthy reference
-        if self.mon_ref_data is not None:
-            if isinstance(self.mon_ref_data, xr.Dataset):
-                self.mon_ref_data = self.mon_ref_data[self.var]
-            else:
-                self.mon_ref_data = self.mon_ref_data
-            self.mon_ref_data.plot(
-                ax=ax, label=self.ref_label + "-mon", color="black", lw=0.95, zorder=2
-            )
-
-        # Plotting annual ensemble data
-        if self.ann_dataset_mean is not None:
-            if isinstance(self.ann_dataset_mean, xr.Dataset):
-                self.ann_dataset_mean = self.ann_dataset_mean[self.var]
-            else:
-                self.ann_dataset_mean = self.ann_dataset_mean
-            if isinstance(self.ann_dataset_std, xr.Dataset):
-                self.ann_dataset_std = self.ann_dataset_std[self.var]
-            else:
-                self.ann_dataset_std = self.ann_dataset_std
-            self.ann_dataset_mean.plot(
-                ax=ax,
-                label=self.ensemble_label + "-ann-mean",
-                color=color_list[2],
-                linestyle="--",
-                zorder=2,
-            )
-            if self.plot_std:
-                ax.fill_between(
-                    self.ann_dataset_mean.time,
-                    self.ann_dataset_mean - 2.0 * self.ann_dataset_std,
-                    self.ann_dataset_mean + 2.0 * self.ann_dataset_std,
-                    facecolor=color_list[2],
-                    alpha=0.25,
-                    label=self.ensemble_label + "-ann-mean" + r"$\pm2$std",
-                    zorder=0,
-                )
-            if self.plot_ensemble_members:
-                for i in range(0, len(self.ann_model_dataset[self.var][:, 0])):
-                    self.ann_model_dataset[self.var][i, :].plot(
-                        ax=ax, color="grey", lw=0.7, linestyle="--", zorder=1
-                    )
-
-        # Plotting annual reference
-        if self.ann_ref_data is not None:
-            if isinstance(self.ann_ref_data, xr.Dataset):
-                self.ann_ref_data = self.ann_ref_data[self.var]
-            else:
-                self.ann_ref_data = self.ann_ref_data
-            self.ann_ref_data.plot(
-                ax=ax,
-                label=self.ref_label + "-ann",
-                color="black",
-                linestyle="--",
-                lw=0.95,
-                zorder=2,
-            )
-
-        ax.set_title(self.plot_title)
-        ax.legend(ncol=self.label_ncol, fontsize=self.label_size, framealpha=0)
 
         # Saving plots
         self.logger.info("Saving plots as png and pdf the output folder {self.outputdir}/plots")
@@ -228,7 +153,7 @@ class EnsembleTimeseries:
         fig.savefig(
             os.path.join(plots_path, self.outfile) + ".png", bbox_inches="tight", pad_inches=0.1
         )
-
+        return fig, ax
 
 class EnsembleLatLon:
     """
@@ -314,95 +239,105 @@ class EnsembleLatLon:
         if self.dataset is not None:
             self.dataset_mean = self.dataset.mean(dim=self.dim)
             self.dataset_std = self.dataset.std(dim=self.dim)
+        else:
+            raise NoDataError("No data is given to the compute method")
 
     def plot(self):
         """
         This plots the ensemble mean and standard deviation of the ensemble statistics.
+        
+        Returns:
+            a dict of fig and ax for mean and STD
+            return {'mean_plot': [fig1, ax1], 'std_plot': [fig2, ax2]}
         """
 
         self.logger.info("Plotting the ensemble computation")
+        if (self.dataset_mean is None) or (self.dataset_std is None):
+            raise NoDataError("No data given to the plotting function")
         create_folder(self.outputdir, self.loglevel)
         outfig = os.path.join(self.outputdir, "plots")
         self.logger.debug(f"Path to output diectory for plots: {outfig}")
         create_folder(outfig, self.loglevel)
 
-        if self.dataset_mean is not None:
-            if isinstance(self.dataset_mean, xr.Dataset):
-                self.dataset_mean = self.dataset_mean[self.var]
-            else:
-                self.dataset_mean = self.dataset_mean
-            if self.vmin_mean is None:
-                self.vmin_mean = self.dataset_mean.values.min()
-            if self.vmax_mean is None:
-                self.vmax_mean = self.dataset_mean.values.max()
-            fig, ax = plot_single_map(
-                self.dataset_mean,
-                proj=self.proj,
-                contour=self.contour,
-                cyclic_lon=self.cyclic_lon,
-                coastlines=self.coastlines,
-                transform_first=self.transform_first,
-                return_fig=True,
-                title=self.mean_plot_title,
-                vmin=self.vmin_mean,
-                vmax=self.vmax_mean,
-            )
-            ax.set_xlabel("Longitude")
-            ax.set_ylabel("Latitude")
-            self.logger.debug(f"Saving 2D map of mean to {outfig}")
-            # 2D mean plot in pdf
-            fig.savefig(
-                os.path.join(outfig, self.var + "_LatLon_mean.pdf"),
-                bbox_inches="tight",
-                pad_inches=0.1,
-                dpi=self.dpi,
-            )
-            # 2D mean plots in png
-            fig.savefig(
-                os.path.join(outfig, self.var + "_LatLon_mean.png"),
-                bbox_inches="tight",
-                pad_inches=0.1,
-                dpi=self.dpi,
-            )
+        if isinstance(self.dataset_mean, xr.Dataset):
+            self.dataset_mean = self.dataset_mean[self.var]
+        else:
+            self.dataset_mean = self.dataset_mean
+        if self.vmin_mean is None:
+            self.vmin_mean = self.dataset_mean.values.min()
+        if self.vmax_mean is None:
+            self.vmax_mean = self.dataset_mean.values.max()
+        fig1, ax1 = plot_single_map(
+            self.dataset_mean,
+            proj=self.proj,
+            contour=self.contour,
+            cyclic_lon=self.cyclic_lon,
+            coastlines=self.coastlines,
+            transform_first=self.transform_first,
+            return_fig=True,
+            title=self.mean_plot_title,
+            vmin=self.vmin_mean,
+            vmax=self.vmax_mean,
+        )
+        ax1.set_xlabel("Longitude")
+        ax1.set_ylabel("Latitude")
+        self.logger.debug(f"Saving 2D map of mean to {outfig}")
+        # 2D mean plot in pdf
+        fig1.savefig(
+            os.path.join(outfig, self.var + "_LatLon_mean.pdf"),
+            bbox_inches="tight",
+            pad_inches=0.1,
+            dpi=self.dpi,
+        )
+        # 2D mean plots in png
+        fig1.savefig(
+            os.path.join(outfig, self.var + "_LatLon_mean.png"),
+            bbox_inches="tight",
+            pad_inches=0.1,
+            dpi=self.dpi,
+        )
 
-        if self.dataset_std is not None:
-            if isinstance(self.dataset_std, xr.Dataset):
-                self.dataset_std = self.dataset_std[self.var]
-            else:
-                self.dataset_std = self.dataset_std
-            if self.vmin_std is None:
-                self.vmin_std = self.dataset_std.values.min()
-            if self.vmax_std is None:
-                self.vmax_std = self.dataset_std.values.max()
-            fig, ax = plot_single_map(
-                self.dataset_std,
-                proj=self.proj,
-                contour=self.contour,
-                cyclic_lon=self.cyclic_lon,
-                coastlines=self.coastlines,
-                transform_first=self.transform_first,
-                return_fig=True,
-                title=self.std_plot_title,
-                vmin=self.vmin_std,
-                vmax=self.vmax_std,
-            )
-            ax.set_xlabel("Longitude")
-            ax.set_ylabel("Latitude")
-            self.logger.debug(f"Saving 2D map of STD to {outfig}")
-            # 2D STD plot in pdf
-            fig.savefig(
-                os.path.join(outfig, self.var + "_LatLon_STD.pdf"),
-                bbox_inches="tight",
-                pad_inches=0.1,
-                dpi=self.dpi,
-            )
-            # 2D STD plots in png
-            fig.savefig(
-                os.path.join(outfig, self.var + "_LatLon_STD.png"),
-                bbox_inches="tight",
-                pad_inches=0.1,
-                dpi=self.dpi,
-            )
+        if isinstance(self.dataset_std, xr.Dataset):
+            self.dataset_std = self.dataset_std[self.var]
+        else:
+            self.dataset_std = self.dataset_std
+        if self.vmin_std is None:
+            self.vmin_std = self.dataset_std.values.min()
+        if self.vmax_std is None:
+            self.vmax_std = self.dataset_std.values.max()
+        if self.vmin_std == self.vmax_std:
+            self.logger.info("STD is Zero everywhere")
+            return {'mean_plot': [fig1, ax1]}
+        fig2, ax2 = plot_single_map(
+            self.dataset_std,
+            proj=self.proj,
+            contour=self.contour,
+            cyclic_lon=self.cyclic_lon,
+            coastlines=self.coastlines,
+            transform_first=self.transform_first,
+            return_fig=True,
+            title=self.std_plot_title,
+            vmin=self.vmin_std,
+            vmax=self.vmax_std,
+        )
+        ax2.set_xlabel("Longitude")
+        ax2.set_ylabel("Latitude")
+        self.logger.debug(f"Saving 2D map of STD to {outfig}")
+        # 2D STD plot in pdf
+        fig2.savefig(
+            os.path.join(outfig, self.var + "_LatLon_STD.pdf"),
+            bbox_inches="tight",
+            pad_inches=0.1,
+            dpi=self.dpi,
+        )
+        # 2D STD plots in png
+        fig2.savefig(
+            os.path.join(outfig, self.var + "_LatLon_STD.png"),
+            bbox_inches="tight",
+            pad_inches=0.1,
+            dpi=self.dpi,
+        )
+        return {'mean_plot': [fig1, ax1], 'std_plot': [fig2, ax2]}
 
 class EnsembleZonal:
     """
@@ -470,98 +405,110 @@ class EnsembleZonal:
         if self.dataset is not None:
             self.dataset_mean = self.dataset.mean(dim=self.dim)
             self.dataset_std = self.dataset.std(dim=self.dim)
+        else:
+            raise NoDataError("No data is given to the compute method")
 
     def plot(self):
         """
         This plots the ensemble mean and standard deviation of the ensemble statistics.
         To edit the default settings please call the method "edit_attributes"
+        
+        Returns:
+            a dict of fig and ax for mean and STD
+            return {'mean_plot': [fig1, ax1], 'std_plot': [fig2, ax2]}
         """
+
         self.logger.info(
             "Plotting the ensemble computation of Zonal-averages as mean and STD in Lev-Lon of var {self.var}"
         )
+
+        if (self.dataset_mean is None) or (self.dataset_std is None):
+            raise NoDataError("No data given to the plotting function")
+
         create_folder(self.outputdir, self.loglevel)
         outfig = os.path.join(self.outputdir, "plots")
         self.logger.debug(f"Path to output diectory for plots: {outfig}")
         create_folder(outfig, self.loglevel)
 
-        if self.dataset_mean is not None:
-            if isinstance(self.dataset_mean, xr.Dataset):
-                self.dataset_mean = self.dataset_mean[self.var]
-            else:
-                self.dataset_mean = self.dataset_mean
-            self.logger.info("Plotting ensemble-mean Zonal-average")
-            fig = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
-            ax = fig.add_subplot(1, 1, 1)
-            im = ax.contourf(
-                self.dataset_mean.lat,
-                self.dataset_mean.lev,
-                self.dataset_mean,
-                cmap="RdBu_r",
-                levels=20,
-                extend="both",
-            )
-            ax.set_ylim((5500, 0))
-            ax.set_ylabel("Depth (in m)", fontsize=9)
-            ax.set_xlabel("Latitude (in deg North)", fontsize=9)
-            ax.set_facecolor("grey")
-            ax.set_title(self.mean_plot_title)
-            cbar = fig.colorbar(im, ax=ax, shrink=0.9, extend="both")
-            cbar.set_label(self.cbar_label)
-            self.logger.debug(
-                f"Saving Lev-Lon Zonal-average ensemble-mean as pdf and png to {outfig}"
-            )
-            # Lev-Lon Zonal mean plot in pdf
-            fig.savefig(
-                os.path.join(outfig, self.var + "_LevLon_mean.pdf"),
-                bbox_inches="tight",
-                pad_inches=0.1,
-                dpi=self.dpi,
-            )
-            # Lev-Lon Zonal mean plot in png
-            fig.savefig(
-                os.path.join(outfig, self.var + "_LevLon_mean.png"),
-                bbox_inches="tight",
-                pad_inches=0.1,
-                dpi=self.dpi,
-            )
+        if isinstance(self.dataset_mean, xr.Dataset):
+            self.dataset_mean = self.dataset_mean[self.var]
+        else:
+            self.dataset_mean = self.dataset_mean
+        self.logger.info("Plotting ensemble-mean Zonal-average")
+        fig1 = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
+        ax1 = fig1.add_subplot(1, 1, 1)
+        im = ax1.contourf(
+            self.dataset_mean.lat,
+            self.dataset_mean.lev,
+            self.dataset_mean,
+            cmap="RdBu_r",
+            levels=20,
+            extend="both",
+        )
+        ax1.set_ylim((5500, 0))
+        ax1.set_ylabel("Depth (in m)", fontsize=9)
+        ax1.set_xlabel("Latitude (in deg North)", fontsize=9)
+        ax1.set_facecolor("grey")
+        ax1.set_title(self.mean_plot_title)
+        cbar = fig1.colorbar(im, ax=ax1, shrink=0.9, extend="both")
+        cbar.set_label(self.cbar_label)
+        self.logger.debug(
+            f"Saving Lev-Lon Zonal-average ensemble-mean as pdf and png to {outfig}"
+        )
+        # Lev-Lon Zonal mean plot in pdf
+        fig1.savefig(
+            os.path.join(outfig, self.var + "_LevLon_mean.pdf"),
+            bbox_inches="tight",
+            pad_inches=0.1,
+            dpi=self.dpi,
+        )
+        # Lev-Lon Zonal mean plot in png
+        fig1.savefig(
+            os.path.join(outfig, self.var + "_LevLon_mean.png"),
+            bbox_inches="tight",
+            pad_inches=0.1,
+            dpi=self.dpi,
+        )
 
-        if self.dataset_std is not None:
-            if isinstance(self.dataset_std, xr.Dataset):
-                self.dataset_std = self.dataset_std[self.var]
-            else:
-                self.dataset_std = self.dataset_std
-            self.logger.info("Plotting ensemble-STD Zonal-average")
-            fig = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
-            ax = fig.add_subplot(1, 1, 1)
-            im = ax.contourf(
-                self.dataset_std.lat,
-                self.dataset_std.lev,
-                self.dataset_std,
-                cmap="OrRd",
-                levels=20,
-                extend="both",
-            )
-            ax.set_ylim((5500, 0))
-            ax.set_ylabel("Depth (in m)", fontsize=9)
-            ax.set_xlabel("Latitude (in deg North)", fontsize=9)
-            ax.set_facecolor("grey")
-            ax.set_title(self.std_plot_title)
-            cbar = fig.colorbar(im, ax=ax, shrink=0.9, extend="both")
-            cbar.set_label(self.cbar_label)
-            self.logger.debug(
-                f"Saving Lev-Lon Zonal-average ensemble-STD as pdf and png to {outfig}"
-            )
-            # Lev-Lon Zonal STD plot in pdf
-            fig.savefig(
-                os.path.join(outfig, self.var + "_LevLon_STD.pdf"),
-                bbox_inches="tight",
-                pad_inches=0.1,
-                dpi=self.dpi,
-            )
-            # Lev-Lon Zonal STD plot in png
-            fig.savefig(
-                os.path.join(outfig, self.var + "_LevLon_STD.png"),
-                bbox_inches="tight",
-                pad_inches=0.1,
-                dpi=self.dpi,
-            )
+        if isinstance(self.dataset_std, xr.Dataset):
+            self.dataset_std = self.dataset_std[self.var]
+        else:
+            self.dataset_std = self.dataset_std
+        self.logger.info("Plotting ensemble-STD Zonal-average")
+        fig2 = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]))
+        ax2 = fig2.add_subplot(1, 1, 1)
+        im = ax2.contourf(
+            self.dataset_std.lat,
+            self.dataset_std.lev,
+            self.dataset_std,
+            cmap="OrRd",
+            levels=20,
+            extend="both",
+        )
+        ax2.set_ylim((5500, 0))
+        ax2.set_ylabel("Depth (in m)", fontsize=9)
+        ax2.set_xlabel("Latitude (in deg North)", fontsize=9)
+        ax2.set_facecolor("grey")
+        ax2.set_title(self.std_plot_title)
+        cbar = fig2.colorbar(im, ax=ax2, shrink=0.9, extend="both")
+        cbar.set_label(self.cbar_label)
+        self.logger.debug(
+            f"Saving Lev-Lon Zonal-average ensemble-STD as pdf and png to {outfig}"
+        )
+        # Lev-Lon Zonal STD plot in pdf
+        fig2.savefig(
+            os.path.join(outfig, self.var + "_LevLon_STD.pdf"),
+            bbox_inches="tight",
+            pad_inches=0.1,
+            dpi=self.dpi,
+        )
+        # Lev-Lon Zonal STD plot in png
+        fig2.savefig(
+            os.path.join(outfig, self.var + "_LevLon_STD.png"),
+            bbox_inches="tight",
+            pad_inches=0.1,
+            dpi=self.dpi,
+        )
+
+        return {'mean_plot': [fig1, ax1], 'std_plot': [fig2, ax2]}
+
