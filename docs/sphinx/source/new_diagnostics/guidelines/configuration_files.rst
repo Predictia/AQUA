@@ -77,7 +77,7 @@ a standard strycture for the diagnostic specific parameters is suggested.
     diagnostics:
         diagnostic_name:
             run: true # mandatory, if false the diagnostic will not run
-            diagnostic_name: # mandatory, may override the diagnostic name
+            diagnostic_name: diagnostic_name # mandatory, may override the diagnostic name
             variables: ['variable1', 'variable2'] # example for diagnostics running on multiple variables
             regions: ['region1', 'region2'] # example for diagnostics running on multiple regions
             parameter1: default_value1
