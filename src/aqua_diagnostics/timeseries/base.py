@@ -44,8 +44,8 @@ class BaseMixin(Diagnostic):
                          loglevel=loglevel)
         
         # Log name is the diagnostic name with the first letter capitalized
-        log_name = diagnostic_name.capitalize()
-        self.logger = log_configure(log_level=loglevel, log_name=log_name)
+        self.logger = log_configure(log_level=loglevel, log_name=diagnostic_name.capitalize())
+        self.diagnostic_name = diagnostic_name
 
         # We want to make sure we retrieve the required amount of data with a single Reader instance
         self.startdate, self.enddate = start_end_dates(startdate=startdate, enddate=enddate,
@@ -206,12 +206,12 @@ class BaseMixin(Diagnostic):
         region = self.region.replace(' ', '').lower() if self.region is not None else None
         diagnostic_product += f'.{region}' if region is not None else ''
         self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
-        super().save_netcdf(data=data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
+        super().save_netcdf(data=data, diagnostic=self.diagnostic_name, diagnostic_product=diagnostic_product,
                             default_path=outputdir, rebuild=rebuild)
         if data_std is not None:
             diagnostic_product = f'{diagnostic_product}.std'
             self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
-            super().save_netcdf(data=data_std, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
+            super().save_netcdf(data=data_std, diagnostic=self.diagnostic_name, diagnostic_product=diagnostic_product,
                                 default_path=outputdir, rebuild=rebuild)
 
     def _check_data(self, var: str, units: str):
@@ -248,15 +248,20 @@ class BaseMixin(Diagnostic):
 
 class PlotBaseMixin():
     """PlotBaseMixin class is used for the PlotTimeseries and the PlotSeasonalcycles classes."""
-    def __init__(self, loglevel: str = 'WARNING'):
+    def __init__(self, diagnostic_name: str = 'timeseries', loglevel: str = 'WARNING'):
         """
         Initialize the PlotBaseMixin class.
 
         Args:
+            diagnostic_name (str): The name of the diagnostic. Default is 'timeseries'.
+                                   This will be used to configure the logger and the output files.
             loglevel (str): The log level to be used. Default is 'WARNING'.
         """
         # Data info initalized as empty
         self.loglevel = loglevel
+        self.diagnostic_name = diagnostic_name
+        log_name = 'Plot' + diagnostic_name.capitalize()
+        self.logger = log_configure(log_level=loglevel, log_name=log_name)
         self.catalogs = None
         self.models = None
         self.exps = None
@@ -383,7 +388,7 @@ class PlotBaseMixin():
             format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
             diagnostic (str): Diagnostic name to be used in the filename as diagnostic_product.
         """
-        outputsaver = OutputSaver(diagnostic='timeseries', 
+        outputsaver = OutputSaver(diagnostic=self.diagnostic_name,
                                   catalog=self.catalogs[0],
                                   model=self.models[0],
                                   exp=self.exps[0],
