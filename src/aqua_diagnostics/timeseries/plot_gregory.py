@@ -60,15 +60,26 @@ class PlotGregory(PlotBaseMixin):
         ax_monthly = None
         ax_annual = None
 
-        if 'monthly' in freq and 'annual' in freq:
+        has_monthly = (
+            'monthly' in freq and
+            any(len(d) > 2 for d in self.monthly_data['t2m'])
+        )
+        has_annual = (
+            'annual' in freq and
+            any(len(d) > 2 for d in self.annual_data['t2m'])
+        )
+
+        self.logger.debug(f'Requested plot freq: {freq}, has_monthly: {has_monthly}, has_annual: {has_annual}')
+
+        if has_monthly and has_annual:
             fig, (ax_monthly, ax_annual) = plt.subplots(1, 2, figsize=(12, 6))
             mon_label = data_labels
             ann_label = None
-        elif 'monthly' in freq and 'annual' not in freq:
+        elif has_monthly and not has_annual:
             fig, ax_monthly = plt.subplots(1, 1, figsize=(6, 6))
             mon_label = data_labels
             ann_label = None
-        elif 'annual' in freq and 'monthly' not in freq:
+        elif not has_monthly and has_annual:
             fig, ax_annual = plt.subplots(1, 1, figsize=(6, 6))
             mon_label = None
             ann_label = data_labels
