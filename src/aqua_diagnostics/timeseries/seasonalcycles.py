@@ -75,7 +75,7 @@ class SeasonalCycles(BaseMixin):
         self.logger.info("Computing the seasonal cycles")
         self.compute(exclude_incomplete=exclude_incomplete, center_time=center_time, box_brd=box_brd)
 
-        self.save_netcdf(diagnostic='seasonalcycles', freq='monthly', outputdir=outputdir, rebuild=rebuild)
+        self.save_netcdf(diagnostic_product='seasonalcycles', freq='monthly', outputdir=outputdir, rebuild=rebuild)
 
     def compute(self, exclude_incomplete: bool = True, center_time: bool = True,
                 box_brd: bool = True):
