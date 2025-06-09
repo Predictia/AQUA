@@ -1,12 +1,12 @@
 import matplotlib.pyplot as plt
 from aqua.graphics import ConfigStyle, plot_gregory_monthly, plot_gregory_annual
-from aqua.logger import log_configure
 from aqua.util import to_list
 from .base import PlotBaseMixin
 
 
 class PlotGregory(PlotBaseMixin):
-    def __init__(self, t2m_monthly_data=None, net_toa_monthly_data=None,
+    def __init__(self, diagnostic_name: str = 'gregory',
+                 t2m_monthly_data=None, net_toa_monthly_data=None,
                  t2m_annual_data=None, net_toa_annual_data=None,
                  t2m_monthly_ref=None, net_toa_monthly_ref=None,
                  t2m_annual_ref=None, net_toa_annual_ref=None,
@@ -28,8 +28,7 @@ class PlotGregory(PlotBaseMixin):
             net_toa_annual_std: Annual standard deviation of net toa data
             loglevel: Logging level. Default is 'WARNING'
         """
-        super().__init__(loglevel=loglevel)
-        self.logger = log_configure(self.loglevel, 'PlotGregory')
+        super().__init__(loglevel=loglevel, diagnostic_name=diagnostic_name)
 
         self.monthly_data = {'t2m': to_list(t2m_monthly_data), 'net_toa': to_list(net_toa_monthly_data)}
         self.annual_data = {'t2m': to_list(t2m_annual_data), 'net_toa': to_list(net_toa_annual_data)}

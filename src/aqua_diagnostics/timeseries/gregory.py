@@ -157,37 +157,37 @@ class Gregory(Diagnostic):
             outputdir (str): The output directory to save the netcdf file. Default is './'.
             rebuild (bool): Whether to rebuild the netcdf file. Default is True.
         """
-        diagnostic_product = 'gregory'
+        diagnostic_product_base = 'gregory.'
 
         if t2m:
             if std:
-                diagnostic_product += '2t.annual.std'
+                diagnostic_product = diagnostic_product_base + '2t.annual.std'
                 super().save_netcdf(data=self.t2m_std, diagnostic=self.diagnostic_name,
                                     diagnostic_product=diagnostic_product,
                                     default_path=outputdir, rebuild=rebuild)
             if 'monthly' in freq:
-                diagnostic_product += '2t.monthly'
+                diagnostic_product = diagnostic_product_base + '2t.monthly'
                 super().save_netcdf(data=self.t2m_monthly, diagnostic=self.diagnostic_name,
                                     diagnostic_product=diagnostic_product,
                                     default_path=outputdir, rebuild=rebuild)
             if 'annual' in freq:
-                diagnostic_product += '2t.annual'
+                diagnostic_product = diagnostic_product_base + '2t.annual'
                 super().save_netcdf(data=self.t2m_annual, diagnostic=self.diagnostic_name,
                                     diagnostic_product=diagnostic_product,
                                     default_path=outputdir, rebuild=rebuild)
         if net_toa:
             if std:
-                diagnostic_product += 'net_toa.annual.std'
+                diagnostic_product = diagnostic_product_base + 'net_toa.annual.std'
                 super().save_netcdf(data=self.net_toa_std, diagnostic=self.diagnostic_name,
                                     diagnostic_product=diagnostic_product,
                                     default_path=outputdir, rebuild=rebuild)
             if 'monthly' in freq:
-                diagnostic_product += 'net_toa.monthly'
+                diagnostic_product = diagnostic_product_base + 'net_toa.monthly'
                 super().save_netcdf(data=self.net_toa_monthly, diagnostic=self.diagnostic_name,
                                     diagnostic_product=diagnostic_product,
                                     default_path=outputdir, rebuild=rebuild)
             if 'annual' in freq:
-                diagnostic_product += 'net_toa.annual'
+                diagnostic_product = diagnostic_product_base + 'net_toa.annual'
                 super().save_netcdf(data=self.net_toa_annual, diagnostic=self.diagnostic_name,
                                     diagnostic_product=diagnostic_product,
                                     default_path=outputdir, rebuild=rebuild)
