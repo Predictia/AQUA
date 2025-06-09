@@ -19,7 +19,7 @@ class TestGregory:
         self.source = 'monthly'
         self.regrid = 'r100'
         self.std_startdate = '1990-01-01'
-        self.std_enddate = '199-12-31'
+        self.std_enddate = '1991-12-31'
         self.diagnostic_name = 'radiation'
 
     def test_gregory(self, tmp_path):
