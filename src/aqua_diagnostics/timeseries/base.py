@@ -384,8 +384,8 @@ class PlotBaseMixin():
                                   catalog=self.catalogs,
                                   model=self.models,
                                   exp=self.exps,
-                                  model_ref=self.ref_models,
-                                  exp_ref=self.ref_exps,
+                                  model_ref=list(self.ref_models.values()) if isinstance(self.ref_models, dict) else self.ref_models,
+                                  exp_ref=list(self.ref_exps.values()) if isinstance(self.ref_exps, dict) else self.ref_exps,
                                   outdir=outputdir,
                                   loglevel=self.loglevel)
 

@@ -43,3 +43,14 @@ class TestSeasonalCycles:
 
         assert sc.std_monthly.values[0] == pytest.approx(0.23421051986458963, rel=approx_rel)
 
+
+        file = os.path.join(tmp_path, 'netcdf', 'timeseries.seasonalcycles.std.ci.ERA5.era5-hpz3.tcc.monthly.nc')
+        assert os.path.exists(file)
+
+        plt = PlotSeasonalCycles(monthly_data = sc.monthly, ref_monthly_data = sc.monthly,
+                                 std_monthly_data = sc.std_monthly, loglevel=loglevel)
+        plt.run(var=self.var, outputdir=tmp_path)
+
+        file = os.path.join(tmp_path, 'png', 'timeseries.seasonalcycles.ci.ERA5.era5-hpz3.multiref.tcc.png')
+        assert os.path.exists(file)
+

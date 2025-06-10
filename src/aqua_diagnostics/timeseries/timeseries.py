@@ -81,7 +81,7 @@ class Timeseries(BaseMixin):
             if std:
                 self.compute_std(freq=f, exclude_incomplete=exclude_incomplete, center_time=center_time,
                                  box_brd=box_brd)
-            self.save_netcdf(diagnostic='timeseries', diagnostic_product='seasonaclycle', freq=f, outputdir=outputdir, rebuild=rebuild) 
+            self.save_netcdf(diagnostic='timeseries', diagnostic_product='timeseries', freq=f, outputdir=outputdir, rebuild=rebuild) 
 
     def compute(self, freq: str, extend: bool = True, exclude_incomplete: bool = True,
                 center_time: bool = True, box_brd: bool = True, var: str = None):
