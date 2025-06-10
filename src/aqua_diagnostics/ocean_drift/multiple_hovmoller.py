@@ -78,7 +78,6 @@ def plot_multi_hovmoller(
                                     title=titles[j] if titles is not None else None,
                                     return_fig=True,
                                     ax = ax,
-                                    # ax_pos=(nrows, ncols, k + 1),
                                     fig=fig)
 
     # Adjust the location of the subplots on the page to make room for the colorbar
