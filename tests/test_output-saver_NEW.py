@@ -1,13 +1,10 @@
 import pytest
 import os
+import time
 import xarray as xr
+from pathlib import Path
 import matplotlib.pyplot as plt
-from aqua.logger import log_configure
 from aqua.diagnostics.core import OutputSaver
-
-# Initialize the logger for the tests
-log_configure(log_level='DEBUG', log_name='OutputSaverTest')
-
 
 # Fixture for OutputSaver instance
 @pytest.fixture
@@ -49,7 +46,11 @@ def test_save_netcdf(output_saver):
     # Test saving netCDF file
     path = output_saver.save_netcdf(dataset=data, diagnostic_product='mean')
     assert os.path.exists(path)
-
+    
+    old_mtime = Path(path).stat().st_mtime
+    output_saver.save_netcdf(dataset=data, diagnostic_product='mean', rebuild=False)
+    new_mtime = Path(path).stat().st_mtime
+    assert new_mtime == old_mtime
 
 @pytest.mark.aqua
 def test_save_png(output_saver, tmpdir):
@@ -66,6 +67,10 @@ def test_save_png(output_saver, tmpdir):
     path = './png/dummy.mean.lumi-phase2.IFS-NEMO.historical.tprate.png'
     assert os.path.exists(path)
 
+    old_mtime = Path(path).stat().st_mtime
+    output_saver.save_png(fig=fig, diagnostic_product='mean', extra_keys=extra_keys, dpi=300, rebuild=False)
+    new_mtime = Path(path).stat().st_mtime
+    assert new_mtime == old_mtime
 
 @pytest.mark.aqua
 def test_save_pdf(output_saver, tmpdir):
@@ -81,3 +86,8 @@ def test_save_pdf(output_saver, tmpdir):
     # Check if the file was created
     path = './pdf/dummy.mean.lumi-phase2.IFS-NEMO.historical.tprate.pdf'
     assert os.path.exists(path)
+
+    old_mtime = Path(path).stat().st_mtime
+    output_saver.save_pdf(fig=fig, diagnostic_product='mean', extra_keys=extra_keys, rebuild=False)
+    new_mtime = Path(path).stat().st_mtime
+    assert new_mtime == old_mtime
