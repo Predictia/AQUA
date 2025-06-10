@@ -169,7 +169,7 @@ class BaseMixin(Diagnostic):
         elif str_freq == 'annual':
             self.std_annual = data
 
-    def save_netcdf(self, diagnostic: str, freq: str,
+    def save_netcdf(self, diagnostic: str, diagnostic_product: str, freq: str,
                     outputdir: str = './', rebuild: bool = True):
         """
         Save the data to a netcdf file.
@@ -195,18 +195,21 @@ class BaseMixin(Diagnostic):
             data = self.annual if self.annual is not None else self.logger.error('No annual data available')
             data_std = self.std_annual if self.std_annual is not None else None
 
-        diagnostic_product = getattr(data, 'standard_name', None)
-        diagnostic_product += f'.{str_freq}'
+        extra_keys = {'var': getattr(data, 'standard_name', None),
+                      'freq': str_freq}
+
         region = self.region.replace(' ', '').lower() if self.region is not None else None
-        diagnostic_product += f'.{region}' if region is not None else ''
+        extra_keys.update({'region': region})
+
         self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
+
         super().save_netcdf(data=data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                            outdir=outputdir, rebuild=rebuild)
+                            outdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
         if data_std is not None:
             diagnostic_product = f'{diagnostic_product}.std'
             self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
             super().save_netcdf(data=data_std, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                            outdir=outputdir, rebuild=rebuild)
+                            outdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
 
     def _check_data(self, var: str, units: str):
         """

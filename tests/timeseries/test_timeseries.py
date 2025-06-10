@@ -47,19 +47,18 @@ class TestTimeseries:
         assert isinstance(ts.data, xr.DataArray)
         assert ts.monthly.values[0] == pytest.approx(60.145472982004186, rel=approx_rel)
 
-        file = os.path.join(tmp_path, 'netcdf', 'timeseries.tcc.monthly.tropics.ci.ERA5.era5-hpz3.nc')
+        file = os.path.join(tmp_path, 'netcdf', 'timeseries.timeseries.ci.ERA5.era5-hpz3.tcc.monthly.tropics.nc')
         assert os.path.exists(file)
 
         assert ts.annual.values[0] == pytest.approx(60.31101797654943, rel=approx_rel)
-
         assert ts.std_annual.values == pytest.approx(0.009666691494246038, rel=approx_rel)
-
-        file = os.path.join(tmp_path, 'netcdf', 'timeseries.tcc.annual.tropics.ci.ERA5.era5-hpz3.nc')
+        
+        file = os.path.join(tmp_path, 'netcdf', 'timeseries.timeseries.ci.ERA5.era5-hpz3.tcc.annual.tropics.nc')
         assert os.path.exists(file)
 
-        file = os.path.join(tmp_path, 'netcdf', 'timeseries.tcc.annual.tropics.std.ci.ERA5.era5-hpz3.nc')
+        file = os.path.join(tmp_path, 'netcdf', 'timeseries.timeseries.ci.ERA5.era5-hpz3.tcc.annual.tropics.nc')
         assert os.path.exists(file)
-
+        
         plt = PlotTimeseries(monthly_data = ts.monthly, annual_data = ts.annual,
                              ref_monthly_data = ts.monthly, ref_annual_data = ts.annual,
                              std_monthly_data = ts.std_monthly, std_annual_data = ts.std_annual,
@@ -67,8 +66,11 @@ class TestTimeseries:
         
         plt.run(var=self.var, outputdir=tmp_path)
 
-        file = os.path.join(tmp_path, 'png', 'timeseries.timeseries.ci.ERA5.era5-hpz3.tcc.png')
+        file = os.path.join(tmp_path, 'png', 'timeseries.timeseries.ci.ERA5.era5-hpz3.ERA5.era5-hpz3.tcc.png')
         assert os.path.exists(file)
+
+        
+        
 
     def test_hourly_daily_with_region(self):
         ts = Timeseries(catalog=self.catalog, model=self.model, exp=self.exp, source=self.source,
