@@ -21,9 +21,9 @@ def test_ensemble_timeseries():
     dataset = retrieve_merge_ensemble_data(
         variable=variable,
         catalog_list=catalog_list,
-        models_catalog_list=ann_model_list,
-        exps_catalog_list=ann_exp_list,
-        sources_catalog_list=ann_source_list
+        models_catalog_list=models_catalog_list,
+        exps_catalog_list=exps_catalog_list,
+        sources_catalog_list=sources_catalog_list
         )
  
     assert dataset is not None
