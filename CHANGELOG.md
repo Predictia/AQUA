@@ -18,11 +18,12 @@ Workflow modifications:
   are not correct.
 
 AQUA core complete list:
+- `h5py` installed from pypi. Hard pin to version 3.12.1 removed in favor of a lower limit to the version (#2002)
 - `aqua-analysis` can accept a `--regrid` argument in order to activate the regrid on each diagnostics supporting it (#1947)
 - `--no-mount /etc/localtime` option added to the `load_aqua_container.sh` script for all HPC (#1975)
 - Upgrade to eccodes==2.41.0 (#1890)
 - Fix HPC2020 (ECMWF) installation (#1994)
-- `plot_timeseries` can handle multiple references and ensemble mean and std (#1988)
+- `plot_timeseries` can handle multiple references and ensemble mean and std (#1988, #1999)
 - Support for CDO 2.5.0, modified test files accordingly (v6) (#1987)
 - Remove DOCKER secrets and prepare ground for dependabot action e.g introduce AQUA_GITHUB_PAT (#1983,#1995)
 - `Trender()` class to include both `trend()` and `detrend()` method (#1980)
