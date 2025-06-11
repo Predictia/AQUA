@@ -4,7 +4,8 @@ Ensemble Statistics
 Description
 -----------
 
-The `Ensemble` module is a tool to perform uncertainty quantification and visualising the ensemble statistics. 
+The `Ensemble` module is a tool to perform uncertainty quantification and visualising the ensemble statistics namely, mean and standard deviation.
+It is also possible to calculate the weighted mean and standard deviation in case of multi-model ensemble.  
 This module contains three classes namely, `EnsembleTimeseries`, `EnsembleLatLon` and `EnsembleZonal`. 
 
 The `EnsembleTimeseries` class takes `1D` timesries as input and performs following functionalities:
@@ -23,15 +24,18 @@ The `EnsembleZonal` class take zonal-averages `Lev-Lon` as input and performs th
 Structure
 ---------
 
-* ``ensemble_class.py``: contains the `EnsembleTimeseries`, `EnsembleLatLon` and `EnsembleZonal` classes.
+* ``ensembleTimeseries.py``: contains the `EnsembleTimeseries` class.
+* ``ensembleLatLon.py``: contains the `EnsembleLatLon` class
+* ``ensembleZonal.py``: contains the `EnsembleZonal` class.
 * ``cli_timeseries_ensemble.py``: the command line interfance (CLI) script to run the ensemble-timeseries diagnostic.
 * ``cli_global_2D_ensemble.py``: the command line interfance (CLI) script to run the ensemble-2D-maps in `Lat-Lon` diagnostic.
 * ``cli_zonal_ensemble.py``: the command line interfance (CLI) script to run the ensemble-zonal `Lev-Lon` diagnostic.
+* ``util.py``: contains the `retrieve_merge_ensemble_data` and `compute_statistics` functions.
 
 Input variables
 ---------------
 
-In order to use the `Ensemble` module, a pre-processing step is required. To load and to merge the input data, `aqua.diagnostics.core.retrieve_merge_ensemble_data` can be used which takes the list of paths of data or uses catalog entries. In this step one has to merge all the given `1D` timeseries, `2D` `Lat-Lon` Map and Zonal-averages `Lev-Lon` for `EnsembleTimeseries`, `EnsembleLatLon` and `EnsembleZonal` along a pesudo-dimension, respectively. The default dimension is simply named as `Ensmbles` and can be changed. One can load the data directly as `xarray.Dataset` or can use the `aqua` `Reader` class. 
+In order to use the `Ensemble` module, a pre-processing step is required. To load and to merge the input data, `aqua.diagnostics.ensemble.util.retrieve_merge_ensemble_data` can be used which takes the list of paths of data or uses catalog entries. In this step one has to merge all the given `1D` timeseries, `2D` `Lat-Lon` Map and Zonal-averages `Lev-Lon` for `EnsembleTimeseries`, `EnsembleLatLon` and `EnsembleZonal` along a pesudo-dimension, respectively. The default dimension is simply named as `ensemble` and can be changed. One can load the data directly as `xarray.Dataset` or can use the `aqua` `Reader` class. 
 
 The default values for the plotting fuction has been already set as default values. These values can also be by simply defining a python `dictionary` e.g., in the case of the `EnsembleTimeseries`,
 ``plot_options = {'plot_ensemble_members': True, 'ensemble_label': 'Multi-model', 'plot_title': 'Ensemble statistics for 2-meter temperature [K]', 'ref_label': 'ERA5', 'figure_size': [12,6]}``.

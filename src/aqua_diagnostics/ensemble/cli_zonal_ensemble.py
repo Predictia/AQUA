@@ -8,15 +8,12 @@ defined in a yaml configuration file for multiple models.
 import argparse
 import os
 import sys
-import gc
-import xarray as xr
 from dask.distributed import Client, LocalCluster
 from dask.utils import format_bytes
 from aqua.util import load_yaml, get_arg, ConfigPath
-from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.logger import log_configure
-from aqua.diagnostics.core import retrieve_merge_ensemble_data
 from aqua.diagnostics import EnsembleZonal
+from util import retrieve_merge_ensemble_data
 
 def parse_arguments(args):
     """Parse command line arguments."""
@@ -96,7 +93,7 @@ if __name__ == '__main__':
     model_list = []
     exp_list = []
     source_list = []
-    if models != None:
+    if models is not None:
         models[0]['catalog'] = get_arg(args, 'catalog', models[0]['catalog'])
         models[0]['model'] = get_arg(args, 'model', models[0]['model'])
         models[0]['exp'] = get_arg(args, 'exp', models[0]['exp'])
@@ -108,7 +105,7 @@ if __name__ == '__main__':
 
     zonal_dataset = retrieve_merge_ensemble_data(region=region, variable=variable, models_catalog_list=model_list, exps_catalog_list=exp_list, sources_catalog_list=source_list)
     zm = EnsembleZonal(var=variable, dataset=zonal_dataset, outputdir=outputdir, plot_options=plot_options)
-    zm.compute_statistics()
+    zm.compute()
     zm.plot()
     logger.info(f"Finished Ensemble Zonal Average diagnostic for {variable}.")
     # Close the Dask client and cluster

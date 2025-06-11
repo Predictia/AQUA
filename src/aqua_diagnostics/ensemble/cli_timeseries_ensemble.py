@@ -6,20 +6,16 @@ This CLI allows to plot ensemle of global timeseries of a variable
 defined in a yaml configuration file for multiple models.
 """
 import argparse
-import gc
 import os
 import sys
 
-import pandas as pd
 import xarray as xr
-from aqua import Reader
 from aqua.diagnostics import EnsembleTimeseries
-from aqua.exceptions import NoDataError
 from aqua.logger import log_configure
 from aqua.util import ConfigPath, get_arg, load_yaml
 from dask.distributed import Client, LocalCluster
 from dask.utils import format_bytes
-from aqua.diagnostics.core import retrieve_merge_ensemble_data
+from aqua.diagnostics.ensemble.util import retrieve_merge_ensemble_data
 
 def parse_arguments(args):
     """Parse command line arguments."""
@@ -41,6 +37,7 @@ def parse_arguments(args):
     parser.add_argument("--cluster", type=str, required=False, help="dask cluster address")
 
     return parser.parse_args(args)
+
 
 if __name__ == "__main__":
 
@@ -119,18 +116,27 @@ if __name__ == "__main__":
                 ann_source_list.append(model["source"])
 
     # Reterive monthly data
-    mon_dataset = retrieve_merge_ensemble_data(variable=variable, models_catalog_list=mon_model_list, exps_catalog_list=mon_exp_list, sources_catalog_list=mon_source_list) 
+    mon_dataset = retrieve_merge_ensemble_data(
+        variable=variable,
+        models_catalog_list=mon_model_list,
+        exps_catalog_list=mon_exp_list,
+        sources_catalog_list=mon_source_list,
+    )
 
     # Reterieve annual data
-    ann_dataset = retrieve_merge_ensemble_data(variable=variable, models_catalog_list=ann_model_list, exps_catalog_list=ann_exp_list, sources_catalog_list=ann_source_list) 
-
+    ann_dataset = retrieve_merge_ensemble_data(
+        variable=variable,
+        models_catalog_list=ann_model_list,
+        exps_catalog_list=ann_exp_list,
+        sources_catalog_list=ann_source_list,
+    )
 
     ## Reference monthly data
-    #ref = config["reference"]
-    #ref[0]["model"] = get_arg(args, "model", ref[0]["model"])
-    #ref[0]["exp"] = get_arg(args, "exp", ref[0]["exp"])
-    #ref[0]["source"] = get_arg(args, "source", ref[0]["source"])
-    #for ref_model in ref:
+    # ref = config["reference"]
+    # ref[0]["model"] = get_arg(args, "model", ref[0]["model"])
+    # ref[0]["exp"] = get_arg(args, "exp", ref[0]["exp"])
+    # ref[0]["source"] = get_arg(args, "source", ref[0]["source"])
+    # for ref_model in ref:
     #    if ref is not None and ref_model["source"] == "aqua-timeseries-monthly":
     #        ref_mon_model = ref_model["model"]
     #        ref_mon_exp = ref_model["exp"]
@@ -140,7 +146,7 @@ if __name__ == "__main__":
     #        ref_ann_exp = ref_model["exp"]
     #        ref_ann_source = ref_model["source"]
 
-    #reader = Reader(
+    # reader = Reader(
     #    model=ref_mon_model,
     #    exp=ref_mon_exp,
     #    source=ref_mon_source,
@@ -148,10 +154,10 @@ if __name__ == "__main__":
     #    enddate=mon_enddate,
     #    areas=False,
     #    variable=variable,
-    #)
-    #ref_mon_dataset = reader.retrieve(var=variable)
+    # )
+    # ref_mon_dataset = reader.retrieve(var=variable)
 
-    #reader = Reader(
+    # reader = Reader(
     #    model=ref_ann_model,
     #    exp=ref_ann_exp,
     #    source=ref_ann_source,
@@ -159,23 +165,28 @@ if __name__ == "__main__":
     #    enddate=ann_enddate,
     #    areas=False,
     #    variable=variable,
-    #)
-    #ref_ann_dataset = reader.retrieve(var=variable)
+    # )
+    # ref_ann_dataset = reader.retrieve(var=variable)
 
     # loading the reference data as xarrays
 
     # Monthly reference data
-    ERA5_mon = '/work/ab0995/a270260/pre_computed_aqua_analysis/IFS-FESOM/historical-1990/global_time_series/netcdf/global_time_series_timeseries_2t_ERA5_era5_mon.nc'
-    mon_ref_data = xr.open_dataset(ERA5_mon, drop_variables=[var for var in xr.open_dataset(ERA5_mon).data_vars if var != variable])
-    # selection ERA5 data on the same time interval -> xarray.DataArray 
-    mon_ref_data = mon_ref_data[variable].sel(time=slice(mon_dataset.time[0],mon_dataset.time[-1]))
+    ERA5_mon = "/work/ab0995/a270260/pre_computed_aqua_analysis/IFS-FESOM/historical-1990/global_time_series/netcdf/global_time_series_timeseries_2t_ERA5_era5_mon.nc"
+    mon_ref_data = xr.open_dataset(
+        ERA5_mon,
+        drop_variables=[var for var in xr.open_dataset(ERA5_mon).data_vars if var != variable],
+    )
+    # selection ERA5 data on the same time interval -> xarray.DataArray
+    mon_ref_data = mon_ref_data[variable].sel(time=slice(mon_dataset.time[0], mon_dataset.time[-1]))
 
     # Annual reference data
-    ERA5_ann = '/work/ab0995/a270260/pre_computed_aqua_analysis/IFS-FESOM/historical-1990/global_time_series/netcdf/global_time_series_timeseries_2t_ERA5_era5_ann.nc'
-    ann_ref_data = xr.open_dataset(ERA5_ann, drop_variables=[var for var in xr.open_dataset(ERA5_ann).data_vars if var != variable])
-    # selection ERA5 data on the same time interval -> xarray.DataArray 
-    ann_ref_data = ann_ref_data[variable].sel(time=slice(ann_dataset.time[0],ann_dataset.time[-1]))
-
+    ERA5_ann = "/work/ab0995/a270260/pre_computed_aqua_analysis/IFS-FESOM/historical-1990/global_time_series/netcdf/global_time_series_timeseries_2t_ERA5_era5_ann.nc"
+    ann_ref_data = xr.open_dataset(
+        ERA5_ann,
+        drop_variables=[var for var in xr.open_dataset(ERA5_ann).data_vars if var != variable],
+    )
+    # selection ERA5 data on the same time interval -> xarray.DataArray
+    ann_ref_data = ann_ref_data[variable].sel(time=slice(ann_dataset.time[0], ann_dataset.time[-1]))
 
     # Check if we need monthly and annual time variables
 
@@ -185,10 +196,10 @@ if __name__ == "__main__":
         ann_model_dataset=ann_dataset,
         mon_ref_data=mon_ref_data,
         ann_ref_data=ann_ref_data,
-        plot_options=plot_options
+        plot_options=plot_options,
     )
 
-    ts.compute_statistics()
+    ts.compute()
     ts.plot()
 
     logger.info(f"Finished Ensemble time series diagnostic for {variable}.")

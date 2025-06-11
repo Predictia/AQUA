@@ -30,9 +30,9 @@ plot_options:
   plot_label: True
   plot_std: True
   unit:
-  mean_plot_title: 'Mean of Ensemble of Zonal average' 
-  std_plot_title:  'Standard deviation of Ensemble of Zonal average' 
-  cbar_label: 'temperature in K'
+  mean_plot_title: 'Mean of Ensemble of Zonal-average of avg_so' 
+  std_plot_title:  'Standard deviation of Ensemble of Zonal-average of avg_so' 
+  cbar_label: 'Time-mean sea water practical salinity g kg**-1/year'
   dpi: 300
   
 
