@@ -15,7 +15,7 @@ class GlobalBiases(Diagnostic):
     Diagnostic class for computing global and seasonal climatologies of a given variable.
 
     This class handles data retrieval, pressure level selection, unit conversion, 
-    and computation of mean climatologies (annual or seasonal).
+    and computation of mean climatologies (total or seasonal).
 
     Inherits from `Diagnostic`.
 
@@ -100,7 +100,7 @@ class GlobalBiases(Diagnostic):
                             seasonal: bool = False,
                             seasons_stat: str = 'mean') -> None:
         """
-        Compute annual and optionally seasonal climatology for a variable.
+        Compute total and optionally seasonal climatology for a variable.
 
         Args:
             data (xarray.Dataset, optional): Input dataset. If None, uses self.data.
