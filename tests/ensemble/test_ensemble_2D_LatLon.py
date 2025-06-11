@@ -6,7 +6,7 @@ import xarray as xr
 import numpy as np
 from aqua import Reader
 from aqua.diagnostics import EnsembleLatLon
-from aqua.diagnostics.core import retrieve_merge_ensemble_data
+from aqua.diagnostics.ensemble.util import retrieve_merge_ensemble_data
 
 @pytest.mark.ensemble
 def test_ensemble_2D_LatLon():
@@ -31,7 +31,7 @@ def test_ensemble_2D_LatLon():
     atmglobalmean_ens = EnsembleLatLon(var=variable, 
         dataset=dataset, 
         ensemble_dimension_name="ensemble")
-    atmglobalmean_ens.compute_statistics()
+    atmglobalmean_ens.compute()
     
     assert atmglobalmean_ens.dataset_mean is not None
     assert atmglobalmean_ens.dataset_std.all() == 0

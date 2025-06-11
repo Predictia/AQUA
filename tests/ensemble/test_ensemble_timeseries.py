@@ -6,8 +6,7 @@ import xarray as xr
 import numpy as np
 from aqua import Reader
 from aqua.diagnostics import EnsembleTimeseries
-from aqua.diagnostics.core import retrieve_merge_ensemble_data
-
+from aqua.diagnostics.ensemble.util import retrieve_merge_ensemble_data
 
 @pytest.mark.ensemble
 def test_ensemble_timeseries():
@@ -34,7 +33,7 @@ def test_ensemble_timeseries():
     mon_model_dataset=dataset,
     ann_model_dataset=dataset,
     )
-    ts.compute_statistics()
+    ts.compute()
     assert ts.mon_dataset_mean is not None
     assert ts.ann_dataset_mean is not None
     assert ts.mon_dataset_std.values.all == 0

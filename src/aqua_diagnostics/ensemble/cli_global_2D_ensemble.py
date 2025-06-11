@@ -14,8 +14,7 @@ from aqua.logger import log_configure
 from aqua.util import ConfigPath, get_arg, load_yaml
 from dask.distributed import Client, LocalCluster
 from dask.utils import format_bytes
-
-from util import retrieve_merge_ensemble_data
+from aqua.diagnostics.ensemble.util import retrieve_merge_ensemble_data
 
 
 def parse_arguments(args):

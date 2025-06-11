@@ -13,7 +13,7 @@ from dask.utils import format_bytes
 from aqua.util import load_yaml, get_arg, ConfigPath
 from aqua.logger import log_configure
 from aqua.diagnostics import EnsembleZonal
-from util import retrieve_merge_ensemble_data
+from aqua.diagnostics.ensemble.util import retrieve_merge_ensemble_data
 
 def parse_arguments(args):
     """Parse command line arguments."""

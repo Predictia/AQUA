@@ -6,7 +6,7 @@ import xarray as xr
 import numpy as np
 from aqua import Reader
 from aqua.diagnostics import EnsembleZonal
-from aqua.diagnostics.core import retrieve_merge_ensemble_data
+from aqua.diagnostics.ensemble.util import retrieve_merge_ensemble_data
 
 @pytest.mark.ensemble
 def test_ensemble_zonal():
@@ -32,7 +32,7 @@ def test_ensemble_zonal():
     zonalmean_ens = EnsembleZonal(var=variable, 
         dataset=dataset, 
         ensemble_dimension_name="ensemble")
-    zonalmean_ens.compute_statistics()
+    zonalmean_ens.compute()
     
     assert zonalmean_ens.dataset_mean is not None
     assert zonalmean_ens.dataset_std.all() == 0
