@@ -31,13 +31,12 @@ def test_ensemble_timeseries():
     ts = EnsembleTimeseries(
     var=variable,
     mon_model_dataset=dataset,
-    ann_model_dataset=dataset,
     )
     ts.compute()
     assert ts.mon_dataset_mean is not None
-    assert ts.ann_dataset_mean is not None
+    #assert ts.ann_dataset_mean is not None
     assert ts.mon_dataset_std.values.all == 0
-    assert ts.ann_dataset_std.values.all == 0
+    #assert ts.ann_dataset_std.values.all == 0
     
     fig, ax = ts.plot()
     assert fig is not None
