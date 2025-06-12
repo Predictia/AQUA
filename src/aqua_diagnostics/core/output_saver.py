@@ -230,6 +230,9 @@ class OutputSaver:
 
         # Process extra keys safely
         if extra_keys:
+            # Filter out None values
+            filtered_keys = {k: v for k, v in extra_keys.items() if v is not None}
+
             processed_extra_keys = {
                 key: ",".join(map(str, value)) if isinstance(value, list) else str(value)
                 for key, value in extra_keys.items()
