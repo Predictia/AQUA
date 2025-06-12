@@ -134,12 +134,13 @@ class GlobalBiases(Diagnostic):
         })
 
         if save_netcdf:
+            extra_keys = {k: v for k, v in [('var', var), ('plev', plev)] if v is not None}
             super().save_netcdf(
                 data=self.climatology,
                 diagnostic='globalbiases',
                 diagnostic_product='climatology',
-                default_path=self.outputdir,
-                var=var
+                outdir=self.outputdir,
+                extra_keys=extra_keys
             )
 
         if seasonal:
@@ -167,11 +168,12 @@ class GlobalBiases(Diagnostic):
             })
 
             if save_netcdf:
+                extra_keys = {k: v for k, v in [('var', var), ('plev', plev)] if v is not None}
                 super().save_netcdf(
                     data=self.seasonal_climatology,
                     diagnostic='globalbiases',
                     diagnostic_product='seasonal_climatology',
-                    default_path=self.outputdir,
-                    var=var
+                    outdir=self.outputdir,
+                    extra_keys=extra_keys
                 )
                 self.logger.info(f'Seasonal climatology saved to {self.outputdir}.')
