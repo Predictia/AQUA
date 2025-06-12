@@ -41,7 +41,7 @@ AQUA core complete list:
 AQUA diagnostics complete list:
 - Diagnostic core: save_netcdf() is now based on the new OutputSaver (#1965)
 - Diagnostic core: raise an error if retrieve() returns an empty dataset (#1997)
-- GlobalBiases: major refactor (#1803)
+- GlobalBiases: major refactor (#1803, #1993)
 - Ocean Drift: using the `_set_region` method from the `Diagnostic` class (#1981)
 - Diagnostic core: new `_set_region` method in `Diagnostic` class to find region name, lon and lat limits (#1979)
 - Timeseries: regions are now in the `definitions` folder (not `interface` anymore) (#1884)
