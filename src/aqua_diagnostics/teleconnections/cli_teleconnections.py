@@ -78,7 +78,7 @@ if __name__ == '__main__':
                 for i, dataset in enumerate(config_dict['datasets']):
                     dataset_args = {'catalog': dataset['catalog'], 'model': dataset['model'],
                                     'exp': dataset['exp'], 'source': dataset['source'],
-                                    'regrid': dataset.get('regrid', regrid)}
+                                    'regrid': regrid if regrid is not None else dataset.get('regrid', None)}
                     logger.info(f'Running dataset: {dataset_args}')
 
                     nao[i] = NAO(**dataset_args, **init_args)
@@ -109,7 +109,7 @@ if __name__ == '__main__':
                 for i, reference in enumerate(config_dict['references']):
                     reference_args = {'catalog': reference['catalog'], 'model': reference['model'],
                                       'exp': reference['exp'], 'source': reference['source'],
-                                      'regrid': reference.get('regrid', regrid)}
+                                      'regrid': regrid if regrid is not None else reference.get('regrid', None)}
                     logger.info(f'Running reference: {reference_args}')
                     nao_ref[i] = NAO(**reference_args, **init_args)
                     nao_ref[i].retrieve()
@@ -206,7 +206,7 @@ if __name__ == '__main__':
                 for i, dataset in enumerate(config_dict['datasets']):
                     dataset_args = {'catalog': dataset['catalog'], 'model': dataset['model'],
                                     'exp': dataset['exp'], 'source': dataset['source'],
-                                    'regrid': dataset.get('regrid', regrid)}
+                                    'regrid': regrid if regrid is not None else dataset.get('regrid', None)}
                     logger.info(f'Running dataset: {dataset_args}')
 
                     enso[i] = ENSO(**dataset_args, **init_args)
@@ -236,7 +236,7 @@ if __name__ == '__main__':
                 for i, reference in enumerate(config_dict['references']):
                     reference_args = {'catalog': reference['catalog'], 'model': reference['model'],
                                       'exp': reference['exp'], 'source': reference['source'],
-                                      'regrid': reference.get('regrid', regrid)}
+                                      'regrid': regrid if regrid is not None else reference.get('regrid', None)}
                     logger.info(f'Running reference: {reference_args}')
 
                     enso_ref[i] = ENSO(**reference_args, **init_args)
