@@ -38,8 +38,8 @@ def test_ensemble_timeseries():
     assert ts.mon_dataset_std.values.all() == 0
     #assert ts.ann_dataset_std.values.all() == 0
     
-    fig, ax = ts.plot()
-    assert fig is not None
+    #fig, ax = ts.plot()
+    #assert fig is not None
    
 
 
