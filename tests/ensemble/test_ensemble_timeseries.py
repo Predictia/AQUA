@@ -13,7 +13,7 @@ def test_ensemble_timeseries():
     """Initialize variables before the test."""
     catalog_list = ['ci', 'ci']
     models_catalog_list = ['FESOM', 'FESOM']
-    exps_catalog_list = ['results', 'result']
+    exps_catalog_list = ['results', 'results']
     sources_catalog_list = ['timeseries1D', 'timeseries1D']
     variable = '2t'
     
