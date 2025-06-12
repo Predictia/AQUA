@@ -66,10 +66,15 @@ class PlotHovmoller:
         """
         self.logger.debug("Setting suptitle")
         self.title_list = []
-        for var in self.vars:
-            title = f"{var} ({self.data[0][var].attrs.get('units')})"
-            self.title_list.append(title)
-        
+        for i, var in enumerate(self.vars):
+            for j in range(len(self.data)):
+                if j == 0:
+                    title = f"{var} ({self.data[j][var].attrs.get('units')})"
+                    self.title_list.append(title)
+                else:
+                    self.title_list.append(None)
+
+
     def set_description(self):
         self.description = {}
         self.description['description'] = {f'{self.region} {self.diagnostic} {self.catalog} {self.model} {self.exp}'}
