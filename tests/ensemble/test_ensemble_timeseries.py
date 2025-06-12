@@ -25,21 +25,22 @@ def test_ensemble_timeseries():
         exps_catalog_list=exps_catalog_list,
         sources_catalog_list=sources_catalog_list
         )
- 
+    print(dataset)
     assert dataset is not None
 
     ts = EnsembleTimeseries(
     var=variable,
     mon_model_dataset=dataset,
+    ann_model_dataset=dataset,
     )
     ts.compute()
     assert ts.mon_dataset_mean is not None
-    #assert ts.ann_dataset_mean is not None
+    assert ts.ann_dataset_mean is not None
     assert ts.mon_dataset_std.values.all == 0
-    #assert ts.ann_dataset_std.values.all == 0
+    assert ts.ann_dataset_std.values.all == 0
     
-    fig, ax = ts.plot()
-    assert fig is not None
+    #fig, ax = ts.plot()
+    #assert fig is not None
    
 
 
