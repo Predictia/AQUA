@@ -87,6 +87,7 @@ if __name__ == '__main__':
                 region=region,
                 var=var,
                 dim_mean=dim_mean,
+                anomaly_ref= "t0",
                 outputdir=outputdir,
                 rebuild=rebuild,
             )
