@@ -43,7 +43,7 @@ class TestGregory:
         assert gp.t2m_std.values == pytest.approx(0.0277312, rel=approx_rel)
         assert gp.net_toa_std.values == pytest.approx(0.52176817, rel=approx_rel)
 
-        file = os.path.join(tmp_path, 'netcdf', 'gregory.2t.annual.ci.ERA5.era5-hpz3.nc')
+        file = os.path.join(tmp_path, 'netcdf', 'timeseries.gregory.ci.ERA5.era5-hpz3.2t.annual.nc')
         assert os.path.exists(file)
 
         plt = PlotGregory(t2m_monthly_data = gp.t2m_monthly,
@@ -63,8 +63,8 @@ class TestGregory:
         ref_label = plt.set_ref_label()
         fig = plt.plot(title=title, data_labels=data_labels, ref_label=ref_label)
         description = plt.set_description()
-        plt.save_plot(fig, description=description, outputdir=tmp_path, diagnostic='gregory')
+        plt.save_plot(fig, outputdir=tmp_path, diagnostic='gregory')
 
-        file = os.path.join(tmp_path, 'png', 'timeseries.gregory.ci.ERA5.era5-hpz3.png')
+        file = os.path.join(tmp_path, 'png', 'timeseries.gregory.ci.ERA5.era5-hpz3.multiref.png')
         assert os.path.exists(file)
 

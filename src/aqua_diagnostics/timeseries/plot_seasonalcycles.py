@@ -159,4 +159,4 @@ class PlotSeasonalCycles(PlotBaseMixin):
         """
         super().save_plot(fig, var=var, description=description,
                           region=region, rebuild=rebuild,
-                          outputdir=outputdir, dpi=dpi, format=format, diagnostic='seasonalcycle')
+                          outputdir=outputdir, dpi=dpi, format=format, diagnostic='seasonalcycles')

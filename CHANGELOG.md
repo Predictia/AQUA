@@ -11,15 +11,21 @@ Removed:
 - Removed source or experiment specific fixes; only the `fixer_name` is now supported.
 
 Workflow modifications:
+- Due to a bug in Singularity, `--no-mount /etc/localtime` has to be implemented into the AQUA container call 
 - `push_analysis.sh` now updates and pushes to LUMI-O the file `experiments.yaml`, which is used by the 
   dashboard to know which experiments to list. The file is downloaded from the object store, updated and 
   pushed back. Additionally it exit with different error codes if the bucket is missing or the S3 credential
   are not correct.
 
 AQUA core complete list:
-- `plot_timeseries` can handle multiple references and ensemble mean and std (#1988)
+- `h5py` installed from pypi. Hard pin to version 3.12.1 removed in favor of a lower limit to the version (#2002)
+- `aqua-analysis` can accept a `--regrid` argument in order to activate the regrid on each diagnostics supporting it (#1947)
+- `--no-mount /etc/localtime` option added to the `load_aqua_container.sh` script for all HPC (#1975)
+- Upgrade to eccodes==2.41.0 (#1890)
+- Fix HPC2020 (ECMWF) installation (#1994)
+- `plot_timeseries` can handle multiple references and ensemble mean and std (#1988, #1999)
 - Support for CDO 2.5.0, modified test files accordingly (v6) (#1987)
-- Remove DOCKER secrets and prepare ground for dependabot action e.g introduce AQUA_GITHUB_PAT (#1983)
+- Remove DOCKER secrets and prepare ground for dependabot action e.g introduce AQUA_GITHUB_PAT (#1983,#1995)
 - `Trender()` class to include both `trend()` and `detrend()` method (#1980)
 - `cartopy_offlinedata` is added on container and path is set in cli call, to support MN5 no internet for coastlines download (#1960)
 - plot_single_map() can now handle high nlevels with a decreased cbar ticks density (#1940)
@@ -33,6 +39,8 @@ AQUA core complete list:
 - Use scientific notation in multiple maps plotting to avoid label overlapping (#1953)
 
 AQUA diagnostics complete list:
+- Diagnostic core: save_netcdf() is now based on the new OutputSaver (#1965)
+- Diagnostic core: raise an error if retrieve() returns an empty dataset (#1997)
 - GlobalBiases: major refactor (#1803)
 - Ocean Drift: using the `_set_region` method from the `Diagnostic` class (#1981)
 - Diagnostic core: new `_set_region` method in `Diagnostic` class to find region name, lon and lat limits (#1979)

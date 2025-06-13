@@ -138,37 +138,32 @@ class Gregory(Diagnostic):
             outputdir (str): The output directory to save the netcdf file. Default is './'.
             rebuild (bool): Whether to rebuild the netcdf file. Default is True.
         """
-        diagnostic = 'gregory'
+        diagnostic = 'timeseries'
+        diagnostic_product = 'gregory'
 
         if t2m:
-            if std:
-                diagnostic_product = '2t.annual.std'
+            if std: 
                 super().save_netcdf(data=self.t2m_std, diagnostic=diagnostic,
                                     diagnostic_product=diagnostic_product,
-                                    default_path=outputdir, rebuild=rebuild)
+                                    outdir=outputdir, rebuild=rebuild, extra_keys={'var':'2t', 'freq':'annual', 'std':'std'})
             if 'monthly' in freq:
-                diagnostic_product = '2t.monthly'
                 super().save_netcdf(data=self.t2m_monthly, diagnostic=diagnostic,
                                     diagnostic_product=diagnostic_product,
-                                    default_path=outputdir, rebuild=rebuild)
+                                    outdir=outputdir, rebuild=rebuild, extra_keys={'var':'2t', 'freq':'monthly'})
             if 'annual' in freq:
-                diagnostic_product = '2t.annual'
                 super().save_netcdf(data=self.t2m_annual, diagnostic=diagnostic,
                                     diagnostic_product=diagnostic_product,
-                                    default_path=outputdir, rebuild=rebuild)
+                                    outdir=outputdir, rebuild=rebuild, extra_keys={'var':'2t', 'freq':'annual'})
         if net_toa:
             if std:
-                diagnostic_product = 'net_toa.annual.std'
                 super().save_netcdf(data=self.net_toa_std, diagnostic=diagnostic,
                                     diagnostic_product=diagnostic_product,
-                                    default_path=outputdir, rebuild=rebuild)
+                                    outdir=outputdir, rebuild=rebuild, extra_keys={'var':'net_toa', 'freq':'annual', 'std':'std'})
             if 'monthly' in freq:
-                diagnostic_product = 'net_toa.monthly'
                 super().save_netcdf(data=self.net_toa_monthly, diagnostic=diagnostic,
                                     diagnostic_product=diagnostic_product,
-                                    default_path=outputdir, rebuild=rebuild)
+                                    outdir=outputdir, rebuild=rebuild, extra_keys={'var':'net_toa', 'freq':'monthly'})
             if 'annual' in freq:
-                diagnostic_product = 'net_toa.annual'
                 super().save_netcdf(data=self.net_toa_annual, diagnostic=diagnostic,
                                     diagnostic_product=diagnostic_product,
-                                    default_path=outputdir, rebuild=rebuild)
+                                    outdir=outputdir, rebuild=rebuild, extra_keys={'var':'net_toa', 'freq':'annual'})
