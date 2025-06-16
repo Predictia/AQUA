@@ -18,6 +18,7 @@ Workflow modifications:
   are not correct.
 
 AQUA core complete list:
+- Derivation of metadata from eccodes is done with a builtin python method instead of definiton file inspection (#2009)
 - `h5py` installed from pypi. Hard pin to version 3.12.1 removed in favor of a lower limit to the version (#2002)
 - `aqua-analysis` can accept a `--regrid` argument in order to activate the regrid on each diagnostics supporting it (#1947)
 - `--no-mount /etc/localtime` option added to the `load_aqua_container.sh` script for all HPC (#1975)
