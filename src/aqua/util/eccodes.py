@@ -62,8 +62,14 @@ def get_eccodes_attr(sn, loglevel='WARNING'):
     Wrapper for _get_attrs_from_shorthName to retrieve attributes for a given short name.
     """
     logger = log_configure(log_level=loglevel, log_name='eccodes')
+
+    # If sn is an integer or a string that can be converted to an integer, treat it as a paramId
+    if isinstance(sn, int) or (isinstance(sn, str) and sn.isdigit()):
+        logger.debug('Input is a paramId: %s', sn)
+        sn = _get_shortname_from_paramid(sn)
     # extract the short name from the variable name if it starts with 'var'
     if sn.startswith("var"):
+        logger.debug('Input is a variable name, extracting short name from: %s', sn)
         sn = _get_shortname_from_paramid(sn[3:])
 
     # Try to get attributes from GRIB2 first
