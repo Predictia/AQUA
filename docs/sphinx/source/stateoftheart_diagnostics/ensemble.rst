@@ -31,11 +31,44 @@ Structure
 * ``cli_global_2D_ensemble.py``: the command line interfance (CLI) script to run the ensemble-2D-maps in `Lat-Lon` diagnostic.
 * ``cli_zonal_ensemble.py``: the command line interfance (CLI) script to run the ensemble-zonal `Lev-Lon` diagnostic.
 * ``util.py``: contains the `retrieve_merge_ensemble_data` and `compute_statistics` functions.
+* ``config/diagnostics/ensemble/config_global_2D_ensemble.yaml``: config file for `cli_global_2D_ensemble.py`.
+* ``config/diagnostics/ensemble/config_timeseries_ensemble.yaml``: config file for `ensembleTimeseries.py`.
+* ``config/diagnostics/ensemble/config_zonalmean_ensemble.yaml``: config file for `ensembleZonal.py`.
 
 Input variables
 ---------------
 
-In order to use the `Ensemble` module, a pre-processing step is required. To load and to merge the input data, `aqua.diagnostics.ensemble.util.retrieve_merge_ensemble_data` can be used which takes the list of paths of data or uses catalog entries. In this step one has to merge all the given `1D` timeseries, `2D` `Lat-Lon` Map and Zonal-averages `Lev-Lon` for `EnsembleTimeseries`, `EnsembleLatLon` and `EnsembleZonal` along a pesudo-dimension, respectively. The default dimension is simply named as `ensemble` and can be changed. One can load the data directly as `xarray.Dataset` or can use the `aqua` `Reader` class. 
+In order to use the `Ensemble` module, a pre-processing step is required. To load and to merge the input data, `aqua.diagnostics.ensemble.util.retrieve_merge_ensemble_data` can be used which takes the list of paths of data or uses catalog entries. In this step one has to merge all the given `1D` timeseries, `2D` `Lat-Lon` Map and Zonal-averages `Lev-Lon` for `EnsembleTimeseries`, `EnsembleLatLon` and `EnsembleZonal` along a pesudo-dimension, respectively. The default dimension is simply named as `ensemble` and can be changed. One can load the data directly as `xarray.Dataset` or can use the `aqua` `Reader` class. For example loading and merging a 2D maps ensemble into an `xarray,Dataset`: 
+
+.. code-block:: python
+   
+   import glob
+   from  aqua.diagnostics.ensemble.util import retrieve_merge_ensemble_data
+   
+   file_list = glob.glob('/work/ab0995/a270260/pre_computed_aqua_analysis/*/historical-1990/atmglobalmean/netcdf/atmglobalmean.statistics_maps.2t.*_historical-1990.nc')
+   file_list.sort()
+   ens_dataset = retrieve_merge_ensemble_data(
+       variable='2t', 
+       model_names= ['IFS-FESOM', 'IFS-NEMO'], 
+       data_path_list=file_list, 
+       log_level = "WARNING",
+       ens_dim="ensemble",
+   )
+
+A seond method:
+
+.. code-block:: python
+
+   ens_dataset = retrieve_merge_ensemble_data(
+       variable='2t',
+       catalog_list=['null', 'null'],
+       models_catalog_list=['IFS-FESOM', 'IFS-NEMO'],
+       exps_catalog_list=['historical-1990', 'historical-1990'],
+       sources_catalog_list=['aqua-atmglobalmean', 'aqua-atmglobalmean'],
+       log_level="WARNING",
+       ens_dim="ensemble",
+   )
+
 
 The default values for the plotting fuction has been already set as default values. These values can also be by simply defining a python `dictionary` e.g., in the case of the `EnsembleTimeseries`,
 ``plot_options = {'plot_ensemble_members': True, 'ensemble_label': 'Multi-model', 'plot_title': 'Ensemble statistics for 2-meter temperature [K]', 'ref_label': 'ERA5', 'figure_size': [12,6]}``.
@@ -53,9 +86,9 @@ The basic usage of this diagnostics is explained with working examples in the no
 
 Notebooks are stored in ``notebooks/ensemble``:
 
-* `ensemble_timeseries.ipynb <https://github.com/DestinE-Climate-DT/AQUA/blob/dev-ensemble/notebooks/diagnostics/ensemble/ensemble_timeseries.ipynb>`_
-* `ensemble_global_2D.ipynb <https://github.com/DestinE-Climate-DT/AQUA/blob/dev-ensemble/notebooks/diagnostics/ensemble/ensemble_global_2D.ipynb>`_
-* `ensemble_zonalaverage.ipynb <https://github.com/DestinE-Climate-DT/AQUA/blob/dev-ensemble/notebooks/diagnostics/ensemble/ensemble_zonalaverage.ipynb>`_
+* `ensemble_timeseries.ipynb <https://github.com/DestinE-Climate-DT/AQUA/blob/main/notebooks/diagnostics/ensemble/ensemble_timeseries.ipynb>`_
+* `ensemble_global_2D.ipynb <https://github.com/DestinE-Climate-DT/AQUA/blob/main/notebooks/diagnostics/ensemble/ensemble_global_2D.ipynb>`_
+* `ensemble_zonalaverage.ipynb <https://github.com/DestinE-Climate-DT/AQUA/blob/main/notebooks/diagnostics/ensemble/ensemble_zonalaverage.ipynb>`_
 
 Example Plots
 -------------
