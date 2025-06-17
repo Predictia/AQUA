@@ -15,6 +15,11 @@ from eccodes import CodesInternalError
 from aqua.logger import log_configure
 from aqua.exceptions import NoEcCodesShortNameError
 
+# some eccodes shortnames are not unique: we need a manual mapping
+NOT_UNIQUE_SHORTNAMES = {
+    'tcc': [228164, 164]
+}
+
 
 @functools.cache
 def _get_attrs_from_shortname(sn, grib_version="GRIB2"):
@@ -25,8 +30,14 @@ def _get_attrs_from_shortname(sn, grib_version="GRIB2"):
         dict: A dictionary containing the attributes of the parameter.
     """
     gid = codes_grib_new_from_samples(grib_version)
-    codes_set(gid, "shortName", sn)
-    pid = str(codes_get(gid, "paramId"))
+    if sn in NOT_UNIQUE_SHORTNAMES:
+        # If the short name is special, we need to handle it differently
+        # by using the first paramId in the list of not unique ones
+        pid = NOT_UNIQUE_SHORTNAMES[sn][0]
+        codes_set(gid, "paramId", pid)
+    else:
+        codes_set(gid, "shortName", sn)
+        pid = codes_get(gid, "paramId", ktype=str)
     nm = codes_get(gid, "name")
     un = codes_get(gid, "units")
     #cf = codes_get(gid, "cfName")
