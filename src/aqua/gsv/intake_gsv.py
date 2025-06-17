@@ -889,9 +889,9 @@ class GSVSource(base.DataSource):
         # Check the response status code
         if response.status_code == 400:
             raise ValueError(f"Bad request to STAC API: {response.text}")
-        elif response.status_code == 503:
+        if response.status_code == 503:
             raise ValueError(f"Service unavailable: {response.text}")
-        elif response.status_code != 200:
+        if response.status_code != 200:
             raise ValueError(f"Unexpected response from STAC API: {response.status_code} - {response.text}")
 
         # parse the JSON response
