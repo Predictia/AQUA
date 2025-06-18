@@ -39,6 +39,7 @@ AQUA core complete list:
 - Use scientific notation in multiple maps plotting to avoid label overlapping (#1953)
 
 AQUA diagnostics complete list:
+- Ecmean, GlobalBiases, Teleconnections: regrid functionality correctly working in cli (#2006)
 - Diagnostic core: save_netcdf() is now based on the new OutputSaver (#1965)
 - Diagnostic core: raise an error if retrieve() returns an empty dataset (#1997)
 - GlobalBiases: major refactor (#1803)
