@@ -18,6 +18,7 @@ Workflow modifications:
   are not correct.
 
 AQUA core complete list:
+- Added the `aqua grids set` command to set the paths block in the `aqua-config.yaml` file, overwriting the default values (#2003)
 - Derivation of metadata from eccodes is done with a builtin python method instead of definiton file inspection (#2009)
 - `h5py` installed from pypi. Hard pin to version 3.12.1 removed in favor of a lower limit to the version (#2002)
 - `aqua-analysis` can accept a `--regrid` argument in order to activate the regrid on each diagnostics supporting it (#1947)
