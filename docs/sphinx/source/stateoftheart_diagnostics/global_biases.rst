@@ -4,11 +4,12 @@ Global Biases Diagnostic
 Description
 -----------
 
-The GlobalBiases diagnostic is a set of tools for the analysis and visualization of 2D spatial biases in climate model outputs.  
+The **GlobalBiases** diagnostic is a set of tools for the analysis and visualization of 2D spatial biases in climate model outputs.  
 It supports comparative analysis between a target dataset (typically a climate model) and a reference dataset, commonly an observational or reanalysis product such as ERA5.  
 Alternatively, it can be used to compare outputs from two different model simulations, for example to assess differences between historical and scenario experiments.
 
 GlobalBiases provides tools to plot:
+
 - Climatology maps
 - Bias maps
 - Seasonal bias maps
