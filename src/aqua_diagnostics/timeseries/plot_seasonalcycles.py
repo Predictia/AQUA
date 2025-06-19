@@ -78,9 +78,9 @@ class PlotSeasonalCycles(PlotBaseMixin):
 
         if self.ref_monthly_data is not None:
             # Make a list from the data array attributes
-            self.ref_catalogs = [d.AQUA_catalog for d in self.ref_monthly_data]
-            self.ref_models = [d.AQUA_model for d in self.ref_monthly_data]
-            self.ref_exps = [d.AQUA_exp for d in self.ref_monthly_data]
+            self.ref_catalogs = self.ref_monthly_data.AQUA_catalog
+            self.ref_models = self.ref_monthly_data.AQUA_model
+            self.ref_exps = self.ref_monthly_data.AQUA_exp
 
         if self.std_monthly_data is not None:
             for std in self.std_monthly_data:
@@ -159,4 +159,4 @@ class PlotSeasonalCycles(PlotBaseMixin):
         """
         super().save_plot(fig, var=var, description=description,
                           region=region, rebuild=rebuild,
-                          outputdir=outputdir, dpi=dpi, format=format, diagnostic='seasonalcycles')
+                          outputdir=outputdir, dpi=dpi, format=format, diagnostic_product='seasonalcycles')
