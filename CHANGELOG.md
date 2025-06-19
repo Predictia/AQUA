@@ -41,6 +41,7 @@ AQUA core complete list:
 - Use scientific notation in multiple maps plotting to avoid label overlapping (#1953)
 
 AQUA diagnostics complete list:
+- Diagnostic core: a `diagnostic_name` is now available in the configuration file to override the default name (#2000)
 - Ecmean, GlobalBiases, Teleconnections: regrid functionality correctly working in cli (#2006)
 - Diagnostic core: updated docs for `OutputSaver` (#2010)
 - Diagnostic core: save_netcdf() is now based on the new OutputSaver (#1965)
@@ -53,7 +54,7 @@ AQUA diagnostics complete list:
 - Radiations: timeseries correctly working for exps with enddate before 2000 (#1940)
 - Diagnostic core: new `round_startdate` and `round_enddate` functions for time management (#1940)
 - Timeseries: fix in the new cli wich was ignoring the regrid option and had bad time handling (#1940)
-- Timeseries: Use new OutputSaver in Timeseries diagnostics (#1948)
+- Timeseries: Use new OutputSaver in Timeseries diagnostics (#1948, #2000)
 - Diagnostic core: new `select_region` to crop a region based on `_set_region` and `area_selection` method (#1984)
 
 ## [v0.15.0]
