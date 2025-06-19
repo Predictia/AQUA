@@ -364,10 +364,12 @@ class PlotBaseMixin():
             description += f'for {self.catalogs[i]} {self.models[i]} {self.exps[i]} '
 
         for i in range(self.len_ref):
-            if self.ref_models[i] == 'ERA5':
-                description += f'with reference {self.ref_models[i]} '
-            else:
+            if self.ref_models[i] == 'ERA5' or self.ref_models == 'ERA5':
+                description += f'with reference ERA5 '
+            elif isinstance(self.ref_models, list):
                 description += f'with reference {self.ref_models[i]} {self.ref_exps[i]} '
+            else:
+                description += f'with reference {self.ref_models} {self.ref_exps} '
 
         if self.std_startdate is not None and self.std_enddate is not None:
             description += f'with standard deviation from {self.std_startdate} to {self.std_enddate} '
@@ -397,6 +399,7 @@ class PlotBaseMixin():
                                   exp=self.exps,
                                   # This is needed for the Gregory diagnostic, which save the reference models and experiments
                                   # as dictionaries to build correct labels and descriptions
+                                  catalog_ref=list(self.ref_catalogs.values()) if isinstance(self.ref_catalogs, dict) else self.ref_catalogs,
                                   model_ref=list(self.ref_models.values()) if isinstance(self.ref_models, dict) else self.ref_models,
                                   exp_ref=list(self.ref_exps.values()) if isinstance(self.ref_exps, dict) else self.ref_exps,
                                   outdir=outputdir,
