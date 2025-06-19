@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ## [Unreleased]
 
-Unreleased in the current development version (target v0.16.0):
+Unreleased in the current development version (target v0.16.0): 
 
 Removed:
 - Removed source or experiment specific fixes; only the `fixer_name` is now supported.
@@ -46,7 +46,7 @@ AQUA diagnostics complete list:
 - Diagnostic core: updated docs for `OutputSaver` (#2010)
 - Diagnostic core: save_netcdf() is now based on the new OutputSaver (#1965)
 - Diagnostic core: raise an error if retrieve() returns an empty dataset (#1997)
-- GlobalBiases: major refactor (#1803)
+- GlobalBiases: major refactor (#1803, #1993)
 - Ocean Drift: using the `_set_region` method from the `Diagnostic` class (#1981)
 - Diagnostic core: new `_set_region` method in `Diagnostic` class to find region name, lon and lat limits (#1979)
 - Timeseries: regions are now in the `definitions` folder (not `interface` anymore) (#1884)
