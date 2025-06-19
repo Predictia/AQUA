@@ -157,7 +157,7 @@ class Gregory(Diagnostic):
             outputdir (str): The output directory to save the netcdf file. Default is './'.
             rebuild (bool): Whether to rebuild the netcdf file. Default is True.
         """
-        diagnostic_product = 'gregory.'
+        diagnostic_product = 'gregory'
 
         if t2m:
             if std: 
