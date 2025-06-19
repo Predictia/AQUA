@@ -62,11 +62,11 @@ class PlotGregory(PlotBaseMixin):
 
         has_monthly = (
             'monthly' in freq and
-            any(len(d) > 2 for d in self.monthly_data['t2m'])
+            any(len(d) >= 2 for d in self.monthly_data['t2m'])
         )
         has_annual = (
             'annual' in freq and
-            any(len(d) > 2 for d in self.annual_data['t2m'])
+            any(len(d) >= 2 for d in self.annual_data['t2m'])
         )
 
         self.logger.debug(f'Requested plot freq: {freq}, has_monthly: {has_monthly}, has_annual: {has_annual}')
@@ -84,7 +84,8 @@ class PlotGregory(PlotBaseMixin):
             mon_label = None
             ann_label = data_labels
         else:
-            raise ValueError('Invalid frequency for plotting, allowed values are "monthly" and "annual"')
+            raise ValueError('Not enough data to plot. '
+                             'At least one of monthly or annual data must have at least 2 data points.')
 
         if ax_monthly:
             fig, ax_monthly = self.plot_monthly(fig, ax_monthly,
