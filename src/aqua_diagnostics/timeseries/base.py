@@ -212,7 +212,7 @@ class BaseMixin(Diagnostic):
         super().save_netcdf(data=data, diagnostic=self.diagnostic_name, diagnostic_product=diagnostic_product,
                             outdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
         if data_std is not None:
-            diagnostic_product = f'{diagnostic_product}.std'
+            extra_keys.update({'std': 'std'})
             self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
             super().save_netcdf(data=data_std, diagnostic=self.diagnostic_name, diagnostic_product=diagnostic_product,
                                 outdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
@@ -376,7 +376,7 @@ class PlotBaseMixin():
         return description
 
     def save_plot(self, fig, var: str = None, description: str = None, region: str = None, rebuild: bool = True,
-                  outputdir: str = './', dpi: int = 300, format: str = 'png', diagnostic: str = None):
+                  outputdir: str = './', dpi: int = 300, format: str = 'png', diagnostic_product: str = None):
         """
         Save the plot to a file.
 
@@ -389,19 +389,19 @@ class PlotBaseMixin():
             outputdir (str): Output directory to save the plot.
             dpi (int): Dots per inch for the plot.
             format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
-            diagnostic (str): Diagnostic name to be used in the filename as diagnostic_product.
+            diagnostic_product (str): Diagnostic product to be used in the filename as diagnostic_product.
         """
         outputsaver = OutputSaver(diagnostic=self.diagnostic_name,
                                   catalog=self.catalogs,
                                   model=self.models,
                                   exp=self.exps,
-                                  model_ref=list(self.ref_models.values()) if isinstance(self.ref_models, dict) else self.ref_models,
-                                  exp_ref=list(self.ref_exps.values()) if isinstance(self.ref_exps, dict) else self.ref_exps,
+                                  model_ref=self.ref_models,
+                                  exp_ref=self.ref_exps,
                                   outdir=outputdir,
                                   loglevel=self.loglevel)
 
         metadata = {"Description": description, "dpi": dpi }
-        extra_keys = {'diagnostic_product': diagnostic}
+        extra_keys = {'diagnostic_product': diagnostic_product}
 
         if var is not None:
             extra_keys.update({'var': var})
@@ -410,8 +410,8 @@ class PlotBaseMixin():
             extra_keys.update({'region': region})
 
         if format == 'png':
-            outputsaver.save_png(fig, diagnostic_product=diagnostic, rebuild=rebuild, extra_keys=extra_keys, metadata=metadata)
+            outputsaver.save_png(fig, diagnostic_product=diagnostic_product, rebuild=rebuild, extra_keys=extra_keys, metadata=metadata)
         elif format == 'pdf':
-            outputsaver.save_pdf(fig, diagnostic_product=diagnostic, rebuild=rebuild, extra_keys=extra_keys, metadata=metadata)
+            outputsaver.save_pdf(fig, diagnostic_product=diagnostic_product, rebuild=rebuild, extra_keys=extra_keys, metadata=metadata)
         else:
             raise ValueError(f'Format {format} not supported. Use png or pdf.')
