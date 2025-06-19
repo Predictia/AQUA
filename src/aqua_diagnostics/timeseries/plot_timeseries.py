@@ -207,7 +207,7 @@ class PlotTimeseries(PlotBaseMixin):
         """
         super().save_plot(fig=fig, var=var, description=description,
                           region=region, rebuild=rebuild,
-                          outputdir=outputdir, dpi=dpi, format=format, diagnostic='timeseries')
+                          outputdir=outputdir, dpi=dpi, format=format, diagnostic_product='timeseries')
 
     def _check_data_length(self):
         """
