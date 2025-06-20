@@ -37,6 +37,7 @@ class PlotHovmoller:
         self.set_title()
         self.set_description()
         self.set_data_type()
+        self.set_texts()
         self.set_vmax_vmin()
         self.logger.debug("Plotting Hovmoller for variables: %s", self.vars)
         fig = plot_multi_hovmoller(
@@ -47,8 +48,9 @@ class PlotHovmoller:
             titles=self.title_list,
             vars=self.vars,
             vmax=self.vmax,
-            
-            
+            vmin=self.vmin,
+            cmap=self.cmap,
+            text=self.texts
         )
         self.outputsaver.save_pdf(fig, diagnostic_product="Hovmoller", metadata= self.description)
 
@@ -66,8 +68,8 @@ class PlotHovmoller:
         """
         self.logger.debug("Setting suptitle")
         self.title_list = []
-        for i, var in enumerate(self.vars):
-            for j in range(len(self.data)):
+        for j in range(len(self.data)):
+            for i, var in enumerate(self.vars):
                 if j == 0:
                     title = f"{var} ({self.data[j][var].attrs.get('units')})"
                     self.title_list.append(title)
@@ -88,21 +90,21 @@ class PlotHovmoller:
         hovmoller_plot_dic = {
             'thetao' :
                 {
-                    'full': {'vmax': -10, 'vmin': 30 },
-                    'anom_t0': {'vmax': -5, 'vmin': 5, 'cbar': 'coolwarm'},
-                    'std_anom_t0': {'vmax': -1, 'vmin': 1, 'cbar': 'coolwarm'},
+                    'full': {'vmax': 40, 'vmin': 10 },
+                    'anom_t0': {'vmax': 5, 'vmin': -5, 'cbar': 'coolwarm'},
+                    'std_anom_t0': {'vmax': 1, 'vmin': -1, 'cbar': 'coolwarm'},
                     
-                    'anom_tmean': {'vmax': 0.0, 'vmin': 0.0, 'cbar': 'coolwarm'},
-                    'std_anom_tmean': {'vmax': -1, 'vmin': 1, 'cbar': 'coolwarm'},
+                    'anom_tmean': {'vmax': 5, 'vmin': -5, 'cbar': 'coolwarm'},
+                    'std_anom_tmean': {'vmax': 1, 'vmin': -1, 'cbar': 'coolwarm'},
                 },
             'so' :
                 {
-                    'full': {'vmax': 0.0, 'vmin': 0.0, 'cbar': 'coolwarm'},
-                    'anom_t0': {'vmax': 0.0, 'vmin': 0.0, 'cbar': 'coolwarm'},
-                    'std_anom_t0': {'vmax': -1, 'vmin': 1, 'cbar': 'coolwarm'},
+                    'full': {'vmax': 400, 'vmin': 200, 'cbar': 'coolwarm'},
+                    'anom_t0': {'vmax': 100, 'vmin': -100, 'cbar': 'coolwarm'},
+                    'std_anom_t0': {'vmax': 1, 'vmin': -1, 'cbar': 'coolwarm'},
                     
-                    'anom_tmean': {'vmax': 0.0, 'vmin': 0.0, 'cbar': 'coolwarm'},
-                    'std_anom_tmean': {'vmax': -1, 'vmin': 1, 'cbar': 'coolwarm'},
+                    'anom_tmean': {'vmax': 5, 'vmin': -5, 'cbar': 'coolwarm'},
+                    'std_anom_tmean': {'vmax': 1, 'vmin': -1, 'cbar': 'coolwarm'},
                 }
         }
         self.vmax = []
@@ -125,4 +127,12 @@ class PlotHovmoller:
         for data in self.data:
             type = data.attrs.get('AQUA_ocean_drift_type', 'NA')
             self.data_type.append(type)
-    
+    def set_texts(self):
+        self.texts = []
+        for i, data in enumerate(self.data):
+            for j, var in enumerate(self.vars):
+                if j == 0:
+                    type = data.attrs.get('AQUA_ocean_drift_type', 'NA')
+                    self.texts.append(type)
+                else:
+                    self.texts.append(None)

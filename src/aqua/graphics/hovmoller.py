@@ -27,6 +27,7 @@ def plot_hovmoller(data: xr.DataArray,
                    title = None,
                    box_text=True,
                    cbar: bool = True,
+                   text: list | str = None,
                    nlevels=8,
                    cbar_label=None,
                    cbar_pos: list = [0.2, 0.15, 0.6, 0.02],
@@ -118,8 +119,16 @@ def plot_hovmoller(data: xr.DataArray,
                         wspace=0.1, hspace=0.5)
 
     if cbar:
-        # Add a colorbar axis at the bottom of the graph
-        cbar_ax = fig.add_axes(cbar_pos)
+        # if cbar_pos is None:
+        box = ax.get_position()
+        cbar_ax = fig.add_axes([
+            box.x0 - 0.01 + box.width + 0.01,  # a small gap to the right
+            box.y0,                     # same vertical start
+            0.015,                      # narrow width
+            box.height                  # same height
+        ])
+        # else:
+        #     cbar_ax = fig.add_axes(cbar_pos)
 
 
     if box_text:
@@ -128,6 +137,9 @@ def plot_hovmoller(data: xr.DataArray,
                 verticalalignment='top', horizontalalignment='right',
                 transform=ax.transAxes, fontsize=12,
                 bbox=dict(facecolor='white', alpha=0.5))
+    if text:
+        logger.debug("Adding text in the plot: %s", text)
+        ax.text(-0.3, 0.33, text, fontsize=15, color='dimgray', rotation=90, transform=ax.transAxes, ha='center')
 
     # cbar label
     if cbar_label is None:
