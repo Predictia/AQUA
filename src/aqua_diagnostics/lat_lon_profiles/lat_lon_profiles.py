@@ -309,7 +309,7 @@ class LatLonProfiles(Diagnostic):
 
                 if mean_type is not None:
                         self.mean_type = mean_type
-                        self.logger.info('Mean type set to %s', self.mean_type)
+                self.logger.info('Mean type set to %s', self.mean_type)
 
                 for f in freq:
                         self.compute_dim_mean(freq=f, exclude_incomplete=exclude_incomplete,
