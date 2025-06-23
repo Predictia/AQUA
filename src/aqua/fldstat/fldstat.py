@@ -131,7 +131,14 @@ class FldStat():
         # compact call, equivalent of "out = weighted_data.mean()""
         if stat in ["mean"]:
             weighted_data = data.weighted(weights=self.area.fillna(0))
-            self.logger.info("Computing area-weighted %s on %s dimensions", stat, dims)
+
+            if dims == ["lon"]:
+                self.logger.info("Computing area-weighted zonal %s", stat)
+            elif dims == ["lat"]:
+                self.logger.info("Computing area-weighted meridional %s", stat)
+            elif set(dims) == set(["lon", "lat"]):
+                self.logger.info("Computing area-weighted %s on %s dimensions", stat, dims)
+                
             out = getattr(weighted_data, stat)(dim=dims)
 
         if self.grid_name is not None:
