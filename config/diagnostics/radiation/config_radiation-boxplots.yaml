@@ -11,10 +11,17 @@ datasets:
     enddate: null
 
 references:
-  - catalog: null
+  - catalog: obs
+    model: 'ERA5'
+    exp: 'era5'
+    source: 'monthly'
+    startdate: '1990-01-01'
+    enddate: '2020-12-31'
+  - catalog: obs
     model: 'CERES'
     exp: 'ebaf-toa41'
     source: 'monthly'
+    regrid: 'r100'
     startdate: '2000-01-01'
     enddate: '2020-12-31'
 
@@ -24,7 +31,7 @@ setup:
 output:
   outputdir: "./"
   rebuild: true
-  save_netcdf: true
+  save_netcdf: false
   save_pdf: true
   save_png: true
   dpi: 300
