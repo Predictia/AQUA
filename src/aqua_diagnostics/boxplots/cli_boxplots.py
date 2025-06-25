@@ -1,12 +1,10 @@
 import argparse
 import sys
-
 from aqua.logger import log_configure
 from aqua.util import get_arg
 from aqua.version import __version__ as aqua_version
 from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_cluster
 from aqua.diagnostics.core import load_diagnostic_config, merge_config_args
-from aqua.util import get_arg, to_list
 from aqua.diagnostics import Boxplots, PlotBoxplots
 
 def parse_arguments(args):
@@ -82,7 +80,7 @@ if __name__ == '__main__':
                 fldmeans_ref.append(boxplots_ref.fldmeans)
 
 
-            plot = PlotBoxplots(save_pdf=save_pdf, save_png=save_png, dpi=dpi, outputdir=outputdir, loglevel=loglevel)
+            plot = PlotBoxplots(diagnostic='radiation', save_pdf=save_pdf, save_png=save_png, dpi=dpi, outputdir=outputdir, loglevel=loglevel)
             plot.plot_boxplots(data=fldmeans, data_ref=fldmeans_ref, var=variables)
 
     close_cluster(client=client, cluster=cluster, private_cluster=private_cluster, loglevel=loglevel)
