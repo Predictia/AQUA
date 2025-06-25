@@ -55,6 +55,9 @@ Some options includes:
 .. warning::
     Trend and detrend might lead to incorrect results if there is not an equal amount of time elements (e.g. same amount of months or days) in the dataset.
 
+It is also possible to evaluate the coefficients of the fit by calling the ``trender.coeffs()`` method.
+This will call the ``coeffs()`` method of the ``Trender()`` class, which is used internally by the ``detrend()`` method.
+A ``dataarray`` with the coefficients will be returned, with the same dimensions as the original data.
 
 Spatial Averaging
 -----------------
