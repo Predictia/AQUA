@@ -32,7 +32,7 @@ Some extra options are available:
 - ``time_bounds=True``: this flag can be activated to build time bounds in a similar way to CMOR-like standard.
 
 Detrend
------------------
+-------
 
 For some analysis, computing or removing a linear (or polynominial) trend can be helpful to highlight the internal variability.
 The ``detrend`` method can be used as a high-level wrapper of xarray polyfit functionalities to achieve this goal.
