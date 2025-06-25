@@ -86,9 +86,12 @@ class PlotBoxplots:
         extra_keys = {}
 
         metadata = {}
-
-        if var is not None:
-            extra_keys.update({'var': var})
+        var_string = (
+                    '_'.join(var) if isinstance(var, list)
+                    else var if isinstance(var, str)
+                    else None
+                    )
+        extra_keys = {'var': var_string} if var_string else {}
 
         if format == 'pdf':
             outputsaver.save_pdf(fig, diagnostic_product='boxplot',
