@@ -4,23 +4,37 @@ from aqua.logger import log_configure
 from aqua.diagnostics.core import Diagnostic, convert_data_units
 from aqua.util import select_season
 from aqua.exceptions import NoDataError
-from aqua.graphics import boxplot
-
 
 class Boxplots(Diagnostic):
+    """Class for computing and plotting boxplots of field means from climate model datasets.
+    This class retrieves data from specified datasets, computes field means for given variables,
+    and optionally saves the results to NetCDF files.
+    Args:
+        catalog (str): Catalog name.
+        model (str): Model name.
+        exp (str): Experiment name.
+        source (str): Data source.
+        var (str or list of str, optional): Variable(s) to retrieve. Defaults to None.
+        startdate (str, optional): Start date for data retrieval. Defaults to None.
+        enddate (str, optional): End date for data retrieval. Defaults to None.
+        save_netcdf (bool, optional): Whether to save results as NetCDF files. Defaults to False.
+        outputdir (str, optional): Directory to save output files. Defaults to './'.
+        loglevel (str, optional): Logging level. Defaults to 'WARNING'.
+    """
     def __init__(self, catalog=None, model=None, exp=None, source=None,
-                var=None, startdate=None, enddate=None,
+                var=None, startdate=None, enddate=None, regrid=None,
                 save_netcdf=False, outputdir='./', loglevel='WARNING'):
 
         super().__init__(catalog=catalog, model=model, exp=exp, source=source,
-                         startdate=startdate, enddate=enddate,
+                         startdate=startdate, enddate=enddate, regrid=regrid,
                          loglevel=loglevel)
 
         self.logger = log_configure(log_level=loglevel, log_name='Boxplots')
         self.var = var
         self.save_netcdf = save_netcdf
         self.outputdir = outputdir
-    
+
+
     def retrieve_and_compute_fldmean(self, var: None, units: str = None) -> None:
         """
         Retrieve and preprocess dataset, selecting pressure level and/or converting units if needed.
@@ -42,9 +56,6 @@ class Boxplots(Diagnostic):
         if self.data is None:
             self.logger.error(f"Variable {self.var} not found in dataset {self.model}, {self.exp}, {self.source}")
             raise NoDataError("Variable not found in dataset")
-
-        #if self.var not in self.data:
-         #   raise KeyError(f"Variable '{self.var}' not found in dataset variables: {list(self.data.data_vars)}")
 
         self.startdate = self.startdate or pd.to_datetime(self.data.time[0].values).strftime('%Y-%m-%d')
         self.enddate = self.enddate or pd.to_datetime(self.data.time[-1].values).strftime('%Y-%m-%d')
@@ -76,7 +87,7 @@ class Boxplots(Diagnostic):
         # Save field means to NetCDF if required
         if self.save_netcdf:
             super().save_netcdf(
-                data=fldmeans,
+                data=self.fldmeans,
                 diagnostic='boxplots',
                 diagnostic_product='boxplot',
                 default_path=self.outputdir,
