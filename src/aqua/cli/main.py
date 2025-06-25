@@ -25,6 +25,9 @@ from aqua.cli.catgen import catgen_execute
 # folder used for reading/storing catalogs
 CATPATH = 'catalogs'
 
+# directories to be installed in the AQUA config folder
+BASIC_DIRECTORIES = ['fixes', 'data_model', 'grids', 'catgen', 'datachecker', 'styles']
+
 
 class AquaConsole():
     """Class for AquaConsole, the AQUA command line interface for
@@ -58,7 +61,8 @@ class AquaConsole():
             },
             'grids': {
                 'add': self.grids_add,
-                'remove': self.remove_file
+                'remove': self.remove_file,
+                'set': self.grids_set
             },
             'lra': self.lra,
             'catgen': self.catgen
@@ -181,7 +185,7 @@ class AquaConsole():
         for file in ['config-aqua.tmpl']:
             target_file = os.path.splitext(file)[0] + '.yaml'  # replace the tmpl with yaml
             self._copy_update_folder_file(f'{self.aquapath}/{file}', f'{self.configpath}/{target_file}')
-        for directory in ['fixes', 'data_models', 'grids', 'catgen', 'datachecker', 'styles']:
+        for directory in BASIC_DIRECTORIES:
             self._copy_update_folder_file(os.path.join(self.aquapath, directory),
                                      os.path.join(self.configpath, directory))
         for directory in ['templates']:
@@ -206,7 +210,7 @@ class AquaConsole():
                 self.logger.error('%s folder does not include AQUA configuration files. Please use AQUA/config', editable)
                 os.rmdir(self.configpath)
                 sys.exit(1)
-        for directory in ['fixes', 'data_models', 'grids', 'catgen', 'datachecker', 'styles']:
+        for directory in BASIC_DIRECTORIES:
             self._copy_update_folder_file(f'{editable}/{directory}', f'{self.configpath}/{directory}', link=True)
 
         for directory in ['templates']:
@@ -333,8 +337,7 @@ class AquaConsole():
         self._list_folder(cdir)
 
         if args.all:
-            contents = ['data_models', 'grids', 'fixes']
-            for content in contents:
+            for content in BASIC_DIRECTORIES:
                 print(f'AQUA current installed {content} in {self.configpath}:')
                 self._list_folder(os.path.join(self.configpath, content))
 
@@ -369,6 +372,47 @@ class AquaConsole():
         compatible = self._check_file(kind='grids', file=args.file)
         if compatible:
             self._file_add(kind='grids', file=args.file, link=args.editable)
+
+    def grids_set(self, args):
+        """
+        Set the grids (and concurrently the weights and areas) paths in the config-aqua.yaml
+        This will override the grids paths defined in the individual catalogs
+        
+        Args:
+            args (argparse.Namespace): arguments from the command line
+        """
+        self._check()
+        grids_path = args.path + '/grids'
+        areas_path = args.path + '/areas'
+        weights_path = args.path + '/weights'
+
+        self.logger.info('Setting grids path to %s, weights path to %s and areas path to %s',
+                         grids_path, weights_path, areas_path)
+        
+        # Check if the paths exist and if not create them
+        for path in [grids_path, areas_path, weights_path]:
+            if not os.path.exists(path):
+                self.logger.info('Creating path %s', path)
+                os.makedirs(path, exist_ok=True)
+
+        cfg = load_yaml(os.path.join(self.configpath, self.configfile))
+        path_dict = {
+            'paths': {
+                'grids': grids_path,
+                'areas': areas_path,
+                'weights': weights_path
+            }
+        }
+
+        # If the paths already exist, we just update them
+        if 'paths' in cfg:
+            self.logger.info('Updating existing paths in %s', self.configfile)
+            cfg['paths'].update(path_dict['paths'])
+        else:
+            self.logger.info('Adding new paths to %s', self.configfile)
+            cfg['paths'] = path_dict['paths']
+
+        dump_yaml(self.configfile, cfg)
 
     def _file_add(self, kind, file, link=False):
         """Add a personalized file to the fixes/grids folder
@@ -552,7 +596,7 @@ class AquaConsole():
                 sys.exit(1)
         else:
             self.logger.info('Updating AQUA installation...')
-            for directory in ['fixes', 'data_models', 'grids', 'catgen']:
+            for directory in BASIC_DIRECTORIES:
                 self._copy_update_folder_file(os.path.join(self.aquapath, directory),
                                          os.path.join(self.configpath, directory),
                                          update=True)

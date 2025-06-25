@@ -1,7 +1,11 @@
+import os
 import xarray as xr
 from aqua import Reader
 from aqua.logger import log_configure
-from aqua.util import OutputSaver
+from aqua.util import ConfigPath
+from aqua.util import load_yaml, convert_units
+from aqua.util import area_selection
+from .output_saver import OutputSaver
 
 
 class Diagnostic():
@@ -59,9 +63,17 @@ class Diagnostic():
                                                               var=var, catalog=self.catalog, startdate=self.startdate,
                                                               enddate=self.enddate, regrid=self.regrid,
                                                               loglevel=self.logger.level)
+        if self.regrid is not None:
+            self.logger.info(f'Regridded data to {self.regrid} grid')
+        if self.startdate is None:
+            self.startdate = self.data.time.values[0]
+            self.logger.debug(f'Start date: {self.startdate}')
+        if self.enddate is None:
+            self.enddate = self.data.time.values[-1]
+            self.logger.debug(f'End date: {self.enddate}')
 
     def save_netcdf(self, data, diagnostic: str, diagnostic_product: str = None,
-                    default_path: str = '.', rebuild: bool = True, **kwargs):
+                    outdir: str = '.', rebuild: bool = True, **kwargs):
         """
         Save the data to a netcdf file.
 
@@ -69,7 +81,7 @@ class Diagnostic():
             data (xarray Dataset or DataArray): The data to be saved.
             diagnostic (str): The diagnostic name.
             diagnostic_product (str): The diagnostic product.
-            default_path (str): The default path to save the data. Default is '.'.
+            outdir(str): The path to save the data. Default is '.'.
             rebuild (bool): If True, the netcdf file will be rebuilt. Default is True.
 
         Keyword Args:
@@ -78,11 +90,11 @@ class Diagnostic():
         if isinstance(data, xr.Dataset) is False and isinstance(data, xr.DataArray) is False:
             self.logger.error('Data to save as netcdf must be an xarray Dataset or DataArray')
 
-        outputsaver = OutputSaver(diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                                  default_path=default_path, rebuild=rebuild, catalog=self.catalog,
-                                  model=self.model, exp=self.exp, loglevel=self.logger.level)
+        outputsaver = OutputSaver(diagnostic=diagnostic, 
+                                  catalog=self.catalog, model=self.model, exp=self.exp, 
+                                  outdir=outdir, rebuild=rebuild, loglevel=self.logger.level)
 
-        outputsaver.save_netcdf(dataset=data, **kwargs)
+        outputsaver.save_netcdf(dataset=data, diagnostic_product=diagnostic_product, **kwargs)
 
     @staticmethod
     def _retrieve(model: str, exp: str, source: str, var: str = None, catalog: str = None,
@@ -115,6 +127,10 @@ class Diagnostic():
 
         data = reader.retrieve(var=var)
 
+        # If the data is empty, raise an error
+        if not data:
+            raise ValueError(f"No data found for {model} {exp} {source} with variable {var}")
+
         if catalog is None:
             catalog = reader.catalog
 
@@ -122,3 +138,97 @@ class Diagnostic():
             data = reader.regrid(data)
 
         return data, reader, catalog
+
+    def _check_data(self, data: xr.DataArray, var: str, units: str):
+        """
+        Make sure that the data is in the correct units.
+
+        Args:
+            data (xarray DataArray): The data to be checked.
+            var (str): The variable to be checked.
+            units (str): The units to be checked.
+        """
+        final_units = units
+        initial_units = data.units
+
+        conversion = convert_units(initial_units, final_units)
+
+        factor = conversion.get('factor', 1)
+        offset = conversion.get('offset', 0)
+
+        if factor != 1 or offset != 0:
+            self.logger.debug('Converting %s from %s to %s',
+                              var, initial_units, final_units)
+            data = data * factor + offset
+            data.attrs['units'] = final_units
+
+        return data
+
+    def _set_region(self, diagnostic: str, region: str = None, lon_limits: list = None, lat_limits: list = None):
+        """
+        Set the region to be used.
+
+        Args:
+            diagnostic (str): The diagnostic name. Used for creating file paths.
+            region (str): The region to select. This will define the lon and lat limits.
+            lon_limits (list): The longitude limits to be used. Overridden by region.
+            lat_limits (list): The latitude limits to be used. Overridden by region.
+
+        Returns:
+            region (str): The region name to be used.
+            lon_limits (list): The longitude limits to be used.
+            lat_limits (list): The latitude limits to be used.
+        """
+        if region is not None:
+            region_file = ConfigPath().get_config_dir()
+            region_file = os.path.join(region_file, 'diagnostics',
+                                       diagnostic, 'definitions', 'regions.yaml')
+            if os.path.exists(region_file):
+                regions = load_yaml(region_file)
+                if region in regions['regions']:
+                    lon_limits = regions['regions'][region].get('lon_limits', None)
+                    lat_limits = regions['regions'][region].get('lat_limits', None)
+                    region = regions['regions'][region].get('longname', region)
+                    self.logger.info(f'Region {region} found, using lon: {lon_limits}, lat: {lat_limits}')
+                else:
+                    self.logger.error('Region %s not found', region)
+                    raise ValueError(f'Region {region} not found')
+            else:
+                self.logger.error('Region file not found')
+                raise FileNotFoundError('Region file not found')
+        else:
+            region = None
+            self.logger.info('No region provided, using lon_limits: %s, lat_limits: %s', lon_limits, lat_limits)
+
+        return region, lon_limits, lat_limits
+
+    def select_region(self, region: str = None, diagnostic: str = None, drop: bool = True):
+        """
+        Selects a geographic region from the dataset and updates self.data accordingly.
+
+        If a region name is provided, the method filters the data using the region's
+        predefined latitude and longitude bounds. The selected region name is stored
+        in the dataset attributes.
+
+        Args:
+            region (str, optional): Name of the region to select. If None, no filtering is applied.
+            diagnostic (str, optional): Diagnostic category used to determine region bounds.
+            drop (bool, optional): Whether to drop coordinates outside the selected region. Default is True.
+
+        Returns:
+            tuple: (region, lon_limits, lat_limits)
+        """
+        if region is not None and diagnostic is not None:
+            region, lon_limits, lat_limits = self._set_region(region=region, diagnostic=diagnostic)
+            self.logger.info(f"Applying area selection for region: {region}")
+            self.data = area_selection(
+                data=self.data, lat=lat_limits, lon=lon_limits, drop=drop, loglevel=self.loglevel
+            )
+            self.data.attrs['AQUA_region'] = region
+            self.logger.info(f"Modified longname of the region: {region}")
+        else:
+            region, lon_limits, lat_limits = None, None, None
+            self.logger.warning(
+                "Since region name is not specified, processing whole region in the dataset"
+            )
+        return region, lon_limits, lat_limits

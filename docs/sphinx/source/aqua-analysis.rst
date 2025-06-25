@@ -24,10 +24,6 @@ The exact list of diagnostics to run and technical details of the analysis
 (such as the number of workers/thread/memory to use for the dask cluster) 
 are specified in the configuration file ``config.aqua-analysis.yaml`` in the same folder.
 
-.. warning::
-
-    A bash script called ``aqua-analysis.sh`` is also available in the same folder but it is deprecated and will be removed in future releases.
-
 Additional options
 ------------------
 
@@ -54,6 +50,11 @@ so that the script can be used in a batch job or in a workflow. These override c
 .. option:: -f <config>, --config <source>
 
     The config file to use.
+
+.. option:: --regrid <target_grid>
+
+    The target grid to use for regridding the data.
+    If not specified, the default is ``null``, which means no regridding will be applied.
 
 .. option:: -d <dir>, --outputdir <dir>
 
@@ -111,6 +112,7 @@ The job section contains the following keys:
 - ``model``: the model to use. Default is ``IFS-NEMO``
 - ``exp``: the experiment to use. Default is ``historical-1990``
 - ``source``: the source to use. Default is ``lra-r100-monthly``
+- ``regrid``: the target grid to use for regridding the data. Default is ``null``, which means no regridding will be applied.
 - ``script_path_base``: the base path for the diagnostic scripts. Default is ``${AQUA}/diagnostics``, but it is going to be updated.
 
 .. note::

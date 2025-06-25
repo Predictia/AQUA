@@ -43,12 +43,7 @@ The full pipeline is composed of the following components:
     See the :ref:`aqua_web` section for more details.
 
 
-4.  The ``make_push_docs.sh`` script can be used to build the documentation, push it to the LUMI-O bucket and trigger a rebuild of aqua-web.
-   
-    See the :ref:`aqua_web` section for more details.
-
-
-5.  The AQUA Explorer software is stored on github in the repository `aqua-web <https://github.com/DestinE-Climate-DT/aqua-web>`_.
+4.  The AQUA Explorer software is stored on github in the repository `aqua-web <https://github.com/DestinE-Climate-DT/aqua-web>`_.
     Any commit in the `aqua-web` repository will trigger a rebuild of the enclosed Dockerfile by the CSC `Rahti 2 service <https://research.csc.fi/-/rahti>`_ using OpenShift. The resulting container will run serving the web pages.
     As described in the corresponding Dockerfile, contents (figures and documentation) are downloaded from the ``aqua-web`` bucket on LUMI-O, appropriate markdown files are created and  we use python package `mkdocs` to construct static web pages from the markdown files.
 
@@ -61,8 +56,8 @@ Automatic uploading of figures and documentation to aqua-web
 ------------------------------------------------------------
 
 AQUA figures produced by the analysis can be uploaded to the `aqua-web <https://github.com/DestinE-Climate-DT/aqua-web>`_ 
-repository to publish them automatically on a dedicated website. The same site is used to host the documentation.
-Two scripts in the ``cli/aqua-web`` folder are available to push figures or documentation to aqua-web.
+repository to publish them automatically on a dedicated website.
+A script in the ``cli/aqua-web`` folder is available to push figures to the bucket shown by aqua-web.
 
 If you plan to use these scripts outside the AQUA container or environment to push figures to aqua-web,
 you will need the following scripts: ``push-analysis.sh``, ``make_contents.py``, ``pdf_to_png.sh``
@@ -125,6 +120,11 @@ Additional options
     The syntax is for example:
     ``--rsync user@myremotemachine.csc.fi:/path/to/my/dest/dir``
 
+Returns
+^^^^^^^
+
+When pushing to a LUMI-O bucket, the script returns 0 if the upload was successful, 1 if the credentials are not valid, 2 if the bucket does not exist and 3 for other errors.
+If the rsync option option is used, it will return the return codes from the rsysnc command.
 
 Grouping configuration file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -186,6 +186,12 @@ Options
 
     Optional destination path.
 
+.. option:: -g, --get
+
+    Flag to download a single file from the S3 bucket instead of uploading.
+    When this option is used, the ``-d`` flag is meant as the path on the destination 
+    bucket and the source is the name of the local file to write to.
+    
 .. option:: -k <aws_access_key_id>, --aws_access_key_id <aws_access_key_id>
 
     AWS access key ID.
@@ -198,6 +204,10 @@ Options
 
     Custom endpoint URL for S3. Default is https://lumidata.eu.
 
+Returns
+^^^^^^^
+
+The script returns 0 if the upload was successful, 1 if the credentials are not valid, 2 if the bucket does not exist and 3 for other errors.
 
 .. _submit-aqua-web:
 

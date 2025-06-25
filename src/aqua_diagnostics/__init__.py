@@ -1,14 +1,16 @@
-from .teleconnections import Teleconnection
-from .timeseries import GregoryPlot, SeasonalCycle, Timeseries
-from .global_biases import GlobalBiases
+from .teleconnections import NAO, ENSO, MJO
+from .teleconnections import PlotNAO, PlotENSO, PlotMJO
+from .timeseries import Gregory, SeasonalCycles, Timeseries
+from .global_biases import GlobalBiases, PlotGlobalBiases 
 from .radiation import Radiation
 from .ensemble import EnsembleTimeseries, EnsembleLatLon, EnsembleZonal
 from .ecmean import PerformanceIndices, GlobalMean
 from .seaice import SeaIce, PlotSeaIce
 
-__all__ = ["Teleconnection",
-           "GregoryPlot", "SeasonalCycle", "Timeseries", 
-           "GlobalBiases",
-           "Radiation", 
+__all__ = ["NAO", "ENSO", "MJO",
+           "PlotNAO", "PlotENSO", "PlotMJO",
+           "Gregory", "SeasonalCycles", "Timeseries",
+           "GlobalBiases", "PlotGlobalBiases",
+           "Radiation",
            "EnsembleTimeseries", "EnsembleLatLon", "EnsembleZonal",
            "GlobalMean", "PerformanceIndices", "SeaIce", "PlotSeaIce"]

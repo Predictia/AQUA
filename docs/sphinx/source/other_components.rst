@@ -7,8 +7,9 @@ Time Statistics
 ---------------
 
 Input data may not be available at the desired time frequency. It is possible to perform time statistics, including
-time averaging, minimum, maximum and standard deviation at a given time frequency by using the ``timstat()`` method and its sibilings
-``timmean()``, ``timmin()``, ``timmax()`` and ``timstd()``. 
+time averaging, minimum, maximum and standard deviation at a given time frequency by using the ``Timstat()`` class and its method ``timstat()```
+which allow for several statistical operations. The class is nested into the reader, and its method are exposed so that is sufficient
+to use `timstat()` and its sibilings ``timmean()``, ``timmin()``, ``timmax()`` and ``timstd()``, as in the case below. 
 
 .. code-block:: python
 
@@ -26,15 +27,16 @@ Some extra options are available:
 
 - ``exclude_incomplete=True``: this flag will remove averaged chunks which are not complete
   (for example, verify  that all the record from each month are available before doing the time mean).
-- ``center_time=True``: this flag will center the time coordinate on the mean time window.
+- ``center_time=True``: this flag will center the time coordinate on the mean time window. 
+    Otherwise, the time coordinate will be the first timestamp of the time window.
 - ``time_bounds=True``: this flag can be activated to build time bounds in a similar way to CMOR-like standard.
 
 
-Detrending
-----------
+Trend and Detrend
+-----------------
 
-For some analysis, removing from the data a linear trend can be helpful to highlight the internal variability.
-The ``detrend`` method can be used as a high-level wrapper of xarray functionalities to achieve this goal.
+For some analysis, computing or removing a linear (or polynominial) trend can be helpful to highlight the internal variability.
+The ``trend`` and ``detrend`` method can be used as a high-level wrapper of xarray polyfit functionalities to achieve this goal.
 
 .. code-block:: python
 
@@ -46,20 +48,28 @@ In this way, linear trend is removed from each grid point of the original datase
 Other dimension can be targeted too, although with limited physical meaning. 
 Of course, it can be used in collaboration with temporal and spatial averaging. Higher order polynominial fits are available too.
 
+Similary, multidmensional trends can be computed with the ``trend()`` method, which will return a new dataset with the trend values.
+
+... code-block:: python
+
+    trend = reader.trend(data['2t'], dim='time')
+
 Some options includes:
 
 - ``degree``: this will define with an integer the order of the polynominial fit. Default is 1, i.e. linear detrending.
 - ``skipna=True``: removing the NaN from the fit. Default is ``True``. 
 
 .. warning::
-    Detrending might lead to incorrect results if there is not an equal amount of time elements (e.g. same amount of months or days) in the dataset.
+    Trend and detrend might lead to incorrect results if there is not an equal amount of time elements (e.g. same amount of months or days) in the dataset.
 
 
 Spatial Averaging
 -----------------
 
-When we instantiate the ``Reader`` object, grid areas for the source files are computed if not already available. 
-After this, we can use them for spatial averaging using the ``fldmean()`` method, obtaining time series of global (field) averages.
+The ``FldStat()`` class and its method ``fldstat()`` are used to do spatial operations and similary as for ``TimStat()`` does for time.
+Statistical operations can be area-weighted if the class is initialiased with an xarray dataset containing the areas of the corresponding grid.
+The class is nested into the ``Reader()``, which computes/load the areas of the corresponding source at the initialization.
+Thus when calling for example ``reader.fldmean()`` method area-weighted spatial averaging will be performed.
 For example, if we run the following commands:
 
 .. code-block:: python
@@ -81,6 +91,9 @@ It is also possible to apply a regional section to the domain before performing 
     It can work also on unstructured grids, but information on coordinates must be available.
     If the dataset does not include these coordinates, this can be achieved with the fixer
     described in the :ref:`fixer` section.
+
+.. note::
+    So far only the `mean` statistics is available, but other statistics are planned to be implemented in the future.
 
 .. _time-selection:
 
@@ -235,9 +248,6 @@ in a Jupyter Notebook, you can start a dask cluster to parallelize your computat
 
 The above code will start a dask cluster with 40 workers and one thread per worker.
 
-AQUA also provides a simple way to move the computation done by dask to a compute node on your HPC system.
-The description of this feature is provided in the section :ref:`slurm`.
-
 .. _data-provenance:
 
 Data provenance
@@ -252,139 +262,3 @@ This is done by the ``Reader`` and it is under implementation for diagnostics as
 
 A function ``log_history`` is available in the ``aqua.logger`` module to log in this attribute for a specific dataset.
 This can be used as well to log the history of the operations performed on the data in custom scripts.
-
-.. _graphic-tools:
-
-Graphic tools
--------------
-
-The ``aqua.graphics`` module provides a set of simple functions to easily plot the result of analysis done within AQUA.
-
-Plot styles
-^^^^^^^^^^^
-
-AQUA supports in the available graphical functions the matplotlib styles.
-A default for the plot appearance is present in the ``aqua.mplstyle`` file (in ``config/styles``), 
-and this includes all the default settings for the plot functions.
-This file can be modified to change the default appearance of the plots. 
-
-
-Other styles can be created following the `matplotlib guidelines <https://matplotlib.org/stable/users/explain/customizing.html#defining-your-own-style>`_.
-The style can be set automatically by setting the ``style`` keyword in the ``config-aqua.yaml`` file generated during the code installation (see :ref:`getting_started`).
-The new file should be placed in the same folder as the default one (it may need to run ``aqua install`` again).
-It is also possible to set the style only for a single plot by using the ``style`` keyword in the plotting functions.
-Finally, other than file-based styles, it is possible to set the style from the `list of available <https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html>`_ styles in matplotlib.
-
-.. warning::
-
-    Not all the functions in the ``aqua.graphics`` module are using the style file yet.
-
-Single map
-^^^^^^^^^^
-
-A function called ``plot_single_map()`` is provided with many options to customize the plot.
-
-The function takes as input an xarray.DataArray, with a single timestep to be selected
-before calling the function. The function will then plot the map of the variable and,
-if no other option is provided, will adapt colorbar, title and labels to the attributes
-of the input DataArray.
-
-In the following example we plot an sst map from the first timestep of ERA5 reanalysis:
-
-.. code-block:: python
-    
-    from aqua import Reader, plot_single_map
-
-    reader = Reader(model='ERA5', exp='era5', source='monthly')
-    sst = reader.retrieve(var=["sst"])
-    sst_plot = sst["sst"].isel(time=0)
-
-    plot_single_map(sst_plot, title="Example of a custom title", filename="example",
-                    outputdir=".", format="png", dpi=300, save=True)
-
-This will produce the following plot:
-
-.. figure:: figures/single_map_example.png
-    :align: center
-    :width: 100%
-
-Single map with differences
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-A function called ``plot_single_map_diff()`` is provided with many options to customize the plot.
-
-The function is built as an expansion of the ``plot_single_map()`` function, so that arguments and options are similar.
-The function takes as input two xarray.DataArray, with a single timestep.
-
-The function will plot as colormap or contour filled map the difference between the two input DataArray (the first one minus the second one).
-Additionally a contour line map is plotted with the first input DataArray, to show the original data.
-
-.. figure:: figures/teleconnections_ENSO_correlation_IFS-NEMO_ssp370_lra-r100-monthly_ERA5.png
-    :align: center
-    :width: 100%
-
-    Example of a ``plot_single_map_diff()`` output done with the :ref:`teleconnections`.
-    The map shows the correlation for the ENSO teleconnection between IFS-NEMO scenario run and ERA5 reanalysis.
-
-Time series
-^^^^^^^^^^^
-
-A function called ``plot_timeseries()`` is provided with many options to customize the plot.
-The function is built to plot time series of a single variable,
-with the possibility to plot multiple lines for different models and a special line for a reference dataset.
-The reference dataset can have a representation of the uncertainty over time.
-
-By default the function is built to be able to plot monthly and yearly time series, as required by the :ref:`timeseries` diagnostic.
-
-The function takes as data input:
-
-- **monthly_data**: a (list of) xarray.DataArray, each one representing the monthly time series of a model.
-- **annual_data**: a (list of) xarray.DataArray, each one representing the annual time series of a model.
-- **ref_monthly_data**: a xarray.DataArray representing the monthly time series of the reference dataset.
-- **ref_annual_data**: a xarray.DataArray representing the annual time series of the reference dataset.
-- **std_monthly_data**: a xarray.DataArray representing the monthly values of the standard deviation of the reference dataset.
-- **std_annual_data**: a xarray.DataArray representing the annual values of the standard deviation of the reference dataset.
-
-The function will automatically plot what is available, so it is possible to plot only monthly or only yearly time series, with or without a reference dataset.
-
-.. figure:: figures/timeseries_example_plot.png
-    :align: center
-    :width: 100%
-
-    Example of a ``plot_timeseries()`` output done with the :ref:`timeseries`.
-    The plot shows the global mean 2 meters temperature time series for the IFS-NEMO scenario and the ERA5 reference dataset.
-
-Seasonal cycle
-^^^^^^^^^^^^^^
-
-A function called ``plot_seasonalcycle()`` is provided with many options to customize the plot.
-
-The function takes as data input:
-
-- **data**: a xarray.DataArray representing the seasonal cycle of a variable.
-- **ref_data**: a xarray.DataArray representing the seasonal cycle of the reference dataset.
-- **std_data**: a xarray.DataArray representing the standard deviation of the seasonal cycle of the reference dataset.
-
-The function will automatically plot what is available, so it is possible to plot only the seasonal cycle, with or without a reference dataset.
-
-.. figure:: figures/seasonalcycle_example_plot.png
-    :align: center
-    :width: 100%
-
-    Example of a ``plot_seasonalcycle()`` output done with the :ref:`timeseries`.
-    The plot shows the seasonal cycle of the 2 meters temperature for the IFS-NEMO scenario and the ERA5 reference dataset.
-
-Multiple maps
-^^^^^^^^^^^^^
-
-A function called ``plot_maps()`` is provided with many options to customize the plot.
-The function takes as input a list of xarray.DataArray, each one representing a map.
-It is built to plot multiple maps in a single figure, with a shared colorbar.
-This can be userdefined or evaluated automatically.
-Figsize can be adapted and the number of plots and their position is automatically evaluated.
-
-.. figure:: figures/maps_example.png
-    :align: center
-    :width: 100%
-
-    Example of a ``plot_maps()`` output.
