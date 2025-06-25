@@ -33,7 +33,7 @@ if __name__ == '__main__':
     client, cluster, private_cluster, = open_cluster(nworkers=nworkers, cluster=cluster, loglevel=loglevel)
 
     # Load the configuration file and then merge it with the command-line arguments
-    config_dict = load_diagnostic_config(diagnostic='globalbiases', args=args,
+    config_dict = load_diagnostic_config(diagnostic='globalbiases', config=args.config,
                                          default_config='config_global_biases.yaml',
                                          loglevel=loglevel)
     config_dict = merge_config_args(config=config_dict, args=args, loglevel=loglevel)
@@ -67,10 +67,10 @@ if __name__ == '__main__':
             reference = config_dict['references'][0]
             dataset_args = {'catalog': dataset['catalog'], 'model': dataset['model'],
                             'exp': dataset['exp'], 'source': dataset['source'],
-                            'regrid': dataset.get('regrid', regrid)}
+                            'regrid': regrid if regrid is not None else dataset.get('regrid', None)}
             reference_args = {'catalog': reference['catalog'], 'model': reference['model'],
                             'exp': reference['exp'], 'source': reference['source'],
-                            'regrid': reference.get('regrid', regrid)}
+                            'regrid': regrid if regrid is not None else reference.get('regrid', None)}
             
             variables = config_dict['diagnostics']['globalbiases'].get('variables', [])
             plev = config_dict['diagnostics']['globalbiases']['params'].get('plev')
