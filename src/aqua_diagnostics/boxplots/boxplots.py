@@ -86,11 +86,18 @@ class Boxplots(Diagnostic):
 
         # Save field means to NetCDF if required
         if self.save_netcdf:
+            self.logger.info(self.var)
+            var_string = (
+                        '_'.join(self.var) if isinstance(self.var, list)
+                        else self.var if isinstance(self.var, str)
+                        else None
+                        )
+            extra_keys = {'var': var_string} if var_string else {}
             super().save_netcdf(
                 data=self.fldmeans,
                 diagnostic='boxplots',
                 diagnostic_product='boxplot',
-                default_path=self.outputdir,
-                var=var
-            )
+                outdir=self.outputdir,
+                extra_keys=extra_keys
+                )
             self.logger.info(f"Field means saved to {self.outputdir}.")
