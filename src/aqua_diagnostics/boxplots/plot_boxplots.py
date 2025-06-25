@@ -1,6 +1,5 @@
 import xarray as xr
 import numpy as np
-import matplotlib.pyplot as plt
 from aqua.logger import log_configure
 from aqua.diagnostics.core import OutputSaver
 
@@ -9,7 +8,7 @@ from aqua.graphics import boxplot
 
 class PlotBoxplots: 
     def __init__(self, 
-                 diagnostic='boxplots',
+                 diagnostic,
                  save_pdf=True, save_png=True, 
                  dpi=300, outputdir='./',
                  loglevel='WARNING'):
@@ -30,8 +29,16 @@ class PlotBoxplots:
         self.dpi = dpi
         self.outputdir = outputdir
         self.loglevel = loglevel
-
         self.logger = log_configure(log_level=loglevel, log_name='Boxplots')
+
+    
+    def _extract_attrs(self, ds_list, attr):
+        """Extract attribute(s) from dataset or list of datasets."""
+        if ds_list is None:
+            return None
+        if isinstance(ds_list, list):
+            return [getattr(ds, attr, None) for ds in ds_list]
+        return [getattr(ds_list, attr, None)]
 
 
     def _save_figure(self, fig,
@@ -48,22 +55,15 @@ class PlotBoxplots:
             var (str): Variable name.
             format (str): Format to save the figure ('png' or 'pdf').
         """
-        
-        catalog = [ds.catalog for ds in data] if isinstance(data, list) else data.catalog
-        model = [ds.model for ds in data] if isinstance(data, list) else data.model
-        exp = [ds.exp for ds in data] if isinstance(data, list) else data.exp
+        catalog = self._extract_attrs(data, 'catalog')
+        model = self._extract_attrs(data, 'model')
+        exp = self._extract_attrs(data, 'exp')
 
-        if data_ref is not None:
-            catalog_ref = [ds.catalog for ds in data_ref] if isinstance(data_ref, list) else data_ref.catalog
-            model_ref = [ds.model for ds in data_ref] if isinstance(data_ref, list) else [data_ref.model]
-            exp_ref = [ds.exp for ds in data_ref] if isinstance(data_ref, list) else [data_ref.exp]
-        else:
-            catalog_ref = None
-            model_ref = None
-            exp_ref = None
+        model_ref = self._extract_attrs(data_ref, 'model')
+        exp_ref = self._extract_attrs(data_ref, 'exp')
 
         self.logger.info(f'catalogs: {catalog}, models: {model}, experiments: {exp}')
-        self.logger.info(f'catalogs: {catalog_ref}, models: {model_ref}, experiments: {exp_ref}')
+        self.logger.info(f'ref catalogs: {self._extract_attrs(data_ref, "catalog")}, models: {model_ref}, experiments: {exp_ref}')
 
         outputsaver = OutputSaver(
             diagnostic=self.diagnostic,
@@ -76,32 +76,23 @@ class PlotBoxplots:
             loglevel=self.loglevel
         )
 
-        models_info = ', '.join(f'{model} (experiment {exp})' for model, exp in zip(model+model_ref, exp+exp_ref)) 
-        description = (
-             f"Boxplot of variables ({', '.join(var)}). "
-             f"for: {models_info}"
-        )
+        all_models = model + (model_ref or [])
+        all_exps = exp + (exp_ref or [])
+        dataset_info = ', '.join(f'{m} (experiment {e})' for m, e in zip(all_models, all_exps))
 
+        description = f"Boxplot of variables ({', '.join(var) if isinstance(var, list) else var}) for: {dataset_info}"
         metadata = {"Description": description}
-        extra_keys = {}
-
-        var_string = (
-                    '_'.join(var) if isinstance(var, list)
-                    else var if isinstance(var, str)
-                    else None
-                    )
-        extra_keys = {'var': var_string} if var_string else {}
+        extra_keys = {'var': '_'.join(var) if isinstance(var, list) else var}
 
         if format == 'pdf':
-            outputsaver.save_pdf(fig, diagnostic_product='boxplot',
-                                 extra_keys=extra_keys, metadata=metadata)
+            outputsaver.save_pdf(fig, diagnostic_product='boxplot', extra_keys=extra_keys, metadata=metadata)
         elif format == 'png':
-            outputsaver.save_png(fig, diagnostic_product='boxplot',
-                                 extra_keys=extra_keys, metadata=metadata)
+            outputsaver.save_png(fig, diagnostic_product='boxplot', extra_keys=extra_keys, metadata=metadata)
         else:
-            raise ValueError(f'Format {format} not supported. Use png or pdf.')
+            raise ValueError(f'Unsupported format: {format}. Use "png" or "pdf".')
 
-    def plot_boxplots(self, data, data_ref, var):
+
+    def plot_boxplots(self, data, data_ref=None, var=None):
         """
         Plot boxplots for specified variables in the dataset.
 
@@ -110,16 +101,13 @@ class PlotBoxplots:
             data_ref (xarray.Dataset or list of xarray.Dataset, optional): Reference dataset(s) for comparison.
             var (str or list of str): Variable name(s) to plot. If None, uses all variables in the dataset.
         """
-        fldmeans = data + data_ref if data_ref is not None else data
-        models = [ds.model for ds in fldmeans] if isinstance(fldmeans, list) else [fldmeans.model]
-        exps = [ds.exp for ds in fldmeans] if isinstance(fldmeans, list) else [fldmeans.exp]
 
-        fig, ax = boxplot(fldmeans=fldmeans, model_names=models, variables=var, loglevel=self.loglevel)
-            
+        fldmeans = data + data_ref if data_ref else data
+        model_names = self._extract_attrs(fldmeans, 'model')
+
+        fig, ax = boxplot(fldmeans=fldmeans, model_names=model_names, variables=var, loglevel=self.loglevel)
+
         if self.save_pdf:
-            self._save_figure(fig=fig, format='pdf', data=data,
-                              data_ref=data_ref, var=var)
+            self._save_figure(fig, data, data_ref, var, format='pdf')
         if self.save_png:
-            self._save_figure(fig=fig, format='png', 
-                              data=data,
-                              data_ref=data_ref, var=var)
+            self._save_figure(fig, data, data_ref, var, format='png')
