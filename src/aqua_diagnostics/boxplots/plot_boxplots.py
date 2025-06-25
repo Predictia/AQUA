@@ -76,16 +76,15 @@ class PlotBoxplots:
             loglevel=self.loglevel
         )
 
-        #models_info = ', '.join(f'{model} (experiment {exp})' for model, exp in zip(model+model_ref, exp+exp_ref)) 
-        #description = (
-        #    f"Boxplot of variables ({', '.join(var)}). "
-        #    f"for: {models_info}"
-        #)
+        models_info = ', '.join(f'{model} (experiment {exp})' for model, exp in zip(model+model_ref, exp+exp_ref)) 
+        description = (
+             f"Boxplot of variables ({', '.join(var)}). "
+             f"for: {models_info}"
+        )
 
-        #metadata = {"Description": description}
+        metadata = {"Description": description}
         extra_keys = {}
 
-        metadata = {}
         var_string = (
                     '_'.join(var) if isinstance(var, list)
                     else var if isinstance(var, str)
