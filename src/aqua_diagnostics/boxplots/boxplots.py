@@ -35,7 +35,7 @@ class Boxplots(Diagnostic):
         self.outputdir = outputdir
 
 
-    def retrieve_and_compute_fldmean(self, var: None, units: str = None) -> None:
+    def retrieve_and_compute_fldmean(self, var: None, save_netcdf=False, units: str = None) -> None:
         """
         Retrieve and preprocess dataset, selecting pressure level and/or converting units if needed.
 
@@ -59,6 +59,8 @@ class Boxplots(Diagnostic):
 
         self.startdate = self.startdate or pd.to_datetime(self.data.time[0].values).strftime('%Y-%m-%d')
         self.enddate = self.enddate or pd.to_datetime(self.data.time[-1].values).strftime('%Y-%m-%d')
+
+        self.save_netcdf = save_netcdf or self.save_netcdf
 
         if units:
             self.logger.info(f'Adjusting units for variable {self.var} to {units}.')
