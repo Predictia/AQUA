@@ -66,9 +66,9 @@ class PlotHovmoller:
             loglevel=self.loglevel,
             title=self.suptitle,
             titles=self.title_list,
-            vars=self.vars,
-            vmax=self.vmax,
-            vmin=self.vmin,
+            #TODO: vmin e vmax should have appropriate values for each variable
+            # vmax=self.vmax,
+            # vmin=self.vmin,
             cmap=self.cmap,
             text=self.texts
         )
