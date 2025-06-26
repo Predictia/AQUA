@@ -225,7 +225,7 @@ class Diagnostic():
         res_dict = self._select_region(data=self.data, region=region, diagnostic=diagnostic, drop=drop)
         return res_dict['region'], res_dict['lon_limits'], res_dict['lat_limits']
     
-    def _select_region(self, data: xr.Dataset, region: str = None, diagnostic: str = None, drop: bool = True):
+    def _select_region(self, data: xr.Dataset, region: str = None, diagnostic: str = None, drop: bool = True, **kwargs):
         """
         Select a geographic region from the dataset. Used when selection is not on the self.data attribute.
 
@@ -235,6 +235,7 @@ class Diagnostic():
             lon_limits (list): The longitude limits to select.
             lat_limits (list): The latitude limits to select.
             drop (bool): Whether to drop coordinates outside the selected region.
+            **kwargs: Additional keyword arguments passed to the area_selection function.
 
         Returns:
             dict: A dictionary containing the modified dataset and region information.
@@ -248,7 +249,7 @@ class Diagnostic():
             region, lon_limits, lat_limits = self._set_region(region=region, diagnostic=diagnostic)
             self.logger.info(f"Applying area selection for region: {region}")
             data = area_selection(
-                data=data, lat=lat_limits, lon=lon_limits, drop=drop, loglevel=self.loglevel
+                data=data, lat=lat_limits, lon=lon_limits, drop=drop, loglevel=self.loglevel, **kwargs
             )
             data.attrs['AQUA_region'] = region
             self.logger.info(f"Modified longname of the region: {region}")
