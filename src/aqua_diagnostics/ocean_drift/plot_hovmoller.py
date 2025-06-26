@@ -1,7 +1,7 @@
 import xarray as xr
 from aqua.logger import log_configure
-from .multiple_hovmoller import plot_multi_hovmoller
 from aqua.diagnostics.core import OutputSaver
+from .multiple_hovmoller import plot_multi_hovmoller
 
 xr.set_options(keep_attrs=True)
 
@@ -12,16 +12,30 @@ class PlotHovmoller:
                  outputdir: str = ".",
                  rebuild: bool = True,
                  loglevel: str = "WARNING"):
+        """
+        Initialize the PlotHovmoller class.
+
+        Args:
+            data (list[xr.Dataset]): List of xarray datasets containing the data to be plotted
+            diagnostic (str): Name of the diagnostic, default is "ocean_drift"
+            outputdir (str): Directory where the output will be saved, default is current directory
+            rebuild (bool): Whether to rebuild the output, default is True
+            loglevel (str): Logging level, default is "WARNING"
+        """
         self.data = data
+
         self.loglevel = loglevel
         self.logger = log_configure(self.loglevel, "PlotHovmoller")
+
         self.diagnostic = diagnostic
         self.vars = list(self.data[0].data_vars)
         self.logger.debug("Variables in data: %s", self.vars)
+
         self.catalog = self.data[0][self.vars[0]].AQUA_catalog
         self.model = self.data[0][self.vars[0]].AQUA_model
         self.exp = self.data[0][self.vars[0]].AQUA_exp
         self.region = self.data[0].AQUA_region
+
         self.outputsaver = OutputSaver(
             diagnostic=self.diagnostic,
             catalog=self.catalog,
@@ -33,6 +47,12 @@ class PlotHovmoller:
             
     
     def plot_hovmoller(self):
+        """
+        Plot the Hovmoller diagram for the given data.
+        This method sets the title, description, vmax, vmin, and texts for the plot.
+        It then calls the `plot_multi_hovmoller` function to create the plot and
+        saves it using the `OutputSaver`.
+        """
         self.set_suptitle()
         self.set_title()
         self.set_description()
@@ -55,18 +75,15 @@ class PlotHovmoller:
         self.outputsaver.save_pdf(fig, diagnostic_product="Hovmoller", metadata= self.description)
 
     def set_suptitle(self):
-        """
-        Set the title for the Hovmoller plot.
-        """
-        self.logger.debug("Setting title")
+        """Set the title for the Hovmoller plot."""
         self.suptitle = f"{self.catalog} {self.model} {self.exp} {self.region}"
+        self.logger.debug(f"Suptitle set to: {self.suptitle}")
 
     def set_title(self):
         """
         Set the title for the Hovmoller plot.
         This method can be extended to set specific titles based on the data.
         """
-        self.logger.debug("Setting suptitle")
         self.title_list = []
         for j in range(len(self.data)):
             for i, var in enumerate(self.vars):
@@ -75,6 +92,7 @@ class PlotHovmoller:
                     self.title_list.append(title)
                 else:
                     self.title_list.append(None)
+        self.logger.debug("Title list set to: %s", self.title_list)
 
 
     def set_description(self):
@@ -112,8 +130,8 @@ class PlotHovmoller:
         self.cmap = []
         for var in self.vars:
             for type in self.data_type:
-                self.vmax.append(hovmoller_plot_dic[var][type]['vmax'])
-                self.vmin.append(hovmoller_plot_dic[var][type]['vmin'])
+                self.vmax.append(hovmoller_plot_dic[var][type].get('vmax'))
+                self.vmin.append(hovmoller_plot_dic[var][type].get('vmin'))
                 self.cmap.append(hovmoller_plot_dic[var][type].get('cbar', 'jet'))
                 
         
