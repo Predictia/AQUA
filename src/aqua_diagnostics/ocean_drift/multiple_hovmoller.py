@@ -107,6 +107,9 @@ def plot_multi_hovmoller(
                                     ax=ax,
                                     fig=fig,
                                     loglevel=loglevel)
+            
+            # Rotate x-tick labels for better readability
+            ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
 
     # Adjust the location of the subplots on the page to make room for the colorbar
     fig.subplots_adjust(bottom=0.25,
