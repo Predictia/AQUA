@@ -1,11 +1,11 @@
 """
-Module to plot multiple hovemoller data
-
+Module to plot multiple Hovmoller data.
+This function is custom for the Ocean Drift diagnostics in AQUA.
 """
-
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from aqua import plot_hovmoller
 from aqua.graphics import ConfigStyle
@@ -68,58 +68,62 @@ def plot_multi_hovmoller(
 
     if all(isinstance(data_map, xr.Dataset) for data_map in maps):
         nrows = len(maps)
-        ncols = len(variables) #TODO limit ncols to 2 variables
+        ncols = len(variables)
         figsize = figsize if figsize is not None else (ncols * 6, nrows * 5 + 1)
-        logger.debug("Creating a %d x %d grid with figsize %s", nrows, ncols,
-                    figsize)
-        
+        logger.debug("Creating a %d x %d grid with figsize %s", nrows, ncols, figsize)
+
     fig = plt.figure(figsize=figsize)
-    spec = fig.add_gridspec(nrows=nrows, ncols=ncols)
+    spec = fig.add_gridspec(nrows=nrows, ncols=ncols, wspace=0.4, hspace=0.5)
 
     for j in range(nrows):
         for i, var in enumerate(variables):
-            # if (j, i) != (0, 0):
-            #     i_inc = i + 1
-            #     k = i_inc + j
-            # else:
-            #     k = i + j
-            # k = j + i * ncols
-            k = j * ncols + i
+            k = j * len(variables) + i
             ax = fig.add_subplot(spec[j, i])
-            logger.debug("Creating subplot for variable %s at position (%d, %d)", var, j, i)
-            
+            logger.debug("Creating subplot for variable %s at (%d, %d)", var, j, i)
+
             fig, ax = plot_hovmoller(
-                                    data=maps[j][var],
-                                    invert_space_coord=invert_space_coord,
-                                    sym=sym,
-                                    contour=contour,
-                                    box_text=False,
-                                    vmin=vmin[k] if vmin is not None else None,
-                                    vmax=vmax[k] if vmax is not None else None,
-                                    cmap=cmap[k] if cmap is not None else None,
-                                    nlevels=nlevels,
-                                    text=text[k] if text is not None else None,
-                                    cbar_label=cbar_label[j] if cbar_label is not None else None,
-                                    # cbar_pos=[1-.5*j, .8 - 0.3*i, 0.023, 0.1],
-                                    cbar_orientation='vertical',
-                                    title=titles[k] if titles is not None else None,
-                                    return_fig=True,
-                                    ax=ax,
-                                    fig=fig,
-                                    loglevel=loglevel)
-            
-            # Rotate x-tick labels for better readability
+                data=maps[j][var],
+                invert_space_coord=invert_space_coord,
+                sym=sym,
+                contour=contour,
+                box_text=False,
+                vmin=vmin[k] if vmin else None,
+                vmax=vmax[k] if vmax else None,
+                cmap=cmap[k] if cmap else None,
+                nlevels=nlevels,
+                text=text[k] if text else None,
+                cbar=False,
+                title=titles[k] if titles else None,
+                return_fig=True,
+                ax=ax,
+                fig=fig,
+                loglevel=loglevel,
+            )
+
             ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
 
-    # Adjust the location of the subplots on the page to make room for the colorbar
-    fig.subplots_adjust(bottom=0.25,
-                        top=0.9,
-                        left=0.05,
-                        right=0.95,
-                        wspace=0.5,
-                        hspace=0.5)
+            # Retrieve last plotted object for colorbar (QuadMesh or ContourSet)
+            if ax.collections:
+                mappable = ax.collections[-1]
+            elif ax.images:
+                mappable = ax.images[-1]
+            else:
+                logger.warning("No mappable object found for subplot (%d, %d)", j, i)
+                continue
 
-    logger.debug("Setting colorbar label to %s", cbar_label)
+            # Create colorbar axis next to plot
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="5%", pad=0.05)
+            cbar = fig.colorbar(mappable, cax=cax, orientation="vertical")
+
+            if cbar_label and j < len(cbar_label):
+                cbar.set_label(cbar_label[j])
+            else:
+                cbar.set_label(cbar_get_label(mappable, var))
+
+    # Adjust overall layout
+    fig.subplots_adjust(bottom=0.1, top=0.9, left=0.05, right=0.95)
+    fig.tight_layout(rect=[0, 0, 1, 0.95])  # Leave space for title
 
     if title:
         logger.debug("Setting super title to %s", title)
