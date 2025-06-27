@@ -49,6 +49,9 @@ class LatLonProfiles(Diagnostic):
                 self.std_daily = None
                 self.std_monthly = None
                 self.std_annual = None
+                
+                # Initialize seasonal and annual means
+                self.seasonal_annual_means = None  # List of [DJF, MAM, JJA, SON, Annual]
 
                 self.mean_type = mean_type
 
@@ -276,12 +279,59 @@ class LatLonProfiles(Diagnostic):
                 elif str_freq == 'annual':
                         self.annual = data
 
+        def compute_seasonal_and_annual_means(self, box_brd: bool = True):
+                """
+                Compute seasonal and annual means from monthly data.
+                Uses reader.timmean for both seasonal and annual means for consistency.
+                
+                Args:
+                    box_brd (bool): Choose if coordinates are comprised or not in area selection.
+                                   Default is True
+                """
+                
+                if self.monthly is None:
+                    self.logger.error('Monthly data not available. Run compute_dim_mean with monthly frequency first.')
+                    return
+                
+                self.logger.info('Computing seasonal and annual means from monthly data')
+                
+                # Get monthly data for the selected period
+                data = self.monthly.sel(time=slice(self.plt_startdate, self.plt_enddate))
+                
+                if len(data.time) == 0:
+                    self.logger.warning('No monthly data available for the selected period %s - %s, using all available data',
+                                       self.plt_startdate, self.plt_enddate)
+                    data = self.monthly
+                
+                # Check if we have at least 12 months of data
+                if len(data.time) < 12:
+                    self.logger.warning('Less than 12 months of data available (%d months). Results may not be representative.',
+                                       len(data.time))
+                
+                # Compute seasonal means using reader.timmean
+                self.logger.debug('Computing seasonal means using reader.timmean')
+                seasonal_means = self.reader.timmean(data, freq='seasonal')
+                
+                # Compute annual mean using reader.timmean
+                self.logger.debug('Computing annual mean using reader.timmean')
+                annual_mean = self.reader.timmean(data, freq='annual')
+                
+                # Store results: [DJF, MAM, JJA, SON, Annual]
+                self.seasonal_annual_means = seasonal_means + [annual_mean]
+                
+                # Add region information to all seasonal/annual means
+                if self.region is not None:
+                    for i, mean_data in enumerate(self.seasonal_annual_means):
+                        mean_data.attrs['region'] = self.region
+                
+                self.logger.info('Seasonal and annual means computed successfully')
+
         def run(self, var: str, formula: bool = False, long_name: str = None,
                 units: str = None, standard_name: str = None, std: bool = False,
                 freq: list = ['monthly', 'annual'], extend: bool = True,
                 exclude_incomplete: bool = True, center_time: bool = True,
                 box_brd: bool = True, outputdir: str = './', rebuild: bool = True,
-                mean_type: str = None):
+                mean_type: str = None, compute_seasonal_annual: bool = False):
                 """
                 Run all the steps necessary for the computation of the Timeseries.
                 Save the results to netcdf files.
@@ -302,6 +352,8 @@ class LatLonProfiles(Diagnostic):
                 box_brd (bool): choose if coordinates are comprised or not in area selection.
                 outputdir (str): The directory to save the data.
                 rebuild (bool): If True, rebuild the data from the original files.
+                mean_type (str): The type of mean to compute ('zonal', 'meridional', 'global').
+                compute_seasonal_annual (bool): If True, compute seasonal and annual means from monthly data.
                 """
                 self.logger.info('Running LatLonProfiles for %s', var)
                 self.retrieve(var=var, formula=formula, long_name=long_name, units=units, standard_name=standard_name)
@@ -314,7 +366,11 @@ class LatLonProfiles(Diagnostic):
                 for f in freq:
                         self.compute_dim_mean(freq=f, exclude_incomplete=exclude_incomplete,
                                               center_time=center_time, box_brd=box_brd, var=var)
-                if std:
-                        self.compute_std(freq=f, exclude_incomplete=exclude_incomplete, center_time=center_time,
-                                        box_brd=box_brd)
-                self.save_netcdf(diagnostic='lat_lon_profiles', freq=f, outputdir=outputdir, rebuild=rebuild) 
+                        if std: 
+                                self.compute_std(freq=f, exclude_incomplete=exclude_incomplete, center_time=center_time,
+                                                box_brd=box_brd)
+                        self.save_netcdf(diagnostic='lat_lon_profiles', freq=f, outputdir=outputdir, rebuild=rebuild)
+                
+                # Compute seasonal and annual means if requested and monthly data is available
+                if compute_seasonal_annual and 'monthly' in freq:
+                        self.compute_seasonal_and_annual_means(box_brd=box_brd)

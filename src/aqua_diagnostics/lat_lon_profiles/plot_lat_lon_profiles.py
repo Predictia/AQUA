@@ -9,13 +9,14 @@ class PlotLatLonProfiles():
     
     def __init__(self, hourly_data=None, daily_data=None,
                  monthly_data=None, annual_data=None,
+                 seasonal_annual_data=None,
                  std_hourly_data=None, std_daily_data=None,
                  std_monthly_data=None, std_annual_data=None,
                  loglevel: str = 'WARNING'):
         """
-        Initialize the PlotTimeseries class.
-        This class is used to plot time series data previously processed
-        by the Timeseries class.
+        Initialize the PlotLatLonProfiles class.
+        This class is used to plot lat lon profiles data previously processed
+        by the LatLonProfiles class.
 
         Any subset of frequency can be provided, however the order and length
         of the list of data arrays must be the same for each frequency.
@@ -27,6 +28,7 @@ class PlotLatLonProfiles():
             daily_data (list): List of daily data arrays.
             monthly_data (list): List of monthly data arrays.
             annual_data (list): List of annual data arrays.
+            seasonal_annual_data (list): List of seasonal and annual means [DJF, MAM, JJA, SON, Annual].
             std_hourly_data (xr.DataArray): Standard deviation hourly data array.
             std_daily_data (xr.DataArray): Standard deviation daily data array.
             std_monthly_data (xr.DataArray): Standard deviation monthly data array.
@@ -44,6 +46,7 @@ class PlotLatLonProfiles():
 
         self.monthly_data = to_list(monthly_data)
         self.annual_data = to_list(annual_data)
+        self.seasonal_annual_data = seasonal_annual_data  # This should be a list of [DJF, MAM, JJA, SON, Annual]
 
         # self.std_hourly_data = to_list(std_hourly_data)
         # self.std_daily_data = to_list(std_daily_data)
@@ -135,9 +138,9 @@ class PlotLatLonProfiles():
         return title
 
     def run(self, var: str, units: str = None, region: str = None, outputdir: str = './',
-            rebuild: bool = True, dpi: int = 300, format: str = 'png'):
+            rebuild: bool = True, dpi: int = 300, format: str = 'png', plot_type: str = 'standard'):
         """
-        Run the PlotTimeseries class.
+        Run the PlotLatLonProfiles class.
 
         Args:
             var (str): Variable name to be used in the title and description.
@@ -147,16 +150,26 @@ class PlotLatLonProfiles():
             rebuild (bool): If True, rebuild the plot even if it already exists.
             dpi (int): Dots per inch for the plot.
             format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
+            plot_type (str): Type of plot ('standard' or 'seasonal'). Default is 'standard'.
         """
 
         self.logger.info('Running PlotLatLonProfiles')
         data_label = self.set_data_labels()
-        description = self.set_description(region=region)
-        title = self.set_title(region=region, var=var, units=units)
-        fig, _ = self.plot_lat_lon_profiles(data_labels=data_label, title=title)
+        description = self.set_description(region=region, diagnostic='lat_lon_profiles')
+        title = self.set_title(region=region, var=var, units=units, diagnostic='Lat-Lon Profiles')
+        
+        if plot_type == 'seasonal':
+            if self.seasonal_annual_data is None:
+                self.logger.error('Seasonal data not available for seasonal plot')
+                return
+            fig, _ = self.plot_seasonal_annual_lines(data_labels=data_label, title=title)
+        else:
+            fig, _ = self.plot_lat_lon_profiles(data_labels=data_label, title=title)
+        
         region_short = region.replace(' ', '').lower() if region is not None else None
+        diagnostic_suffix = '_seasonal' if plot_type == 'seasonal' else ''
         self.save_plot(fig, var=var, description=description, region=region_short, rebuild=rebuild,
-                       outputdir=outputdir, dpi=dpi, format=format)
+                       outputdir=outputdir, dpi=dpi, format=format, diagnostic=f'lat_lon_profiles{diagnostic_suffix}')
         self.logger.info('PlotLatLonProfiles completed successfully')
 
     def get_data_info(self):
@@ -171,12 +184,19 @@ class PlotLatLonProfiles():
         - std_startdate
         - std_enddate
         """
-        for data in [self.monthly_data, self.annual_data]:
+        for data in [self.monthly_data, self.annual_data, self.seasonal_annual_data]:
             if data is not None:
-                # Make a list from the data array attributes
-                self.catalogs = [d.AQUA_catalog for d in data]
-                self.models = [d.AQUA_model for d in data]
-                self.exps = [d.AQUA_exp for d in data]
+                # Handle seasonal_annual_data which is a list of DataArrays
+                if data == self.seasonal_annual_data:
+                    # Extract attributes from the first seasonal mean (DJF)
+                    self.catalogs = [data[0].AQUA_catalog]
+                    self.models = [data[0].AQUA_model]
+                    self.exps = [data[0].AQUA_exp]
+                else:
+                    # Make a list from the data array attributes
+                    self.catalogs = [d.AQUA_catalog for d in data]
+                    self.models = [d.AQUA_model for d in data]
+                    self.exps = [d.AQUA_exp for d in data]
                 break
         self.logger.debug(f'Catalogs: {self.catalogs}')
         self.logger.debug(f'Models: {self.models}')
@@ -212,6 +232,44 @@ class PlotLatLonProfiles():
                                         )
 
         return fig, ax
+
+    def plot_seasonal_annual_lines(self, data_labels=None, title=None, style=None):
+        """
+        Plot seasonal and annual means using multiple_lines.py.
+        Creates a 5-panel plot with DJF, MAM, JJA, SON and Annual mean.
+
+        Args:
+            data_labels (list): List of data labels.
+            title (str): Title of the plot.
+            style (str): Plotting style.
+
+        Returns:
+            fig (matplotlib.figure.Figure): Figure object.
+            axs (list): List of axes objects.
+        """
+        from aqua.graphics.multiple_lines import plot_lines
+        
+        if self.seasonal_annual_data is None:
+            self.logger.error('No seasonal and annual data available. Compute them first.')
+            return None, None
+        
+        self.logger.info('Plotting seasonal and annual means using multiple_lines')
+        
+        # Prepare data in the format expected by plot_lines
+        # Structure: [[DJF], [MAM], [JJA], [SON], [Annual]]
+        maps = [[self.seasonal_annual_data[i]] for i in range(5)]
+        
+        # Use plot_lines to create the 5-panel seasonal plot
+        fig, axs = plot_lines(maps=maps,
+                             plot_type='seasonal',
+                             style=style,
+                             loglevel=self.loglevel,
+                             data_labels=data_labels)
+        
+        if title:
+            fig.suptitle(title, fontsize=16, y=0.98)
+        
+        return fig, axs
 
     def save_plot(self, fig, var: str = None, description: str = None, region: str = None, rebuild: bool = True,
                   outputdir: str = './', dpi: int = 300, format: str = 'png', diagnostic: str = None):
