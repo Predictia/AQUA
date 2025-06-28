@@ -74,9 +74,14 @@ class PlotLatLonProfiles():
             data_labels (list): List of data labels for the plot.
         """
         data_labels = []
-        for i in range(self.len_data):
-            label = f'{self.models[i]} {self.exps[i]}'
-            data_labels.append(label)
+        # Handle case where len_data might be 0 or lists might be empty
+        if self.len_data > 0 and len(self.models) > 0 and len(self.exps) > 0:
+            for i in range(min(self.len_data, len(self.models), len(self.exps))):
+                label = f'{self.models[i]} {self.exps[i]}'
+                data_labels.append(label)
+        else:
+            # Fallback label
+            data_labels = ['Unknown Model/Experiment']
 
         self.logger.debug('Data labels: %s', data_labels)
         return data_labels
@@ -189,9 +194,15 @@ class PlotLatLonProfiles():
                 # Handle seasonal_annual_data which is a list of DataArrays
                 if data == self.seasonal_annual_data:
                     # Extract attributes from the first seasonal mean (DJF)
-                    self.catalogs = [data[0].AQUA_catalog]
-                    self.models = [data[0].AQUA_model]
-                    self.exps = [data[0].AQUA_exp]
+                    if len(data) > 0 and hasattr(data[0], 'AQUA_catalog'):
+                        self.catalogs = [data[0].AQUA_catalog]
+                        self.models = [data[0].AQUA_model]
+                        self.exps = [data[0].AQUA_exp]
+                        self.len_data = 1  # Set len_data for seasonal data
+                    else:
+                        self.catalogs = []
+                        self.models = []
+                        self.exps = []
                 else:
                     # Make a list from the data array attributes
                     self.catalogs = [d.AQUA_catalog for d in data]
@@ -287,10 +298,22 @@ class PlotLatLonProfiles():
             format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
             diagnostic (str): Diagnostic name to be used in the filename as diagnostic_product.
         """
+        # Check if we have valid metadata, otherwise use defaults
+        if len(self.catalogs) > 0 and len(self.models) > 0 and len(self.exps) > 0:
+            catalog = self.catalogs[0]
+            model = self.models[0] 
+            exp = self.exps[0]
+        else:
+            # Fallback values when metadata is not available
+            catalog = 'unknown_catalog'
+            model = 'unknown_model'
+            exp = 'unknown_exp'
+            self.logger.warning('Metadata not available, using default values for saving')
+
         outputsaver = OutputSaver(diagnostic='timeseries', 
-                                  catalog=self.catalogs[0],
-                                  model=self.models[0],
-                                  exp=self.exps[0],
+                                  catalog=catalog,
+                                  model=model,
+                                  exp=exp,
                                   outdir=outputdir,
                                   rebuild=rebuild,
                                   loglevel=self.loglevel)
