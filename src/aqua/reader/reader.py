@@ -1025,9 +1025,9 @@ class Reader():
         
         # Handle special cases for seasonal and annual means using TimStat
         if freq == 'seasonal':
-            return self._timstat.compute_seasonal_means(data)
+            return self.timemodule.compute_seasonal_means(data)
         elif freq == 'annual':
-            return self._timstat.compute_annual_mean(data)
+            return self.timemodule.compute_annual_mean(data)
         else:
             # Use the standard timstat method for other frequencies
             return self.timstat(data, stat='mean', freq=freq, **kwargs)
