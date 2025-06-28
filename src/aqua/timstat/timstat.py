@@ -166,18 +166,19 @@ class TimStat():
         
         self.logger.info('Computing seasonal means...')
         
-        # Define seasons with their corresponding months (0-indexed)
+        # Define seasons with their corresponding months (1-indexed as per datetime convention)
         seasons = {
-            "DJF": [11, 0, 1],  # December, January, February
-            "MAM": [2, 3, 4],   # March, April, May
-            "JJA": [5, 6, 7],   # June, July, August
-            "SON": [8, 9, 10]   # September, October, November
+            "DJF": [12, 1, 2],  # December, January, February
+            "MAM": [3, 4, 5],   # March, April, May
+            "JJA": [6, 7, 8],   # June, July, August
+            "SON": [9, 10, 11]   # September, October, November
         }
         
         season_means = []
         for season_name, months in seasons.items():
             self.logger.debug('Computing %s mean for months %s', season_name, months)
-            season_mean = data.isel(time=months).mean(dim='time')
+            season_data = data.sel(time=data.time.dt.month.isin(months))
+            season_mean = season_data.mean(dim='time')
             season_mean = log_history(season_mean, f"{season_name} seasonal mean computed by AQUA TimStat")
             season_means.append(season_mean)
         
