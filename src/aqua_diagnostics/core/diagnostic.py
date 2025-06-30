@@ -192,10 +192,10 @@ class Diagnostic():
                     self.logger.info(f'Region {region} found, using lon: {lon_limits}, lat: {lat_limits}')
                 else:
                     self.logger.error('Region %s not found', region)
-                    raise ValueError(f'Region {region} not found')
+                    raise ValueError('Region %s not found', region)
             else:
-                self.logger.error('Region file not found')
-                raise FileNotFoundError('Region file not found')
+                self.logger.error('Region file path not found')
+                raise FileNotFoundError(f'Region file path not found at: {region_file}')
         else:
             region = None
             self.logger.info('No region provided, using lon_limits: %s, lat_limits: %s', lon_limits, lat_limits)
@@ -229,7 +229,7 @@ class Diagnostic():
         Select a geographic region from the dataset. Used when selection is not on the self.data attribute.
 
         Args:
-            data (xarray Dataset): The dataset to select the region from.
+            data (xarray Dataset or DataArray): The dataset to select the region from.
             region (str): The region to select.
             lon_limits (list): The longitude limits to select.
             lat_limits (list): The latitude limits to select.

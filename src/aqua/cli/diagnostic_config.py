@@ -111,6 +111,11 @@ diagnostic_config = {
             'target_path': 'diagnostics/seaice/config'
         },
         {
+            'config_file': 'regions.yaml',
+            'source_path': 'config/diagnostics/seaice/definitions',
+            'target_path': 'diagnostics/seaice/config'
+        },
+        {
             'config_file': 'config_seaice.yaml',
             'source_path': 'config/diagnostics/seaice',
             'target_path': 'diagnostics/seaice/config'
