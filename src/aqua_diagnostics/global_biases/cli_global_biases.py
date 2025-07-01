@@ -86,8 +86,10 @@ if __name__ == '__main__':
             startdate_ref = config_dict['diagnostics']['globalbiases']['params'].get('startdate_ref', None)
             enddate_ref = config_dict['diagnostics']['globalbiases']['params'].get('enddate_ref', None)
 
-            biases_dataset = GlobalBiases(**dataset_args, startdate=startdate_data, enddate=enddate_data, loglevel=loglevel)
-            biases_reference = GlobalBiases(**reference_args, startdate=startdate_ref, enddate=enddate_ref, loglevel=loglevel)
+            biases_dataset = GlobalBiases(**dataset_args, startdate=startdate_data, enddate=enddate_data,
+                                          outputdir=outputdir, loglevel=loglevel)
+            biases_reference = GlobalBiases(**reference_args, startdate=startdate_ref, enddate=enddate_ref,
+                                            outputdir=outputdir, loglevel=loglevel)
 
 
             for var in variables:
