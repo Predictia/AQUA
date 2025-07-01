@@ -13,6 +13,7 @@ AQUA core complete list:
 - `Trender()` class provide also coefficients and normalize them (#1991)
 
 AQUA diagnostics complete list:
+- Timeseries: `diagnostic_name` option to override the default name in the CLI (#2027)
 - Global Biases: output directory is now correctly set in the cli (#2027)
 - Timeseries: `center_time` option to center the time axis is exposed in the CLI (#2028)
 - Timeseries: fix the missing variable name in some netcdf output (#2023)
