@@ -81,27 +81,28 @@ class GlobalBiases(Diagnostic):
         """
         if var is not None:
             self.var = var
+            
         if formula:
             super().retrieve()
-            self.logger.debug("Evaluating formula %s", self.var)
+            self.logger.debug("Evaluating formula: %s", self.var)
             formula_values = eval_formula(mystring=self.var, xdataset=self.data)
+            if formula_values is None:
+                raise ValueError(f"Error evaluating formula '{self.var}'.")
             self.data[self.var] = formula_values
-            if self.data is None:
-                raise ValueError(f'Error evaluating formula {self.var}. ')
         else:
             super().retrieve(var=self.var)
 
         if self.data is None:
-            self.logger.error(f"Data could not be retrieved for {self.model}, {self.exp}, {self.source}")
+            self.logger.error("Data could not be retrieved for %s, %s, %s", self.model, self.exp, self.source)
             raise NoDataError("No data retrieved.")
 
-        # Customization of the data, expecially needed for formula
+        # Customize metadata and attributes
         if units is not None:
             self._check_data(self.var, units)
+
         if long_name is not None:
             self.data.attrs['long_name'] = long_name
-        # We use the standard_name as the name of the variable
-        # to be always used in plots
+
         if standard_name is not None:
             self.data = self.data.rename_vars({self.var: standard_name})
             self.data.attrs['standard_name'] = standard_name
@@ -109,23 +110,25 @@ class GlobalBiases(Diagnostic):
         else:
             self.data.attrs['standard_name'] = self.var
 
+        # Infer date range if not already set
         self.startdate = self.startdate or pd.to_datetime(self.data.time[0].values).strftime('%Y-%m-%d')
         self.enddate = self.enddate or pd.to_datetime(self.data.time[-1].values).strftime('%Y-%m-%d')
 
         if plev is not None:
             self.plev = plev
 
+        # Final validation and pressure level handling
         if self.var:
             if self.var not in self.data.data_vars:
-                raise KeyError(f"Variable '{self.var}' not found in dataset variables: {list(self.data.data_vars)}")
+                raise KeyError(f"Variable '{self.var}' not found in dataset. Available variables: {list(self.data.data_vars)}")
+
             if self.plev is not None:
-                self.logger.info(f'Selecting pressure level {self.plev} for variable {self.var}.')
+                self.logger.info("Selecting pressure level %s for variable '%s'.", self.plev, self.var)
                 self.data = handle_pressure_level(self.data, self.var, self.plev, loglevel=self.loglevel)
             elif 'plev' in self.data[self.var].dims:
-                self.logger.warning(f"Variable {self.var} has multiple pressure levels but none was selected.")
+                self.logger.warning("Variable '%s' has multiple pressure levels, but none was specified.", self.var)
         else:
-            self.logger.info("All variables were retrieved. No variable-specific operations applied.")
-
+            self.logger.info("All variables retrieved; no variable-specific operations applied.")
 
     def compute_climatology(self,
                             data: xr.Dataset = None,
