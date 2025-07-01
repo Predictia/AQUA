@@ -3,6 +3,7 @@ import os
 import xarray as xr
 from matplotlib import pyplot as plt
 
+from aqua.diagnostics.core import Diagnostic
 from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure, log_history
 from aqua.util import ConfigPath, OutputSaver
@@ -66,6 +67,9 @@ class PlotSeaIce:
         # logging setup
         self.loglevel = loglevel
         self.logger = log_configure(log_level=self.loglevel, log_name='PlotSeaIce')
+
+        # Diagnostic instance for accessing its methods
+        self.diagnostic = Diagnostic(model=model, exp=exp, source=source, catalog=catalog, loglevel=loglevel)
 
         self.model = model
         self.exp = exp
@@ -276,13 +280,26 @@ class PlotSeaIce:
             # extract model data from current dictionary
             model_data_dict = self._getdata_fromdict(data_dict, 'monthly_models')
 
-            # extract startdate and enddate for each unique model
-            stdate = model_data_dict.attrs.get('AQUA_startdate', 'Unknown startdate')
-            endate = model_data_dict.attrs.get('AQUA_enddate', 'Unknown enddate')
-            model_startdate_list = [f"{label} from {stdate} to {endate}" for label in unique_labels]
+            # Helper function to extract date strings
+            def extract_dates(data):
+                return (data.attrs.get('AQUA_startdate', 'Unknown startdate'),
+                        data.attrs.get('AQUA_enddate', 'Unknown enddate'))
+
+            # Build per-model date string
+            model_startdate_list = []
+            if isinstance(model_data_dict, xr.DataArray):
+                stdate, endate = extract_dates(model_data_dict)
+                model_startdate_list = [f"{label} from {stdate} to {endate}" for label in unique_labels]
+                self._description += f" {method} data from {stdate} to {endate} for {region}."
+            elif isinstance(model_data_dict, list):
+                for model_data in model_data_dict:
+                    stdate, endate = extract_dates(model_data)
+                    model_startdate_list.extend([f"{label} from {stdate} to {endate}" for label in unique_labels])
+                    self._description += f" {method} data from {stdate} to {endate} for {region}."
 
             # build the model data string
-            self.model_labels_str = (f"{', '.join(model_startdate_list)} {'are' if len(model_startdate_list) > 1 else 'is'} "
+            self.model_labels_str = (f"{', '.join(model_startdate_list)} "
+                                     f"{'are' if len(model_startdate_list) > 1 else 'is'} "
                                      f"used as {'models' if len(model_startdate_list) > 1 else 'model'} data.")
         else:
             self.model_labels_str = ''
@@ -325,8 +342,8 @@ class PlotSeaIce:
                 
         # finally build the string caption (dynamically)
         self._description = ('{}Sea ice {} integrated over {}. {}{}{}').format(pl_type, method, 
-                                                                                       self.region_str, self.model_labels_str,
-                                                                                       self.ref_label_str, self.std_label_str)
+                                                                               self.region_str, self.model_labels_str,
+                                                                               self.ref_label_str, self.std_label_str)
 
     def regions_type_plotter(self, region_dict, **kwargs):
         """ Loops over each region in region_dict and plots data either as a timeseries or a seasonal cycle
@@ -337,7 +354,8 @@ class PlotSeaIce:
         Returns:
             (fig, axes) : tuple. The figure and axes objects.
         """
-
+        region_definitions = self.diagnostic.read_regions_file(diagnostic='seaice').get('regions', {})
+        
         self.num_regions = len(region_dict)
 
         fig_height = 6 if self.plot_type == 'seasonal_cycle' else 10
@@ -352,7 +370,9 @@ class PlotSeaIce:
         self.logger.debug("Start looping over sea ice regions")
 
         for region_idx, (ax, (region, data_dict)) in enumerate(zip(axes, region_dict.items())):
-            self.logger.info(f"Processing {self.plot_type} for region: {region}")
+
+            region_longname = region_definitions.get(region, {}).get('longname', region)
+            self.logger.info(f"Processing {self.plot_type} for region: {region}; Longname: {region_longname}")
 
             monthly_models = self._getdata_fromdict(data_dict, 'monthly_models')
             annual_models  = self._getdata_fromdict(data_dict, 'annual_models')
@@ -398,10 +418,10 @@ class PlotSeaIce:
                 raise ValueError(f"Unknown plot_type function name: {self.plot_type}")
 
             # update description
-            self._update_description(self.method, region, data_dict, region_idx)
+            self._update_description(self.method, region_longname, data_dict, region_idx)
 
             # customize the subplot - add a title
-            ax.set_title(f"Sea ice {self.method}: region {region}")
+            ax.set_title(f"Sea ice {self.method}: region {region_longname}")
 
         return fig, axes
 
