@@ -41,7 +41,8 @@ if __name__ == '__main__':
                                          loglevel=loglevel)
     config_dict = merge_config_args(config=config_dict, args=args, loglevel=loglevel)
 
-    regrid = get_arg(args, 'regrid', None) 
+    regrid = get_arg(args, 'regrid', None)
+    logger.info(f"Regrid option is set to {regrid}")
 
     # Output options
     outputdir = config_dict['output'].get('outputdir', './')
