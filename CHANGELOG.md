@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.17.0): 
 
 AQUA core complete list:
+- `AQUA_CONFIG` environment variable can be set to customize the path of the configuration files in `aqua-analysis.py` (#2027)
 - Development base container updated to stack 7.0.2.8 (#2022, #2025)
 - `Trender()` class provide also coefficients and normalize them (#1991)
 
