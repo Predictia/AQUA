@@ -357,10 +357,10 @@ if __name__ == '__main__':
 
                     if save_pdf:
                         plot_greg.save_plot(fig, description=description, outputdir=outputdir,
-                                            dpi=dpi, rebuild=rebuild, format='pdf', diagnostic='gregory')
+                                            dpi=dpi, rebuild=rebuild, format='pdf', diagnostic_product='gregory')
                     if save_png:
                         plot_greg.save_plot(fig, description=description, outputdir=outputdir,
-                                            dpi=dpi, rebuild=rebuild, format='png', diagnostic='gregory')
+                                            dpi=dpi, rebuild=rebuild, format='png', diagnostic_product='gregory')
             except Exception as e:
                 logger.error(f"Error running Gregory diagnostic: {e}")
 
