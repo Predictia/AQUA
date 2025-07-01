@@ -9,7 +9,7 @@ from aqua.logger import log_configure, log_history
 from aqua.util import ConfigPath, OutputSaver
 from aqua.graphics import plot_timeseries, plot_seasonalcycle
 from collections import defaultdict
-from .util import defaultdict_to_dict
+from .util import defaultdict_to_dict, extract_dates
 
 xr.set_options(keep_attrs=True)
 
@@ -279,11 +279,6 @@ class PlotSeaIce:
 
             # extract model data from current dictionary
             model_data_dict = self._getdata_fromdict(data_dict, 'monthly_models')
-
-            # Helper function to extract date strings
-            def extract_dates(data):
-                return (data.attrs.get('AQUA_startdate', 'Unknown startdate'),
-                        data.attrs.get('AQUA_enddate', 'Unknown enddate'))
 
             # Build per-model date string
             model_startdate_list = []

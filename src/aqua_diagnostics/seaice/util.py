@@ -6,21 +6,6 @@ from aqua.logger import log_configure
 from collections import defaultdict
 from aqua.util import load_yaml, ConfigPath
 
-def load_region_file(regions_file=None):
-    """ Loads region definitions from a .yaml configuration file and sets the regions.
-        If no regions are provided, it uses all available regions from the configuration.
-    Args:
-        regions_file (str): Full path to the region file. If None, a default path is used.
-    Returns:
-        dict: Parsed YAML content with region definitions.
-    """
-    # determine the region file path if not provided
-    if regions_file is None:
-        folderpath = ConfigPath().get_config_dir()
-        regions_file = os.path.join(folderpath, 'diagnostics', 'seaice', 'config', 'regions_definition.yaml')
-
-    return load_yaml(infile=regions_file)
-
 def defaultdict_to_dict(d):
     """ Recursively converts a defaultdict to a normal dict."""
     if isinstance(d, defaultdict):
@@ -84,4 +69,21 @@ def ensure_istype(obj, expected_types, logger=None):
         if logger:
             logger.error(errmsg)
         raise ValueError(errmsg)
+
+def extract_dates(data):
+    return (data.attrs.get('AQUA_startdate', 'Unknown startdate'),
+            data.attrs.get('AQUA_enddate',   'Unknown enddate'))
         
+def strlist_to_phrase(items: list[str]) -> str:
+    """ Convert a list of str to a english-consistent list.
+       ['A'] will return 'A'
+       ['A','B'] will return 'A and B'
+       ['A','B','C'] will return 'A, B, and C'
+    """
+    if not items:
+        return ""
+    if len(items) == 1:
+        return items[0]
+    if len(items) == 2:
+        return f"{items[0]} and {items[1]}"
+    return ", ".join(items[:-1]) + f", and {items[-1]}"
