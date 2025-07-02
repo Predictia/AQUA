@@ -70,7 +70,7 @@ class PlotTimeseries(PlotBaseMixin):
         # Filling them
         self.get_data_info()
 
-    def run(self, var: str, units: str = None, region: str = None, outputdir: str = './',
+    def run(self, var: str, units: str = None, outputdir: str = './',
             rebuild: bool = True, dpi: int = 300, format: str = 'png'):
         """
         Run the PlotTimeseries class.
@@ -78,7 +78,6 @@ class PlotTimeseries(PlotBaseMixin):
         Args:
             var (str): Variable name to be used in the title and description.
             units (str): Units of the variable to be used in the title.
-            region (str): Region to be used in the title and description.
             outputdir (str): Output directory to save the plot.
             rebuild (bool): If True, rebuild the plot even if it already exists.
             dpi (int): Dots per inch for the plot.
@@ -91,8 +90,7 @@ class PlotTimeseries(PlotBaseMixin):
         description = self.set_description(region=region)
         title = self.set_title(region=region, var=var, units=units)
         fig, _ = self.plot_timeseries(data_labels=data_label, ref_label=ref_label, title=title)
-        region_short = region.replace(' ', '').lower() if region is not None else None
-        self.save_plot(fig, var=var, description=description, region=region_short, rebuild=rebuild,
+        self.save_plot(fig, var=var, description=description, region=self.region, rebuild=rebuild,
                        outputdir=outputdir, dpi=dpi, format=format)
         self.logger.info('PlotTimeseries completed successfully')
 
@@ -129,15 +127,15 @@ class PlotTimeseries(PlotBaseMixin):
                 self.ref_catalogs = ref.AQUA_catalog
                 self.ref_models = ref.AQUA_model
                 self.ref_exps = ref.AQUA_exp
+                self.logger.debug(f'Reference: {self.ref_catalogs} {self.ref_models} {self.ref_exps}')
                 break
-        self.logger.debug(f'Reference: {self.ref_catalogs} {self.ref_models} {self.ref_exps}')
 
         for std in [self.std_monthly_data, self.std_annual_data]:
             if std is not None:
                 self.std_startdate = std.std_startdate if std.std_startdate is not None else None
                 self.std_enddate = std.std_enddate if std.std_enddate is not None else None
+                self.logger.debug(f'Standard deviation dates: {self.std_startdate} - {self.std_enddate}')
                 break
-        self.logger.debug(f'Standard deviation dates: {self.std_startdate} - {self.std_enddate}')
 
     def set_title(self, var: str = None, units: str = None):
         """
@@ -199,7 +197,7 @@ class PlotTimeseries(PlotBaseMixin):
             fig (matplotlib.figure.Figure): Figure object.
             var (str): Variable name to be used in the title and description.
             description (str): Description of the plot.
-            region (str): Region to be used in the title and description. Not the long name, but the short one.
+            region (str): Region to be used in the title and description.
             rebuild (bool): If True, rebuild the plot even if it already exists.
             outputdir (str): Output directory to save the plot.
             dpi (int): Dots per inch for the plot.

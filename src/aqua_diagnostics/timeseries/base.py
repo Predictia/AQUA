@@ -210,8 +210,9 @@ class BaseMixin(Diagnostic):
         if data.name is None:
             data.name = var
 
-        region = self.region.replace(' ', '').lower() if self.region is not None else None
-        extra_keys.update({'region': region})
+        if self.region is not None:
+            region = self.region.replace(' ', '').lower()
+            extra_keys.update({'region': region})
 
         self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
 
@@ -279,6 +280,7 @@ class PlotBaseMixin():
         self.ref_exps = None
         self.std_startdate = None
         self.std_enddate = None
+        self.region = None
 
     def set_data_labels(self):
         """
@@ -417,7 +419,7 @@ class PlotBaseMixin():
         if var is not None:
             extra_keys.update({'var': var})
         if region is not None:
-            region = region.replace(' ', '').lower() if region is not None else None
+            region = region.replace(' ', '').lower()
             extra_keys.update({'region': region})
 
         if format == 'png':
