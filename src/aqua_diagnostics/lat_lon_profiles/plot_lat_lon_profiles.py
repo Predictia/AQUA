@@ -26,6 +26,36 @@ class PlotLatLonProfiles(PlotBaseMixin):
             std_annual_data=std_annual_data,
             loglevel=loglevel
         )
+    
+    def set_title(self, region: str = None, var: str = None, units: str = None):
+        """
+        Set the title for the plot.
+        Specialized for Lat-Lon Profiles diagnostic.
+
+        Args:
+            region (str): Region to be used in the title.
+            var (str): Variable name to be used in the title.
+            units (str): Units of the variable to be used in the title.
+
+        Returns:
+            title (str): Title for the plot.
+        """
+        title = super().set_title(region=region, var=var, units=units, diagnostic='Lat-Lon Profiles')
+        return title
+
+    def set_description(self, region: str = None):
+        """
+        Set the caption for the plot.
+        Specialized for Lat-Lon Profiles diagnostic.
+
+        Args:
+            region (str): Region to be used in the caption.
+
+        Returns:
+            description (str): Caption for the plot.
+        """
+        description = super().set_description(region=region, diagnostic='lat_lon_profiles')
+        return description
 
     def run(self, var: str, units: str = None, region: str = None, outputdir: str = './',
             rebuild: bool = True, dpi: int = 300, format: str = 'png', plot_type: str = 'standard'):
@@ -42,11 +72,10 @@ class PlotLatLonProfiles(PlotBaseMixin):
             format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
             plot_type (str): Type of plot ('standard' or 'seasonal'). Default is 'standard'.
         """
-
         self.logger.info('Running PlotLatLonProfiles')
         data_label = self.set_data_labels()
-        description = self.set_description(region=region, diagnostic='lat_lon_profiles')
-        title = self.set_title(region=region, var=var, units=units, diagnostic='Lat-Lon Profiles')
+        description = self.set_description(region=region)
+        title = self.set_title(region=region, var=var, units=units)
         
         if plot_type == 'seasonal':
             if self.seasonal_annual_data is None:
@@ -58,11 +87,39 @@ class PlotLatLonProfiles(PlotBaseMixin):
         
         region_short = region.replace(' ', '').lower() if region is not None else None
         diagnostic_suffix = '_seasonal' if plot_type == 'seasonal' else ''
+        
+        # Specialized save_plot for Lat-Lon Profiles
         self.save_plot(fig, var=var, description=description, region=region_short, rebuild=rebuild,
-                       outputdir=outputdir, dpi=dpi, format=format, diagnostic=f'lat_lon_profiles{diagnostic_suffix}')
+                    outputdir=outputdir, dpi=dpi, format=format, 
+                    diagnostic=f'lat_lon_profiles{diagnostic_suffix}')
+        
         self.logger.info('PlotLatLonProfiles completed successfully')
 
-    
+    def save_plot(self, fig, var: str = None, description: str = None, region: str = None, rebuild: bool = True,
+              outputdir: str = './', dpi: int = 300, format: str = 'png', diagnostic: str = None):
+        """
+        Save the plot to a file.
+        Specialized for Lat-Lon Profiles diagnostic.
+
+        Args:
+            fig (matplotlib.figure.Figure): Figure object.
+            var (str): Variable name to be used in the title and description.
+            description (str): Description of the plot.
+            region (str): Region to be used in the title and description.
+            rebuild (bool): If True, rebuild the plot even if it already exists.
+            outputdir (str): Output directory to save the plot.
+            dpi (int): Dots per inch for the plot.
+            format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
+            diagnostic (str): Diagnostic name. If None, defaults to 'lat_lon_profiles'.
+        """
+        # Default diagnostic for lat_lon_profiles if not specified
+        if diagnostic is None:
+            diagnostic = 'lat_lon_profiles'
+        
+        super().save_plot(fig=fig, var=var, description=description,
+                        region=region, rebuild=rebuild,
+                        outputdir=outputdir, dpi=dpi, format=format, 
+                        diagnostic=diagnostic)
 
     def plot_seasonal_annual_lines(self, data_labels=None, title=None, style=None):
         """
@@ -101,16 +158,10 @@ class PlotLatLonProfiles(PlotBaseMixin):
         
         return fig, axs
 
-
     def run_multi_seasonal(self, var_names: list, units_list: list = None, 
                         plot_type: str = 'seasonal_multi'):
         """
         Run multi-variable seasonal plotting.
-        
-        Args:
-            var_names (list): List of variable names
-            units_list (list): List of units for each variable
-            plot_type (str): Type of plot
         """
         if self.seasonal_annual_data is None:
             raise ValueError("No seasonal data available. Run compute_seasonal_and_annual_means first.")
@@ -131,7 +182,7 @@ class PlotLatLonProfiles(PlotBaseMixin):
         title = f"Multi-variable Seasonal Comparison: {', '.join(var_names)}"
         fig.suptitle(title, fontsize=14, fontweight='bold')
         
-        # Save the plot
+        # Specialized save_plot for multi-variable seasonal comparison
         self.save_plot(fig, var='_'.join(var_names), 
                     description=f"Multi-variable seasonal comparison: {', '.join(var_names)}",
                     diagnostic='lat_lon_profiles_seasonal_multi')

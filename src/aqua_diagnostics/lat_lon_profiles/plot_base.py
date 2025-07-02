@@ -252,7 +252,7 @@ class PlotBaseMixin():
             diagnostic (str): Diagnostic name to be used in the filename as diagnostic_product.
         """
         # Check if we have valid metadata, otherwise use defaults
-        if len(self.catalogs) > 0 and len(self.models) > 0 and len(self.exps) > 0:
+        if hasattr(self, 'catalogs') and len(self.catalogs) > 0 and len(self.models) > 0 and len(self.exps) > 0:
             catalog = self.catalogs[0]
             model = self.models[0] 
             exp = self.exps[0]
@@ -263,13 +263,17 @@ class PlotBaseMixin():
             exp = 'unknown_exp'
             self.logger.warning('Metadata not available, using default values for saving')
 
+        # Default diagnostic for lat_lon_profiles if not specified
+        if diagnostic is None:
+            diagnostic = 'lat_lon_profiles'
+
         outputsaver = OutputSaver(diagnostic='timeseries', 
-                                  catalog=catalog,
-                                  model=model,
-                                  exp=exp,
-                                  outdir=outputdir,
-                                  rebuild=rebuild,
-                                  loglevel=self.loglevel)
+                                catalog=catalog,
+                                model=model,
+                                exp=exp,
+                                outdir=outputdir,
+                                rebuild=rebuild,
+                                loglevel=self.loglevel)
 
         metadata = {"Description": description, "dpi": dpi }
         extra_keys = {'diagnostic_product': diagnostic}
