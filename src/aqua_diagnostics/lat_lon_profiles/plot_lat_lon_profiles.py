@@ -86,19 +86,31 @@ class PlotLatLonProfiles(PlotBaseMixin):
             plot_type (str): Type of plot ('standard' or 'seasonal'). Default is 'standard'.
         """
         self.logger.info('Running PlotLatLonProfiles')
-        data_label = self.set_data_labels()
-        ref_label = self.set_ref_label()
-        description = self.set_description(region=region)
-        title = self.set_title(region=region, var=var, units=units)
         
         if plot_type == 'seasonal':
+            # Use specialized method for seasonal data labels
+            data_labels = self.set_seasonal_data_labels()
+            description = self.set_description(region=region)
+            title = self.set_title(region=region, var=var, units=units)
+            
             fig, axs = plot_seasonal_and_annual_data(
                 maps=self.seasonal_annual_data,
                 plot_type='seasonal',
-                data_labels=data_label,
-                title=title
+                data_labels=data_labels,
+                title=title,
+                loglevel=self.loglevel
             )
+            
+            # Add title to the figure
+            if title:
+                fig.suptitle(title, fontsize=14, fontweight='bold', y=0.98)
         else:
+            # Standard single profile plotting
+            data_label = self.set_data_labels()
+            ref_label = self.set_ref_label()
+            description = self.set_description(region=region)
+            title = self.set_title(region=region, var=var, units=units)
+            
             fig, _ = self.plot_lat_lon_profiles(data_labels=data_label, ref_label=ref_label, title=title)
         
         region_short = region.replace(' ', '').lower() if region is not None else None

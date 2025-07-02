@@ -124,6 +124,56 @@ class PlotBaseMixin():
         self.logger.debug('Reference label: %s', ref_label)
         return ref_label
 
+    def set_seasonal_data_labels(self):
+        """
+        Set the data labels for seasonal plots that may include reference data.
+        This method handles the case where seasonal_annual_data contains both model and reference data.
+
+        Returns:
+            data_labels (list): List of data labels for the seasonal plot.
+        """
+        data_labels = []
+        
+        if self.seasonal_annual_data and len(self.seasonal_annual_data) > 0:
+            # Check the first season to understand the data structure
+            first_season = self.seasonal_annual_data[0]
+            
+            if isinstance(first_season, list) and len(first_season) >= 1:
+                # Extract labels from the first DataArray of the first season
+                first_data = first_season[0]
+                if hasattr(first_data, 'AQUA_model') and hasattr(first_data, 'AQUA_exp'):
+                    model_label = f'{first_data.AQUA_model} {first_data.AQUA_exp}'
+                    data_labels.append(model_label)
+                else:
+                    data_labels.append('Model Data')
+                
+                # If there's a second DataArray, it's reference data
+                if len(first_season) >= 2:
+                    ref_data = first_season[1]
+                    if hasattr(ref_data, 'AQUA_model') and hasattr(ref_data, 'AQUA_exp'):
+                        ref_label = f'{ref_data.AQUA_model} {ref_data.AQUA_exp}'
+                        data_labels.append(ref_label)
+                    else:
+                        data_labels.append('Reference Data')
+                
+                # If there are more than 2 DataArrays, add labels for them
+                for i in range(2, len(first_season)):
+                    extra_data = first_season[i]
+                    if hasattr(extra_data, 'AQUA_model') and hasattr(extra_data, 'AQUA_exp'):
+                        extra_label = f'{extra_data.AQUA_model} {extra_data.AQUA_exp}'
+                        data_labels.append(extra_label)
+                    else:
+                        data_labels.append(f'Data {i+1}')
+            else:
+                # Fallback
+                data_labels = ['Unknown Data']
+        else:
+            # No seasonal data, fall back to regular method
+            data_labels = self.set_data_labels()
+        
+        self.logger.debug('Seasonal data labels: %s', data_labels)
+        return data_labels
+
     def set_description(self, region: str = None, diagnostic: str = None):
         """
         Set the caption for the plot.
