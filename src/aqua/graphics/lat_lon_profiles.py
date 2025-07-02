@@ -7,8 +7,10 @@ from .util_timeseries import plot_timeseries_data
 from .styles import ConfigStyle
 
 def plot_lat_lon_profiles(data: xr.DataArray = None,
+                          ref_data: xr.DataArray = None,
                           data_labels: list = None,
-                          data_type: str = 'auto',  # 'monthly', 'annual', or 'auto'
+                          ref_label: str = None,
+                          data_type: str = 'auto',
                           style: str = None,
                           fig: plt.Figure = None, 
                           ax: plt.Axes = None,
@@ -19,9 +21,10 @@ def plot_lat_lon_profiles(data: xr.DataArray = None,
 
     Args:
         data (xr.DataArray or list): Data to plot.
+        ref_data (xr.DataArray, optional): Reference data to plot.
         data_labels (list, optional): Labels for the data.
+        ref_label (str, optional): Label for the reference data.
         data_type (str, optional): Type of data for styling ('monthly', 'annual', or 'auto').
-                                  If 'auto', tries to infer from data attributes.
         style (str, optional): Style for the plot.
         fig (plt.Figure, optional): Matplotlib figure object.
         ax (plt.Axes, optional): Matplotlib axes object.
@@ -35,51 +38,112 @@ def plot_lat_lon_profiles(data: xr.DataArray = None,
     logger = log_configure(loglevel, 'plot_lat_lon_profiles')
     ConfigStyle(style=style, loglevel=loglevel)
 
-    # Convert inputs to lists
-    data_list = to_list(data)
-    labels_list = to_list(data_labels)
-
-    if not data_list:
+    # Handle the input data - convert to list safely
+    if data is None:
         raise ValueError("No data provided for plotting")
+    
+    # Convert data to list, handling both single DataArrays and lists
+    if isinstance(data, list):
+        data_list = data
+    else:
+        data_list = [data]
+    
+    # Validate that we have actual data
+    if not data_list or len(data_list) == 0:
+        raise ValueError("No data provided for plotting")
+    
+    # Validate each data array
+    valid_data_list = []
+    for i, d in enumerate(data_list):
+        if d is None:
+            logger.warning(f"Data array {i} is None, skipping")
+            continue
+        if not isinstance(d, xr.DataArray):
+            logger.warning(f"Data array {i} is not an xarray DataArray, skipping")
+            continue
+        if d.size == 0:
+            logger.warning(f"Data array {i} is empty, skipping")
+            continue
+        # Check if data has spatial dimensions for profiling
+        if not any(dim in d.dims for dim in ['lat', 'lon', 'latitude', 'longitude']):
+            logger.warning(f"Data array {i} has no spatial dimensions (lat/lon), skipping")
+            continue
+        valid_data_list.append(d)
+    
+    if not valid_data_list:
+        raise ValueError("No valid data arrays found for plotting")
+    
+    data_list = valid_data_list
+    
+    # Handle labels
+    if data_labels is None or len(data_labels) < len(data_list):
+        labels_list = [
+            d.attrs.get("long_name", f"Data {i+1}") for i, d in enumerate(data_list)
+        ]
+    else:
+        labels_list = data_labels[:len(data_list)]
 
-    # Infer data type if set to 'auto'
-    if data_type == 'auto':
-        # Try to infer from time frequency in the data
-        first_data = data_list[0]
-        if hasattr(first_data, 'time') and len(first_data.time) > 1:
-            time_diff = (first_data.time[1] - first_data.time[0]).values
-            # Rough heuristic: if time difference is around 30 days, it's monthly
-            if 25 <= time_diff.astype('timedelta64[D]').astype(int) <= 35:
-                data_type = 'monthly'
-            elif time_diff.astype('timedelta64[D]').astype(int) >= 300:
-                data_type = 'annual'
-            else:
-                data_type = 'monthly'  # default
-        else:
-            data_type = 'monthly'  # default
-
+    # Create figure if needed
     if fig is None and ax is None:
         fig_size = kwargs.get('figsize', (10, 5))
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
-    logger.debug(f"Plotting {len(data_list)} data arrays with data_type: {data_type}")
+    logger.debug(f"Plotting {len(data_list)} data arrays")
 
-    # prepare labels if not provided
-    if not labels_list or len(labels_list) < len(data_list):
-        labels_list = [
-            (d.attrs.get("long_name", f"Data {i+1}")) for i, d in enumerate(data_list)
-        ]
+    # Plot main data using direct matplotlib instead of plot_timeseries_data
+    for i, d in enumerate(data_list):
+        if 'lat' in d.dims:
+            x_coord = d.lat.values
+            x_label = 'Latitude'
+        elif 'lon' in d.dims:
+            x_coord = d.lon.values  
+            x_label = 'Longitude'
+        else:
+            logger.warning(f"Data {i} has no lat/lon dimension, skipping")
+            continue
+            
+        label = labels_list[i] if i < len(labels_list) else f"Data {i+1}"
+        ax.plot(x_coord, d.values, label=label, linewidth=3)
 
-    plot_timeseries_data(
-        ax=ax,
-        data=data_list,
-        data_labels=labels_list,
-        lw=3,
-        kind=data_type
-    )
+    # Handle reference data
+    if ref_data is not None:
+        if isinstance(ref_data, xr.DataArray) and ref_data.size > 0:
+            # Check if ref_data has spatial dimensions
+            if any(dim in ref_data.dims for dim in ['lat', 'lon', 'latitude', 'longitude']):
+                ref_label_final = ref_label if ref_label is not None else "Reference"
+                logger.debug(f"Plotting reference data with label: {ref_label_final}")
+                
+                try:
+                    if 'lat' in ref_data.dims:
+                        ref_x_coord = ref_data.lat.values
+                    elif 'lon' in ref_data.dims:
+                        ref_x_coord = ref_data.lon.values
+                    else:
+                        logger.warning("Reference data has no lat/lon dimension")
+                        ref_x_coord = None
+                        
+                    if ref_x_coord is not None:
+                        ax.plot(ref_x_coord, ref_data.values, 
+                               label=ref_label_final, linewidth=3, 
+                               linestyle='--', alpha=0.8)
+                               
+                except Exception as e:
+                    logger.warning(f"Failed to plot reference data: {e}")
+            else:
+                logger.warning("Reference data has no spatial dimensions, skipping")
+        else:
+            logger.warning("Reference data is invalid or empty, skipping")
 
+    # Finalize plot
     ax.legend(fontsize='small')
     ax.grid(True, axis="y", linestyle='-', color='silver', alpha=0.8)
+    
+    # Set x-label based on the dimension
+    first_data = data_list[0]
+    if 'lat' in first_data.dims:
+        ax.set_xlabel('Latitude')
+    elif 'lon' in first_data.dims:
+        ax.set_xlabel('Longitude')
 
     title = kwargs.get('title', None)
     if title:

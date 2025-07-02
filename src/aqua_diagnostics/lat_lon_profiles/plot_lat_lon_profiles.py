@@ -10,11 +10,13 @@ class PlotLatLonProfiles(PlotBaseMixin):
     including seasonal and annual means.
     """
     def __init__(self, hourly_data=None, daily_data=None,
-                 monthly_data=None, annual_data=None,
-                 seasonal_annual_data=None,
-                 std_hourly_data=None, std_daily_data=None,
-                 std_monthly_data=None, std_annual_data=None,
-                 loglevel: str = 'WARNING'):
+             monthly_data=None, annual_data=None,
+             seasonal_annual_data=None,
+             ref_hourly_data=None, ref_daily_data=None,
+             ref_monthly_data=None, ref_annual_data=None,
+             std_hourly_data=None, std_daily_data=None,
+             std_monthly_data=None, std_annual_data=None,
+             loglevel: str = 'WARNING'):
         """
         Initialize the PlotLatLonProfiles class.
         Inherits from PlotBaseMixin for basic plotting functionality.
@@ -26,6 +28,10 @@ class PlotLatLonProfiles(PlotBaseMixin):
             monthly_data=monthly_data,
             annual_data=annual_data,
             seasonal_annual_data=seasonal_annual_data,
+            ref_hourly_data=ref_hourly_data,
+            ref_daily_data=ref_daily_data,
+            ref_monthly_data=ref_monthly_data,
+            ref_annual_data=ref_annual_data,
             std_hourly_data=std_hourly_data,
             std_daily_data=std_daily_data,
             std_monthly_data=std_monthly_data,
@@ -65,7 +71,7 @@ class PlotLatLonProfiles(PlotBaseMixin):
         return description
 
     def run(self, var: str, units: str = None, region: str = None, outputdir: str = './',
-            rebuild: bool = True, dpi: int = 300, format: str = 'png', plot_type: str = 'standard'):
+        rebuild: bool = True, dpi: int = 300, format: str = 'png', plot_type: str = 'standard'):
         """
         Run the PlotLatLonProfiles class.
 
@@ -81,16 +87,19 @@ class PlotLatLonProfiles(PlotBaseMixin):
         """
         self.logger.info('Running PlotLatLonProfiles')
         data_label = self.set_data_labels()
+        ref_label = self.set_ref_label()
         description = self.set_description(region=region)
         title = self.set_title(region=region, var=var, units=units)
         
         if plot_type == 'seasonal':
-            if self.seasonal_annual_data is None:
-                self.logger.error('Seasonal data not available for seasonal plot')
-                return
-            fig, _ = self.plot_seasonal_annual_lines(data_labels=data_label, title=title)
+            fig, axs = plot_seasonal_and_annual_data(
+                maps=self.seasonal_annual_data,
+                plot_type='seasonal',
+                data_labels=data_label,
+                title=title
+            )
         else:
-            fig, _ = self.plot_lat_lon_profiles(data_labels=data_label, title=title)
+            fig, _ = self.plot_lat_lon_profiles(data_labels=data_label, ref_label=ref_label, title=title)
         
         region_short = region.replace(' ', '').lower() if region is not None else None
         diagnostic_suffix = '_seasonal' if plot_type == 'seasonal' else ''
