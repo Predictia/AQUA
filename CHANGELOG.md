@@ -14,7 +14,7 @@ AQUA core complete list:
 AQUA diagnostics complete list:
 - Timeseries: `center_time` option to center the time axis is exposed in the CLI (#2028)
 - Timeseries: fix the missing variable name in some netcdf output (#2023)
-- Diagnostic core: new `_select_region` method in `Diagnostic`, wrapped by `select_region` to select a region also on custom datasets (#2020)
+- Diagnostic core: new `_select_region` method in `Diagnostic`, wrapped by `select_region` to select a region also on custom datasets (#2020, #2032)
 
 ## [v0.16.0]
 
