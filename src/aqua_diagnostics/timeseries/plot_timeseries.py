@@ -87,8 +87,8 @@ class PlotTimeseries(PlotBaseMixin):
         self.logger.info('Running PlotTimeseries')
         data_label = self.set_data_labels()
         ref_label = self.set_ref_label()
-        description = self.set_description(region=self.region)
-        title = self.set_title(region=self.region, var=var, units=units)
+        description = self.set_description()
+        title = self.set_title(var=var, units=units)
         fig, _ = self.plot_timeseries(data_labels=data_label, ref_label=ref_label, title=title)
         self.save_plot(fig, var=var, description=description, region=self.region, rebuild=rebuild,
                        outputdir=outputdir, dpi=dpi, format=format)
