@@ -2,7 +2,8 @@ import xarray as xr
 
 from aqua.logger import log_configure
 from aqua.util import to_list
-from aqua.graphics import plot_lat_lon_profiles
+from aqua.graphics import plot_lat_lon_profiles, plot_seasonal_and_annual_data
+from aqua.graphics.multiple_lines import plot_multi_lines
 from aqua.diagnostics.core import OutputSaver
 
 class PlotLatLonProfiles():
@@ -44,9 +45,11 @@ class PlotLatLonProfiles():
             if data is not None:
                 self.logger.warning('Hourly and daily data are not yet supported, they will be ignored')
 
-        self.monthly_data = to_list(monthly_data)
-        self.annual_data = to_list(annual_data)
-        self.seasonal_annual_data = seasonal_annual_data  # This should be a list of [DJF, MAM, JJA, SON, Annual]
+        self.monthly_data = to_list(monthly_data) if monthly_data is not None else []
+        self.annual_data = to_list(annual_data) if annual_data is not None else []
+        # seasonal_annual_data should be a list of lists: 
+        # [[DJF_data1, DJF_data2], [MAM_data1, MAM_data2], ...]
+        self.seasonal_annual_data = seasonal_annual_data  
 
         # self.std_hourly_data = to_list(std_hourly_data)
         # self.std_daily_data = to_list(std_daily_data)
@@ -258,7 +261,6 @@ class PlotLatLonProfiles():
             fig (matplotlib.figure.Figure): Figure object.
             axs (list): List of axes objects.
         """
-        from aqua.graphics.multiple_lines import plot_lines
         
         if self.seasonal_annual_data is None:
             self.logger.error('No seasonal and annual data available. Compute them first.')
@@ -266,12 +268,12 @@ class PlotLatLonProfiles():
         
         self.logger.info('Plotting seasonal and annual means using multiple_lines')
         
-        # Prepare data in the format expected by plot_lines
+        # Prepare data in the format expected by plot_seasonal_and_annual_data
         # Structure: [[DJF], [MAM], [JJA], [SON], [Annual]]
         maps = [[self.seasonal_annual_data[i]] for i in range(5)]
         
-        # Use plot_lines to create the 5-panel seasonal plot
-        fig, axs = plot_lines(maps=maps,
+        # Use plot_seasonal_and_annual_data to create the 5-panel seasonal plot
+        fig, axs = plot_seasonal_and_annual_data(maps=maps,
                              plot_type='seasonal',
                              style=style,
                              loglevel=self.loglevel,
@@ -279,6 +281,67 @@ class PlotLatLonProfiles():
         
         if title:
             fig.suptitle(title, fontsize=16, y=0.98)
+        
+        return fig, axs
+
+    def plot_multi_line_profiles(self, data_labels=None, title=None):
+        """
+        Plot multiple lat lon profiles on the same plot.
+        
+        Returns:
+            fig, ax: matplotlib figure and axes
+        """
+        from aqua.graphics.multiple_lines import plot_multi_lines
+        
+        # Choose the data to plot (monthly or annual)
+        if self.monthly_data:
+            data_to_plot = self.monthly_data
+        elif self.annual_data:
+            data_to_plot = self.annual_data
+        else:
+            raise ValueError("No data available for plotting")
+        
+        fig, ax = plot_multi_lines(
+            data_arrays_list=data_to_plot,
+            data_labels=data_labels,
+            title=title
+        )
+        
+        return fig, ax
+
+    def run_multi_seasonal(self, var_names: list, units_list: list = None, 
+                        plot_type: str = 'seasonal_multi'):
+        """
+        Run multi-variable seasonal plotting.
+        
+        Args:
+            var_names (list): List of variable names
+            units_list (list): List of units for each variable
+            plot_type (str): Type of plot
+        """
+        if self.seasonal_annual_data is None:
+            raise ValueError("No seasonal data available. Run compute_seasonal_and_annual_means first.")
+        
+        # Create combined labels
+        data_labels = []
+        for i, var_name in enumerate(var_names):
+            unit = units_list[i] if units_list and i < len(units_list) else ""
+            label = f"{var_name} ({unit})" if unit else var_name
+            data_labels.append(label)
+        
+        # Use the enhanced plot_seasonal_and_annual_data for seasonal multi-variable plotting
+        fig, axs = plot_seasonal_and_annual_data(maps=self.seasonal_annual_data,
+                            plot_type='seasonal',
+                            data_labels=data_labels,
+                            loglevel=self.loglevel)
+        
+        title = f"Multi-variable Seasonal Comparison: {', '.join(var_names)}"
+        fig.suptitle(title, fontsize=14, fontweight='bold')
+        
+        # Save the plot
+        self.save_plot(fig, var='_'.join(var_names), 
+                    description=f"Multi-variable seasonal comparison: {', '.join(var_names)}",
+                    diagnostic='lat_lon_profiles_seasonal_multi')
         
         return fig, axs
 
