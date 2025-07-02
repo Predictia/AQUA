@@ -57,11 +57,10 @@ def plot_seasonal_and_annual_data(maps,
         for i, ax in enumerate(axs[:4]):
             for j, data in enumerate(maps[i]):
                 label = data_labels[j] if data_labels and j < len(data_labels) else f"Data {j+1}"
-                plot_lat_lon_profiles(mean_type='zonal',
-                                    monthly_data=data, 
-                                    fig=fig, ax=ax,
-                                    data_labels=[label]
-                                    )
+                plot_lat_lon_profiles(data=data,
+                                    data_labels=[label],
+                                    data_type='auto',
+                                    fig=fig, ax=ax)
             ax.set_title(season_names[i])
             ax.grid(True, linestyle='--', alpha=0.7)
             # keep the legend only for the first subplot
@@ -72,11 +71,12 @@ def plot_seasonal_and_annual_data(maps,
 
         # Annual mean (bottom panel)
         for j, data in enumerate(maps[4]):
-            plot_lat_lon_profiles(mean_type='zonal',
-                                  monthly_data=data, 
-                                  fig=fig, ax=axs[4],
-                                  data_labels=[data_labels[j]] if data_labels else None
-                                  )
+            label = data_labels[j] if data_labels and j < len(data_labels) else f"Data {j+1}"
+            plot_lat_lon_profiles(data=data,
+                                data_labels=[label],
+                                data_type='auto',
+                                fig=fig,
+                                ax=axs[4])
         axs[4].set_title("Annual Mean")
         if len(maps[4]) > 1:
             axs[4].legend(fontsize='small', loc='upper right')

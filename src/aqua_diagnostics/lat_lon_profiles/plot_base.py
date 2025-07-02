@@ -240,12 +240,20 @@ class PlotBaseMixin():
             fig (matplotlib.figure.Figure): Figure object.
             ax (matplotlib.axes.Axes): Axes object.
         """
-        fig, ax = plot_lat_lon_profiles(mean_type='zonal',
-                                        monthly_data=self.monthly_data, 
-                                        annual_data=self.annual_data,
-                                        #fig=fig, ax=ax,
-                                        data_labels= data_labels,
-                                        )
+        # Choose the data to plot (monthly has priority over annual)
+        if self.monthly_data:
+            data_to_plot = self.monthly_data
+            data_type = 'monthly'
+        elif self.annual_data:
+            data_to_plot = self.annual_data
+            data_type = 'annual'
+        else:
+            raise ValueError("No monthly or annual data available for plotting")
+
+        fig, ax = plot_lat_lon_profiles(data=data_to_plot,
+                                        data_labels=data_labels,
+                                        data_type=data_type,
+                                        title=title)
 
         return fig, ax
     
@@ -256,21 +264,36 @@ class PlotBaseMixin():
         Returns:
             fig, ax: matplotlib figure and axes
         """
-        from aqua.graphics.multiple_lines import plot_multi_lines
+        import matplotlib.pyplot as plt
+        from aqua.graphics import plot_lat_lon_profiles
         
         # Choose the data to plot (monthly or annual)
         if self.monthly_data:
             data_to_plot = self.monthly_data
+            data_type = 'monthly'
         elif self.annual_data:
             data_to_plot = self.annual_data
+            data_type = 'annual'
         else:
             raise ValueError("No data available for plotting")
         
-        fig, ax = plot_multi_lines(
-            data_arrays_list=data_to_plot,
-            data_labels=data_labels,
-            title=title
-        )
+        # Create the figure
+        fig, ax = plt.subplots(figsize=(10, 6))
+        
+        # Plot each line
+        for i, data in enumerate(data_to_plot):
+            label = data_labels[i] if data_labels and i < len(data_labels) else f"Data {i+1}"
+            plot_lat_lon_profiles(data=data,
+                                data_labels=[label],
+                                data_type=data_type,
+                                fig=fig, 
+                                ax=ax)
+        
+        if title:
+            ax.set_title(title, fontsize=13, fontweight='bold')
+        
+        ax.legend(fontsize='small')
+        ax.grid(True, linestyle='--', alpha=0.7)
         
         return fig, ax
     
