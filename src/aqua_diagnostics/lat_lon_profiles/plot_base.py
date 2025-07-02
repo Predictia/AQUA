@@ -6,6 +6,13 @@ from aqua.graphics import plot_lat_lon_profiles
 from aqua.diagnostics.core import OutputSaver
 
 class PlotBaseMixin():
+    """
+    Base class for plotting lat lon profiles data.
+    This class provides methods to set data labels, description, title,
+    and to plot the data. It also handles the initialization of the class
+    with various data arrays for different frequencies (hourly, daily,
+    monthly, annual, seasonal annual) and their standard deviations.
+    """
     def __init__(self, hourly_data=None, daily_data=None,
                  monthly_data=None, annual_data=None,
                  seasonal_annual_data=None,
@@ -155,30 +162,62 @@ class PlotBaseMixin():
         - std_startdate
         - std_enddate
         """
-        for data in [self.monthly_data, self.annual_data, self.seasonal_annual_data]:
-            if data is not None:
-                # Handle seasonal_annual_data which is a list of DataArrays
-                if data == self.seasonal_annual_data:
-                    # Extract attributes from the first seasonal mean (DJF)
-                    if len(data) > 0 and hasattr(data[0], 'AQUA_catalog'):
+        # Check monthly and annual data first
+        for data in [self.monthly_data, self.annual_data]:
+            if data is not None and len(data) > 0:
+                if len(data) == 1:
+                    if hasattr(data[0], 'AQUA_catalog'):
                         self.catalogs = [data[0].AQUA_catalog]
                         self.models = [data[0].AQUA_model]
                         self.exps = [data[0].AQUA_exp]
-                        self.len_data = 1  # Set len_data for seasonal data
                     else:
                         self.catalogs = []
                         self.models = []
                         self.exps = []
                 else:
-                    # Make a list from the data array attributes
                     self.catalogs = [d.AQUA_catalog for d in data]
                     self.models = [d.AQUA_model for d in data]
                     self.exps = [d.AQUA_exp for d in data]
                 break
+        else:
+            # If no monthly or annual data, check seasonal_annual_data
+            if self.seasonal_annual_data is not None and len(self.seasonal_annual_data) > 0:
+                # Check if seasonal_annual_data is a simple list of DataArrays
+                # or a nested list (multi-variable case)
+                first_item = self.seasonal_annual_data[0]
+                
+                if isinstance(first_item, list):
+                    # Multi-variable case: [[DJF_data1, DJF_data2, ...], [MAM_data1, ...], ...]
+                    # Take metadata from the first DataArray of the first season
+                    if len(first_item) > 0 and hasattr(first_item[0], 'AQUA_catalog'):
+                        self.catalogs = [first_item[0].AQUA_catalog]
+                        self.models = [first_item[0].AQUA_model]
+                        self.exps = [first_item[0].AQUA_exp]
+                    else:
+                        self.catalogs = []
+                        self.models = []
+                        self.exps = []
+                else:
+                    # Simple case: [DJF_data, MAM_data, JJA_data, SON_data, Annual_data]
+                    if hasattr(first_item, 'AQUA_catalog'):
+                        self.catalogs = [first_item.AQUA_catalog]
+                        self.models = [first_item.AQUA_model]
+                        self.exps = [first_item.AQUA_exp]
+                    else:
+                        self.catalogs = []
+                        self.models = []
+                        self.exps = []
+            else:
+                # Fallback if no data is available
+                self.logger.warning('No data available for metadata extraction, using empty lists')
+                self.catalogs = []
+                self.models = []
+                self.exps = []
+        
         self.logger.debug(f'Catalogs: {self.catalogs}')
         self.logger.debug(f'Models: {self.models}')
         self.logger.debug(f'Experiments: {self.exps}')
-
+        
         self.std_startdate = None
         self.std_enddate = None
 
@@ -267,7 +306,7 @@ class PlotBaseMixin():
         if diagnostic is None:
             diagnostic = 'lat_lon_profiles'
 
-        outputsaver = OutputSaver(diagnostic='timeseries', 
+        outputsaver = OutputSaver(diagnostic='lat_lon_profiles',
                                 catalog=catalog,
                                 model=model,
                                 exp=exp,
@@ -292,19 +331,25 @@ class PlotBaseMixin():
             raise ValueError(f'Format {format} not supported. Use png or pdf.')
 
     def _check_data_length(self):
-        """
-        Check if all data arrays have the same length.
-        If not, raise a ValueError.
-
-        Return:
-            data_length (int): Length of the data arrays.
-        """
-        data_length = 0
-
-        if self.monthly_data and self.annual_data:
-            if len(self.monthly_data) != len(self.annual_data):
-                raise ValueError('Monthly and annual data list must have the same length')
+        """Check the length of the data arrays."""
+        lengths = []
+        
+        for data in [self.monthly_data, self.annual_data]:
+            if data is not None and len(data) > 0:  # Aggiungi controllo che la lista non sia vuota
+                lengths.append(len(data))
+        
+        # For seasonal_annual_data, we assume it represents one dataset with seasonal/annual means
+        if self.seasonal_annual_data is not None and len(self.seasonal_annual_data) > 0:
+            lengths.append(1)  # Un dataset con dati stagionali
+        
+        if len(lengths) == 0:
+            return 0
+        elif len(set(lengths)) == 1:
+            return lengths[0]
+        else:
+            # Se abbiamo solo seasonal_annual_data, dovrebbe essere 1
+            if len(self.monthly_data) == 0 and len(self.annual_data) == 0 and self.seasonal_annual_data is not None:
+                return 1
             else:
-                data_length = len(self.monthly_data)
-
-        return data_length
+                self.logger.warning('Data arrays have different lengths')
+                return max(lengths)

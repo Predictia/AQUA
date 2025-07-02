@@ -1,8 +1,14 @@
 from aqua.graphics import plot_seasonal_and_annual_data
+from aqua.logger import log_configure
 from .plot_base import PlotBaseMixin
 
 class PlotLatLonProfiles(PlotBaseMixin):
-    
+    """
+    Class for plotting Lat-Lon Profiles diagnostics.
+    Inherits from PlotBaseMixin for basic plotting functionality.
+    This class is specialized for handling lat-lon profile plots,
+    including seasonal and annual means.
+    """
     def __init__(self, hourly_data=None, daily_data=None,
                  monthly_data=None, annual_data=None,
                  seasonal_annual_data=None,
@@ -26,6 +32,7 @@ class PlotLatLonProfiles(PlotBaseMixin):
             std_annual_data=std_annual_data,
             loglevel=loglevel
         )
+        self.logger = log_configure(self.loglevel, 'PlotLatLonProfiles')
     
     def set_title(self, region: str = None, var: str = None, units: str = None):
         """
@@ -159,9 +166,18 @@ class PlotLatLonProfiles(PlotBaseMixin):
         return fig, axs
 
     def run_multi_seasonal(self, var_names: list, units_list: list = None, 
-                        plot_type: str = 'seasonal_multi'):
+                           plot_type: str = 'seasonal_multi'):
         """
         Run multi-variable seasonal plotting.
+
+        Args:
+            var_names (list): List of variable names to be plotted.
+            units_list (list): List of units corresponding to each variable.
+            plot_type (str): Type of plot ('seasonal_multi' for multi-variable seasonal comparison).
+
+        Returns:
+            fig (matplotlib.figure.Figure): Figure object containing the multi-variable seasonal plot.
+            axs (list): List of axes objects for the multi-variable seasonal plot.
         """
         if self.seasonal_annual_data is None:
             raise ValueError("No seasonal data available. Run compute_seasonal_and_annual_means first.")
