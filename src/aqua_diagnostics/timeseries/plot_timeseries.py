@@ -105,6 +105,7 @@ class PlotTimeseries(PlotBaseMixin):
         - AQUA_catalog
         - AQUA_model
         - AQUA_exp
+        - AQUA_region
         - std_startdate
         - std_enddate
         """
@@ -114,10 +115,13 @@ class PlotTimeseries(PlotBaseMixin):
                 self.catalogs = [d.AQUA_catalog for d in data]
                 self.models = [d.AQUA_model for d in data]
                 self.exps = [d.AQUA_exp for d in data]
+                # We expect all data arrays to have the same region
+                self.region = data[0].AQUA_region if hasattr(data[0], 'AQUA_region') else None
                 break
         self.logger.debug(f'Catalogs: {self.catalogs}')
         self.logger.debug(f'Models: {self.models}')
         self.logger.debug(f'Experiments: {self.exps}')
+        self.logger.debug(f'Region: {self.region}')
 
         # TODO: support ref list
         for ref in [self.ref_monthly_data, self.ref_annual_data]:
@@ -135,35 +139,31 @@ class PlotTimeseries(PlotBaseMixin):
                 break
         self.logger.debug(f'Standard deviation dates: {self.std_startdate} - {self.std_enddate}')
 
-    def set_title(self, region: str = None, var: str = None, units: str = None):
+    def set_title(self, var: str = None, units: str = None):
         """
         Set the title for the plot.
 
         Args:
-            region (str): Region to be used in the title.
             var (str): Variable name to be used in the title.
             units (str): Units of the variable to be used in the title.
 
         Returns:
             title (str): Title for the plot.
         """
-        title = super().set_title(region=region, var=var, units=units, diagnostic='Time series')
+        title = super().set_title(region=self.region, var=var, units=units, diagnostic='Time series')
         return title
 
-    def set_description(self, region: str = None):
+    def set_description(self):
         """
         Set the caption for the plot.
         The caption is extracted from the data arrays attributes and the
         reference data arrays attributes.
         The caption is stored as 'Description' in the metadata dictionary.
 
-        Args:
-            region (str): Region to be used in the caption.
-
         Returns:
             description (str): Caption for the plot.
         """
-        description = super().set_description(region=region, diagnostic='Time series')
+        description = super().set_description(region=self.region, diagnostic='Time series')
         return description
 
     def plot_timeseries(self, data_labels=None, ref_label=None, title=None):
@@ -199,7 +199,7 @@ class PlotTimeseries(PlotBaseMixin):
             fig (matplotlib.figure.Figure): Figure object.
             var (str): Variable name to be used in the title and description.
             description (str): Description of the plot.
-            region (str): Region to be used in the title and description.
+            region (str): Region to be used in the title and description. Not the long name, but the short one.
             rebuild (bool): If True, rebuild the plot even if it already exists.
             outputdir (str): Output directory to save the plot.
             dpi (int): Dots per inch for the plot.

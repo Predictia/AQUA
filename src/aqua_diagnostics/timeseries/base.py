@@ -160,6 +160,9 @@ class BaseMixin(Diagnostic):
         else:  # For annual data, we compute the std over all years
             data = data.std('time')
 
+        if self.region is not None:
+            data.attrs['AQUA_region'] = self.region
+
         # Store start and end dates for the standard deviation.
         # pd.Timestamp cannot be used as attribute, so we convert to a string
         data.attrs['std_startdate'] = time_to_string(self.std_startdate)
