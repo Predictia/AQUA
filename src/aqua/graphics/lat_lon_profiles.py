@@ -121,7 +121,7 @@ def plot_lat_lon_profiles(data: xr.DataArray = None,
                         ref_x_coord = None
                         
                     if ref_x_coord is not None:
-                        # REFERENCE DATA: Always black and solid line
+                        # Plot reference data
                         ax.plot(ref_x_coord, ref_data.values, 
                             label=ref_label_final, 
                             color='black',        # Always black
