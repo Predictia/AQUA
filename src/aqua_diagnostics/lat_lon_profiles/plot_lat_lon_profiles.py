@@ -12,6 +12,7 @@ class PlotLatLonProfiles(PlotBaseMixin):
     def __init__(self, hourly_data=None, daily_data=None,
              monthly_data=None, annual_data=None,
              seasonal_annual_data=None,
+             seasonal_annual_ref_data=None,
              ref_hourly_data=None, ref_daily_data=None,
              ref_monthly_data=None, ref_annual_data=None,
              std_hourly_data=None, std_daily_data=None,
@@ -28,6 +29,7 @@ class PlotLatLonProfiles(PlotBaseMixin):
             monthly_data=monthly_data,
             annual_data=annual_data,
             seasonal_annual_data=seasonal_annual_data,
+            seasonal_annual_ref_data=seasonal_annual_ref_data,
             ref_hourly_data=ref_hourly_data,
             ref_daily_data=ref_daily_data,
             ref_monthly_data=ref_monthly_data,
@@ -95,6 +97,7 @@ class PlotLatLonProfiles(PlotBaseMixin):
             
             fig, axs = plot_seasonal_and_annual_data(
                 maps=self.seasonal_annual_data,
+                ref_maps=self.seasonal_annual_ref_data,
                 plot_type='seasonal',
                 data_labels=data_labels,
                 title=title,
@@ -211,10 +214,13 @@ class PlotLatLonProfiles(PlotBaseMixin):
             data_labels.append(label)
         
         # Use the enhanced plot_seasonal_and_annual_data for seasonal multi-variable plotting
-        fig, axs = plot_seasonal_and_annual_data(maps=self.seasonal_annual_data,
-                            plot_type='seasonal',
-                            data_labels=data_labels,
-                            loglevel=self.loglevel)
+        fig, axs = plot_seasonal_and_annual_data(
+            maps=self.seasonal_annual_data,
+            ref_maps=self.seasonal_annual_ref_data,
+            plot_type='seasonal',
+            data_labels=data_labels,
+            loglevel=self.loglevel
+        )
         
         title = f"Multi-variable Seasonal Comparison: {', '.join(var_names)}"
         fig.suptitle(title, fontsize=14, fontweight='bold')

@@ -16,6 +16,7 @@ class PlotBaseMixin():
     def __init__(self, hourly_data=None, daily_data=None,
              monthly_data=None, annual_data=None,
              seasonal_annual_data=None,
+             seasonal_annual_ref_data=None,
              ref_hourly_data=None, ref_daily_data=None,
              ref_monthly_data=None, ref_annual_data=None,
              std_hourly_data=None, std_daily_data=None,
@@ -62,6 +63,7 @@ class PlotBaseMixin():
         # seasonal_annual_data should be a list of lists: 
         # [[DJF_data1, DJF_data2], [MAM_data1, MAM_data2], ...]
         self.seasonal_annual_data = seasonal_annual_data  
+        self.seasonal_annual_ref_data = seasonal_annual_ref_data 
 
         # TODO: support ref list
         self.ref_monthly_data = ref_monthly_data if isinstance(ref_monthly_data, xr.DataArray) else (ref_monthly_data[0] if ref_monthly_data is not None else None)

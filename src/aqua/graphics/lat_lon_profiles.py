@@ -111,7 +111,6 @@ def plot_lat_lon_profiles(data: xr.DataArray = None,
             # Check if ref_data has spatial dimensions
             if any(dim in ref_data.dims for dim in ['lat', 'lon', 'latitude', 'longitude']):
                 ref_label_final = ref_label if ref_label is not None else "Reference"
-                logger.debug(f"Plotting reference data with label: {ref_label_final}")
                 
                 try:
                     if 'lat' in ref_data.dims:
@@ -119,14 +118,17 @@ def plot_lat_lon_profiles(data: xr.DataArray = None,
                     elif 'lon' in ref_data.dims:
                         ref_x_coord = ref_data.lon.values
                     else:
-                        logger.warning("Reference data has no lat/lon dimension")
                         ref_x_coord = None
                         
                     if ref_x_coord is not None:
+                        # REFERENCE DATA: Always black and solid line
                         ax.plot(ref_x_coord, ref_data.values, 
-                               label=ref_label_final, linewidth=3, 
-                               linestyle='--', alpha=0.8)
-                               
+                            label=ref_label_final, 
+                            color='black',        # Always black
+                            linestyle='-',        # Always solid
+                            linewidth=3,          # Thick line
+                            alpha=1.0)            # Full opacity
+                            
                 except Exception as e:
                     logger.warning(f"Failed to plot reference data: {e}")
             else:

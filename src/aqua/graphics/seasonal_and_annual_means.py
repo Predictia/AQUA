@@ -6,31 +6,14 @@ from .styles import ConfigStyle
 from .lat_lon_profiles import plot_lat_lon_profiles
 
 def plot_seasonal_and_annual_data(maps,
-               plot_type: str = 'seasonal',
-               style: str = None,
-               loglevel='WARNING',
-               data_labels: list = None,
-               title: str = None,  # Add title parameter
-               **kwargs):
-    """
-    Plots multiple lines for seasonal or annual means from pre-calculated data.
+                                  ref_maps=None,
+                                  plot_type: str = 'seasonal',
+                                  style: str = None,
+                                  loglevel='WARNING',
+                                  data_labels: list = None,
+                                  title: str = None,
+                                  **kwargs):
     
-    This function is purely for graphics and expects pre-calculated seasonal/annual data.
-    For data calculation, use the appropriate diagnostic classes (e.g., LatLonProfiles).
-
-    Args:
-        maps (list of lists): Pre-calculated data structured as [[DJF], [MAM], [JJA], [SON], [Annual]].
-                             Each inner list contains DataArrays for each data series.
-        plot_type (str): Type of plot, currently only 'seasonal' is supported.
-        style (str): Style for the plot.
-        loglevel (str): Logging level.
-        data_labels (list): Labels for the data series.
-        title (str): Title for the entire figure.
-        **kwargs: Additional keyword arguments for plotting.
-    Returns:
-        fig, axs: Matplotlib figure and axes objects.
-    """
-
     logger = log_configure(loglevel, 'plot_lines')
     ConfigStyle(style=style, loglevel=loglevel)
     
@@ -38,10 +21,6 @@ def plot_seasonal_and_annual_data(maps,
     if not isinstance(maps, list) or len(maps) != 5:
         raise ValueError("maps must be a list of 5 elements: [DJF, MAM, JJA, SON, Annual]")
     
-    for i, season_data in enumerate(maps):
-        if not isinstance(season_data, list):
-            raise ValueError(f"Season data {i} must be a list of DataArrays")
-
     # Create the seasonal plot layout
     if plot_type == 'seasonal':
         fig = plt.figure(figsize=(14, 10), constrained_layout=True)
@@ -54,13 +33,118 @@ def plot_seasonal_and_annual_data(maps,
             fig.add_subplot(gs[2, :])   # Annual (big subplot)
         ]
         season_names = ["DJF", "MAM", "JJA", "SON"]
+    else:
+        raise NotImplementedError("only 'seasonal' plot type is implemented.")
 
+    # ref_maps management
+    if ref_maps is not None:
+        # model data and reference data are separated
+        for i, ax in enumerate(axs[:4]): 
+            season_data = maps[i]
+            ref_data = ref_maps[i] if i < len(ref_maps) else None
+            
+            if ref_data is not None:
+                ref_label = f"{ref_data.attrs.get('AQUA_model', 'Reference')} {ref_data.attrs.get('AQUA_exp', 'Data')}"
+                
+                if isinstance(season_data, list):
+                    # Handle multiple model data
+                    model_labels = []
+                    for j, data in enumerate(season_data):
+                        if data_labels and j < len(data_labels):
+                            label = data_labels[j]
+                        else:
+                            model = data.attrs.get('AQUA_model', f'Model {j+1}')
+                            exp = data.attrs.get('AQUA_exp', '')
+                            label = f"{model} {exp}".strip()
+                        model_labels.append(label)
+                    
+                    plot_lat_lon_profiles(data=season_data,
+                                        ref_data=ref_data,
+                                        data_labels=model_labels,
+                                        ref_label=ref_label,
+                                        fig=fig, ax=ax,
+                                        loglevel=loglevel)
+                else:
+                    # Single model data
+                    model_label = data_labels[0] if data_labels and len(data_labels) > 0 else f"{season_data.attrs.get('AQUA_model', 'Model')} {season_data.attrs.get('AQUA_exp', 'Exp')}"
+                    
+                    plot_lat_lon_profiles(data=[season_data],
+                                        ref_data=ref_data,
+                                        data_labels=[model_label],
+                                        ref_label=ref_label,
+                                        fig=fig, ax=ax,
+                                        loglevel=loglevel)
+            else:
+                # no reference data, just plot model data
+                plot_lat_lon_profiles(data=season_data,
+                                    data_labels=data_labels,
+                                    fig=fig, ax=ax,
+                                    loglevel=loglevel)
+            
+            ax.set_title(season_names[i])
+            ax.grid(True, linestyle='--', alpha=0.7)
+            if i == 0:
+                ax.legend(fontsize='x-small', loc='upper right')
+            elif hasattr(ax, 'legend_') and ax.legend_:
+                ax.legend_.remove()
+        
+        # annual data (index 4)
+        annual_data = maps[4]
+        annual_ref = ref_maps[4] if len(ref_maps) > 4 else None
+
+        if annual_ref is not None:
+            annual_ref_label = f"{annual_ref.attrs.get('AQUA_model', 'Reference')} {annual_ref.attrs.get('AQUA_exp', 'Data')}"
+            
+            if isinstance(annual_data, list):
+                # Handle multiple model data for annual plot
+                annual_labels = []
+                for j, data in enumerate(annual_data):
+                    if data_labels and j < len(data_labels):
+                        label = data_labels[j]
+                    else:
+                        model = data.attrs.get('AQUA_model', f'Model {j+1}')
+                        exp = data.attrs.get('AQUA_exp', '')
+                        label = f"{model} {exp}".strip()
+                    annual_labels.append(label)
+                
+                plot_lat_lon_profiles(data=annual_data,
+                                    ref_data=annual_ref,
+                                    data_labels=annual_labels,
+                                    ref_label=annual_ref_label,
+                                    fig=fig, ax=axs[4],
+                                    loglevel=loglevel)
+            else:
+                # Single model data for annual plot
+                annual_model_label = data_labels[0] if data_labels and len(data_labels) > 0 else f"{annual_data.attrs.get('AQUA_model', 'Model')} {annual_data.attrs.get('AQUA_exp', 'Exp')}"
+                
+                plot_lat_lon_profiles(data=[annual_data],
+                                    ref_data=annual_ref,
+                                    data_labels=[annual_model_label],
+                                    ref_label=annual_ref_label,
+                                    fig=fig, ax=axs[4],
+                                    loglevel=loglevel)
+        else:
+            plot_lat_lon_profiles(data=annual_data,
+                                 data_labels=data_labels,
+                                 fig=fig, ax=axs[4],
+                                 loglevel=loglevel)
+        
+        axs[4].set_title("Annual Mean")
+        axs[4].legend(fontsize='small', loc='upper right')
+        axs[4].grid(True, linestyle='--', alpha=0.7)
+        
+        if title:
+            fig.suptitle(title, fontsize=14, fontweight='bold', y=0.98)
+        
+        return fig, axs
+    else:
+        # Normal case, no ref_maps provided
         # Plot seasonal means (first 4 panels)
         for i, ax in enumerate(axs[:4]):
             season_data = maps[i]
             
             if len(season_data) == 2:
-                # Case: Model data + Reference data
+                # Case: Model data + Reference data nella stessa lista
                 model_data = season_data[0]
                 ref_data = season_data[1]
                 
@@ -160,5 +244,4 @@ def plot_seasonal_and_annual_data(maps,
             fig.suptitle(title, fontsize=14, fontweight='bold', y=0.98)
         
         return fig, axs
-    else:
-        raise NotImplementedError("only 'seasonal' plot type is implemented.")
+    
