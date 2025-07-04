@@ -101,12 +101,12 @@ class GlobalBiases(Diagnostic):
             self._check_data(self.var, units)
 
         if long_name is not None:
-            self.data.attrs['long_name'] = long_name
+            self.data[self.var].attrs['long_name'] = long_name
 
         if standard_name is not None:
             self.data = self.data.rename_vars({self.var: standard_name})
-            self.data.attrs['standard_name'] = standard_name
             self.var = standard_name
+            self.data[self.var].attrs['standard_name'] = standard_name
         else:
             self.data.attrs['standard_name'] = self.var
 
