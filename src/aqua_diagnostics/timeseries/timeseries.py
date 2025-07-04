@@ -83,7 +83,7 @@ class Timeseries(BaseMixin):
 
         for f in freq:
             self.compute(freq=f, extend=extend, exclude_incomplete=exclude_incomplete,
-                        center_time=center_time, box_brd=box_brd, var=var)
+                        center_time=center_time, box_brd=box_brd)
             if std:
                 self.compute_std(freq=f, exclude_incomplete=exclude_incomplete, center_time=center_time,
                                  box_brd=box_brd)
