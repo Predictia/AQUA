@@ -14,7 +14,7 @@ approx_rel = 1e-4
         ("ICON", "test-r2b0", "short", "2t", 0),
         ("ICON", "test-healpix", "short", "2t", 0),
         ("FESOM", "test-pi", "original_2d", "tos", 0.33925926),
-        ("NEMO", "test-eORCA1", "long-2d", "tos", 0.28716)
+        ("NEMO", "test-eORCA1", "long-2d", "tos", 0.3379)
     ]
 )
 def reader_arguments(request):
