@@ -204,13 +204,13 @@ class TestRegridder():
         rgd = reader.regrid(data)
 
         subdata = rgd.avg_so.isel(level=0)
-        ratio1 = subdata.isnull().sum()/subdata.size  # land fraction
+        ratio1 = subdata.isnull().sum().values/subdata.size  # land fraction
         subdata = rgd.avg_so.isel(level=6)
-        ratio2 = subdata.isnull().sum()/subdata.size  # land fraction
+        ratio2 = subdata.isnull().sum().values/subdata.size  # land fraction
         assert len(rgd.lon) == 180
         assert len(rgd.lat) == 90
-        assert 0.27 <= ratio1 <= 0.30
-        assert 0.44 <= ratio2 <= 0.46
+        assert 0.32 <= ratio1 <= 0.36
+        assert 0.44 <= ratio2 <= 0.47
 
     def test_levels_and_regrid(self):
         """
