@@ -49,7 +49,7 @@ class EvaluateFormula:
                 out = -self.data[self.token[1]]
             else:
                 # Use order of operations
-                out = self._operation()
+                out = self._operations()
         else:
             out = self.data[self.token[0]]
 
