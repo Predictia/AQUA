@@ -46,10 +46,6 @@ diagnostics:
       tnswrfcs-tnswrf+tnlwrfcs-tnlwrf:
         standard_name: "netcrf"
         long_name: "Cloud radiative forcing"
-      tprate:
-        standard_name: "tprate"
-        long_name: "Precipitation"
-        units: "mm/day"
     plot_params:
       limits:
         2d_maps:
