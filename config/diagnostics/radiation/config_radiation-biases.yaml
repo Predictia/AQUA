@@ -29,7 +29,7 @@ diagnostics:
     run: true
     diagnostic_name: 'radiation_biases'
     variables: []
-    formulae: ['tnlwrf+tnswrf', 'tnswrfcs-tnswrf+tnlwrfcs-tnlwrf']
+    formulae: ['tnlwrf+tnswrf', 'tnlwrf+tnswrf-tnlwrfcs-tnswrfcs']
     params:
       default:
         plev: null # Level plot for 2D bias map if variable 3d
@@ -43,9 +43,9 @@ diagnostics:
       tnlwrf+tnswrf:
         standard_name: "tnr"
         long_name: "Top net radiation"
-      tnswrfcs-tnswrf+tnlwrfcs-tnlwrf:
-        standard_name: "netcrf"
-        long_name: "Cloud radiative forcing"
+      tnlwrf+tnswrf-tnlwrfcs-tnswrfcs:
+        standard_name: "cre_toa_net"
+        long_name: "Net cloud radiative effect at TOA (All Sky - Clear Sky)"
     plot_params:
       limits:
         2d_maps:
