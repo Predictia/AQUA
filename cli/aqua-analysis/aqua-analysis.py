@@ -245,13 +245,14 @@ def main():
     logger.debug(f"outputdir: {outputdir}")
     logger.debug(f"max_threads: {max_threads}")
 
-    output_dir = f"{outputdir}/{catalog}/{model}/{exp}"
+    realization_folder = f"r{realization}" if isinstance(realization, int) else realization if realization else 'r1'
+    output_dir = f"{outputdir}/{catalog}/{model}/{exp}/{realization_folder}"
     output_dir = os.path.expandvars(output_dir)
 
     os.environ["OUTPUT"] = output_dir
     os.environ["AQUA"] = aqua_path
     os.environ["AQUA_CONFIG"] = aqua_configdir if 'AQUA_CONFIG' not in os.environ else os.environ["AQUA_CONFIG"]
-    create_folder(output_dir)
+    create_folder(output_dir, loglevel=loglevel)
 
     run_checker = config.get('job', {}).get('run_checker', False)
     if run_checker:
