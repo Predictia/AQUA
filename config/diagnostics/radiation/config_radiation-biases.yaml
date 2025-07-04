@@ -1,4 +1,3 @@
-# Currently, the diagnostic supports comparing one dataset against one reference dataset at a time.
 datasets:
   - catalog: null
     model: null
@@ -11,7 +10,7 @@ references:
     model: 'CERES'
     exp: 'ebaf-toa41'
     source: 'monthly'
-    regrid: null
+    regrid: 'r100'
   
 setup:
   loglevel: 'WARNING'
@@ -28,7 +27,7 @@ diagnostics:
   globalbiases:
     run: true
     diagnostic_name: 'radiation_biases'
-    variables: []
+    variables: ['tnlwrf', 'tnswrf']
     formulae: ['tnlwrf+tnswrf', 'tnlwrf-tnlwrfcs', 'tnswrf-tnswrfcs', 'tnlwrf+tnswrf-tnlwrfcs-tnswrfcs']
     params:
       default:
@@ -44,7 +43,7 @@ diagnostics:
         standard_name: "tnr"
         long_name: "Top net radiation"
       tnlwrf-tnlwrfcs:
-        standard_name: "cre_toa_lw""
+        standard_name: "cre_toa_lw"
         long_name: "Long wave cloud radiative effect at TOA (All Sky - Clear Sky)"
       tnswrf-tnswrfcs:
         standard_name: "cre_toa_sw"
@@ -58,3 +57,4 @@ diagnostics:
           tnlwrf: {vmin: -30, vmax: 30}
           tnswrf: {vmin: -30, vmax: 30}
           tnr: {vmin: -30, vmax: 30}
+          cre_toa_net: {vmin: -55, vmax: 55}
