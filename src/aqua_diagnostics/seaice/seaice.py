@@ -6,7 +6,7 @@ from aqua.diagnostics.core import Diagnostic
 from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure, log_history
 from aqua.util import ConfigPath, OutputSaver, load_yaml, area_selection, to_list
-from aqua.diagnostics.seaice.util import ensure_istype
+from aqua.diagnostics.seaice.util import ensure_istype, merge_attrs
 
 xr.set_options(keep_attrs=True)
 
@@ -77,7 +77,7 @@ class SeaIce(Diagnostic):
             regions (str or list of str): A region or list of region names to load. 
                 If None, all regions from the configuration are used.
         """
-        region_definitions = self.read_regions_file(diagnostic='seaice').get('regions', {})
+        region_definitions = self._read_regions_file(diagnostic='seaice').get('regions', {})
         self.regions_definition = region_definitions
 
         selected_regions = to_list(regions)
@@ -300,7 +300,7 @@ class SeaIce(Diagnostic):
         areacello = res_dict['data']
 
         return areacello
-
+    
     def integrate_seaice_masked_data(self, masked_data, region: str):
         """ Integrate the masked data over the spatial dimension to compute sea ice metrics.
 
@@ -319,15 +319,21 @@ class SeaIce(Diagnostic):
 
         if self.method == 'extent':
             # compute sea ice extent: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to million km^2
-            seaice_integrated = areacello.where(masked_data.notnull()).sum(skipna = True, min_count = 1, 
-                                                                           dim=space_coord) / 1e12
-            # keep attributes from the retrieved data
-            seaice_integrated.attrs = masked_data.attrs
+            seaice_integrated = areacello.where(masked_data.notnull()).sum(skipna = True, min_count = 1, dim=space_coord) / 1e12
 
         if self.method == 'volume':
-            # compute sea ice volume: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to thousand km^3
-            seaice_integrated = (masked_data * areacello.where(masked_data.notnull())).sum(skipna = True, min_count = 1, 
-                                                                                           dim=space_coord) / 1e12
+            # compute sea ice volume: exclude areas with no sea ice
+            area_weighted_volume = masked_data * areacello.where(masked_data.notnull())
+
+            # add attrs from areacello, which has priority if keys overlap
+            merged_attrs = {**masked_data.attrs, **areacello.attrs}
+            area_weighted_volume.attrs.update(merged_attrs)
+
+            # sum over the spatial dimension, divide by 1e12 to convert to thousand km^3
+            seaice_integrated = area_weighted_volume.sum(skipna = True, min_count = 1, dim=space_coord) / 1e12
+
+        merge_attrs(seaice_integrated.attrs, masked_data.attrs)
+
         seaice_integrated = self.add_seaice_attrs(seaice_integrated, region)
 
         return seaice_integrated
@@ -430,13 +436,9 @@ class SeaIce(Diagnostic):
         else:
             da_seaice_computed.attrs["units"] = units_dict.get(self.method)
 
-        region_longname = self.regions_definition[region]['longname'] if region in self.regions_definition else region
-
         da_seaice_computed.attrs["long_name"] = f"{'Std ' if std_flag else ''}Sea ice {self.method} integrated over region {region}"
         da_seaice_computed.attrs["standard_name"] = f"{region}_{'std_' if std_flag else ''}sea_ice_{self.method}"
         da_seaice_computed.attrs["AQUA_method"] = f"{self.method}"
-        da_seaice_computed.attrs["AQUA_region"] = f"{region}"
-        da_seaice_computed.attrs["AQUA_region_longname"] = f"{region_longname}"
         if startdate is not None: da_seaice_computed.attrs["AQUA_startdate"] = f"{startdate}"
         if enddate is not None: da_seaice_computed.attrs["AQUA_enddate"] = f"{enddate}"
         da_seaice_computed.name = f"{'std_' if std_flag else ''}sea_ice_{self.method}_{region.replace(' ', '_').lower()}"

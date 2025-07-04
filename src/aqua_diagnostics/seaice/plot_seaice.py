@@ -320,8 +320,7 @@ class PlotSeaIce:
         # --- generate string for reference std data
         if hasattr(self, "std_label") and self.std_label:
             sdtdata = self._getdata_fromdict(data_dict,'monthly_std_ref')
-            std_sdate = sdtdata.attrs.get("AQUA_startdate", "No startdate found")
-            std_edate = sdtdata.attrs.get("AQUA_enddate",   "No enddate found")
+            std_sdate, std_edate = extract_dates(sdtdata)
             self.std_label_str = f" Reference data std is evaluated from {std_sdate} to {std_edate}."
         else:
             self.std_label_str = ''
@@ -349,8 +348,6 @@ class PlotSeaIce:
         Returns:
             (fig, axes) : tuple. The figure and axes objects.
         """
-        region_definitions = self.diagnostic.read_regions_file(diagnostic='seaice').get('regions', {})
-        
         self.num_regions = len(region_dict)
 
         fig_height = 6 if self.plot_type == 'seasonal_cycle' else 10
@@ -366,8 +363,7 @@ class PlotSeaIce:
 
         for region_idx, (ax, (region, data_dict)) in enumerate(zip(axes, region_dict.items())):
 
-            region_longname = region_definitions.get(region, {}).get('longname', region)
-            self.logger.info(f"Processing {self.plot_type} for region: {region}; Longname: {region_longname}")
+            self.logger.info(f"Processing {self.plot_type} for region: {region}")
 
             monthly_models = self._getdata_fromdict(data_dict, 'monthly_models')
             annual_models  = self._getdata_fromdict(data_dict, 'annual_models')
@@ -413,10 +409,10 @@ class PlotSeaIce:
                 raise ValueError(f"Unknown plot_type function name: {self.plot_type}")
 
             # update description
-            self._update_description(self.method, region_longname, data_dict, region_idx)
+            self._update_description(self.method, region, data_dict, region_idx)
 
             # customize the subplot - add a title
-            ax.set_title(f"Sea ice {self.method}: region {region_longname}")
+            ax.set_title(f"Sea ice {self.method}: region {region}")
 
         return fig, axes
 

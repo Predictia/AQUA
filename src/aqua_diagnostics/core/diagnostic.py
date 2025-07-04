@@ -164,7 +164,7 @@ class Diagnostic():
 
         return data
     
-    def read_regions_file(self, diagnostic: str = None):
+    def _read_regions_file(self, diagnostic: str = None):
         """
         Read the regions list from the relative diagnostic definition.
 
@@ -199,7 +199,7 @@ class Diagnostic():
             lat_limits (list): The latitude limits to be used.
         """
         if region is not None:
-            regions_file = self.read_regions_file(diagnostic)
+            regions_file = self._read_regions_file(diagnostic)
 
             if region in regions_file['regions']:
                 lon_limits = regions_file['regions'][region].get('lon_limits', None)
@@ -264,7 +264,6 @@ class Diagnostic():
                 data=data, lat=lat_limits, lon=lon_limits, drop=drop, loglevel=self.loglevel, **kwargs
             )
             data.attrs['AQUA_region'] = region
-            self.logger.info(f"Modified longname of the region: {region}")
         else:
             region, lon_limits, lat_limits = None, None, None
             self.logger.warning(

@@ -15,6 +15,7 @@ def defaultdict_to_dict(d):
 def filter_region_list(regions_dict, regions_list, domain, logger, valid_domains=None):
     """ Filters a list of string regions based on config_file defined coords values and specified domain.
     This function checks if regions fall within the appropriate hemisphere based on their latitude bounds.
+
     Args:
         regions_dict (dict): Dictionary containing region definitions. Each region should have
             'latN' (northern latitude) and 'latS' (southern latitude) keys.
@@ -22,6 +23,7 @@ def filter_region_list(regions_dict, regions_list, domain, logger, valid_domains
         domain (str): Domain to filter regions by. Must be one of the valid domains, e.g., 'nh' or 'sh'.
         logger (logging.Logger): Logger instance for logging messages.
         valid_domains (list, optional): List of valid domain strings. Defaults to ['nh', 'sh'].
+    
     Returns:
         list or str: Filtered list of region names. If exactly one region is valid, returns a single string.
     """
@@ -53,7 +55,8 @@ def filter_region_list(regions_dict, regions_list, domain, logger, valid_domains
     return filtered_regions
 
 def ensure_istype(obj, expected_types, logger=None):
-    """Ensure an object is of the expected type(s), otherwise raise ValueError.
+    """ Ensure an object is of the expected type(s), otherwise raise ValueError.
+
     Args:
         obj: The object to check.
         expected_types: A type or tuple of types to check against.
@@ -71,9 +74,9 @@ def ensure_istype(obj, expected_types, logger=None):
         raise ValueError(errmsg)
 
 def extract_dates(data):
-    return (data.attrs.get('AQUA_startdate', 'Unknown startdate'),
-            data.attrs.get('AQUA_enddate',   'Unknown enddate'))
-        
+    return (data.attrs.get('AQUA_startdate', 'No startdate found'),
+            data.attrs.get('AQUA_enddate',   'No enddate found'))
+
 def strlist_to_phrase(items: list[str]) -> str:
     """ Convert a list of str to a english-consistent list.
        ['A'] will return 'A'
@@ -87,3 +90,21 @@ def strlist_to_phrase(items: list[str]) -> str:
     if len(items) == 2:
         return f"{items[0]} and {items[1]}"
     return ", ".join(items[:-1]) + f", and {items[-1]}"
+
+def merge_attrs(target, source, overwrite=False):
+    """Merge attributes from source into target.
+
+    Args:
+        target (xr.Dataset or xr.DataArray or dict): The target for merging.
+        source (xr.Dataset or xr.DataArray or dict): The source of attributes.
+        overwrite (bool): If True, overwrite existing keys in target.
+                          If False, only add keys that don't already exist.
+    """
+    if isinstance(target, (xr.Dataset, xr.DataArray)):
+        target = target.attrs
+    if isinstance(source, (xr.Dataset, xr.DataArray)):
+        source = source.attrs
+
+    for k, v in source.items():
+        if overwrite or k not in target:
+            target[k] = v
