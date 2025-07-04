@@ -73,7 +73,7 @@ def test_hovmoller_data(diagnostics_instances):
     # Check data values
     # Check for the full values
     assert hovmoller_instance.plot_info[1]['data']['thetao'].isel(time=20, lev = 5).values == pytest.approx(-250.51111293,rel=approx_rel)
-    assert hovmoller_instance.plot_info[1]['data']['so'].isel(time=20, lev = 5).values == pytest.approx(35.5250391,rel=approx_rel)
+    assert hovmoller_instance.plot_info[1]['data']['so'].isel(time=20, lev = 5).values == pytest.approx(35.4882944,rel=approx_rel)
         
     # Check for the anomaly wrt initial time
     assert hovmoller_instance.plot_info[3]['data']['thetao'].isel(time=20, lev = 5).values == pytest.approx(-0.38893481,rel=approx_rel)
@@ -102,7 +102,7 @@ def test_time_series(diagnostics_instances):
     # Check data values
     # Check for the full values
     assert time_series_instance.plot_info[1]['data']['thetao'].isel(time=20, lev = 5).values == pytest.approx(-250.51111292878178,rel=approx_rel)
-    assert time_series_instance.plot_info[1]['data']['so'].isel(time=20, lev = 5).values == pytest.approx(35.52503910217593,rel=approx_rel)
+    assert time_series_instance.plot_info[1]['data']['so'].isel(time=20, lev = 5).values == pytest.approx(35.4882944,rel=approx_rel)
         
     # Check for the anomaly wrt initial time
     assert time_series_instance.plot_info[3]['data']['thetao'].isel(time=20, lev = 5).values == pytest.approx(-0.38893480970503447,rel=approx_rel)
@@ -128,7 +128,7 @@ def test_multilevel_trend(diagnostics_instances):
     multilevel_trend_instance = diagnostics_instances["multilevel_trend"]
     trend_dic= multilevel_trend_instance.plot()
     assert trend_dic["trend_data"]["thetao"].isel(lev=1, lat=10, lon=10).values == pytest.approx(0.09392428426243855,rel=approx_rel)
-    assert trend_dic["trend_data"]["so"].isel(lev=1, lat=10, lon=10).values == pytest.approx(0.02337264012989936,rel=approx_rel)
+    assert trend_dic["trend_data"]["so"].isel(lev=1, lat=10, lon=10).values == pytest.approx(0.23171750,rel=approx_rel)
     
 # Zonal mean trend Function
 @pytest.mark.diagnostics

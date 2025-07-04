@@ -73,7 +73,7 @@ class TestRegridder():
             gdh.normalize_grid_dict("ciao")
         with pytest.raises(TypeError, match="Grid name '20' is not a valid type."):
             gdh.normalize_grid_dict(20)
-        with pytest.raises(ValueError, match="Grid name 'tragic' is not a valid CDO grid name."):
+        with pytest.raises(ValueError, match="Grid name 'tragic' is a string but not a valid CDO grid name."):
             gdh.normalize_grid_dict("tragic")
 
         # test on grid path
