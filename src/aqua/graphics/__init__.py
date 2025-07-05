@@ -22,7 +22,7 @@ from .styles import ConfigStyle
 from .timeseries import plot_timeseries, plot_seasonalcycle
 from .multiple_maps import plot_maps, plot_maps_diff
 from .lat_lon_profiles import plot_lat_lon_profiles
-from .seasonal_and_annual_means import plot_seasonal_and_annual_data
+from .seasonal_means import plot_seasonal_data
 
 
 __all__ = ["plot_gregory_monthly", "plot_gregory_annual",
@@ -33,7 +33,7 @@ __all__ = ["plot_gregory_monthly", "plot_gregory_annual",
            "plot_timeseries", "plot_seasonalcycle",
            "plot_maps", "plot_maps_diff",
            "plot_lat_lon_profiles",
-           "plot_seasonal_and_annual_data"]
+           "plot_seasonal_data"]
 
 
 def activate_style(style: str = None,

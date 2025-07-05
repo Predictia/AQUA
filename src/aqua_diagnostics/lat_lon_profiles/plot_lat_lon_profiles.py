@@ -1,5 +1,5 @@
 import xarray as xr
-from aqua.graphics import plot_seasonal_and_annual_data
+from aqua.graphics import plot_seasonal_data
 from aqua.logger import log_configure
 from aqua.util import to_list
 from aqua.graphics import plot_lat_lon_profiles
@@ -466,23 +466,19 @@ class PlotLatLonProfiles():
         self.logger.info('Running PlotLatLonProfiles')
         
         if plot_type == 'seasonal':
-            # Use specialized method for seasonal data labels
+            # Only plot the 4 seasonal subplots (no annual)
             data_labels = self.set_seasonal_data_labels()
             description = self.set_description(region=region)
             title = self.set_title(region=region, var=var, units=units)
             
-            fig, axs = plot_seasonal_and_annual_data(
-                maps=self.seasonal_annual_data,
-                ref_maps=self.seasonal_annual_ref_data,
-                plot_type='seasonal',
-                data_labels=data_labels,
-                title=title,
-                loglevel=self.loglevel
-            )
+            # Call the updated seasonal plot function with only 4 seasons
+            fig, axs = self.plot_seasonal_lines(data_labels=data_labels, title=title)
             
-            # Add title to the figure
-            if title:
-                fig.suptitle(title, fontsize=14, fontweight='bold', y=0.98)
+            # Save the plot
+            region_short = region.replace(' ', '').lower() if region is not None else None
+            self.save_plot(fig, var=var, description=description, region=region_short, 
+                        rebuild=rebuild, outputdir=outputdir, dpi=dpi, format=format, 
+                        diagnostic='lat_lon_profiles_seasonal')
         else:
             # Standard single profile plotting
             data_label = self.set_data_labels()
@@ -491,21 +487,17 @@ class PlotLatLonProfiles():
             title = self.set_title(region=region, var=var, units=units)
             
             fig, _ = self.plot_lat_lon_profiles(data_labels=data_label, ref_label=ref_label, title=title)
-        
-        region_short = region.replace(' ', '').lower() if region is not None else None
-        diagnostic_suffix = '_seasonal' if plot_type == 'seasonal' else ''
-        
-        # Specialized save_plot for Lat-Lon Profiles
-        self.save_plot(fig, var=var, description=description, region=region_short, rebuild=rebuild,
-                    outputdir=outputdir, dpi=dpi, format=format, 
-                    diagnostic=f'lat_lon_profiles{diagnostic_suffix}')
+            
+            region_short = region.replace(' ', '').lower() if region is not None else None
+            self.save_plot(fig, var=var, description=description, region=region_short, rebuild=rebuild,
+                        outputdir=outputdir, dpi=dpi, format=format, diagnostic='lat_lon_profiles')
         
         self.logger.info('PlotLatLonProfiles completed successfully')
 
-    def plot_seasonal_annual_lines(self, data_labels=None, title=None, style=None):
+    def plot_seasonal_lines(self, data_labels=None, title=None, style=None):
         """
-        Plot seasonal and annual means using multiple_lines.py.
-        Creates a 5-panel plot with DJF, MAM, JJA, SON and Annual mean.
+        Plot seasonal means using plot_seasonal_data.
+        Creates a 4-panel plot with DJF, MAM, JJA, SON only (no annual).
 
         Args:
             data_labels (list): List of data labels.
@@ -516,28 +508,48 @@ class PlotLatLonProfiles():
             fig (matplotlib.figure.Figure): Figure object.
             axs (list): List of axes objects.
         """
+        if not self.seasonal_annual_data or len(self.seasonal_annual_data) < 4:
+            raise ValueError("seasonal_annual_data must contain at least 4 elements: [DJF, MAM, JJA, SON]")
         
-        if self.seasonal_annual_data is None:
-            self.logger.error('No seasonal and annual data available. Compute them first.')
-            return None, None
+        seasonal_data_only = self.seasonal_annual_data[:4]
+        seasonal_ref_only = self.seasonal_annual_ref_data[:4] if self.seasonal_annual_ref_data else None
         
-        self.logger.info('Plotting seasonal and annual means using multiple_lines')
+        return plot_seasonal_data(
+            maps=seasonal_data_only,
+            ref_maps=seasonal_ref_only,
+            data_labels=data_labels,
+            title=title,
+            style=style,
+            loglevel=self.loglevel
+        )
+    def plot_annual_mean(self, data_labels=None, ref_label=None, title=None):
+        """
+        Plot only the annual mean as a separate single plot.
         
-        # Prepare data in the format expected by plot_seasonal_and_annual_data
-        # Structure: [[DJF], [MAM], [JJA], [SON], [Annual]]
-        maps = [[self.seasonal_annual_data[i]] for i in range(5)]
+        Args:
+            data_labels (list, optional): Labels for the data.
+            ref_label (str, optional): Label for the reference data.
+            title (str, optional): Title for the plot.
+            
+        Returns:
+            tuple: Matplotlib figure and axes objects.
+        """
+        if not self.seasonal_annual_data or len(self.seasonal_annual_data) < 5:
+            raise ValueError("seasonal_annual_data must contain at least 5 elements to access annual data")
         
-        # Use plot_seasonal_and_annual_data to create the 5-panel seasonal plot
-        fig, axs = plot_seasonal_and_annual_data(maps=maps,
-                             plot_type='seasonal',
-                             style=style,
-                             loglevel=self.loglevel,
-                             data_labels=data_labels)
+        # Get annual data (index 4)
+        annual_data = self.seasonal_annual_data[4]
+        annual_ref = self.seasonal_annual_ref_data[4] if self.seasonal_annual_ref_data and len(self.seasonal_annual_ref_data) > 4 else None
         
-        if title:
-            fig.suptitle(title, fontsize=16, y=0.98)
-        
-        return fig, axs
+        # Call the basic lat_lon_profiles plotting function
+        return plot_lat_lon_profiles(
+            data=annual_data,
+            ref_data=annual_ref,
+            data_labels=data_labels,
+            ref_label=ref_label,
+            title=title,
+            loglevel=self.loglevel
+        )
 
     def run_multi_seasonal(self, var_names: list, units_list: list = None, 
                            plot_type: str = 'seasonal_multi'):
