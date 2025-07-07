@@ -12,9 +12,9 @@ class OutputSaver:
     """
 
     def __init__(self, diagnostic: str,
-                 catalog: str = None, model: str = None, exp: str = None,
+                 catalog: str = None, model: str = None, exp: str = None, realization: str = None,
                  catalog_ref: str = None, model_ref: str = None, exp_ref: str = None,
-                 outdir: str = '.', rebuild: bool = True, loglevel: str = 'WARNING'):
+                 outdir: str = '.', loglevel: str = 'WARNING'):
         """
         Initialize the OutputSaver with diagnostic parameters and output directory.
         All the catalog, model, and experiment can be both a string or a list of strings.
@@ -24,6 +24,8 @@ class OutputSaver:
             catalog (str, optional): Catalog name.
             model (str, optional): Model name.
             exp (str, optional): Experiment name.
+            realization (str, optional): Realization name, can be a string or a integer. 
+                                         'r' is appended if it is an integer.
             catalog_ref (str, optional): Reference catalog name.
             model_ref (str, optional): Reference model name.
             exp_ref (str, optional): Reference experiment name.
@@ -35,18 +37,59 @@ class OutputSaver:
         self.catalog = catalog
         self.model = model
         self.exp = exp
+        self.realization = self._format_realization(realization) if realization else None
+        self._verify_arguments(['model', 'exp', 'realization'])
+
         self.catalog_ref = catalog_ref
         self.model_ref = model_ref
         self.exp_ref = exp_ref
-        self.outdir = outdir
+        self._verify_arguments(['model_ref', 'exp_ref', 'catalog_ref'])
 
+        self.outdir = outdir
         self.loglevel = loglevel
         self.logger = log_configure(log_level=self.loglevel, log_name='OutputSaver')
 
-    def generate_name(self, diagnostic_product: str, 
-                      catalog: str = None, model: str = None, exp: str = None,
-                      catalog_ref: str = None, model_ref: str = None, exp_ref: str = None,
-                      extra_keys: dict = None) -> str:
+    @staticmethod
+    def _format_realization(realization: str) -> str:
+        """
+        Format the realization string by prepending 'r' if it is a digit.
+
+        Args:
+            realization (str): The realization string.
+
+        Returns:
+            str: Formatted realization string.
+        """
+        return f'r{realization}' if realization.isdigit() else realization
+
+    def _verify_arguments(self, attr_names):
+        """
+        Verify that the given attributes on obj are lists of the same length.
+
+        Args:
+            obj: The object to inspect.
+            attr_names (list of str): Names of attributes to verify.
+
+        Raises:
+            ValueError if attributes are not all lists or lengths differ.
+        """
+        values = [getattr(self, name, None) for name in attr_names]
+
+        # all strings, no problem
+        if all(isinstance(value, (str, type(None))) for value in values):
+            return True
+
+        # all list, verify lengths
+        if all(isinstance(value, (list, type(None))) for value in values):
+            first_len = len(values[0])
+            if all(len(item) == first_len for item in values if item is not None):
+                return True
+            raise ValueError(f"Attributes {attr_names} are lists of different lengths.")
+            
+        #mixed case, does not work
+        raise ValueError(f"Attributes {attr_names} must be either all strings or all lists of the same length.")
+
+    def generate_name(self, diagnostic_product: str, extra_keys: dict = None) -> str:
         """
         Generate a filename based on provided parameters and additional user-defined keywords
 
@@ -57,13 +100,6 @@ class OutputSaver:
         Returns:
             str: A string representing the generated filename.
         """
-
-        self.catalog = catalog or self.catalog
-        self.model = model or self.model
-        self.exp = exp or self.exp
-        self.catalog_ref = catalog_ref or self.catalog_ref
-        self.model_ref = model_ref or self.model_ref
-        self.exp_ref = exp_ref or self.exp_ref
 
         if not self.catalog or not self.model or not self.exp:
             raise ValueError("Catalog, model, and exp must be specified to generate a filename.")
@@ -117,7 +153,7 @@ class OutputSaver:
         # Join all parts
         filename = '.'.join(parts)
 
-        self.logger.debug(f"Generated filename: {filename}")
+        self.logger.debug("Generated filename: %s", filename)
         return filename
 
     def save_netcdf(self, dataset: xr.Dataset, diagnostic_product: str, rebuild: bool = True, extra_keys: dict = None, metadata: dict = None):
@@ -138,10 +174,12 @@ class OutputSaver:
         filepath = os.path.join(folder, filename)
 
         if not rebuild and os.path.exists(filepath):
-            self.logger.info(f"File already exists and rebuild=False, skipping: {filepath}")
+            self.logger.info("File already exists and rebuild=False, skipping: %s", filepath)
             return filepath
 
-        metadata = self.create_metadata(diagnostic_product=diagnostic_product, extra_keys=extra_keys, metadata=metadata)
+        metadata = self.create_metadata(
+            diagnostic_product=diagnostic_product, 
+            extra_keys=extra_keys, metadata=metadata)
        
         # If metadata contains a history attribute, log the history
         if 'history' in metadata:
@@ -153,68 +191,70 @@ class OutputSaver:
         
         dataset.to_netcdf(filepath)
 
-        self.logger.info(f"Saved NetCDF: {filepath}")
+        self.logger.info("Saved NetCDF %s", filepath)
         return filepath
-
-    def save_pdf(self, fig: plt.Figure, diagnostic_product: str, rebuild: bool =True, extra_keys: dict = None,  metadata: dict = None):
+    
+    def _save_figure(self, fig: plt.Figure, diagnostic_product: str, file_format: str,
+                 rebuild: bool = True, extra_keys: dict = None, metadata: dict = None,
+                 dpi: int = None):
         """
-        Save a Matplotlib figure as a PDF file with a generated filename.
+        Internal method to save a Matplotlib figure with common logic for PDF and PNG.
 
         Args:
             fig (plt.Figure): The Matplotlib figure to save.
             diagnostic_product (str): Product of the diagnostic analysis.
-            rebuild (bool, optional): Whether to rebuild the output file if it already exists. Defaults to True.
-            extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
-            metadata (dict, optional): Additional metadata to include in the PDF file.
+            file_format (str): 'pdf' or 'png'.
+            rebuild (bool): Whether to overwrite existing files.
+            extra_keys (dict): Extra keys for filename generation.
+            metadata (dict): Metadata to embed.
+            dpi (int): DPI setting for raster formats like PNG.
         """
-        filename = self.generate_name(diagnostic_product=diagnostic_product, extra_keys=extra_keys) + '.pdf'
-
-        folder = os.path.join(self.outdir, 'pdf')
-        create_folder(folder=str(folder), loglevel=self.loglevel)
-        filepath = os.path.join(folder, filename)
-        if not rebuild and os.path.exists(filepath):
-            self.logger.info(f"File already exists and rebuild=False, skipping: {filepath}")
-            return filepath
-
-        fig.savefig(filepath, format='pdf', bbox_inches='tight')
-
-        metadata = self.create_metadata(diagnostic_product=diagnostic_product, extra_keys=extra_keys, metadata=metadata)
-        add_pdf_metadata(filepath, metadata, loglevel=self.loglevel)
-
-        self.logger.info(f"Saved PDF: {filepath}")
-        return filepath
-
-    def save_png(self, fig: plt.Figure, diagnostic_product: str, rebuild: bool = True, extra_keys: dict = None,  metadata: dict = None,
-                 dpi: int = 300):
-        """
-        Save a Matplotlib figure as a PNG file with a generated filename.
-
-        Args:
-            fig (plt.Figure): The Matplotlib figure to save.
-            diagnostic_product (str): Product of the diagnostic analysis.
-            rebuild (bool, optional): Whether to rebuild the output file if it already exists. Defaults to True.
-            extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
-            metadata (dict, optional): Additional metadata to include in the PNG file.
-            dpi (int, optional): Dots per inch for the PNG file.
-        """
-
-        filename = self.generate_name(diagnostic_product=diagnostic_product, extra_keys=extra_keys) + '.png'
-
-        folder = os.path.join(self.outdir, 'png')
-        create_folder(folder=str(folder), loglevel=self.loglevel)
-        filepath = os.path.join(folder, filename)
+        if file_format not in ['pdf', 'png']:
+            raise ValueError("file_format must be either 'pdf' or 'png'.")
         
+        filename = self.generate_name(
+            diagnostic_product=diagnostic_product, extra_keys=extra_keys
+            ) + f'.{file_format}'
+        folder = os.path.join(self.outdir, file_format)
+        create_folder(folder=str(folder), loglevel=self.loglevel)
+        filepath = os.path.join(folder, filename)
+
         if not rebuild and os.path.exists(filepath):
-            self.logger.info(f"File already exists and rebuild=False, skipping: {filepath}")
+            self.logger.info("File already exists and rebuild=False, skipping: %s", filepath)
             return filepath
 
-        fig.savefig(filepath, format='png', dpi=dpi, bbox_inches='tight')
+        save_kwargs = {'format': file_format, 'bbox_inches': 'tight'}
+        if file_format == 'png' and dpi is not None:
+            save_kwargs['dpi'] = dpi
 
-        metadata = self.create_metadata(diagnostic_product=diagnostic_product, extra_keys=extra_keys, metadata=metadata)
-        add_png_metadata(filepath, metadata, loglevel=self.loglevel)
+        fig.savefig(filepath, **save_kwargs)
 
-        self.logger.info(f"Saved PNG: {filepath}")
+        metadata = self.create_metadata(
+            diagnostic_product=diagnostic_product, 
+            extra_keys=extra_keys, metadata=metadata)
+
+        if file_format == 'pdf':
+            add_pdf_metadata(filepath, metadata, loglevel=self.loglevel)
+        elif file_format == 'png':
+            add_png_metadata(filepath, metadata, loglevel=self.loglevel)
+
+        self.logger.info("Saved %s: %s", file_format.upper(), filepath)
         return filepath
+    
+    def save_pdf(self, fig: plt.Figure, diagnostic_product: str, rebuild: bool = True,
+             extra_keys: dict = None, metadata: dict = None):
+        """
+        Save a Matplotlib figure as a PDF.
+        """
+        return self._save_figure(fig, diagnostic_product, 'pdf', rebuild, extra_keys, metadata)
+
+    def save_png(self, fig: plt.Figure, diagnostic_product: str, rebuild: bool = True,
+                extra_keys: dict = None, metadata: dict = None, dpi: int = 300):
+        """
+        Save a Matplotlib figure as a PNG.
+        """
+        return self._save_figure(fig, diagnostic_product, 'png', rebuild, extra_keys, metadata, dpi)
+
 
     def create_metadata(self, diagnostic_product: str, extra_keys: dict = None, metadata: dict = None) -> dict:
         """
