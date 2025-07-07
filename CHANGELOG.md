@@ -9,6 +9,8 @@ Unreleased in the current development version (target v0.17.0):
 
 AQUA core complete list:
 - Upgrade to `smmregrid=0.1.2`, which fixes coastal erosion in conservative regridding (#1963)
+- Refactor LRA of output and catalog entry creatro with `OutputPathBuilder` and `CatalogEntryBuilder` classes (#1932)
+- LRA cli support realization, stat and frequency (#1932)
 - Update to the new STACv2 API for Lumi (#2039)
 - `aqua add` and `aqua avail` commands now support a `--repository` option to specify a different repository to explore (#2037)
 - `AQUA_CONFIG` environment variable can be set to customize the path of the configuration files in `aqua-analysis.py` (#2027)
