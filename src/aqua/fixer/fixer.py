@@ -5,7 +5,7 @@ from aqua.util import to_list, convert_units, get_eccodes_attr
 from aqua.logger import log_history, log_configure
 from .fixer_operator import FixerOperator
 from .fixer_datamodel import FixerDataModel
-from .formula import EvaluateFormula
+from .evaluate_formula import EvaluateFormula
 
 DEFAULT_DELTAT = 1
 

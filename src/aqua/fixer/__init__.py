@@ -1,6 +1,6 @@
 """Fixer module for Aqua."""
 from .fixer import Fixer
-from .formula import EvaluateFormula
+from .evaluate_formula import EvaluateFormula
 
 __all__ = [
     "Fixer",
