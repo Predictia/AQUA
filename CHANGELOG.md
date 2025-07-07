@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.17.0): 
 
 AQUA core complete list:
+- Upgrade to `smmregrid=0.1.2`, which fixes coastal erosion in conservative regridding (#1963)
 - Update to the new STACv2 API for Lumi (#2039)
 - `aqua add` and `aqua avail` commands now support a `--repository` option to specify a different repository to explore (#2037)
 - `AQUA_CONFIG` environment variable can be set to customize the path of the configuration files in `aqua-analysis.py` (#2027)
@@ -57,7 +58,6 @@ AQUA core complete list:
 - Update and push to lumi-o the a file listing experiments needed by the dashboard (#1950)
 - Integration of HEALPix data with `plot_single_map()` (#1897)
 - Use scientific notation in multiple maps plotting to avoid label overlapping (#1953)
-- Upgrade to `smmregrid=0.1.1`, which fixes coastal erosion in conservative regridding (#1963)
 
 AQUA diagnostics complete list:
 - Diagnostic core: a `diagnostic_name` is now available in the configuration file to override the default name (#2000)
