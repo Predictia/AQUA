@@ -4,6 +4,7 @@ import xarray as xr
 from aqua.logger import log_configure, log_history
 from aqua.util import create_folder, add_pdf_metadata, add_png_metadata, update_metadata
 
+DEFAULT_REALIZATION = 'r1'  # Default realization if not specified  
 
 class OutputSaver:
     """
@@ -21,33 +22,33 @@ class OutputSaver:
 
         Args:
             diagnostic (str): Name of the diagnostic.
-            catalog (str, optional): Catalog name.
-            model (str, optional): Model name.
-            exp (str, optional): Experiment name.
-            realization (str, optional): Realization name, can be a string or a integer. 
+            catalog (str, list, optional): Catalog name.
+            model (str, list, optional): Model name.
+            exp (str, list, optional): Experiment name.
+            realization (str, list, optional): Realization name, can be a string or a integer. 
                                          'r' is appended if it is an integer.
-            catalog_ref (str, optional): Reference catalog name.
-            model_ref (str, optional): Reference model name.
-            exp_ref (str, optional): Reference experiment name.
+            catalog_ref (str, list, optional): Reference catalog name.
+            model_ref (str, list, optional): Reference model name.
+            exp_ref (str, list, optional): Reference experiment name.
             outdir (str, optional): Output directory. Defaults to current directory.
             loglevel (str, optional): Logging level. Defaults to 'WARNING'.
         """
+        self.loglevel = loglevel
+        self.logger = log_configure(log_level=self.loglevel, log_name='OutputSaver')
 
         self.diagnostic = diagnostic
         self.catalog = catalog
         self.model = model
         self.exp = exp
-        self.realization = self._format_realization(realization) if realization else None
-        self._verify_arguments(['model', 'exp', 'realization'])
+        self.realization = self._format_realization(realization)
+        self._verify_arguments(['catalog', 'model', 'exp'])
 
         self.catalog_ref = catalog_ref
         self.model_ref = model_ref
         self.exp_ref = exp_ref
-        self._verify_arguments(['model_ref', 'exp_ref', 'catalog_ref'])
+        self._verify_arguments(['catalog_ref', 'model_ref', 'exp_ref'])
 
         self.outdir = outdir
-        self.loglevel = loglevel
-        self.logger = log_configure(log_level=self.loglevel, log_name='OutputSaver')
 
     @staticmethod
     def _format_realization(realization: str) -> str:
@@ -60,7 +61,22 @@ class OutputSaver:
         Returns:
             str: Formatted realization string.
         """
-        return f'r{realization}' if realization.isdigit() else realization
+        if realization is None:
+            return DEFAULT_REALIZATION
+        if isinstance(realization, list):
+            return [f'r{r}' if str(r).isdigit() else r for r in realization]
+        if isinstance(realization, (int, str)):
+            return f'r{realization}' if str(realization).isdigit() else realization
+
+    @staticmethod
+    def unpack_list(value, special=None):
+        """Unpack a value that can be a string, list, or None."""
+        if isinstance(value, list):
+            if special is not None:
+                return special
+            if len(value) == 1:
+                return value[0]
+        return value
 
     def _verify_arguments(self, attr_names):
         """
@@ -81,12 +97,15 @@ class OutputSaver:
 
         # all list, verify lengths
         if all(isinstance(value, (list, type(None))) for value in values):
-            first_len = len(values[0])
-            if all(len(item) == first_len for item in values if item is not None):
+            list_values = [v for v in values if isinstance(v, list)]
+            first_len = len(list_values[0])
+
+            if all(len(v) == first_len for v in list_values):
                 return True
             raise ValueError(f"Attributes {attr_names} are lists of different lengths.")
             
         #mixed case, does not work
+        self.logger.debug("Attributes values: %s", values)
         raise ValueError(f"Attributes {attr_names} must be either all strings or all lists of the same length.")
 
     def generate_name(self, diagnostic_product: str, extra_keys: dict = None) -> str:
@@ -104,40 +123,25 @@ class OutputSaver:
         if not self.catalog or not self.model or not self.exp:
             raise ValueError("Catalog, model, and exp must be specified to generate a filename.")
 
-        # handle multimodel case: we need to check if the 6 keys above are lists
-        if isinstance(self.model, list):
-            model_value = "multimodel" if len(self.model) > 1 else self.model[0]
-            if isinstance(self.catalog, list):
-                catalog_value = None if len(self.catalog) > 1 else self.catalog[0]
-            if isinstance(self.exp, list):
-                exp_value = None if len(self.exp) > 1 else self.exp[0]
-        else:
-            model_value = self.model
-            catalog_value = self.catalog
-            exp_value = self.exp
+        # handle multimodel case: we need to check if the 4 keys above are lists
+        model_value = self.unpack_list(self.model, special='multimodel')
+        catalog_value = self.unpack_list(self.catalog)
+        exp_value = self.unpack_list(self.exp)
+        realization_value = self.unpack_list(self.realization)
 
-        # handle multiref case
-        if isinstance(self.model_ref, list) and len(self.model_ref) > 0:
-            model_ref_value = "multiref" if len(self.model_ref) > 1 else self.model_ref[0]
-            if isinstance(self.catalog_ref, list):
-                catalog_ref_value = None if len(self.catalog_ref) > 1 else self.catalog_ref[0]
-            if isinstance(self.exp_ref, list):
-                exp_ref_value = None if len(self.exp_ref) > 1 else self.exp_ref[0]
-        elif isinstance(self.model_ref, list) and len(self.model_ref) == 0:
-            model_ref_value = None
-            catalog_ref_value = None
-            exp_ref_value = None
-        else:
-            model_ref_value = self.model_ref
-            catalog_ref_value = self.catalog_ref
-            exp_ref_value = self.exp_ref
+        # handle multiref case: we need to check if the 3 keys below are lists
+        model_ref_value = self.unpack_list(self.model_ref, special='multiref')
+        catalog_ref_value = self.unpack_list(self.catalog_ref)
+        exp_ref_value = self.unpack_list(self.exp_ref)
 
+        # build dictionary
         parts_dict = {
             'diagnostic': self.diagnostic,
             'diagnostic_product': diagnostic_product,
             'catalog': catalog_value if model_value != "multimodel" else None,
             'model': model_value,
             'exp': exp_value if model_value != "multimodel" else None,
+            'realization': realization_value if model_value != "multimodel" else None,
             'catalog_ref': catalog_ref_value if model_ref_value != "multiref" else None,
             'model_ref': model_ref_value,
             'exp_ref': exp_ref_value if model_ref_value != "multiref" else None,

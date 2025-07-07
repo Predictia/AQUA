@@ -31,7 +31,7 @@ def test_generate_name(base_saver, output_saver):
     # Test filename generation without additional parameters
     
     filename = base_saver.generate_name(diagnostic_product='mean')
-    assert filename == 'dummy.mean.lumi-phase2.IFS-NEMO.historical'
+    assert filename == 'dummy.mean.lumi-phase2.IFS-NEMO.historical.r1'
 
     # Test with generic multimodel keyword
     extra_keys = {'var': 'tprate'}
@@ -41,15 +41,17 @@ def test_generate_name(base_saver, output_saver):
 
     # Test with multiple references
     extra_keys = {'var': 'tprate', 'region' : 'indian_ocean'}
-    saver = output_saver(model='IFS-NEMO', model_ref=['ERA5', 'CERES'])
+    saver = output_saver(model='IFS-NEMO', realization=2, model_ref=['ERA5', 'CERES'])
     filename = saver.generate_name(
             diagnostic_product='mean', extra_keys=extra_keys
     )
-    assert filename == 'dummy.mean.lumi-phase2.IFS-NEMO.historical.multiref.tprate.indian_ocean'
+    assert filename == 'dummy.mean.lumi-phase2.IFS-NEMO.historical.r2.multiref.tprate.indian_ocean'
 
     # Test with multiple models
     extra_keys = {'var': 'tprate', 'region': 'indian_ocean'}
-    saver = output_saver(model=['IFS-NEMO', 'ICON'], exp=['hist-1990', 'hist-1990'], model_ref='ERA5')
+    saver = output_saver(
+        catalog=['lumi-phase2', 'lumi-phase2'], model=['IFS-NEMO', 'ICON'], 
+        exp=['hist-1990', 'hist-1990'], model_ref='ERA5')
     filename = saver.generate_name(
         diagnostic_product='mean', extra_keys=extra_keys
     )
@@ -64,7 +66,7 @@ def test_save_netcdf(base_saver, tmp_path):
 
     extra_keys = {'var': 'tprate'}
     base_saver.save_netcdf(dataset=data, diagnostic_product='mean', extra_keys=extra_keys)
-    nc = os.path.join(tmp_path, 'netcdf', 'dummy.mean.lumi-phase2.IFS-NEMO.historical.tprate.nc')
+    nc = os.path.join(tmp_path, 'netcdf', 'dummy.mean.lumi-phase2.IFS-NEMO.historical.r1.tprate.nc')
     assert os.path.exists(nc)
 
     old_mtime = Path(nc).stat().st_mtime
@@ -84,7 +86,7 @@ def test_save_png(base_saver, tmp_path):
     path = base_saver.save_png(fig=fig, diagnostic_product='mean', extra_keys=extra_keys, dpi=300)
 
     # Check if the file was created
-    png = os.path.join(tmp_path, 'png', 'dummy.mean.lumi-phase2.IFS-NEMO.historical.tprate.png')
+    png = os.path.join(tmp_path, 'png', 'dummy.mean.lumi-phase2.IFS-NEMO.historical.r1.tprate.png')
     assert os.path.exists(png)
     assert path == png
 
@@ -105,7 +107,7 @@ def test_save_pdf(base_saver, tmp_path):
     base_saver.save_pdf(fig=fig, diagnostic_product='mean', extra_keys=extra_keys)
 
     # Check if the file was created
-    pdf = os.path.join(tmp_path, 'pdf', 'dummy.mean.lumi-phase2.IFS-NEMO.historical.tprate.pdf')
+    pdf = os.path.join(tmp_path, 'pdf', 'dummy.mean.lumi-phase2.IFS-NEMO.historical.r1.tprate.pdf')
     assert os.path.exists(pdf)
 
     old_mtime = Path(pdf).stat().st_mtime
