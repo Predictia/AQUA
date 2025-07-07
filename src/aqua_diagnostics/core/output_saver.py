@@ -13,8 +13,8 @@ class OutputSaver:
     """
 
     def __init__(self, diagnostic: str,
-                 catalog: str = None, model: str = None, exp: str = None, realization: str = None,
-                 catalog_ref: str = None, model_ref: str = None, exp_ref: str = None,
+                 catalog: str | list = None, model: str | list = None, exp: str | list = None, realization: str | list = None,
+                 catalog_ref: str | list = None, model_ref: str | list = None, exp_ref: str | list = None,
                  outdir: str = '.', loglevel: str = 'WARNING'):
         """
         Initialize the OutputSaver with diagnostic parameters and output directory.
@@ -51,26 +51,42 @@ class OutputSaver:
         self.outdir = outdir
 
     @staticmethod
-    def _format_realization(realization: str) -> str:
+    def _format_realization(realization: str | int | list | None) -> str | list:
         """
         Format the realization string by prepending 'r' if it is a digit.
 
         Args:
-            realization (str): The realization string.
+            realization (str | int | list | None): The realization value. Can be:
+                - str/int: Single realization value
+                - list: List of realization values  
+                - None: Returns default realization
 
         Returns:
-            str: Formatted realization string.
+            str | list: Formatted realization string or list of formatted strings.
         """
         if realization is None:
             return DEFAULT_REALIZATION
         if isinstance(realization, list):
-            return [f'r{r}' if str(r).isdigit() else r for r in realization]
+            return [f'r{r}' if str(r).isdigit() else str(r) for r in realization]
         if isinstance(realization, (int, str)):
-            return f'r{realization}' if str(realization).isdigit() else realization
+            return f'r{realization}' if str(realization).isdigit() else str(realization)
 
     @staticmethod
-    def unpack_list(value, special=None):
-        """Unpack a value that can be a string, list, or None."""
+    def unpack_list(value: str | list | None, special: str | None = None) -> str | None:
+        """
+        Unpack a value that can be a string, list, or None.
+        
+        Args:
+            value: The value to unpack. Can be string, list, or None.
+            special: Special value to return when value is a list. 
+                    If None and value is a single-item list, returns the single item.
+                    
+        Returns:
+            - If value is a list and special is provided: returns special
+            - If value is a single-item list and special is None: returns the single item  
+            - Otherwise: returns value as-is
+
+        """
         if isinstance(value, list):
             if special is not None:
                 return special
@@ -171,12 +187,11 @@ class OutputSaver:
             extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
             metadata (dict, optional): Additional metadata to include in the NetCDF file.
         """
-        filename = self.generate_name(diagnostic_product=diagnostic_product, extra_keys=extra_keys) + '.nc'
-
-        folder = os.path.join(self.outdir, 'netcdf')
-        create_folder(folder=str(folder), loglevel=self.loglevel)
-        filepath = os.path.join(folder, filename)
-
+        
+        filepath = self._core_save(
+            diagnostic_product=diagnostic_product,
+            file_format='nc', extra_keys=extra_keys)
+        
         if not rebuild and os.path.exists(filepath):
             self.logger.info("File already exists and rebuild=False, skipping: %s", filepath)
             return filepath
@@ -198,6 +213,24 @@ class OutputSaver:
         self.logger.info("Saved NetCDF %s", filepath)
         return filepath
     
+    def _core_save(self, diagnostic_product: str, file_format: str,
+                   extra_keys: dict = None):
+        """
+        Core method to handle the common logic for saving files, including checking if the file exists.
+        """
+        
+        if file_format not in ['pdf', 'png', 'nc']:
+            raise ValueError("file_format must be either 'pdf',  'png' or 'nc'")
+        
+        filename = self.generate_name(
+            diagnostic_product=diagnostic_product, extra_keys=extra_keys
+            ) + f'.{file_format}'
+        dir_format = 'netcdf' if file_format == 'nc' else file_format
+        folder = os.path.join(self.outdir, dir_format)
+        create_folder(folder=str(folder), loglevel=self.loglevel)
+        return os.path.join(folder, filename)
+
+    
     def _save_figure(self, fig: plt.Figure, diagnostic_product: str, file_format: str,
                  rebuild: bool = True, extra_keys: dict = None, metadata: dict = None,
                  dpi: int = None):
@@ -213,16 +246,11 @@ class OutputSaver:
             metadata (dict): Metadata to embed.
             dpi (int): DPI setting for raster formats like PNG.
         """
-        if file_format not in ['pdf', 'png']:
-            raise ValueError("file_format must be either 'pdf' or 'png'.")
-        
-        filename = self.generate_name(
-            diagnostic_product=diagnostic_product, extra_keys=extra_keys
-            ) + f'.{file_format}'
-        folder = os.path.join(self.outdir, file_format)
-        create_folder(folder=str(folder), loglevel=self.loglevel)
-        filepath = os.path.join(folder, filename)
 
+        filepath = self._core_save(
+            diagnostic_product=diagnostic_product, 
+            file_format=file_format, extra_keys=extra_keys)
+        
         if not rebuild and os.path.exists(filepath):
             self.logger.info("File already exists and rebuild=False, skipping: %s", filepath)
             return filepath
@@ -234,7 +262,7 @@ class OutputSaver:
         fig.savefig(filepath, **save_kwargs)
 
         metadata = self.create_metadata(
-            diagnostic_product=diagnostic_product, 
+            diagnostic_product=diagnostic_product,
             extra_keys=extra_keys, metadata=metadata)
 
         if file_format == 'pdf':

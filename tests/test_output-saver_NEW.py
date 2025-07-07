@@ -50,13 +50,40 @@ def test_generate_name(base_saver, output_saver):
     # Test with multiple models
     extra_keys = {'var': 'tprate', 'region': 'indian_ocean'}
     saver = output_saver(
-        catalog=['lumi-phase2', 'lumi-phase2'], model=['IFS-NEMO', 'ICON'], 
+        catalog=['lumi-phase2', 'lumi-phase2'], model=['IFS-NEMO', 'ICON'],
         exp=['hist-1990', 'hist-1990'], model_ref='ERA5')
     filename = saver.generate_name(
         diagnostic_product='mean', extra_keys=extra_keys
     )
     assert filename == 'dummy.mean.multimodel.ERA5.tprate.indian_ocean'
 
+    with pytest.raises(ValueError):
+        # Test with invalid model type
+        saver = output_saver(model=['IFS-NEMO', 'ICON'])
+        saver.generate_name(diagnostic_product='mean')
+
+    with pytest.raises(ValueError):
+        # Test with invalid model type
+        saver = output_saver(model=['IFS-NEMO', 'ICON'], catalog=['lumi-phase2', 'lumi-phase2'], exp=['hist-1990'])
+        saver.generate_name(diagnostic_product='mean')
+
+@pytest.mark.aqua
+def test_internal_function(base_saver):
+    """Test internal functions of OutputSaver."""
+
+    # Test cases per _format_realization
+    saver = base_saver
+    assert saver._format_realization(None) == 'r1'
+    assert saver._format_realization('5') == 'r5'
+    assert saver._format_realization(5) == 'r5'
+    assert saver._format_realization('r5') == 'r5'
+    assert saver._format_realization([1, 'r2']) == ['r1', 'r2']
+
+    # Test cases per unpack_list
+    assert saver.unpack_list(['item'], 'special') == 'special'
+    assert saver.unpack_list(['item']) == 'item'
+    assert saver.unpack_list(['a', 'b']) == ['a', 'b']
+    
 
 @pytest.mark.aqua
 def test_save_netcdf(base_saver, tmp_path):
