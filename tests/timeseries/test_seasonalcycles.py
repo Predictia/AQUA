@@ -55,6 +55,6 @@ class TestSeasonalCycles:
                                  std_monthly_data = sc.std_monthly, loglevel=loglevel)
         plt.run(var=self.var, outputdir=tmp_path)
 
-        filename = f'{self.diagnostic_name}.seasonalcycles.{self.catalog}.{self.model}.{self.exp}.{self.catalog}.{self.model}.{self.exp}.r1.{self.var}.png'
+        filename = f'{self.diagnostic_name}.seasonalcycles.{self.catalog}.{self.model}.{self.exp}.r1.{self.catalog}.{self.model}.{self.exp}.{self.var}.png'
         file = os.path.join(tmp_path, 'png', filename)
         assert os.path.exists(file)
