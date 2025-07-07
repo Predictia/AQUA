@@ -37,16 +37,32 @@ class OutputSaver:
         self.logger = log_configure(log_level=self.loglevel, log_name='OutputSaver')
 
         self.diagnostic = diagnostic
-        self.catalog = catalog
-        self.model = model
-        self.exp = exp
-        self.realization = self._format_realization(realization)
-        self._verify_arguments(['catalog', 'model', 'exp'])
 
-        self.catalog_ref = catalog_ref
-        self.model_ref = model_ref
-        self.exp_ref = exp_ref
+        # Unpack single element list so that we can handle both single strings and lists
+        self.catalog = self.unpack_list(catalog)
+        self.model = self.unpack_list(model)
+        self.exp = self.unpack_list(exp)
+        self.catalog_ref = self.unpack_list(catalog_ref)
+        self.model_ref = self.unpack_list(model_ref)
+        self.exp_ref = self.unpack_list(exp_ref)
+
+        # Format realization to ensure it is a string or list of strings
+        self.realization = self._format_realization(realization)
+
+        # Verify that catalog, model, and exp are either all strings or all lists of the same length
+        self._verify_arguments(['catalog', 'model', 'exp'])
         self._verify_arguments(['catalog_ref', 'model_ref', 'exp_ref'])
+
+        self.logger.debug('Complete initialization with parameters: %s', {
+            'diagnostic': self.diagnostic,
+            'catalog': self.catalog,
+            'model': self.model,
+            'exp': self.exp,
+            'realization': self.realization,
+            'catalog_ref': self.catalog_ref,
+            'model_ref': self.model_ref,
+            'exp_ref': self.exp_ref
+        })
 
         self.outdir = outdir
 
@@ -72,26 +88,23 @@ class OutputSaver:
             return f'r{realization}' if str(realization).isdigit() else str(realization)
 
     @staticmethod
-    def unpack_list(value: str | list | None, special: str | None = None) -> str | None:
+    def unpack_list(value: str | list | None) -> str | None:
         """
         Unpack a value that can be a string, list, or None.
         
         Args:
             value: The value to unpack. Can be string, list, or None.
-            special: Special value to return when value is a list. 
-                    If None and value is a single-item list, returns the single item.
                     
         Returns:
-            - If value is a list and special is provided: returns special
             - If value is a single-item list and special is None: returns the single item  
             - Otherwise: returns value as-is
 
         """
         if isinstance(value, list):
-            if special is not None:
-                return special
             if len(value) == 1:
                 return value[0]
+            if len(value) == 0:
+                return None
         return value
 
     def _verify_arguments(self, attr_names):
@@ -139,28 +152,21 @@ class OutputSaver:
         if not self.catalog or not self.model or not self.exp:
             raise ValueError("Catalog, model, and exp must be specified to generate a filename.")
 
-        # handle multimodel case: we need to check if the 4 keys above are lists
-        model_value = self.unpack_list(self.model, special='multimodel')
-        catalog_value = self.unpack_list(self.catalog)
-        exp_value = self.unpack_list(self.exp)
-        realization_value = self.unpack_list(self.realization)
-
-        # handle multiref case: we need to check if the 3 keys below are lists
-        model_ref_value = self.unpack_list(self.model_ref, special='multiref')
-        catalog_ref_value = self.unpack_list(self.catalog_ref)
-        exp_ref_value = self.unpack_list(self.exp_ref)
+        # handle multimodel/multiref case
+        model_value = 'multimodel' if isinstance(self.model, list) and len(self.model) > 1 else self.model
+        model_ref_value = 'multiref' if isinstance(self.model_ref, list) and len(self.model_ref) > 1 else self.model_ref
 
         # build dictionary
         parts_dict = {
             'diagnostic': self.diagnostic,
             'diagnostic_product': diagnostic_product,
-            'catalog': catalog_value if model_value != "multimodel" else None,
+            'catalog': self.catalog if model_value != "multimodel" else None,
             'model': model_value,
-            'exp': exp_value if model_value != "multimodel" else None,
-            'realization': realization_value if model_value != "multimodel" else None,
-            'catalog_ref': catalog_ref_value if model_ref_value != "multiref" else None,
+            'exp': self.exp if model_value != "multimodel" else None,
+            'realization': self.realization if model_value != "multimodel" else None,
+            'catalog_ref': self.catalog_ref if model_ref_value != "multiref" else None,
             'model_ref': model_ref_value,
-            'exp_ref': exp_ref_value if model_ref_value != "multiref" else None,
+            'exp_ref': self.exp_ref if model_ref_value != "multiref" else None,
         }
 
         # Add additional filename keys if provided

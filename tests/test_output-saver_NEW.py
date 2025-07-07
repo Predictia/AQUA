@@ -57,6 +57,16 @@ def test_generate_name(base_saver, output_saver):
     )
     assert filename == 'dummy.mean.multimodel.ERA5.tprate.indian_ocean'
 
+    # Test with multiple models
+    extra_keys = {'var': 'tprate', 'region': 'indian_ocean'}
+    saver = output_saver(
+        catalog=['lumi-phase2'], model=['IFS-NEMO'],
+        exp=['historical'], model_ref=['ERA5'])
+    filename = saver.generate_name(
+        diagnostic_product='mean', extra_keys=extra_keys
+    )
+    assert filename == 'dummy.mean.lumi-phase2.IFS-NEMO.historical.r1.ERA5.tprate.indian_ocean'
+
     with pytest.raises(ValueError):
         # Test with invalid model type
         saver = output_saver(model=['IFS-NEMO', 'ICON'])
@@ -80,10 +90,10 @@ def test_internal_function(base_saver):
     assert saver._format_realization([1, 'r2']) == ['r1', 'r2']
 
     # Test cases per unpack_list
-    assert saver.unpack_list(['item'], 'special') == 'special'
     assert saver.unpack_list(['item']) == 'item'
     assert saver.unpack_list(['a', 'b']) == ['a', 'b']
-    
+    assert saver.unpack_list(None) is None
+    assert saver.unpack_list([]) is None
 
 @pytest.mark.aqua
 def test_save_netcdf(base_saver, tmp_path):
