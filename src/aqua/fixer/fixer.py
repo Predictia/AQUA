@@ -526,7 +526,7 @@ class Fixer():
         """
         self.logger.debug("Grib variable %s, looking for attributes", var)
         try:
-            attributes = get_eccodes_attr(var, loglevel=self.loglevel)
+            attributes = get_eccodes_attr(var, loglevel=self.loglevel).copy() # The copy is needed because the function in eccodes.py is cached
             shortname = attributes.get("shortName", None)
             self.logger.debug("Grib variable %s, shortname is %s", var, shortname)
 
