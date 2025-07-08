@@ -5,24 +5,23 @@ import dask.array as da
 from aqua.util import convert_data_units
 from aqua.logger import log_configure
 
-def histogram(data: xr.DataArray, units = None, bins = 10, range = None,
+def histogram(data: xr.DataArray, bins = 10, range = None, units = None,
               weighted = True, loglevel='WARNING', dask=True, check=False, density=False):
     """
-    Function to calculate a histogram of the high-resolution DataArray.
+    Function to calculate a histogram of a DataArray.
 
     Args:
-        data (xarray.Dataset):                The input Dataset.
-        bins (int, optional):                 The number of bins for the histogram. Defaults to 10.
-        range (tuple, optional):              The lower and upper range of the bins. Defaults to None (in that case it is determined automatically).
-        weights (xarray.DataArray, optional): Weights for each value in the histogram.
-        logger (logging.Logger, optional):    Logger for logging messages. Defaults to None.
-        dask (bool, optional):                If True, uses Dask for parallel computation.
-                                              Defaults to True.
-        units (str, optional):                Convert data to these units. Defaults to None.
-        check (bool, optional):               If True, checks if the sum of counts in the histogram is equal to the size of the data. 
-                                              Defaults to False. This forces the histogram to be computed.
-        density (bool, optional):             If True, the result is the probability density function at the bin,
-                                              normalized such that the integral over the range is 1. Defaults to False.
+        data (xarray.Dataset):     The input DataArray. NB: Datasets not supported.
+        bins (int, optional):      The number of bins for the histogram. Defaults to 10.
+        range (tuple, optional):   The lower and upper range of the bins. Defaults to None (in that case it is determined automatically).
+        weighted (bool, optional): Use latitudinal weights for the histogram. Defaults to True.
+        dask (bool, optional):     If True, uses Dask for parallel computation. Defaults to True.
+        units (str, optional):     Convert data to these units. Defaults to None.
+        check (bool, optional):    Checks if the sum of counts in the histogram is equal to the size of the data. 
+                                   Defaults to False. This forces the histogram to be computed.
+        density (bool, optional):  Returns a probability density function,
+                                   normalized such that the integral over the range is 1. Defaults to False.
+        loglevel (str, optional):  Logging level. Defaults to 'WARNING'.
 
     Raises:
         TypeError: If the input data is not an xarray DataArray.
