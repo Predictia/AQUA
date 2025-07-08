@@ -43,6 +43,8 @@ def histogram(data: xr.DataArray, units = None, bins = 10, range = None,
 
     if weighted:
         logger.debug('Using latitudinal weights')
+        if 'lat' not in data.coords:
+            raise ValueError("DataArray must have a 'lat' coordinate for weighted histogram.")
         weights = xr.ones_like(data)
         weights = weights * weights.lat
         weights = np.cos(np.radians(weights))

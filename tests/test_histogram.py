@@ -83,3 +83,14 @@ def test_histogram_dask(sample_dask_data):
     assert 'center_of_bin' in hist.coords
     # The result of histogram with dask is a dask array, so we need to compute it
     assert int(hist.sum().compute()) == sample_dask_data.size
+
+@pytest.mark.aqua
+def test_histogram_weighted_no_lat():
+    """
+    Test that a ValueError is raised when weighted=True and 'lat' coordinate is missing.
+    """
+    data = xr.DataArray(np.random.rand(10, 10), dims=['x', 'y'], name='test_data')
+    data.attrs['units'] = 'm'
+    data.attrs['long_name'] = 'Test Data'
+    with pytest.raises(ValueError):
+        histogram(data, weighted=True)
