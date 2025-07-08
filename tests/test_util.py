@@ -22,6 +22,7 @@ def test_extract_literal_and_numeric(test_text):
         result = extract_literal_and_numeric(input_text)
         assert result == expected_output
 
+loglevel = 'DEBUG'
 
 @pytest.mark.aqua
 def test_convert_data_units():
