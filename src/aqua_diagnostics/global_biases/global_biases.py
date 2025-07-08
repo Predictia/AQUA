@@ -60,7 +60,7 @@ class GlobalBiases(Diagnostic):
             var (str): The variable to be checked.
             units (str): The units to be checked.
         """
-        self.data = super()._check_data(data=self.data, var=var, units=units)
+        self.data[self.var] = super()._check_data(data=self.data[self.var], var=var, units=units)
 
 
     def retrieve(self, var: str = None, formula: bool = False,
@@ -101,7 +101,7 @@ class GlobalBiases(Diagnostic):
 
         # Customize metadata and attributes
         if units is not None:
-            self._check_data(self.var, units)
+            self._check_data(var=self.var, units=units)
 
         if short_name is not None:
             self.data = self.data.rename_vars({self.var: short_name})
