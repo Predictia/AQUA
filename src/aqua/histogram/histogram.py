@@ -11,7 +11,7 @@ def histogram(data: xr.DataArray, bins = 10, range = None, units = None,
     Function to calculate a histogram of a DataArray.
 
     Args:
-        data (xarray.Dataset):     The input DataArray. NB: Datasets not supported.
+        data (xarray.Dataset):     The input DataArray. If it is a Dataset, the first variable is used.
         bins (int, optional):      The number of bins for the histogram. Defaults to 10.
         range (tuple, optional):   The lower and upper range of the bins. Defaults to None (in that case it is determined automatically).
         weighted (bool, optional): Use latitudinal weights for the histogram. Defaults to True.
@@ -30,9 +30,11 @@ def histogram(data: xr.DataArray, bins = 10, range = None, units = None,
         xarray.DataArray: The histogram of the input data.
     """
 
-    if not isinstance(data, xr.DataArray):
-        raise TypeError('Input data must be an xarray DataArray')
-    
+    if isinstance(data, xr.Dataset):
+        data = data[list(data.data_vars.keys())[0]]
+    elif not isinstance(data, xr.DataArray):
+        raise TypeError('Input data must be an xarray DataArray or Dataset')
+
     logger = log_configure(log_level=loglevel, log_name='Histogram')
 
     if units is not None:

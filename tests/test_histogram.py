@@ -25,6 +25,15 @@ def sample_dask_data(sample_data):
     data.data = da.from_array(data.data, chunks=(5, 5))
     return data
 
+@pytest.fixture
+def sample_dataset(sample_data):
+    """
+    Fixture to create a sample xarray.Dataset for testing.
+    """
+    ds = sample_data.to_dataset()
+    ds['second_var'] = xr.DataArray(np.random.rand(10, 10), coords=sample_data.coords)
+    return ds
+
 @pytest.mark.aqua
 def test_histogram_basic(sample_data):
     """
@@ -83,6 +92,17 @@ def test_histogram_dask(sample_dask_data):
     assert 'center_of_bin' in hist.coords
     # The result of histogram with dask is a dask array, so we need to compute it
     assert int(hist.sum().compute()) == sample_dask_data.size
+
+@pytest.mark.aqua
+def test_histogram_dataset(sample_dataset):
+    """
+    Test the histogram function with an xarray.Dataset.
+    """
+    hist = histogram(sample_dataset, bins=5, check=True, range=(0, 1), weighted=False)
+    assert isinstance(hist, xr.DataArray)
+    assert hist.name == 'histogram'
+    assert 'center_of_bin' in hist.coords
+    assert int(hist.sum()) == sample_dataset['test_data'].size
 
 @pytest.mark.aqua
 def test_histogram_weighted_no_lat():

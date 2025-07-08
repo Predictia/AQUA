@@ -97,6 +97,7 @@ Histogram
 The ``histogram()`` function is a simple utility to compute histograms of input data, working with a Xarray DataArray in input.
 The syntax is similar to the ``numpy.histogram()`` function, but it returns a DataArray with the histogram.
 If the input DataArray is Dask-based then the computation will be lazy.
+If a Dataset is passed, the first variable will be used.
 Latitudinal weighting is activated by default, so the 'counts' of the histogram will not be integers.
 It is possible to compute a complete PDF (Probability Density Function) by setting the ``density=True`` argument.
 
