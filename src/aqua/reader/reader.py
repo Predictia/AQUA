@@ -18,7 +18,7 @@ from aqua.fldstat import FldStat
 from aqua.timstat import TimStat
 from aqua.fixer import Fixer
 from aqua.data_model import counter_reverse_coordinate
-from aqua import histogram
+from aqua.histogram import histogram
 import aqua.gsv
 
 from .streaming import Streaming
