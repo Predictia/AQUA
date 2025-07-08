@@ -26,7 +26,7 @@ output:
 diagnostics:
   globalbiases:
     run: true
-    diagnostic_name: 'radiation_biases'
+    diagnostic_name: 'radiation'
     variables: ['tnlwrf', 'tnswrf']
     formulae: ['tnlwrf+tnswrf', 'tnlwrf-tnlwrfcs', 'tnswrf-tnswrfcs', 'tnlwrf+tnswrf-tnlwrfcs-tnswrfcs']
     params:
@@ -58,3 +58,5 @@ diagnostics:
           tnswrf: {vmin: -30, vmax: 30}
           tnr: {vmin: -30, vmax: 30}
           cre_toa_net: {vmin: -55, vmax: 55}
+          cre_toa_sw: {vmin: -55, vmax: 55}
+          cre_toa_lw: {vmin: -55, vmax: 55}
