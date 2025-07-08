@@ -151,7 +151,7 @@ def get_aqua_paths(*, args, logger):
     aqua_configdir = ConfigPath().configdir
     logger.info(f"AQUA config dir: {aqua_configdir}")
 
-    aqua_analysis_config_path = os.path.expandvars(args.config) if args.config and args.config.strip() else os.path.join(aqua_path, "cli/aqua-analysis/config.aqua-analysis.yaml")
+    aqua_analysis_config_path = os.path.expandvars(args.config) if args.config and args.config.strip() else os.path.join(aqua_path, "config/analysis/config.aqua-analysis.yaml")
     if not os.path.exists(aqua_analysis_config_path):
         logger.error(f"Config file {aqua_analysis_config_path} not found.")
         sys.exit(1)

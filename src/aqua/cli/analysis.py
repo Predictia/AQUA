@@ -27,7 +27,7 @@ def analysis_parser(parser=None):
     parser.add_argument("-e", "--exp", type=str, help="Experiment")
     parser.add_argument("-s", "--source", type=str, help="Source")
     parser.add_argument("-d", "--outputdir", type=str, help="Output directory")
-    parser.add_argument("-f", "--config", type=str, default="$AQUA/cli/aqua-analysis/config.aqua-analysis.yaml",
+    parser.add_argument("-f", "--config", type=str, default="$AQUA/config/analysis/config.aqua-analysis.yaml",
                         help="Configuration file")
     parser.add_argument("-c", "--catalog", type=str, help="Catalog")
     parser.add_argument("--regrid", type=str, default="False",
