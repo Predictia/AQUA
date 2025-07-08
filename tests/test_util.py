@@ -4,6 +4,7 @@ import pytest
 import xarray as xr
 import numpy as np
 import pandas as pd
+from aqua import Reader
 from aqua.util import extract_literal_and_numeric, file_is_complete, to_list, convert_data_units
 
 @pytest.fixture
