@@ -2,7 +2,7 @@ import numpy as np
 import xarray as xr
 import pytest
 import dask.array as da
-from aqua.util import histogram
+from aqua import histogram
 
 @pytest.fixture
 def sample_data():
@@ -25,6 +25,7 @@ def sample_dask_data(sample_data):
     data.data = da.from_array(data.data, chunks=(5, 5))
     return data
 
+@pytest.mark.aqua
 def test_histogram_basic(sample_data):
     """
     Test the basic functionality of the histogram function.
@@ -35,6 +36,7 @@ def test_histogram_basic(sample_data):
     assert 'center_of_bin' in hist.coords
     assert int(hist.sum()) == sample_data.size
 
+@pytest.mark.aqua
 def test_histogram_density(sample_data):
     """
     Test the histogram function with density=True.
@@ -45,6 +47,7 @@ def test_histogram_density(sample_data):
     # The integral of the PDF should be close to 1
     assert np.isclose(hist.sum() * (hist.center_of_bin[1] - hist.center_of_bin[0]), 1, atol=1e-5)
 
+@pytest.mark.aqua
 def test_histogram_weighted(sample_data):
     """
     Test the histogram function with weighted=True.
@@ -53,6 +56,7 @@ def test_histogram_weighted(sample_data):
     hist_weighted = histogram(sample_data, bins=5, weighted=True, check=True, range=(0, 1))
     assert not np.allclose(hist_unweighted.values, hist_weighted.values)
 
+@pytest.mark.aqua
 def test_histogram_units(sample_data):
     """
     Test the histogram function with units conversion.
@@ -60,6 +64,7 @@ def test_histogram_units(sample_data):
     hist = histogram(sample_data, units='cm', bins=5, range=(0, 100))
     assert hist.center_of_bin.attrs['units'] == 'cm'
 
+@pytest.mark.aqua
 def test_histogram_type_error():
     """
     Test that a TypeError is raised for invalid input data.
@@ -67,6 +72,7 @@ def test_histogram_type_error():
     with pytest.raises(TypeError):
         histogram(np.random.rand(10, 10))
 
+@pytest.mark.aqua
 def test_histogram_dask(sample_dask_data):
     """
     Test the histogram function with a dask array.

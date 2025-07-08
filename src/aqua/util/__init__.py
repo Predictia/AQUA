@@ -17,7 +17,6 @@ from .yaml import load_yaml, dump_yaml, load_multi_yaml, eval_formula
 from .time import check_chunk_completeness, frequency_string_to_pandas
 from .time import time_to_string
 from .zarr import create_zarr_reference
-from .histogram import histogram
 from .output_saver import OutputSaver
 
 __all__ = ['ConfigPath',
@@ -35,5 +34,5 @@ __all__ = ['ConfigPath',
            'open_image', 'username', 'update_metadata',
            'load_yaml', 'dump_yaml', 'load_multi_yaml', 'eval_formula',
            'check_chunk_completeness', 'frequency_string_to_pandas',
-           'time_to_string', 'histogram',
+           'time_to_string',
            'create_zarr_reference', 'OutputSaver']
