@@ -26,7 +26,7 @@ from aqua.cli.catgen import catgen_execute
 CATPATH = 'catalogs'
 
 # directories to be installed in the AQUA config folder
-BASIC_DIRECTORIES = ['fixes', 'data_model', 'grids', 'catgen', 'datachecker', 'styles']
+BASIC_DIRECTORIES = ['analysis', 'catgen', 'datachecker', 'data_model', 'fixes', 'grids', 'styles']
 
 
 class AquaConsole():
