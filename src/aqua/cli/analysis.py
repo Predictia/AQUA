@@ -42,11 +42,10 @@ def analysis_parser(parser=None):
 
     return parser.parse_args()
 
-def main():
+def analysis_execute(args):
     """
-    Main entry point for running the diagnostics.
+    Executing the AQUA analysis by parsing the arguments and configuring the machinery
     """
-    args = analysis_parser()
     logger = log_configure('warning', 'AQUA Analysis')
 
     aqua_path, aqua_configdir, aqua_config_path = get_aqua_paths(args=args, logger=logger)
@@ -176,4 +175,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    args = analysis_parser().parse_args(sys.argv[1:])
+    analysis_execute(args)
