@@ -60,7 +60,8 @@ def histogram(data: xr.DataArray, units = None, bins = 10, range = None,
     size_of_the_data = data.size
 
     if check and not density:
-        hist.load()
+        if isinstance(hist, da.Array):
+            hist = hist.compute()
         if int(sum(hist)) != size_of_the_data:
             logger.warning('Sum of counts in the histogram is not equal to the size of the data')
 
