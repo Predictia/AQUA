@@ -3,7 +3,7 @@ import numpy as np
 import xarray as xr
 import builtins
 import dask.array as da
-from aqua.diagnostics.core import convert_data_units
+from aqua.util import convert_data_units
 from aqua.logger import log_configure
 
 def histogram(data: xr.DataArray, units = None, bins = 10, range = None,

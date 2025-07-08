@@ -2,7 +2,7 @@ import numpy as np
 import xarray as xr
 import pytest
 import dask.array as da
-from aqua.diagnostics.core import histogram
+from aqua.util import histogram
 
 @pytest.fixture
 def sample_data():

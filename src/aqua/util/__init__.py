@@ -2,7 +2,7 @@
 
 from .config import ConfigPath
 from .eccodes import get_eccodes_attr
-from .units import normalize_units, convert_units
+from .units import normalize_units, convert_units, convert_data_units
 from .graphics import add_cyclic_lon, plot_box, minmax_maps
 from .graphics import evaluate_colorbar_limits, cbar_get_label, set_map_title
 from .graphics import coord_names, ticks_round, set_ticks
@@ -17,11 +17,12 @@ from .yaml import load_yaml, dump_yaml, load_multi_yaml, eval_formula
 from .time import check_chunk_completeness, frequency_string_to_pandas
 from .time import time_to_string
 from .zarr import create_zarr_reference
+from .histogram import histogram
 from .output_saver import OutputSaver
 
 __all__ = ['ConfigPath',
            'get_eccodes_attr',
-           'normalize_units', 'convert_units',
+           'normalize_units', 'convert_units', 'convert_data_units',
            'add_cyclic_lon', 'plot_box', 'minmax_maps',
            'evaluate_colorbar_limits', 'cbar_get_label', 'set_map_title',
            'coord_names', 'ticks_round', 'set_ticks',
@@ -34,5 +35,5 @@ __all__ = ['ConfigPath',
            'open_image', 'username', 'update_metadata',
            'load_yaml', 'dump_yaml', 'load_multi_yaml', 'eval_formula',
            'check_chunk_completeness', 'frequency_string_to_pandas',
-           'time_to_string',
+           'time_to_string', 'histogram',
            'create_zarr_reference', 'OutputSaver']
