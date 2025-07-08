@@ -4,11 +4,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 import sys
 import subprocess
-import argparse
-import logging
-from dask.distributed import LocalCluster
-from aqua.logger import log_configure
-from aqua.util import load_yaml, create_folder, ConfigPath
+from aqua.util import create_folder, ConfigPath
 from aqua import __path__ as pypath
 
 
