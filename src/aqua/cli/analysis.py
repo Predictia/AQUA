@@ -40,7 +40,7 @@ def analysis_parser(parser=None):
                         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
                         default=None, help="Log level")
 
-    return parser.parse_args()
+    return parser
 
 def analysis_execute(args):
     """
