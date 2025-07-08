@@ -106,10 +106,10 @@ if __name__ == '__main__':
                 param_dict = config_dict['diagnostics']['globalbiases'].get('params', {}).get(var, {})
                 units = param_dict.get('units', None)
                 long_name = param_dict.get('long_name', None)
-                short_name = param_dict.get('standard_name', None)
+                short_name = param_dict.get('short_name', None)
 
-                biases_dataset.retrieve(var=var, units=units, formula=is_formula, long_name=long_name, standard_name=short_name)
-                biases_reference.retrieve(var=var, units=units, formula=is_formula, long_name=long_name, standard_name=short_name)
+                biases_dataset.retrieve(var=var, units=units, formula=is_formula, long_name=long_name, short_name=short_name)
+                biases_reference.retrieve(var=var, units=units, formula=is_formula, long_name=long_name, short_name=short_name)
 
                 biases_dataset.compute_climatology(seasonal=seasons, seasons_stat=seasons_stat)
                 biases_reference.compute_climatology(seasonal=seasons, seasons_stat=seasons_stat)
