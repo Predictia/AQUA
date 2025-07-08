@@ -1,8 +1,9 @@
 import pandas as pd
 import xarray as xr
 from aqua.logger import log_configure
+from aqua.fixer import EvaluateFormula
 from aqua.diagnostics.core import Diagnostic, convert_data_units
-from aqua.util import select_season, eval_formula
+from aqua.util import select_season
 from aqua.exceptions import NoDataError
 from .util import handle_pressure_level
 
@@ -63,7 +64,7 @@ class GlobalBiases(Diagnostic):
 
 
     def retrieve(self, var: str = None, formula: bool = False,
-                 long_name: str = None, standard_name: str = None,
+                 long_name: str = None, short_name: str = None,
                  plev: float = None, units: str = None) -> None:
         """
         Retrieve and preprocess dataset, selecting pressure level and/or converting units if needed.
@@ -72,7 +73,7 @@ class GlobalBiases(Diagnostic):
             var (str, optional): Variable to retrieve. If None, uses self.var.
             formula (bool): If True, the variable is a formula.
             long_name (str): The long name of the variable, if different from the variable name.
-            standard_name (str): The standard name of the variable, if different from the variable name.
+            short_name (str): The short name of the variable, if different from the variable name.
             plev (float, optional): Pressure level to extract.
             units (str): The units of the variable, if different from the original units.
         Raises:
@@ -80,14 +81,16 @@ class GlobalBiases(Diagnostic):
             KeyError: If the variable is missing from the data.
         """
         if var is not None:
-            self.var = var
-            
+            self.var = var   
         if formula:
             super().retrieve()
-            self.logger.debug("Evaluating formula: %s", self.var)
-            formula_values = eval_formula(mystring=self.var, xdataset=self.data)
+            self.logger.info("Evaluating formula: %s", self.var)
+            formula_values = EvaluateFormula(data=self.data, formula=self.var, long_name=long_name,
+                                             short_name=short_name, units=units,
+                                             loglevel=self.loglevel).evaluate()
             if formula_values is None:
-                raise ValueError(f"Error evaluating formula '{self.var}'.")
+                raise ValueError(f'Error evaluating formula {var}. '
+                                 'Check the variable names and the formula syntax.')
             self.data[self.var] = formula_values
         else:
             super().retrieve(var=self.var)
@@ -100,15 +103,11 @@ class GlobalBiases(Diagnostic):
         if units is not None:
             self._check_data(self.var, units)
 
-        if long_name is not None:
-            self.data[self.var].attrs['long_name'] = long_name
-
-        if standard_name is not None:
-            self.data = self.data.rename_vars({self.var: standard_name})
-            self.var = standard_name
-            self.data[self.var].attrs['standard_name'] = standard_name
+        if short_name is not None:
+            self.data = self.data.rename_vars({self.var: short_name})
+            self.var = short_name
         else:
-            self.data.attrs['standard_name'] = self.var
+            self.data.attrs['short_name'] = self.var
 
         # Infer date range if not already set
         self.startdate = self.startdate or pd.to_datetime(self.data.time[0].values).strftime('%Y-%m-%d')
