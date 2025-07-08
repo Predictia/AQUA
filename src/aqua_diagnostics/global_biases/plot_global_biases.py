@@ -96,7 +96,7 @@ class PlotGlobalBiases:
         if data is None:
             return None
 
-        title = (f"{var} map {data.model} {data.exp}" 
+        title = (f"Climatology of {data[var].attrs.get('long_name', var)} for {data.model} {data.exp}" 
                 + (f" at {int(plev / 100)} hPa" if plev else ""))
 
         fig, ax = plot_single_map(
@@ -112,7 +112,7 @@ class PlotGlobalBiases:
         ax.set_ylabel("Latitude")
 
         description = (
-            f"Spatial map of the climatology of variable {var}"
+            f"Spatial map of the climatology {data[var].attrs.get('long_name', var)}"
             f"{' at ' + str(int(plev / 100)) + ' hPa' if plev else ''}"
             f" from {data.startdate} to {data.enddate} "
             f"for the {data.model} model, experiment {data.exp}."
@@ -146,7 +146,7 @@ class PlotGlobalBiases:
 
         sym = vmin is None or vmax is None
 
-        title = (f"{var} global bias of {data.model} {data.exp}\n"
+        title = (f"Global bias of {data[var].attrs.get('long_name', var)} for {data.model} {data.exp}\n"
                  f"relative to {data_ref.model} climatology"
                  + (f" at {int(plev / 100)} hPa" if plev else ""))
 
@@ -166,7 +166,7 @@ class PlotGlobalBiases:
         ax.set_ylabel("Latitude")
 
         description = (
-            f"Spatial map of total bias of variable {var}"
+            f"Spatial map of total bias of {data[var].attrs.get('long_name', var)}"
             f"{' at ' + str(int(plev / 100)) + ' hPa' if plev else ''}"
             f" from {data.startdate} to {data.enddate} "
             f"for the {data.model} model, experiment {data.exp}, with {data_ref.model} used as reference data."
@@ -222,7 +222,7 @@ class PlotGlobalBiases:
         fig = plot_maps(**plot_kwargs)
 
         description = (
-            f"Seasonal bias map of the variable {var}"
+            f"Seasonal bias map of {data[var].attrs.get('long_name', var)}"
             f"{' at ' + str(int(plev / 100)) + ' hPa' if plev else ''} "
             f"for the {data.model} model, experiment {data.exp}, "
             f"using {data_ref.model} as reference data. "
@@ -276,7 +276,7 @@ class PlotGlobalBiases:
 
         levels = np.linspace(vmin, vmax, nlevels)
         title = (
-            f"{var} vertical bias of {data.model} {data.exp}\n"
+            f"Vertical bias of {data[var].attrs.get('long_name', var)} for {data.model} {data.exp}\n"
             f"relative to {data_ref.model} climatology\n"
         )
 
@@ -294,7 +294,7 @@ class PlotGlobalBiases:
         ax.grid(True)
 
         description = (
-            f"Vertical bias plot of the variable {var} across pressure levels from {data.startdate} to {data.enddate} "
+            f"Vertical bias plot of {data[var].attrs.get('long_name', var)} across pressure levels from {data.startdate} to {data.enddate} "
             f"for the {data.model} model, experiment {data.exp}, with {data_ref.model} used as reference data."
         )
 
