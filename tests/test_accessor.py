@@ -27,7 +27,7 @@ class TestAccessor():
     def test_accessor_histogram(self, reader_instance):
         """Test histogram as accessor"""
         data = reader_instance.retrieve()
-        hist = data['2t'].aqua.histogram(bins=100, range=(250, 350), weighted=False)
+        hist = data['2t'].aqua.histogram(bins=200, range=(150, 350), weighted=False)
         assert sum(hist.values) == data['2t'].size
 
     def test_accessor_two(self, reader_instance, reader_instance2):
