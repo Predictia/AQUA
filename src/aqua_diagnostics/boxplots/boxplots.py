@@ -1,7 +1,7 @@
 import pandas as pd
 import xarray as xr
 from aqua.logger import log_configure
-from aqua.diagnostics.core import Diagnostic, convert_data_units
+from aqua.diagnostics.core import Diagnostic
 from aqua.util import select_season
 from aqua.exceptions import NoDataError
 
@@ -35,7 +35,7 @@ class Boxplots(Diagnostic):
         self.outputdir = outputdir
 
 
-    def retrieve_and_compute_fldmean(self, var: None, save_netcdf=False, units: str = None) -> None:
+    def run(self, var: None, save_netcdf=False, units: str = None) -> None:
         """
         Retrieve and preprocess dataset, selecting pressure level and/or converting units if needed.
 
@@ -64,7 +64,7 @@ class Boxplots(Diagnostic):
 
         if units:
             self.logger.info(f'Adjusting units for variable {self.var} to {units}.')
-            self.data = convert_data_units(self.data, self.var, units, loglevel=self.loglevel)
+            self.data =  super()._check_data(data=self.data, var=self.var, units=units, loglevel=self.loglevel)
 
         # Compute field means
         fldmeans = {}
