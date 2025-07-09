@@ -24,6 +24,7 @@ AQUA core complete list:
 
 AQUA diagnostics complete list:
 - Timeseries, Global Biases, Teleconnections, Ecmean: `--realization` option to select a specific realization in the CLI (#2041)
+- Global Biases: add try-except block in cli (#2069)
 - Global Biases: handling of formulae and Cloud Radiative Forcing Computation (#2031)
 - Global Biases: pressure levels plot works correctly with the CLI (#2027)
 - Timeseries: `diagnostic_name` option to override the default name in the CLI (#2027)
