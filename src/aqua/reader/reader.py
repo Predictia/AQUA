@@ -18,6 +18,7 @@ from aqua.fldstat import FldStat
 from aqua.timstat import TimStat
 from aqua.fixer import Fixer
 from aqua.data_model import counter_reverse_coordinate
+from aqua.histogram import histogram
 import aqua.gsv
 
 from .streaming import Streaming
@@ -1004,6 +1005,12 @@ class Reader():
     
     def timsum(self, data, **kwargs):
        return self.timstat(data, stat='sum', **kwargs)
+
+    def histogram(self, data, **kwargs):
+        """ Wrapper for the histogram function. """
+
+        return histogram(data, **kwargs)
+
 
 def units_extra_definition():
     """Add units to the pint registry"""
