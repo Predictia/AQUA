@@ -6,7 +6,30 @@ from aqua.util import to_list, frequency_string_to_pandas, time_to_string
 from aqua.diagnostics.core import Diagnostic, start_end_dates, OutputSaver              
 
 class LatLonProfiles(Diagnostic):
+        """
+        Class to compute lat-lon profiles of a variable over a specified region.
+        It retrieves the data from the catalog, computes the mean and standard deviation
+        over the specified period and saves the results to netcdf files.
+        The class supports different frequencies (hourly, daily, monthly, annual) and
+        different types of means (zonal, meridional, global).
 
+        Args:
+        catalog (str): The catalog to be used for the retrieval of the data.
+        model (str): The model to be used for the retrieval of the data.
+        exp (str): The experiment to be used for the retrieval of the data.
+        source (str): The source to be used for the retrieval of the data.
+        regrid (str): The regridding method to be used for the retrieval of the data.
+        startdate (str): The start date of the data to be retrieved.
+        enddate (str): The end date of the data to be retrieved.
+        std_startdate (str): The start date of the standard deviation period.
+        std_enddate (str): The end date of the standard deviation period.
+        region (str): The region to be used for the retrieval of the data.
+        lon_limits (list): The longitude limits of the region.
+        lat_limits (list): The latitude limits of the region.
+        mean_type (str): The type of mean to compute ('zonal', 'meridional', 'global').
+        loglevel (str): The log level to be used for the logging.
+
+        """    
         def __init__(self, catalog: str = None, model: str = None,
                      exp: str = None, source: str = None,
                      regrid: str = None,
@@ -15,7 +38,27 @@ class LatLonProfiles(Diagnostic):
                      region: str = None, lon_limits: list = None, lat_limits: list = None,
                      mean_type: str = 'zonal',
                      loglevel: str = 'WARNING'):
+                """
+                Initialize the LatLonProfiles class.
+
+                Args:
+                catalog (str): The catalog to be used for the retrieval of the data.
+                model (str): The model to be used for the retrieval of the data.
+                exp (str): The experiment to be used for the retrieval of the data.
+                source (str): The source to be used for the retrieval of the data.
+                regrid (str): The regridding method to be used for the retrieval of the data.
+                startdate (str): The start date of the data to be retrieved.
+                enddate (str): The end date of the data to be retrieved.
+                std_startdate (str): The start date of the standard deviation period.
+                std_enddate (str): The end date of the standard deviation period.
+                region (str): The region to be used for the retrieval of the data.
+                lon_limits (list): The longitude limits of the region.
+                lat_limits (list): The latitude limits of the region.
+                mean_type (str): The type of mean to compute ('zonal', 'meridional', 'global').
+                loglevel (str): The log level to be used for the logging.
                 
+                """
+                # Initialize the Diagnostic class with the provided parameters
                 super().__init__(catalog=catalog, model=model, exp=exp, source=source, regrid=regrid,
                                  loglevel=loglevel)
                 
@@ -36,22 +79,16 @@ class LatLonProfiles(Diagnostic):
 
                 # Set the region based on the region name or the lon and lat limits
                 self.region, self.lon_limits, self.lat_limits = self._set_region(region=region,
-                                                                                 diagnostic='timeseries',
+                                                                                 diagnostic='lat_lon_profiles',
                                                                                  lon_limits=lon_limits,
                                                                                  lat_limits=lat_limits)
 
                 # Initialize the possible results
-                self.hourly = None
-                self.daily = None
-                self.monthly = None
-                self.annual = None
-                self.std_hourly = None
-                self.std_daily = None
-                self.std_monthly = None
-                self.std_annual = None
-                
-                # Initialize seasonal and annual means
-                self.seasonal_annual_means = None  # List of [DJF, MAM, JJA, SON, Annual]
+                self.seasonal = None  # Seasonal means [DJF, MAM, JJA, SON]
+                self.annual = None    # Annual mean
+                self.std_seasonal = None  # Seasonal std deviations
+                self.std_annual = None   # Annual std deviation
+                self.direct_profile = None  # Direct profile for specific timestep
 
                 self.mean_type = mean_type
 
@@ -92,14 +129,38 @@ class LatLonProfiles(Diagnostic):
                         self.data.name = standard_name
                 else:
                         self.data.attrs['standard_name'] = var
-
+        
+        def select_timestep(self, timestep: str, box_brd: bool = True):
+                """
+                Select and compute profile for a specific timestep from already loaded data.
+                This method preserves existing seasonal/annual data and returns the profile.
+                
+                Args:
+                        timestep (str): The specific timestep to select (e.g., '1995-07', '1995-07-15')
+                        box_brd (bool): Choose if coordinates are comprised or not in area selection
+                
+                Returns:
+                        xr.DataArray: The profile for the selected timestep
+                """
+                if self.data is None:
+                        self.logger.error('No data available. Run retrieve() or run() first.')
+                        return None
+                
+                self.logger.info(f'Selecting timestep: {timestep}')
+                
+                # Use the existing _compute_direct_profile method
+                self._compute_direct_profile(timestep=timestep, box_brd=box_brd)
+                
+                # Return the computed profile for easy variable assignment
+                return self.direct_profile
+        
         def compute_std(self, freq: str, exclude_incomplete: bool = True, center_time: bool = True,
                         box_brd: bool = True):
                 """
-                Compute the standard deviation of the data. Support for monthly and annual frequencies.
+                Compute the standard deviation of the data. Support for seasonal and annual frequencies.
 
                 Args:
-                freq (str): The frequency to be used for the resampling.
+                freq (str): The frequency to be used ('seasonal' or 'annual').
                 exclude_incomplete (bool): If True, exclude incomplete periods.
                 center_time (bool): If True, the time will be centered.
                 box_brd (bool,opt): choose if coordinates are comprised or not in area selection.
@@ -109,79 +170,148 @@ class LatLonProfiles(Diagnostic):
                         self.logger.error('Frequency not provided')
                         raise ValueError('Frequency not provided')
 
-                freq = frequency_string_to_pandas(freq)
                 str_freq = self._str_freq(freq)
+                if str_freq is None:
+                        return
+                        
                 self.logger.info('Computing %s standard deviation', str_freq)
 
-                freq_dict = {'hourly': {'data': self.hourly, 'groupdby': 'time.hour'},
-                             'daily': {'data': self.daily, 'groupdby': 'time.dayofyear'},
-                             'monthly': {'data': self.monthly, 'groupdby': 'time.month'},
-                             'annual': {'data': self.annual, 'groupdby': None}}
-
+                # Start with monthly data for both seasonal and annual std calculations
                 data = self.data
                 data = self.reader.fldmean(data, box_brd=box_brd,
-                                           lon_limits=self.lon_limits, lat_limits=self.lat_limits)
-                data = self.reader.timmean(data, freq=freq, exclude_incomplete=exclude_incomplete,
-                                           center_time=center_time)
-                data = data.sel(time=slice(self.std_startdate, self.std_enddate))
-                if freq_dict[str_freq]['groupdby'] is not None:
-                        data = data.groupby(freq_dict[str_freq]['groupdby']).std('time')
-                else:  # For annual data, we compute the std over all years
-                        data = data.std('time')
+                                        lon_limits=self.lon_limits, lat_limits=self.lat_limits)
+                monthly_data = self.reader.timmean(data, freq='monthly', exclude_incomplete=exclude_incomplete,
+                                                center_time=center_time)
+                monthly_data = monthly_data.sel(time=slice(self.std_startdate, self.std_enddate))
 
-                # Store start and end dates for the standard deviation.
-                # pd.Timestamp cannot be used as attribute, so we convert to a string
-                data.attrs['std_startdate'] = time_to_string(self.std_startdate)
-                data.attrs['std_enddate'] = time_to_string(self.std_enddate)
-
-                # Assign the data to the correct attribute based on frequency
-                if str_freq == 'hourly':
-                        self.std_hourly = data
-                elif str_freq == 'daily':
-                        self.std_daily = data
-                elif str_freq == 'monthly':
-                        self.std_monthly = data
+                if str_freq == 'seasonal':
+                        # Group by season and compute std
+                        seasonal_std = monthly_data.groupby('time.season').std('time')
+                        seasonal_std.attrs['std_startdate'] = time_to_string(self.std_startdate)
+                        seasonal_std.attrs['std_enddate'] = time_to_string(self.std_enddate)
+                        self.std_seasonal = seasonal_std
+                        
                 elif str_freq == 'annual':
-                        self.std_annual = data
-
+                        # Group by year and compute std across years
+                        annual_data = monthly_data.groupby('time.year').mean('time')
+                        annual_std = annual_data.std('year')
+                        annual_std.attrs['std_startdate'] = time_to_string(self.std_startdate)
+                        annual_std.attrs['std_enddate'] = time_to_string(self.std_enddate)
+                        self.std_annual = annual_std
+        
+        def _compute_direct_profile(self, timestep: str, box_brd: bool = True):
+                """
+                Compute direct profile for a specific timestep.
+                
+                Args:
+                        timestep (str): The specific timestep to compute profile for (e.g., '1990-06-15')
+                        box_brd (bool): Choose if coordinates are comprised or not in area selection
+                """
+                self.logger.info(f'Computing direct profile for timestep: {timestep}')
+                
+                # Select data for the specific timestep
+                try:
+                        timestep_data = self.data.sel(time=timestep, method='nearest')
+                except KeyError:
+                        self.logger.error(f'Timestep {timestep} not found in data')
+                        return
+                
+                # Determine dimensions for averaging based on mean_type
+                if self.mean_type == 'zonal':
+                        dims = ['lon']
+                elif self.mean_type == 'meridional':
+                        dims = ['lat']
+                elif self.mean_type == 'global':
+                        dims = ['lon', 'lat']
+                else:
+                        self.logger.error('Mean type %s not recognized', self.mean_type)
+                        return
+                
+                # Apply spatial averaging for the direct profile
+                direct_data = self.reader.fldmean(timestep_data, 
+                                                box_brd=box_brd,
+                                                lon_limits=self.lon_limits, 
+                                                lat_limits=self.lat_limits,
+                                                dims=dims)
+                
+                # Add metadata
+                if self.region is not None:
+                        direct_data.attrs['region'] = self.region
+                direct_data.attrs['timestep'] = timestep
+                direct_data.attrs['mean_type'] = self.mean_type
+                
+                self.direct_profile = direct_data
         def save_netcdf(self, diagnostic: str, freq: str,
-                    outputdir: str = './', rebuild: bool = True):
+                        outputdir: str = './', rebuild: bool = True):
                 """
                 Save the data to a netcdf file.
 
                 Args:
                 diagnostic (str): The diagnostic to be saved.
-                freq (str): The frequency of the data.
+                freq (str): The frequency of the data ('seasonal' or 'annual').
                 outputdir (str): The directory to save the data.
                 rebuild (bool): If True, rebuild the data from the original files.
                 """
                 str_freq = self._str_freq(freq)
+                if str_freq is None:
+                        return
 
-                if str_freq == 'hourly':
-                        data = self.hourly if self.hourly is not None else self.logger.error('No hourly data available')
-                        data_std = self.std_hourly if self.std_hourly is not None else None
-                elif str_freq == 'daily':
-                        data = self.daily if self.daily is not None else self.logger.error('No daily data available')
-                        data_std = self.std_daily if self.std_daily is not None else None
-                elif str_freq == 'monthly':
-                        data = self.monthly if self.monthly is not None else self.logger.error('No monthly data available')
-                        data_std = self.std_monthly if self.std_monthly is not None else None
+                if str_freq == 'seasonal':
+                        data = self.seasonal if self.seasonal is not None else None
+                        data_std = self.std_seasonal if self.std_seasonal is not None else None
+                        if data is None:
+                                self.logger.error('No seasonal data available')
+                                return
                 elif str_freq == 'annual':
-                        data = self.annual if self.annual is not None else self.logger.error('No annual data available')
+                        data = self.annual if self.annual is not None else None
                         data_std = self.std_annual if self.std_annual is not None else None
+                        if data is None:
+                                self.logger.error('No annual data available')
+                                return
 
-                diagnostic_product = getattr(data, 'standard_name', None)
-                diagnostic_product += f'.{str_freq}'
-                region = self.region.replace(' ', '').lower() if self.region is not None else None
-                diagnostic_product += f'.{region}' if region is not None else ''
-                self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
-                super().save_netcdf(data=data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                                default_path=outputdir, rebuild=rebuild)
-                if data_std is not None:
-                        diagnostic_product = f'{diagnostic_product}.std'
+                # Handle seasonal data (list of seasons)
+                if str_freq == 'seasonal':
+                        seasons = ['DJF', 'MAM', 'JJA', 'SON']
+                        for i, season_data in enumerate(data):
+                                diagnostic_product = getattr(season_data, 'standard_name', 'unknown')
+                                diagnostic_product += f'.{str_freq}.{seasons[i]}'
+                                region = self.region.replace(' ', '').lower() if self.region is not None else None
+                                diagnostic_product += f'.{region}' if region is not None else ''
+                                
+                                self.logger.info('Saving %s data for %s to netcdf in %s', seasons[i], diagnostic_product, outputdir)
+                                super().save_netcdf(data=season_data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
+                                                default_path=outputdir, rebuild=rebuild)
+                else:
+                        # Handle annual data
+                        diagnostic_product = getattr(data, 'standard_name', 'unknown')
+                        diagnostic_product += f'.{str_freq}'
+                        region = self.region.replace(' ', '').lower() if self.region is not None else None
+                        diagnostic_product += f'.{region}' if region is not None else ''
+                        
                         self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
-                        super().save_netcdf(data=data_std, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
+                        super().save_netcdf(data=data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
                                         default_path=outputdir, rebuild=rebuild)
+
+                # Save std data if available
+                if data_std is not None:
+                        if str_freq == 'seasonal':
+                        # Seasonal std data handling (if it's also a list)
+                                if hasattr(data_std, '__iter__') and not isinstance(data_std, str):
+                                        seasons = ['DJF', 'MAM', 'JJA', 'SON']
+                                        for i, std_data in enumerate(data_std):
+                                                diagnostic_product = getattr(std_data, 'standard_name', 'unknown')
+                                                diagnostic_product += f'.{str_freq}.{seasons[i]}.std'
+                                                region = self.region.replace(' ', '').lower() if self.region is not None else None
+                                                diagnostic_product += f'.{region}' if region is not None else ''
+                                                super().save_netcdf(data=std_data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
+                                                                default_path=outputdir, rebuild=rebuild)
+                        else:
+                                diagnostic_product = getattr(data_std, 'standard_name', 'unknown')
+                                diagnostic_product += f'.{str_freq}.std'
+                                region = self.region.replace(' ', '').lower() if self.region is not None else None
+                                diagnostic_product += f'.{region}' if region is not None else ''
+                                super().save_netcdf(data=data_std, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
+                                                default_path=outputdir, rebuild=rebuild)
 
         def _check_data(self, var: str, units: str):
                 """
@@ -203,26 +333,23 @@ class LatLonProfiles(Diagnostic):
                 Returns:
                 str_freq (str): The frequency as a string.
                 """
-                if freq in ['h', 'hourly']:
-                        str_freq = 'hourly'
-                elif freq in ['D', 'daily']:
-                        str_freq = 'daily'
-                elif freq in ['MS', 'ME', 'M', 'mon', 'monthly']:
-                        str_freq = 'monthly'
+                if freq in ['seasonal', 'season']:
+                        str_freq = 'seasonal'
                 elif freq in ['YS', 'YE', 'Y', 'annual']:
                         str_freq = 'annual'
                 else:
-                        self.logger.error('Frequency %s not recognized', freq)
+                        self.logger.error('Frequency %s not recognized. Only "seasonal" and "annual" are supported', freq)
+                        return None
 
                 return str_freq
         
         def compute_dim_mean(self, freq: str, exclude_incomplete: bool = True,
-                        center_time: bool = True, box_brd: bool = True, var: str = None):
+                center_time: bool = True, box_brd: bool = True, var: str = None):
                 """
-                Compute the mean of the data. Support for hourly, daily, monthly and annual means.
+                Compute the mean of the data. Support for seasonal and annual means.
 
                 Args:
-                freq (str): The frequency to be used for the resampling.
+                freq (str): The frequency to be used ('seasonal' or 'annual').
                 exclude_incomplete (bool): If True, exclude incomplete periods.
                 center_time (bool): If True, the time will be centered.
                 box_brd (bool,opt): choose if coordinates are comprised or not in area selection.
@@ -233,8 +360,9 @@ class LatLonProfiles(Diagnostic):
                         self.logger.error('Frequency not provided, cannot compute mean')
                         return
 
-                freq = frequency_string_to_pandas(freq)
                 str_freq = self._str_freq(freq)
+                if str_freq is None:
+                        return
 
                 if self.mean_type == 'zonal':
                         dims = ['lon']
@@ -250,127 +378,97 @@ class LatLonProfiles(Diagnostic):
                 data = self.data.sel(time=slice(self.plt_startdate, self.plt_enddate))
                 if len(data.time) == 0:
                         self.logger.warning('No data available for the selected period %s - %s, using the standard period %s - %s',
-                                            self.plt_startdate, self.plt_enddate, self.std_startdate, self.std_enddate)
+                                        self.plt_startdate, self.plt_enddate, self.std_startdate, self.std_enddate)
                         data = self.data.sel(time=slice(self.std_startdate, self.std_enddate))
 
-                # time and field average
-                data = self.reader.timmean(data, 
-                                           freq=freq, 
-                                           exclude_incomplete=exclude_incomplete, 
-                                           center_time=center_time)
-                data = self.reader.fldmean(data, 
-                                           box_brd=box_brd, 
-                                           lon_limits=self.lon_limits, lat_limits=self.lat_limits,
-                                           dims=dims)
+                # First compute monthly means, then seasonal/annual
+                monthly_data = self.reader.timmean(data, freq='monthly', 
+                                                exclude_incomplete=exclude_incomplete, 
+                                                center_time=center_time)
+                
+                # Apply spatial averaging to monthly data
+                monthly_data = self.reader.fldmean(monthly_data, 
+                                                box_brd=box_brd, 
+                                                lon_limits=self.lon_limits, lat_limits=self.lat_limits,
+                                                dims=dims)
 
-
-                if self.region is not None:
-                        data.attrs['region'] = self.region
-
-                # Due to the possible usage of the standard period, the time may need to be reselected correctly
-                data = data.sel(time=slice(self.plt_startdate, self.plt_enddate))
-
-                if str_freq == 'hourly':
-                        self.hourly = data
-                elif str_freq == 'daily':
-                        self.daily = data
-                elif str_freq == 'monthly':
-                        self.monthly = data
+                if str_freq == 'seasonal':
+                        # Compute seasonal means from monthly data
+                        seasonal_data = self.reader.timmean(monthly_data, freq='seasonal')
+                        if self.region is not None:
+                                for season_data in seasonal_data:
+                                        season_data.attrs['region'] = self.region
+                        self.seasonal = seasonal_data
+                        
                 elif str_freq == 'annual':
-                        self.annual = data
-
-        def compute_seasonal_and_annual_means(self, box_brd: bool = True):
-                """
-                Compute seasonal and annual means from monthly data.
-                Uses reader.timmean for both seasonal and annual means for consistency.
-                
-                Args:
-                    box_brd (bool): Choose if coordinates are comprised or not in area selection.
-                                   Default is True
-                """
-                
-                if self.monthly is None:
-                    self.logger.error('Monthly data not available. Run compute_dim_mean with monthly frequency first.')
-                    return
-                
-                self.logger.info('Computing seasonal and annual means from monthly data')
-                
-                # Get monthly data for the selected period
-                data = self.monthly.sel(time=slice(self.plt_startdate, self.plt_enddate))
-                
-                if len(data.time) == 0:
-                    self.logger.warning('No monthly data available for the selected period %s - %s, using all available data',
-                                       self.plt_startdate, self.plt_enddate)
-                    data = self.monthly
-                
-                # Check if we have at least 12 months of data
-                if len(data.time) < 12:
-                    self.logger.warning('Less than 12 months of data available (%d months). Results may not be representative.',
-                                       len(data.time))
-                
-                # Compute seasonal means using reader.timmean
-                self.logger.debug('Computing seasonal means using reader.timmean')
-                seasonal_means = self.reader.timmean(data, freq='seasonal')
-                
-                # Compute annual mean using reader.timmean
-                self.logger.debug('Computing annual mean using reader.timmean')
-                annual_mean = self.reader.timmean(data, freq='annual')
-                
-                # Store results: [DJF, MAM, JJA, SON, Annual]
-                self.seasonal_annual_means = seasonal_means + [annual_mean]
-                
-                # Add region information to all seasonal/annual means
-                if self.region is not None:
-                    for i, mean_data in enumerate(self.seasonal_annual_means):
-                        mean_data.attrs['region'] = self.region
-                
-                self.logger.info('Seasonal and annual means computed successfully')
+                        # Compute annual mean from monthly data
+                        annual_data = self.reader.timmean(monthly_data, freq='annual')
+                        if self.region is not None:
+                                annual_data.attrs['region'] = self.region
+                        self.annual = annual_data
 
         def run(self, var: str, formula: bool = False, long_name: str = None,
                 units: str = None, standard_name: str = None, std: bool = False,
-                freq: list = ['monthly', 'annual'], extend: bool = True,
+                freq: list = ['seasonal', 'annual'], extend: bool = True,
                 exclude_incomplete: bool = True, center_time: bool = True,
                 box_brd: bool = True, outputdir: str = './', rebuild: bool = True,
-                mean_type: str = None, compute_seasonal_annual: bool = False):
+                mean_type: str = None, timestep: str = None):
                 """
-                Run all the steps necessary for the computation of the Timeseries.
-                Save the results to netcdf files.
-                Can evaluate different frequencies.
+                Run all the steps necessary for the computation of the LatLonProfiles.
 
                 Args:
-                var (str): The variable to be retrieved.
-                formula (bool): If True, the variable is a formula.
-                long_name (str): The long name of the variable, if different from the variable name.
-                units (str): The units of the variable, if different from the original units.
-                standard_name (str): The standard name of the variable, if different from the variable name.
-                std (bool): If True, compute the standard deviation. Default is False.
-                freq (list): The frequencies to be used for the computation. Available options are 'hourly', 'daily',
-                                'monthly' and 'annual'. Default is ['monthly', 'annual'].
-                extend (bool): If True, extend the data if needed.
-                exclude_incomplete (bool): If True, exclude incomplete periods.
-                center_time (bool): If True, the time will be centered.
-                box_brd (bool): choose if coordinates are comprised or not in area selection.
-                outputdir (str): The directory to save the data.
-                rebuild (bool): If True, rebuild the data from the original files.
-                mean_type (str): The type of mean to compute ('zonal', 'meridional', 'global').
-                compute_seasonal_annual (bool): If True, compute seasonal and annual means from monthly data.
+                        var (str): The variable to be retrieved and computed.
+                        formula (bool): Whether to use a formula for the variable.
+                        long_name (str): The long name of the variable.
+                        units (str): The units of the variable.
+                        standard_name (str): The standard name of the variable.
+                        std (bool): Whether to compute the standard deviation.
+                        freq (list): The frequencies to compute ('seasonal', 'annual').
+                        extend (bool): Whether to extend the time dimension.
+                        exclude_incomplete (bool): Whether to exclude incomplete time periods.
+                        center_time (bool): Whether to center the time coordinate.
+                        box_brd (bool): Whether to include the box boundaries.
+                        outputdir (str): The output directory for saving files.
+                        rebuild (bool): Whether to rebuild existing files.
+                        mean_type (str): The type of mean to compute ('zonal', 'meridional', 'global').
+                        timestep (str): Specific timestep to compute (e.g., '1995-07', '1995-07-15').
+                                If provided, only computes direct profile for this timestep.
                 """
                 self.logger.info('Running LatLonProfiles for %s', var)
-                self.retrieve(var=var, formula=formula, long_name=long_name, units=units, standard_name=standard_name)
-                freq = to_list(freq)
-
+                
+                # Retrieve the data
+                self.retrieve(var=var, formula=formula, long_name=long_name, 
+                                units=units, standard_name=standard_name)
+                
+                # Set mean_type if provided
                 if mean_type is not None:
                         self.mean_type = mean_type
                 self.logger.info('Mean type set to %s', self.mean_type)
-
-                for f in freq:
-                        self.compute_dim_mean(freq=f, exclude_incomplete=exclude_incomplete,
-                                              center_time=center_time, box_brd=box_brd, var=var)
-                        if std: 
-                                self.compute_std(freq=f, exclude_incomplete=exclude_incomplete, center_time=center_time,
-                                                box_brd=box_brd)
-                        self.save_netcdf(diagnostic='lat_lon_profiles', freq=f, outputdir=outputdir, rebuild=rebuild)
                 
-                # Compute seasonal and annual means if requested and monthly data is available
-                if compute_seasonal_annual and 'monthly' in freq:
-                        self.compute_seasonal_and_annual_means(box_brd=box_brd)
+                # Check if data is valid
+                self._check_data(var=var, units=units)
+                
+                # If timestep is provided, compute only direct profile
+                if timestep is not None:
+                        self.logger.info(f'Computing direct profile for timestep: {timestep}')
+                        self._compute_direct_profile(timestep=timestep, box_brd=box_brd)
+                        return
+                
+                # Compute temporal means (seasonal/annual)
+                self.logger.info('Computing temporal means')
+                freq = to_list(freq)
+                for f in freq:
+                        self.logger.info(f'Computing {f} mean')
+                        self.compute_dim_mean(freq=f, exclude_incomplete=exclude_incomplete,
+                                        center_time=center_time, box_brd=box_brd, var=var)
+                        
+                        if std: 
+                                self.logger.info(f'Computing {f} standard deviation')
+                                self.compute_std(freq=f, exclude_incomplete=exclude_incomplete, 
+                                                center_time=center_time, box_brd=box_brd)
+                        
+                        self.logger.info(f'Saving {f} netcdf file')
+                        self.save_netcdf(diagnostic='lat_lon_profiles', freq=f, 
+                                        outputdir=outputdir, rebuild=rebuild)
+                
+                self.logger.info('LatLonProfiles computation completed')
