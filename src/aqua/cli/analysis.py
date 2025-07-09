@@ -79,7 +79,7 @@ def analysis_execute(args):
             catalog = cat[0]
             logger.info(f"Automatically determined catalog: {catalog}")
         else:
-            logger.error("Model, experiment, and source triplet not found in any installed catalog.")
+            logger.error(f"Model = {model}, Experiment = {exp}, Source = {source} triplet not found in any installed catalog.")
             sys.exit(1)
 
     outputdir = os.path.expandvars(args.outputdir or config.get('job', {}).get('outputdir', './output'))
