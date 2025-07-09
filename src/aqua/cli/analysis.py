@@ -5,7 +5,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dask.distributed import LocalCluster
 from aqua.analysis import run_diagnostic_func, run_command, get_aqua_paths
-from aqua.util import load_yaml, create_folder, ConfigPath
+from aqua.util import load_yaml, create_folder, ConfigPath, format_realization
 from aqua.logger import log_configure
 
 
@@ -26,6 +26,7 @@ def analysis_parser(parser=None):
     parser.add_argument("-m", "--model", type=str, help="Model (atmospheric and oceanic)")
     parser.add_argument("-e", "--exp", type=str, help="Experiment")
     parser.add_argument("-s", "--source", type=str, help="Source")
+    parser.add_argument("--realization", type=str, default=None, help="Realization (default: None)")
     parser.add_argument("-d", "--outputdir", type=str, help="Output directory")
     parser.add_argument("-f", "--config", type=str, default="$AQUA/config/analysis/config.aqua-analysis.yaml",
                         help="Configuration file")
@@ -57,6 +58,7 @@ def analysis_execute(args):
     model = args.model or config.get('job', {}).get('model')
     exp = args.exp or config.get('job', {}).get('exp')
     source = args.source or config.get('job', {}).get('source', 'lra-r100-monthly')
+    realization = args.realization if args.realization else config.get('job', {}).get('realization', None)
     # We get regrid option and then we set it to None if it is False
     # This avoids to add the --regrid argument to the command line
     # if it is not needed
@@ -88,13 +90,14 @@ def analysis_execute(args):
     logger.debug(f"outputdir: {outputdir}")
     logger.debug(f"max_threads: {max_threads}")
 
-    output_dir = f"{outputdir}/{catalog}/{model}/{exp}"
+    realization_folder = format_realization(realization)
+    output_dir = f"{outputdir}/{catalog}/{model}/{exp}/{realization_folder}"
     output_dir = os.path.expandvars(output_dir)
 
     os.environ["OUTPUT"] = output_dir
     os.environ["AQUA"] = aqua_path
     os.environ["AQUA_CONFIG"] = aqua_configdir if 'AQUA_CONFIG' not in os.environ else os.environ["AQUA_CONFIG"]
-    create_folder(output_dir)
+    create_folder(output_dir, loglevel=loglevel)
 
     run_checker = config.get('job', {}).get('run_checker', False)
     if run_checker:
@@ -106,6 +109,8 @@ def analysis_execute(args):
             command += f" --regrid {regrid}"
         if catalog:
             command += f" --catalog {catalog}"
+        if realization:
+            command += f" --realization {realization}"
         logger.debug(f"Command: {command}")
         result = run_command(command, log_file=output_log_path, logger=logger)
 
@@ -153,6 +158,7 @@ def analysis_execute(args):
                 model=model,
                 exp=exp,
                 source=source,
+                realization=realization,
                 regrid=regrid,
                 output_dir=output_dir,
                 loglevel=loglevel,
