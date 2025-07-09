@@ -4,7 +4,7 @@ from aqua.util import to_list
 from aqua.logger import log_configure
 from aqua.diagnostics.core import OutputSaver
 
-from aqua.graphics import boxplot
+from aqua.graphics import boxplot, ConfigStyle
 
 
 class PlotBoxplots: 
@@ -93,7 +93,7 @@ class PlotBoxplots:
             raise ValueError(f'Unsupported format: {format}. Use "png" or "pdf".')
 
 
-    def plot_boxplots(self, data, data_ref=None, var=None):
+    def plot_boxplots(self, data, data_ref=None, var=None, style='aqua'):
         """
         Plot boxplots for specified variables in the dataset.
 
@@ -101,7 +101,9 @@ class PlotBoxplots:
             data (xarray.Dataset or list of xarray.Dataset): Input dataset(s) containing the fldmeans of the variables to plot.
             data_ref (xarray.Dataset or list of xarray.Dataset, optional): Reference dataset(s) for comparison.
             var (str or list of str): Variable name(s) to plot. If None, uses all variables in the dataset.
+            style (str): Style to use for the plot. Default is 'aqua'.
         """
+        ConfigStyle(style=style)
         data = to_list(data)
         data_ref = to_list(data_ref) if data_ref is not None else []
 
