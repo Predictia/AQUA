@@ -13,10 +13,6 @@ def format_realization(realization: str = None) -> str:
     """
     if not realization:
         return "r1"
-    try:
-        # Try converting to int
-        int_val = int(realization)
-        return f"r{int_val}"
-    except ValueError:
-        # If not a number, keep the string as-is
-        return realization
+    if realization.isdigit():
+        return f"r{realization}"
+    return realization
