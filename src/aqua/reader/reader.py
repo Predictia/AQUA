@@ -18,6 +18,7 @@ from aqua.fldstat import FldStat
 from aqua.timstat import TimStat
 from aqua.fixer import Fixer
 from aqua.data_model import counter_reverse_coordinate
+from aqua.histogram import histogram
 import aqua.gsv
 
 from .streaming import Streaming
@@ -471,22 +472,22 @@ class Reader():
         out = set_attrs(out, {"AQUA_regridded": 1})
         return out
     
-    def trend(self, data, dim='time', degree=1, skipna=False):
-        """
-        Estimate the trend of an xarray object using polynomial fitting.
+    # def trend(self, data, dim='time', degree=1, skipna=False):
+    #     """
+    #     Estimate the trend of an xarray object using polynomial fitting.
 
-        Args:
-            data (DataArray or Dataset): The input data.
-            dim (str): Dimension to apply trend along. Defaults to 'time'.
-            degree (int): Degree of the polynomial. Defaults to 1.
-            skipna (bool): Whether to skip NaNs. Defaults to False.
+    #     Args:
+    #         data (DataArray or Dataset): The input data.
+    #         dim (str): Dimension to apply trend along. Defaults to 'time'.
+    #         degree (int): Degree of the polynomial. Defaults to 1.
+    #         skipna (bool): Whether to skip NaNs. Defaults to False.
 
-        Returns:
-            DataArray or Dataset: The trend component.
-        """
-        final = self.trender.trend(data, dim=dim, degree=degree, skipna=skipna)
-        final.aqua.set_default(self)
-        return final
+    #     Returns:
+    #         DataArray or Dataset: The trend component.
+    #     """
+    #     final = self.trender.trend(data, dim=dim, degree=degree, skipna=skipna)
+    #     final.aqua.set_default(self)
+    #     return final
 
     def detrend(self, data, dim='time', degree=1, skipna=False):    
         """
@@ -920,27 +921,13 @@ class Reader():
             A xarray.Dataset containing the required miminal sample data.
         """
 
-        # this could be a method of the GridInspector class
-        def get_gridtype_attr(gridtypes, attr):
-            """Helper compact tool to extra gridtypes information"""
-            out = []
-            for gridtype in gridtypes:
-                value = getattr(gridtype, attr, None)
-                if isinstance(value, (list, tuple)):
-                    out.extend(value)
-                elif isinstance(value, dict):
-                    out.extend(value.keys())
-                elif isinstance(value, str):
-                    out.append(value)
-
-            return list(dict.fromkeys(out))
-
         # get gridtypes from smrregird
-        gridtypes = GridInspector(data).get_grid_info()
+        gridinspect = GridInspector(data, loglevel=self.loglevel)
+        gridtypes = gridinspect.get_gridtype()
 
         # get info on time dimensions and variables
-        minimal_variables = get_gridtype_attr(gridtypes, 'variables')
-        minimal_time = get_gridtype_attr(gridtypes, 'time_dims')
+        minimal_variables = gridinspect.get_gridtype_attr(gridtypes, 'variables')
+        minimal_time = gridinspect.get_gridtype_attr(gridtypes, 'time_dims')
 
         if minimal_variables:
             self.logger.debug('Variables found: %s', minimal_variables)
@@ -1015,6 +1002,15 @@ class Reader():
     
     def timstd(self, data, **kwargs):
        return self.timstat(data, stat='std', **kwargs)
+    
+    def timsum(self, data, **kwargs):
+       return self.timstat(data, stat='sum', **kwargs)
+
+    def histogram(self, data, **kwargs):
+        """ Wrapper for the histogram function. """
+
+        return histogram(data, **kwargs)
+
 
 def units_extra_definition():
     """Add units to the pint registry"""

@@ -7,6 +7,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 Unreleased in the current development version (target v0.17.0): 
 
+AQUA core complete list:
+
+- Separate new histogram function in the framework (#2061)
+- Introducing `timsum()` method to compute cumulative sum (#2059)
+- `EvaluateFormula` class to replace the `eval_formula` function with extra provenance features (#2042)
+- Solve fixer issue leading to wrong target variable names (#2057)
+- Upgrade to `smmregrid=0.1.2`, which fixes coastal erosion in conservative regridding (#1963)
+- Refactor LRA of output and catalog entry creatro with `OutputPathBuilder` and `CatalogEntryBuilder` classes (#1932)
+- LRA cli support realization, stat and frequency (#1932)
+- Update to the new STACv2 API for Lumi (#2039)
+- `aqua add` and `aqua avail` commands now support a `--repository` option to specify a different repository to explore (#2037)
+- `AQUA_CONFIG` environment variable can be set to customize the path of the configuration files in `aqua-analysis.py` (#2027)
+- Development base container updated to stack 7.0.2.8 (#2022, #2025)
+- `Trender()` class provide also coefficients and normalize them (#1991)
+
+AQUA diagnostics complete list:
+- Global Biases: add try-except block in cli (#2069)
+- Global Biases: handling of formulae and Cloud Radiative Forcing Computation (#2031)
+- Global Biases: pressure levels plot works correctly with the CLI (#2027)
+- Timeseries: `diagnostic_name` option to override the default name in the CLI (#2027)
+- Global Biases: output directory is now correctly set in the cli (#2027)
+- Timeseries: `center_time` option to center the time axis is exposed in the CLI (#2028)
+- Timeseries: fix the missing variable name in some netcdf output (#2023)
+- Diagnostic core: new `_select_region` method in `Diagnostic`, wrapped by `select_region` to select a region also on custom datasets (#2020, #2032)
+
 ## [v0.16.0]
 
 Removed:
@@ -30,7 +55,7 @@ AQUA core complete list:
 - Fix HPC2020 (ECMWF) installation (#1994)
 - `plot_timeseries` can handle multiple references and ensemble mean and std (#1988, #1999)
 - Support for CDO 2.5.0, modified test files accordingly (v6) (#1987)
-- Remove DOCKER secrets and prepare ground for dependabot action e.g introduce AQUA_GITHUB_PAT (#1983,#1995)
+- Remove DOCKER secrets and prepare ground for dependabot action e.g introduce AQUA_GITHUB_PAT (#1983)
 - `Trender()` class to include both `trend()` and `detrend()` method (#1980)
 - `cartopy_offlinedata` is added on container and path is set in cli call, to support MN5 no internet for coastlines download (#1960)
 - plot_single_map() can now handle high nlevels with a decreased cbar ticks density (#1940)

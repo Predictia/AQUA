@@ -1,8 +1,9 @@
 """Gregory module."""
 import xarray as xr
-from aqua.util import eval_formula
+from aqua.fixer import EvaluateFormula
 from aqua.logger import log_configure
-from aqua.diagnostics.core import Diagnostic, convert_data_units
+from aqua.util import convert_data_units
+from aqua.diagnostics.core import Diagnostic
 
 xr.set_options(keep_attrs=True)
 
@@ -100,7 +101,8 @@ class Gregory(Diagnostic):
         if t2m:
             self.t2m = data[t2m_name]
         if net_toa:
-            self.net_toa = eval_formula(mystring=net_toa_name, xdataset=data)
+            self.net_toa = EvaluateFormula(data=data, formula=net_toa_name,
+                                           short_name='net_toa', loglevel=self.loglevel).evaluate()
 
     def compute_t2m(self, freq: list = ['monthly', 'annual'], std: bool = False,
                     var: str = '2t', units: str = 'degC', exclude_incomplete=True):
@@ -113,6 +115,7 @@ class Gregory(Diagnostic):
             units (str): The units of the data. Default is 'degC'.
             exclude_incomplete (bool): Whether to exclude incomplete timespans. Default is True.
         """
+        self.logger.info(f'Computing the {var} data.')
         t2m = self.reader.fldmean(self.t2m)
         if units:
             t2m = convert_data_units(data=t2m, var=var, units=units, loglevel=self.loglevel)
@@ -134,6 +137,7 @@ class Gregory(Diagnostic):
             std (bool): Whether to compute the standard deviation. Default is False.
             exclude_incomplete (bool): Whether to exclude incomplete timespans. Default is True.
         """
+        self.logger.info('Computing the net TOA radiation data.')
         net_toa = self.reader.fldmean(self.net_toa)
 
         if 'monthly' in freq:
