@@ -134,7 +134,7 @@ if __name__ == '__main__':
                             plot_ts = PlotTimeseries(**plot_args)
                             data_label = plot_ts.set_data_labels()
                             ref_label = plot_ts.set_ref_label()
-                            description = plot_ts.set_description(region=region)
+                            description = plot_ts.set_description()
                             title = plot_ts.set_title(var=var, region=region, units=var_config.get('units'))
                             fig, _ = plot_ts.plot_timeseries(data_labels=data_label, ref_label=ref_label, title=title)
 
@@ -207,7 +207,7 @@ if __name__ == '__main__':
                             plot_ts = PlotTimeseries(**plot_args)
                             data_label = plot_ts.set_data_labels()
                             ref_label = plot_ts.set_ref_label()
-                            description = plot_ts.set_description(region=region)
+                            description = plot_ts.set_description()
                             title = plot_ts.set_title(var=var, region=region, units=var_config.get('units'))
                             fig, _ = plot_ts.plot_timeseries(data_labels=data_label, ref_label=ref_label, title=title)
 
@@ -280,7 +280,7 @@ if __name__ == '__main__':
                             plot_sc = PlotSeasonalCycles(**plot_args)
                             data_label = plot_sc.set_data_labels()
                             ref_label = plot_sc.set_ref_label()
-                            description = plot_sc.set_description(region=region)
+                            description = plot_sc.set_description()
                             title = plot_sc.set_title(var=var, region=region, units=var_config.get('units'))
                             fig, _ = plot_sc.plot_seasonalcycles(data_labels=data_label, ref_label=ref_label, title=title)
 
