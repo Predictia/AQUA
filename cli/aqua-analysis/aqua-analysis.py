@@ -8,7 +8,7 @@ import argparse
 import logging
 from dask.distributed import LocalCluster
 from aqua.logger import log_configure
-from aqua.util import load_yaml, create_folder, ConfigPath
+from aqua.util import load_yaml, create_folder, ConfigPath, format_realization
 from aqua import __path__ as pypath
 
 
@@ -196,27 +196,6 @@ def get_aqua_paths(*, args, logger):
 
     return aqua_path, aqua_configdir, aqua_analysis_config_path
 
-def format_realization_folder(realization: str = None) -> str:
-    """
-    Format the realization as r<realization> if int, leave the string
-    otherwise and set r1 if nothing is given
-
-    Args:
-        realization (str, optional): the realization string
-    
-    Returns:
-        str: the realization formatted to be used in the folder path creation
-    """
-    if not realization:
-        return "r1"
-    try:
-        # Try converting to int
-        int_val = int(realization)
-        return f"r{int_val}"
-    except ValueError:
-        # If not a number, keep the string as-is
-        return realization
-
 
 def main():
     """
@@ -266,7 +245,7 @@ def main():
     logger.debug(f"outputdir: {outputdir}")
     logger.debug(f"max_threads: {max_threads}")
 
-    realization_folder = format_realization_folder(realization)
+    realization_folder = format_realization(realization)
     output_dir = f"{outputdir}/{catalog}/{model}/{exp}/{realization_folder}"
     output_dir = os.path.expandvars(output_dir)
 
