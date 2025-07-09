@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.17.0): 
 
 AQUA core complete list:
+
+- Separate new histogram function in the framework (#2061)
 - Introducing `timsum()` method to compute cumulative sum (#2059)
 - `EvaluateFormula` class to replace the `eval_formula` function with extra provenance features (#2042)
 - Solve fixer issue leading to wrong target variable names (#2057)

@@ -2,7 +2,7 @@
 
 from .config import ConfigPath
 from .eccodes import get_eccodes_attr
-from .units import normalize_units, convert_units
+from .units import normalize_units, convert_units, convert_data_units
 from .graphics import add_cyclic_lon, plot_box, minmax_maps
 from .graphics import evaluate_colorbar_limits, cbar_get_label, set_map_title
 from .graphics import coord_names, ticks_round, set_ticks
@@ -21,7 +21,7 @@ from .output_saver import OutputSaver
 
 __all__ = ['ConfigPath',
            'get_eccodes_attr',
-           'normalize_units', 'convert_units',
+           'normalize_units', 'convert_units', 'convert_data_units',
            'add_cyclic_lon', 'plot_box', 'minmax_maps',
            'evaluate_colorbar_limits', 'cbar_get_label', 'set_map_title',
            'coord_names', 'ticks_round', 'set_ticks',
