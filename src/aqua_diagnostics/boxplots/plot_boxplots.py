@@ -1,5 +1,6 @@
 import xarray as xr
 import numpy as np
+from aqua.util import to_list
 from aqua.logger import log_configure
 from aqua.diagnostics.core import OutputSaver
 
@@ -101,6 +102,8 @@ class PlotBoxplots:
             data_ref (xarray.Dataset or list of xarray.Dataset, optional): Reference dataset(s) for comparison.
             var (str or list of str): Variable name(s) to plot. If None, uses all variables in the dataset.
         """
+        data = to_list(data)
+        data_ref = to_list(data_ref) if data_ref is not None else []
 
         fldmeans = data + data_ref if data_ref else data
         model_names = self._extract_attrs(fldmeans, 'model')
