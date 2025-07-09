@@ -309,7 +309,7 @@ if __name__ == '__main__':
                 run_args = {'freq': freq, 't2m_name': config_dict['diagnostics']['gregory'].get('t2m_name', '2t'),
                             'net_toa_name': config_dict['diagnostics']['gregory'].get('net_toa_name', 'tnlwrf+tnswrf'),
                             'exclude_incomplete': config_dict['diagnostics']['gregory'].get('exclude_incomplete', True),
-                            'outputdir': outputdir, 'rebuild': rebuild, 'read_kwargs': reader_kwargs}
+                            'outputdir': outputdir, 'rebuild': rebuild, 'reader_kwargs': reader_kwargs}
 
                 # Initialize a list of len from the number of datasets
                 greg = [None] * len(config_dict['datasets'])
@@ -324,7 +324,7 @@ if __name__ == '__main__':
                     greg[i].run(**run_args, **model_args)
 
                 if config_dict['diagnostics']['gregory']['std']:
-                    run_args.pop('read_kwargs')  # Remove read_kwargs from run_args for references
+                    run_args.pop('reader_kwargs')  # Remove reader_kwargs from run_args for references
                     # t2m:
                     dataset_args = {**config_dict['diagnostics']['gregory']['t2m_ref'],
                                     'regrid': regrid,
