@@ -68,7 +68,8 @@ def run_diagnostic(diagnostic: str, script_path: str, extra_args: str,
 
 def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = None,
                         config=None, catalog=None, model='default_model', exp='default_exp',
-                        source='default_source', output_dir='./output', loglevel='INFO',
+                        source='default_source', realization=None,
+                        output_dir='./output', loglevel='INFO',
                         logger=None, aqua_path='', cluster=None):
     """
     Run the diagnostic and log the output, handling parallel processing if required.
@@ -81,6 +82,7 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
         model (str): Model name.
         exp (str): Experiment name.
         source (str): Source name.
+        realization (str): Realization name. Defaults to None.
         output_dir (str): Directory to save output.
         loglevel (str): Log level for the diagnostic.
         logger: Logger instance for logging messages.
@@ -120,6 +122,9 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
 
     if catalog:
         extra_args += f" --catalog {catalog}"
+
+    if realization:
+        extra_args += f" --realization {realization}"
 
     outname = f"{output_dir}/{diagnostic_config.get('outname', diagnostic)}"
     args = f"--model {model} --exp {exp} --source {source} --outputdir {outname} {extra_args}"
