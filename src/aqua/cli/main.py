@@ -509,12 +509,14 @@ class AquaConsole():
             token = os.getenv("GITHUB_TOKEN")  # Get GitHub token
 
             # Use authentication only when running inside GitHub Actions
-            if is_github_actions and token:
-                auth_kwargs = {"username": "github-actions", "token": token}
+            username = 'github-actions' if is_github_actions else os.getenv("GITHUB_USER")
+            if token and username:
+                auth_kwargs = {"username": username, "token": token}
                 self.logger.info("Using authenticated access to GitHub API.")
             else:
                 auth_kwargs = {}
-                self.logger.info("Running without authentication. Rate limits may apply.")
+                self.logger.warning("Running without authentication. Rate limits may apply.")
+                self.logger.warning("Consider setting GITHUB_TOKEN and GITHUB_USER environment variables for authenticated access.")
 
             fs = fsspec.filesystem(
                 "github",
