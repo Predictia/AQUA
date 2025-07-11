@@ -296,6 +296,13 @@ class TestAquaConsole():
         # run the analysis and verify that at least one file exist
         run_aqua(['analysis', '--config', config_path, '-c', catalog, '-m', model, '-e', experiment,
                   '-s', source, '-d', output_dir, '-l', 'debug', '--regrid', regrid])
+        
+        assert os.path.exists(os.path.join(output_dir, catalog, model, experiment, 'r1', 'experiment.yaml')), \
+            "experiment.yaml not found"
+        assert os.path.exists(os.path.join(output_dir, catalog, model, experiment, 'r1', 'dummy.log')), \
+            "dummy.log not found"
+        assert os.path.exists(os.path.join(output_dir, catalog, model, experiment, 'r1', 'setup_checker.log')), \
+            "setup_checker.log not found"
 
         # remove aqua
         run_aqua_console_with_input(['uninstall'], 'yes')
