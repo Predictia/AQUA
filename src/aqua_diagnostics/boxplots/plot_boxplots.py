@@ -110,7 +110,12 @@ class PlotBoxplots:
         fldmeans = data + data_ref if data_ref else data
         model_names = self._extract_attrs(fldmeans, 'model')
 
-        fig, ax = boxplot(fldmeans=fldmeans, model_names=model_names, variables=var, loglevel=self.loglevel)
+        #dataset_info = ', '.join(f'{m} (experiment {e})' for m, e in zip(all_models, all_exps))
+
+        title = (f"Boxplot of {data[var].attrs.get('long_name', var)} for {data.model} {data.exp}")
+        #f"Boxplot of variables ({', '.join(var) if isinstance(var, list) else var}) for: {dataset_info}"
+
+        fig, ax = boxplot(fldmeans=fldmeans, model_names=model_names, variables=var, title=title, loglevel=self.loglevel)
 
         if self.save_pdf:
             self._save_figure(fig, data, data_ref, var, format='pdf')

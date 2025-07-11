@@ -4,7 +4,7 @@ import pandas as pd
 import seaborn as sns
 
 
-def boxplot(fldmeans, model_names, variables, variable_names=None, loglevel='WARNING'):
+def boxplot(fldmeans, model_names, variables, variable_names=None, title=None, loglevel='WARNING'):
     """
     Generate a boxplot of precomputed field-mean values for multiple variables and models.
 
@@ -13,6 +13,7 @@ def boxplot(fldmeans, model_names, variables, variable_names=None, loglevel='WAR
         model_names (list of str): Names corresponding to each fldmean dataset.
         variables (list of str): Variable names to be plotted (as in the fldmean Datasets).
         variable_names (list of str, optional): Display names for the variables.
+        title (str, optional): Title for the plot.
         loglevel (str): Logging level, unused but kept for compatibility.
 
     Returns:
@@ -49,6 +50,10 @@ def boxplot(fldmeans, model_names, variables, variable_names=None, loglevel='WAR
     fig, ax = plt.subplots(figsize=(12, 8))
     sns.boxplot(data=df, x='Variables', y='Values', hue='Datasets', ax=ax)
 
+    if title:
+        ax.set_title(title, fontsize=fontsize + 4)
+    else:
+        ax.set_title('Boxplot of Variables {' + ', '.join(variables) + '}', fontsize=fontsize + 4)
     ax.set_xlabel('Variables', fontsize=fontsize)
     ax.set_ylabel('Values', fontsize=fontsize + 2)
     ax.tick_params(axis='x', labelsize=fontsize - 4)
