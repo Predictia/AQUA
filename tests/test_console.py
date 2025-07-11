@@ -301,6 +301,11 @@ class TestAquaConsole():
             "experiment.yaml not found"
         assert os.path.exists(os.path.join(output_dir, catalog, model, experiment, 'r1', 'dummy.log')), \
             "dummy.log not found"
+        # Check if "This is a dummy CLI script that does nothing." is in the dummy.log
+        with open(os.path.join(output_dir, catalog, model, experiment, 'r1', 'dummy.log'), 'r') as f:
+            content = f.read()
+        assert "This is a dummy CLI script that does nothing." in content, \
+            "Expected content not found in dummy.log"
         assert os.path.exists(os.path.join(output_dir, catalog, model, experiment, 'r1', 'setup_checker.log')), \
             "setup_checker.log not found"
 
