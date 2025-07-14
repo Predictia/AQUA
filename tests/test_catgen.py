@@ -77,7 +77,7 @@ def load_and_prepare(tmp_path, model, kind, reso, num_of_realizations=1):
 def test_catgen_minimal(tmp_path, model, nsources, nocelevels):
     """test for minimal portfolio"""
 
-    ensemble = 5
+    ensemble = 5 
 
     sources = load_and_prepare(tmp_path=tmp_path, model=model,
                                kind='minimal', reso='lowres',
@@ -135,8 +135,8 @@ def test_catgen_reduced(tmp_path, model, nsources, nocelevels):
 
 
 @pytest.mark.parametrize(('model,nsources,nocelevels'),
-                        [('IFS-NEMO', 24, 75),
-                         ('IFS-FESOM', 27, 69),
+                        [('IFS-NEMO', 28, 75),
+                         ('IFS-FESOM', 31, 69),
                          ('ICON', 21, 72)])
 @pytest.mark.catgen
 def test_catgen_full(tmp_path, model, nsources, nocelevels):
