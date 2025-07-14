@@ -164,7 +164,7 @@ class CoordTransformer():
             #   data = data.set_index({src_coord['name']: tgt_coord['name']})
                 
             #data = data.rename({src_coord['name']: tgt_coord['name']})
-            tgt_coord['bounds'] = f'{tgt_coord['name']}_bnds'
+            tgt_coord['bounds'] = f"{tgt_coord['name']}_bnds"
             data = self._rename_bounds(data, src_coord, tgt_coord)
         return data
     
@@ -243,7 +243,7 @@ class CoordTransformer():
             if factor != 0:
                 self.logger.info("Conversion factor is: %s ", factor)
                 data = data.assign_coords({tgt_coord['name']: data[tgt_coord['name']]*factor})
-                tgt_coord['bounds'] = f'{tgt_coord['name']}_bnds'
+                tgt_coord['bounds'] = f"{tgt_coord['name']}_bnds"
                 data = self._convert_bounds(data, src_coord, tgt_coord, factor)
                 log_history(data,
                             f"Converted units of coordinate {src_coord['name']} from {src_coord['units']} to {tgt_coord['units']} by datamodel")
