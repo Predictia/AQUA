@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.17.0): 
 
 AQUA core complete list:
+- `Reader` can filter kwargs so that a parameter not available in the intake source is removed and not passed to the intake driver (#2074)
 - `aqua-analysis.py` now supports a `--realization` option to enable the analysis of a specific realization (#2041)
 - Separate new histogram function in the framework (#2061)
 - Introducing `timsum()` method to compute cumulative sum (#2059)
