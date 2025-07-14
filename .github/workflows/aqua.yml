@@ -152,9 +152,9 @@ jobs:
           # add default paths to the config
           cat >> $HOME/.aqua/config-aqua.yaml <<EOF
           paths:
-              grids: ./AQUA/AQUA_tests/grids
-              weights: ./AQUA/AQUA_tests/weights
-              areas: ./AQUA/AQUA_tests/weights
+              grids: ./AQUA_tests/grids
+              weights: ./AQUA_tests/weights
+              areas: ./AQUA_tests/weights
           EOF
           # Set up polytope secrets
           cat >$HOME/.polytopeapirc << EOF
