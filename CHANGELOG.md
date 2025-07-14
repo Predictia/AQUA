@@ -7,8 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 Unreleased in the current development version (target v0.17.0): 
 
-AQUA core complete list:
+Removed:
+-  removed Reader.info() method (#2076)
 
+AQUA core complete list:
+- Adapt catgen to changes in data-portfolio
+- `aqua-analysis.py` now supports a `--realization` option to enable the analysis of a specific realization (#2041)
 - Separate new histogram function in the framework (#2061)
 - Introducing `timsum()` method to compute cumulative sum (#2059)
 - `EvaluateFormula` class to replace the `eval_formula` function with extra provenance features (#2042)
@@ -23,6 +27,8 @@ AQUA core complete list:
 - `Trender()` class provide also coefficients and normalize them (#1991)
 
 AQUA diagnostics complete list:
+- Timeseries, Global Biases, Teleconnections, Ecmean: `--realization` option to select a specific realization in the CLI (#2041)
+- Global Biases: add try-except block in cli (#2069)
 - Global Biases: handling of formulae and Cloud Radiative Forcing Computation (#2031)
 - Global Biases: pressure levels plot works correctly with the CLI (#2027)
 - Timeseries: `diagnostic_name` option to override the default name in the CLI (#2027)
