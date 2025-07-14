@@ -108,7 +108,7 @@ class CoordTransformer():
         self.logger.info("Target data model: %s", name)
         data_yaml = self.load_data_model(name)
         self.tgt_coords = data_yaml.get('data_model')
-        outname = f'{data_yaml.get('name')} v{str(data_yaml.get('version'))}'
+        outname = f"{data_yaml.get('name')} v{str(data_yaml.get('version'))}"
 
         if not isinstance(self.tgt_coords, dict):
             raise TypeError("tgt_coords must be a dictionary.")
