@@ -8,7 +8,8 @@ xr.set_options(keep_attrs=True)
 class SeasonalCycles(BaseMixin):
     """SeasonalCycles class for retrieve and netcdf saving of a single experiment"""
 
-    def __init__(self, catalog: str = None, model: str = None,
+    def __init__(self, diagnostic_name: str = 'seasonalcycles',
+                 catalog: str = None, model: str = None,
                  exp: str = None, source: str = None,
                  regrid: str = None,
                  startdate: str = None, enddate: str = None,
@@ -19,6 +20,7 @@ class SeasonalCycles(BaseMixin):
         Initialize the Timeseries class.
 
         Args:
+            diagnostic_name (str): The name of the diagnostic. Used for logger and filenames. Default is 'seasonalcycles'.
             catalog (str): The catalog to be used. If None, the catalog will be determined by the Reader.
             model (str): The model to be used.
             exp (str): The experiment to be used.
@@ -35,14 +37,16 @@ class SeasonalCycles(BaseMixin):
             lat_limits (list): The latitude limits to be used. Overriden by region.
             loglevel (str): The log level to be used. Default is 'WARNING'.
         """
-        super().__init__(catalog=catalog, model=model, exp=exp, source=source, regrid=regrid,
+        super().__init__(diagnostic_name=diagnostic_name,
+                         catalog=catalog, model=model, exp=exp, source=source, regrid=regrid,
                          startdate=startdate, enddate=enddate, std_startdate=std_startdate, std_enddate=std_enddate,
                          region=region, lon_limits=lon_limits, lat_limits=lat_limits, loglevel=loglevel)
 
     def run(self, var: str, formula: bool = False, long_name: str = None,
             units: str = None, standard_name: str = None, std: bool = False,
             exclude_incomplete: bool = True, center_time: bool = True,
-            box_brd: bool = True, outputdir: str = './', rebuild: bool = True):
+            box_brd: bool = True, outputdir: str = './', rebuild: bool = True,
+            reader_kwargs: dict = {}):
         """
         Run all the steps necessary for the computation of the SeasonalCyles.
         Save the results to netcdf files.
@@ -59,9 +63,11 @@ class SeasonalCycles(BaseMixin):
             box_brd (bool): choose if coordinates are comprised or not in area selection.
             outputdir (str): The directory to save the data.
             rebuild (bool): If True, rebuild the data.
+            reader_kwargs (dict): Additional keyword arguments for the Reader. Default is an empty dictionary.
         """
         self.logger.info("Running SeasonalCycles for %s", var)
-        self.retrieve(var=var, formula=formula, long_name=long_name, units=units, standard_name=standard_name)
+        self.retrieve(var=var, formula=formula, long_name=long_name, units=units,
+                      standard_name=standard_name, reader_kwargs=reader_kwargs)
 
         # Notice that if you compute after, self.monthly will be the seasonal cycle
         # and the compute_std routine will fail
@@ -72,7 +78,7 @@ class SeasonalCycles(BaseMixin):
         self.logger.info("Computing the seasonal cycles")
         self.compute(exclude_incomplete=exclude_incomplete, center_time=center_time, box_brd=box_brd)
 
-        self.save_netcdf(diagnostic='seasonalcycles', freq='monthly', outputdir=outputdir, rebuild=rebuild)
+        self.save_netcdf(diagnostic_product='seasonalcycles', freq='monthly', outputdir=outputdir, rebuild=rebuild)
 
     def compute(self, exclude_incomplete: bool = True, center_time: bool = True,
                 box_brd: bool = True):
@@ -91,6 +97,9 @@ class SeasonalCycles(BaseMixin):
                                    lon_limits=self.lon_limits, lat_limits=self.lat_limits)
         data = self.reader.timmean(data, freq='MS', exclude_incomplete=exclude_incomplete,
                                    center_time=center_time)
+        
+        if self.region is not None:
+            data.attrs['AQUA_region'] = self.region
 
         data = data.groupby('time.month').mean('time')
 

@@ -12,7 +12,8 @@ xr.set_options(keep_attrs=True)
 class Timeseries(BaseMixin):
     """Timeseries class for retrieve and netcdf saving of a single experiment"""
 
-    def __init__(self, catalog: str = None, model: str = None,
+    def __init__(self, diagnostic_name: str = 'timeseries',
+                 catalog: str = None, model: str = None,
                  exp: str = None, source: str = None,
                  regrid: str = None,
                  startdate: str = None, enddate: str = None,
@@ -23,6 +24,7 @@ class Timeseries(BaseMixin):
         Initialize the Timeseries class.
 
         Args:
+            diagnostic_name (str): The name of the diagnostic. Used for logger and filenames. Default is 'timeseries'.
             catalog (str): The catalog to be used. If None, the catalog will be determined by the Reader.
             model (str): The model to be used.
             exp (str): The experiment to be used.
@@ -39,7 +41,8 @@ class Timeseries(BaseMixin):
             lat_limits (list): The latitude limits to be used. Overriden by region.
             loglevel (str): The log level to be used. Default is 'WARNING'.
         """
-        super().__init__(catalog=catalog, model=model, exp=exp, source=source, regrid=regrid,
+        super().__init__(diagnostic_name=diagnostic_name,
+                         catalog=catalog, model=model, exp=exp, source=source, regrid=regrid,
                          startdate=startdate, enddate=enddate,
                          std_startdate=std_startdate, std_enddate=std_enddate,
                          region=region, lon_limits=lon_limits,
@@ -49,7 +52,8 @@ class Timeseries(BaseMixin):
             units: str = None, standard_name: str = None, std: bool = False,
             freq: list = ['monthly', 'annual'], extend: bool = True,
             exclude_incomplete: bool = True, center_time: bool = True,
-            box_brd: bool = True, outputdir: str = './', rebuild: bool = True):
+            box_brd: bool = True, outputdir: str = './', rebuild: bool = True,
+            reader_kwargs: dict = {}):
         """
         Run all the steps necessary for the computation of the Timeseries.
         Save the results to netcdf files.
@@ -70,21 +74,23 @@ class Timeseries(BaseMixin):
             box_brd (bool): choose if coordinates are comprised or not in area selection.
             outputdir (str): The directory to save the data.
             rebuild (bool): If True, rebuild the data from the original files.
+            reader_kwargs (dict): Additional keyword arguments for the Reader. Default is an empty dictionary.
         """
         self.logger.info('Running Timeseries for %s', var)
-        self.retrieve(var=var, formula=formula, long_name=long_name, units=units, standard_name=standard_name)
+        self.retrieve(var=var, formula=formula, long_name=long_name, units=units,
+                      standard_name=standard_name, reader_kwargs=reader_kwargs)
         freq = to_list(freq)
 
         for f in freq:
             self.compute(freq=f, extend=extend, exclude_incomplete=exclude_incomplete,
-                        center_time=center_time, box_brd=box_brd, var=var)
+                        center_time=center_time, box_brd=box_brd)
             if std:
                 self.compute_std(freq=f, exclude_incomplete=exclude_incomplete, center_time=center_time,
                                  box_brd=box_brd)
-            self.save_netcdf(diagnostic='timeseries', freq=f, outputdir=outputdir, rebuild=rebuild) 
+            self.save_netcdf(diagnostic_product='timeseries', freq=f, outputdir=outputdir, rebuild=rebuild) 
 
     def compute(self, freq: str, extend: bool = True, exclude_incomplete: bool = True,
-                center_time: bool = True, box_brd: bool = True, var: str = None):
+                center_time: bool = True, box_brd: bool = True):
         """
         Compute the mean of the data. Support for hourly, daily, monthly and annual means.
 
@@ -94,7 +100,6 @@ class Timeseries(BaseMixin):
             center_time (bool): If True, the time will be centered.
             box_brd (bool,opt): choose if coordinates are comprised or not in area selection.
                                 Default is True
-            var (str): The variable to be used if not in metadata.
         """
         if freq is None:
             self.logger.error('Frequency not provided, cannot compute mean')
@@ -120,7 +125,7 @@ class Timeseries(BaseMixin):
             data = extended_data
 
         if self.region is not None:
-            data.attrs['region'] = self.region
+            data.attrs['AQUA_region'] = self.region
 
         # Due to the possible usage of the standard period, the time may need to be reselected correctly
         data = data.sel(time=slice(self.plt_startdate, self.plt_enddate))

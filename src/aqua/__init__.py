@@ -9,9 +9,10 @@ from. regridder import Regridder
 from .fldstat import FldStat
 from .fixer import Fixer
 from .accessor import AquaAccessor
+from .histogram import histogram
 
 __all__ = ["plot_single_map", "plot_maps", "plot_single_map_diff", "plot_timeseries",
-           "plot_hovmoller",
+           "plot_hovmoller", "histogram",
            "plot_lat_lon_profiles", "plot_seasonal_data",
            "LRAgenerator",
            "Reader", "catalog", "Streaming", "inspect_catalog",

@@ -5,19 +5,60 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ## [Unreleased]
 
-Unreleased in the current development version (target v0.16.0):
+Unreleased in the current development version (target v0.17.0): 
+
+Removed:
+-  removed Reader.info() method (#2076)
+
+AQUA core complete list:
+- Adapt catgen to changes in data-portfolio
+- `aqua-analysis.py` now supports a `--realization` option to enable the analysis of a specific realization (#2041)
+- Separate new histogram function in the framework (#2061)
+- Introducing `timsum()` method to compute cumulative sum (#2059)
+- `EvaluateFormula` class to replace the `eval_formula` function with extra provenance features (#2042)
+- Solve fixer issue leading to wrong target variable names (#2057)
+- Upgrade to `smmregrid=0.1.2`, which fixes coastal erosion in conservative regridding (#1963)
+- Refactor LRA of output and catalog entry creatro with `OutputPathBuilder` and `CatalogEntryBuilder` classes (#1932)
+- LRA cli support realization, stat and frequency (#1932)
+- Update to the new STACv2 API for Lumi (#2039)
+- `aqua add` and `aqua avail` commands now support a `--repository` option to specify a different repository to explore (#2037)
+- `AQUA_CONFIG` environment variable can be set to customize the path of the configuration files in `aqua-analysis.py` (#2027)
+- Development base container updated to stack 7.0.2.8 (#2022, #2025)
+- `Trender()` class provide also coefficients and normalize them (#1991)
+
+AQUA diagnostics complete list:
+- Timeseries, Global Biases, Teleconnections, Ecmean: `--realization` option to select a specific realization in the CLI (#2041)
+- Global Biases: add try-except block in cli (#2069)
+- Global Biases: handling of formulae and Cloud Radiative Forcing Computation (#2031)
+- Global Biases: pressure levels plot works correctly with the CLI (#2027)
+- Timeseries: `diagnostic_name` option to override the default name in the CLI (#2027)
+- Global Biases: output directory is now correctly set in the cli (#2027)
+- Timeseries: `center_time` option to center the time axis is exposed in the CLI (#2028)
+- Timeseries: fix the missing variable name in some netcdf output (#2023)
+- Diagnostic core: new `_select_region` method in `Diagnostic`, wrapped by `select_region` to select a region also on custom datasets (#2020, #2032)
+
+## [v0.16.0]
 
 Removed:
 - Removed source or experiment specific fixes; only the `fixer_name` is now supported.
 
 Workflow modifications:
+- Due to a bug in Singularity, `--no-mount /etc/localtime` has to be implemented into the AQUA container call 
 - `push_analysis.sh` now updates and pushes to LUMI-O the file `experiments.yaml`, which is used by the 
   dashboard to know which experiments to list. The file is downloaded from the object store, updated and 
   pushed back. Additionally it exit with different error codes if the bucket is missing or the S3 credential
   are not correct.
 
 AQUA core complete list:
-- `plot_timeseries` can handle multiple references and ensemble mean and std (#1988)
+- Update to the new STAC API for Lumi (#2017)
+- Added the `aqua grids set` command to set the paths block in the `aqua-config.yaml` file, overwriting the default values (#2003)
+- Derivation of metadata from eccodes is done with a builtin python method instead of definiton file inspection (#2009, #2014)
+- `h5py` installed from pypi. Hard pin to version 3.12.1 removed in favor of a lower limit to the version (#2002)
+- `aqua-analysis` can accept a `--regrid` argument in order to activate the regrid on each diagnostics supporting it (#1947)
+- `--no-mount /etc/localtime` option added to the `load_aqua_container.sh` script for all HPC (#1975)
+- Upgrade to eccodes==2.41.0 (#1890)
+- Fix HPC2020 (ECMWF) installation (#1994)
+- `plot_timeseries` can handle multiple references and ensemble mean and std (#1988, #1999)
 - Support for CDO 2.5.0, modified test files accordingly (v6) (#1987)
 - Remove DOCKER secrets and prepare ground for dependabot action e.g introduce AQUA_GITHUB_PAT (#1983)
 - `Trender()` class to include both `trend()` and `detrend()` method (#1980)
@@ -33,7 +74,12 @@ AQUA core complete list:
 - Use scientific notation in multiple maps plotting to avoid label overlapping (#1953)
 
 AQUA diagnostics complete list:
-- GlobalBiases: major refactor (#1803)
+- Diagnostic core: a `diagnostic_name` is now available in the configuration file to override the default name (#2000)
+- Ecmean, GlobalBiases, Teleconnections: regrid functionality correctly working in cli (#2006)
+- Diagnostic core: updated docs for `OutputSaver` (#2010)
+- Diagnostic core: save_netcdf() is now based on the new OutputSaver (#1965)
+- Diagnostic core: raise an error if retrieve() returns an empty dataset (#1997)
+- GlobalBiases: major refactor (#1803, #1993)
 - Ocean Drift: using the `_set_region` method from the `Diagnostic` class (#1981)
 - Diagnostic core: new `_set_region` method in `Diagnostic` class to find region name, lon and lat limits (#1979)
 - Timeseries: regions are now in the `definitions` folder (not `interface` anymore) (#1884)
@@ -41,7 +87,7 @@ AQUA diagnostics complete list:
 - Radiations: timeseries correctly working for exps with enddate before 2000 (#1940)
 - Diagnostic core: new `round_startdate` and `round_enddate` functions for time management (#1940)
 - Timeseries: fix in the new cli wich was ignoring the regrid option and had bad time handling (#1940)
-- Timeseries: Use new OutputSaver in Timeseries diagnostics (#1948)
+- Timeseries: Use new OutputSaver in Timeseries diagnostics (#1948, #2000)
 - Diagnostic core: new `select_region` to crop a region based on `_set_region` and `area_selection` method (#1984)
 
 ## [v0.15.0]
@@ -953,7 +999,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.15.0...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.16.0...HEAD
+[v0.16.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.15.0...v0.16.0
 [v0.15.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.14.0...v0.15.0
 [v0.14.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.1...v0.14.0
 [v0.13.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.0...v0.13.1

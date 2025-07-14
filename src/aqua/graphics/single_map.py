@@ -18,6 +18,7 @@ from aqua.util import add_cyclic_lon, evaluate_colorbar_limits
 from aqua.util import healpix_resample
 from aqua.util import cbar_get_label, set_map_title
 from aqua.util import coord_names, set_ticks, ticks_round
+from aqua.exceptions import NoDataError
 from .styles import ConfigStyle
 
 def plot_single_map(data: xr.DataArray,
@@ -115,6 +116,10 @@ def plot_single_map(data: xr.DataArray,
     if contour:
         levels = np.linspace(vmin, vmax, nlevels + 1)
 
+    if np.allclose(data, 0):
+        logger.error("The map is zero! You are trying to plot an empty dataset")
+        contour = False  # Disable contour if map is zero
+
     # Plot the data
     if contour:
         try:
@@ -175,7 +180,7 @@ def plot_single_map(data: xr.DataArray,
         # Add a colorbar axis at the bottom of the graph
         cbar_ax = fig.add_axes([0.1, 0.15, 0.8, 0.02])
 
-        cbar_label = cbar_get_label(data, cbar_label=kwargs.get('cbar_label', None), loglevel=loglevel)
+        cbar_label = cbar_get_label(data, cbar_label=cbar_label, loglevel=loglevel)
         logger.debug("Setting colorbar label to %s", cbar_label)
 
         cbar = fig.colorbar(cs, cax=cbar_ax, orientation='horizontal', label=cbar_label)
