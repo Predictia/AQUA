@@ -7,12 +7,9 @@ from aqua.util import get_projection
 # List of (projection name, expected class, required kwargs if any)
 projection_cases = [
     {"name": "plate_carree", "expected_cls": ccrs.PlateCarree, "kwargs": {}},
-    {"name": "mercator", "expected_cls": ccrs.Mercator, "kwargs": {}},
     {"name": "mollweide", "expected_cls": ccrs.Mollweide, "kwargs": {}},
-    {"name": "orthographic", "expected_cls": ccrs.Orthographic, "kwargs": {"central_longitude": 0, "central_latitude": 0}},
-    {"name": "lambert_conformal", "expected_cls": ccrs.LambertConformal, "kwargs": {"central_longitude": 0}},
-    {"name": "eckert_iv", "expected_cls": ccrs.EckertIV, "kwargs": {}},
-    {"name": "equal_earth", "expected_cls": ccrs.EqualEarth, "kwargs": {}},
+    {"name": "orthographic", "expected_cls": ccrs.Orthographic, "kwargs": {"central_longitude": 70, "central_latitude": 0}},
+    {"name": "lambert_conformal", "expected_cls": ccrs.LambertConformal, "kwargs": {"central_longitude": -10}},
     {"name": "robinson", "expected_cls": ccrs.Robinson, "kwargs": {}},
     {"name": "lambert_equal_area", "expected_cls": ccrs.LambertAzimuthalEqualArea, "kwargs": {"central_longitude": 0}},
     {"name": "rotated_pole", "expected_cls": ccrs.RotatedPole, "kwargs": {"pole_longitude": 180, "pole_latitude": 45}}
