@@ -11,6 +11,7 @@ Removed:
 -  removed Reader.info() method (#2076)
 
 AQUA core complete list:
+- Add `get_projection()` utility function for selection of Cartopy map projections (#2068)
 - Adapt catgen to changes in data-portfolio
 - `aqua-analysis.py` now supports a `--realization` option to enable the analysis of a specific realization (#2041)
 - Separate new histogram function in the framework (#2061)

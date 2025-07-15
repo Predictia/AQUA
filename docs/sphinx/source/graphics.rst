@@ -77,7 +77,8 @@ Projections and custom maps
 
 AQUA also supports a wide variety of map projections provided by the ``cartopy`` library. To simplify projection selection, 
 a utility function ``get_projection()`` is provided, which accepts a lowercase function names (e.g. ``"plate_carree"``) to select the 
-desired projection. The function also accepts additional keyword arguments depending on the selected projection and and user-defined plotting requirements. 
+desired projection. A dictionary with the complete list of available projections can be found in the ``projections.py`` file.
+The function ``get_projection()`` also accepts additional keyword arguments depending on the selected projection and and user-defined plotting requirements. 
 The returned ``cartopy.crs`` objects can be used directly with ``plot_single_map()``.
 A minimal example using subplots with different projections is shown below:
 
