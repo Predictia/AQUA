@@ -18,6 +18,7 @@ from aqua.fldstat import FldStat
 from aqua.timstat import TimStat
 from aqua.fixer import Fixer
 from aqua.data_model import counter_reverse_coordinate
+from aqua.histogram import histogram
 import aqua.gsv
 
 from .streaming import Streaming
@@ -920,27 +921,13 @@ class Reader():
             A xarray.Dataset containing the required miminal sample data.
         """
 
-        # this could be a method of the GridInspector class
-        def get_gridtype_attr(gridtypes, attr):
-            """Helper compact tool to extra gridtypes information"""
-            out = []
-            for gridtype in gridtypes:
-                value = getattr(gridtype, attr, None)
-                if isinstance(value, (list, tuple)):
-                    out.extend(value)
-                elif isinstance(value, dict):
-                    out.extend(value.keys())
-                elif isinstance(value, str):
-                    out.append(value)
-
-            return list(dict.fromkeys(out))
-
         # get gridtypes from smrregird
-        gridtypes = GridInspector(data).get_grid_info()
+        gridinspect = GridInspector(data, loglevel=self.loglevel)
+        gridtypes = gridinspect.get_gridtype()
 
         # get info on time dimensions and variables
-        minimal_variables = get_gridtype_attr(gridtypes, 'variables')
-        minimal_time = get_gridtype_attr(gridtypes, 'time_dims')
+        minimal_variables = gridinspect.get_gridtype_attr(gridtypes, 'variables')
+        minimal_time = gridinspect.get_gridtype_attr(gridtypes, 'time_dims')
 
         if minimal_variables:
             self.logger.debug('Variables found: %s', minimal_variables)
@@ -949,38 +936,6 @@ class Reader():
             self.logger.debug('Time dimensions found: %s', minimal_time)
             data = data.isel({t: 0 for t in minimal_time})
         return data
-
-    def info(self):
-        """Prints info about the reader"""
-        print(f"Reader for model {self.model}, experiment {self.exp}, source {self.source}")
-
-        if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
-            if "expver" in self.esmcat._request.keys():
-                print(f"  This experiment has expID {self.esmcat._request['expver']}")
-
-        metadata = self.esmcat.metadata
-
-        if self.fix:
-            print("Data fixing is active:")
-            if "fixer_name" in metadata.keys():
-                print(f"  Fixer name is {metadata['fixer_name']}")
-            else:
-                # TODO: to be removed when all the catalogs are updated
-                print(f"  Fixes: {self.fixer.fixes}")
-
-        if self.tgt_grid_name:
-            print("Regridding is active:")
-            print(f"  Target grid is {self.tgt_grid_name}")
-
-        print("Metadata:")
-        for k, v in metadata.items():
-            print(f"  {k}: {v}")
-
-        if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
-            print("GSV request for this source:")
-            for k, v in self.esmcat._request.items():
-                if k not in ["time", "param", "step", "expver"]:
-                    print("  %s: %s" % (k, v))
 
     def timstat(self, data, stat, freq=None, exclude_incomplete=False,
              time_bounds=False, center_time=False):
@@ -1015,6 +970,15 @@ class Reader():
     
     def timstd(self, data, **kwargs):
        return self.timstat(data, stat='std', **kwargs)
+    
+    def timsum(self, data, **kwargs):
+       return self.timstat(data, stat='sum', **kwargs)
+
+    def histogram(self, data, **kwargs):
+        """ Wrapper for the histogram function. """
+
+        return histogram(data, **kwargs)
+
 
 def units_extra_definition():
     """Add units to the pint registry"""

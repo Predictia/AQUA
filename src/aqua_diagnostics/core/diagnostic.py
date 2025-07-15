@@ -49,12 +49,13 @@ class Diagnostic():
         # Data to be retrieved
         self.data = None
 
-    def retrieve(self, var: str = None):
+    def retrieve(self, var: str = None, reader_kwargs: dict = {}):
         """
         Retrieve the data from the model.
 
         Args:
             var (str): The variable to be retrieved. If None, all variables will be retrieved.
+            reader_kwargs (dict): Additional keyword arguments to be passed to the Reader.
 
         Attributes:
             self.data: The data retrieved from the model. If return_data is True, the data will be returned.
@@ -63,7 +64,7 @@ class Diagnostic():
         self.data, self.reader, self.catalog = self._retrieve(model=self.model, exp=self.exp, source=self.source,
                                                               var=var, catalog=self.catalog, startdate=self.startdate,
                                                               enddate=self.enddate, regrid=self.regrid,
-                                                              loglevel=self.logger.level)
+                                                              loglevel=self.logger.level, reader_kwargs=reader_kwargs)
         if self.regrid is not None:
             self.logger.info(f'Regridded data to {self.regrid} grid')
         if self.startdate is None:
@@ -100,7 +101,7 @@ class Diagnostic():
     @staticmethod
     def _retrieve(model: str, exp: str, source: str, var: str = None, catalog: str = None,
                   startdate: str = None, enddate: str = None, regrid: str = None,
-                  loglevel: str = 'WARNING'):
+                  reader_kwargs: dict = {}, loglevel: str = 'WARNING'):
         """
         Static method to retrieve data and return everything instead of updating class
         attributes. Used internally by the retrieve method
@@ -116,6 +117,7 @@ class Diagnostic():
             enddate (str): The end date of the data to be retrieved.
                            If None, all available data will be retrieved.
             regrid (str): The target grid to be used for regridding. If None, no regridding will be done.
+            reader_kwargs (dict): Additional keyword arguments to be passed to the Reader.
             loglevel (str): The log level to be used. Default is 'WARNING'.
 
         Returns:
@@ -124,7 +126,8 @@ class Diagnostic():
             catalog (str): The catalog used to retrieve the data.
         """
         reader = Reader(catalog=catalog, model=model, exp=exp, source=source,
-                        regrid=regrid, startdate=startdate, enddate=enddate, loglevel=loglevel)
+                        regrid=regrid, startdate=startdate, enddate=enddate,
+                        loglevel=loglevel, **reader_kwargs)
 
         data = reader.retrieve(var=var)
 
@@ -211,6 +214,9 @@ class Diagnostic():
         predefined latitude and longitude bounds. The selected region name is stored
         in the dataset attributes.
 
+        It uses the `_select_region` method to perform the selection on the `self.data` attribute.
+        Use the hidden `_select_region` method if you want to select a region on a different dataset.
+
         Args:
             region (str, optional): Name of the region to select. If None, no filtering is applied.
             diagnostic (str, optional): Diagnostic category used to determine region bounds.
@@ -219,17 +225,47 @@ class Diagnostic():
         Returns:
             tuple: (region, lon_limits, lat_limits)
         """
+        res_dict = self._select_region(data=self.data, region=region, diagnostic=diagnostic, drop=drop)
+        return res_dict['region'], res_dict['lon_limits'], res_dict['lat_limits']
+    
+    def _select_region(self, data: xr.Dataset, region: str = None, diagnostic: str = None, drop: bool = True, **kwargs):
+        """
+        Select a geographic region from the dataset. Used when selection is not on the self.data attribute.
+
+        Args:
+            data (xarray Dataset): The dataset to select the region from.
+            region (str): The region to select.
+            lon_limits (list): The longitude limits to select.
+            lat_limits (list): The latitude limits to select.
+            drop (bool): Whether to drop coordinates outside the selected region.
+            **kwargs: Additional keyword arguments passed to the area_selection function.
+
+        Returns:
+            dict: A dictionary containing the modified dataset and region information.
+            The dictionary contains:
+                - 'data': The modified dataset with the selected region.
+                - 'region': The name of the selected region.
+                - 'lon_limits': The longitude limits of the selected region.
+                - 'lat_limits': The latitude limits of the selected region.
+        """
         if region is not None and diagnostic is not None:
             region, lon_limits, lat_limits = self._set_region(region=region, diagnostic=diagnostic)
             self.logger.info(f"Applying area selection for region: {region}")
-            self.data = area_selection(
-                data=self.data, lat=lat_limits, lon=lon_limits, drop=drop, loglevel=self.loglevel
+            data = area_selection(
+                data=data, lat=lat_limits, lon=lon_limits, drop=drop, loglevel=self.loglevel, **kwargs
             )
-            self.data.attrs['AQUA_region'] = region
+            data.attrs['AQUA_region'] = region
             self.logger.info(f"Modified longname of the region: {region}")
         else:
             region, lon_limits, lat_limits = None, None, None
             self.logger.warning(
                 "Since region name is not specified, processing whole region in the dataset"
             )
-        return region, lon_limits, lat_limits
+
+        res_dict = {
+            'data': data,
+            'region': region,
+            'lon_limits': lon_limits,
+            'lat_limits': lat_limits
+        }
+        return res_dict
