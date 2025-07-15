@@ -1,6 +1,6 @@
 # Ensemble statistics
 
-Main authors: 
+Author: 
 - Maqsood Mubarak Rajput (AWI,maqsoodmubarak.rajput@awi.de)
 
 ## Description

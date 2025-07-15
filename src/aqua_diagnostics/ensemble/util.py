@@ -19,9 +19,9 @@ def retrieve_merge_ensemble_data(
     model_names: list[str] = None,
     data_path_list: list[str] = None,
     catalog_list: list[str] = None,
-    models_catalog_list: list[str] = None,
-    exps_catalog_list: list[str] = None,
-    sources_catalog_list: list[str] = None,
+    model_list: list[str] = None,
+    exp_list: list[str] = None,
+    source_list: list[str] = None,
     startdate: str = None,
     enddate: str = None,
     log_level: str = "WARNING",
@@ -50,13 +50,13 @@ def retrieve_merge_ensemble_data(
         In the case b):
             region (str): This variable is specific to the Zonal averages. Defaults to None.
             catalog_list (list): A list of AQUA catalog. Default to None.
-            models_catalog_list (list): A list of model names. Each model corresponds to an
+            model_list (list): A list of model names. Each model corresponds to an
                 experiment and source in the `exps` and `sources` lists, respectively.
                 Defaults to None.
-            exps_catalog_list (list): A list of experiment names. Each experiment corresponds
+            exp_list (list): A list of experiment names. Each experiment corresponds
                 to a model and source in the `models` and `sources` lists, respectively.
                 Defaults to None.
-            sources_catalog_list (list): A list of data source names. Each source corresponds
+            source_list (list): A list of data source names. Each source corresponds
                 to a model and experiment in the `models` and `exps` lists, respectively.
                 Defaults to None.
 
@@ -87,6 +87,7 @@ def retrieve_merge_ensemble_data(
         if model_names is None or len(model_counts.keys()) <= 1:
             logger.info("Single model ensemble memebers are given")
             if model_names is None:
+                logger.info("No model name is given. Assigning it to model_name.")
                 model_names = ["model_name"] * len(data_path_list)
         else:
             logger.info("Multi-model ensemble members are given")
@@ -112,12 +113,8 @@ def retrieve_merge_ensemble_data(
     # Method (b):
     # else if check the models, exps and sources are given from the catalog in the forms of lists
     # then use the AQUA.Reader class to load the data
-    elif (
-        models_catalog_list is not None
-        and exps_catalog_list is not None
-        and sources_catalog_list is not None
-    ):
-        model_names = models_catalog_list
+    elif model_list is not None and exp_list is not None and source_list is not None:
+        model_names = model_list
         if len(np.unique(model_names)) <= 1:
             logger.info("Single model ensemble memebers are given")
         else:
@@ -125,14 +122,14 @@ def retrieve_merge_ensemble_data(
 
         # if Catalog is not Null
         if catalog_list is not None:
-            for i, model in enumerate(models_catalog_list):
+            for i, model in enumerate(model_list):
                 # check if region variable is defined
                 if region is not None:
                     tmp_reader = Reader(
                         catalog=catalog_list[i],
                         model=model,
-                        exp=exps_catalog_list[i],
-                        source=sources_catalog_list[i],
+                        exp=exp_list[i],
+                        source=source_list[i],
                         areas=False,
                         region=region,
                     )
@@ -141,8 +138,8 @@ def retrieve_merge_ensemble_data(
                     tmp_reader = Reader(
                         catalog=catalog_list[i],
                         model=model,
-                        exp=exps_catalog_list[i],
-                        source=sources_catalog_list[i],
+                        exp=exp_list[i],
+                        source=source_list[i],
                         areas=False,
                     )
                 tmp_dataset = tmp_reader.retrieve(var=variable)
@@ -150,13 +147,13 @@ def retrieve_merge_ensemble_data(
                 tmp_dataset_list.append(tmp_dataset_expended)
         # if Catalog is Null
         else:
-            for i, model in enumerate(models_catalog_list):
+            for i, model in enumerate(model_list):
                 # check if region variable is defined
                 if region is not None:
                     tmp_reader = Reader(
                         model=model,
-                        exp=exps_catalog_list[i],
-                        source=sources_catalog_list[i],
+                        exp=exp_list[i],
+                        source=source_list[i],
                         areas=False,
                         region=region,
                     )
@@ -164,8 +161,8 @@ def retrieve_merge_ensemble_data(
                 else:
                     tmp_reader = Reader(
                         model=model,
-                        exp=exps_catalog_list[i],
-                        source=sources_catalog_list[i],
+                        exp=exp_list[i],
+                        source=source_list[i],
                         areas=False,
                     )
                 tmp_dataset = tmp_reader.retrieve(var=variable)
@@ -288,3 +285,27 @@ def compute_statistics(
         ds_mean = ds[variable].mean(dim=ens_dim, skipna=False)
         ds_std = ds[variable].mean(dim=ens_dim, skipna=False)
         return ds_mean, ds_std
+
+
+def center_timestamp(time: pd.Timestamp, freq: str):
+    """
+    Center the time value at the center of the month or year
+
+    Args:
+        time (str): The time value
+        freq (str): The frequency of the time period (only 'monthly' or 'annual')
+
+    Returns:
+        pd.Timestamp: The centered time value
+
+    Raises:
+        ValueError: If the frequency is not supported
+    """
+    if freq == "monthly":
+        center_time = time + pd.DateOffset(days=15)
+    elif freq == "annual":
+        center_time = time + pd.DateOffset(months=6)
+    else:
+        raise ValueError(f"Frequency {freq} not supported")
+
+    return center_time

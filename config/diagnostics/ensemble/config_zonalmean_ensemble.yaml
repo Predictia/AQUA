@@ -12,28 +12,29 @@ datasets:
     exp: 'historical-1990'
     source: 'aqua-zonalmean'
 
-outputdir: "./"
+setup:
+  loglevel: 'WARNING'
 
-# This is the variable that will be plotted from aqua-analysis output
-
-region: 'arctic'
-variable: 'so'
-
-# This is the current dask configuration which works for the inputs above. It could be adjusted based on the system this application is run.
-cluster:
-  nworkers: 8
-  threads_per_worker: 1
-  memory_limit: 30e9
-
-plot_options:
-  figure_size: [10,10]
-  plot_label: True
-  plot_std: True
-  unit:
-  mean_plot_title: 'Mean of Ensemble of Zonal-average of avg_so' 
-  std_plot_title:  'Standard deviation of Ensemble of Zonal-average of avg_so' 
-  cbar_label: 'Time-mean sea water practical salinity g kg**-1/year'
+output:
+  outputdir: "./"
+  #rebuild: true
+  save_netcdf: true
+  save_pdf: true
+  save_png: true
   dpi: 300
-  
 
+diagnostics:
+  ensemble:
+    run: true
+    diagnostic_name: 'EnsembleZonal'
+    variable: 'so'
+    region: 'arctic'
+    params:
+      default:
+    plot_params:
+      default:
+        figure_size: [10,8]
+        mean_title: 'Mean of Ensemble of Zonal-average of avg_so'
+        std_title: 'Standard deviation of Ensemble of Zonal-average of avg_so'
+        cbar_label: 'Time-mean sea water practical salinity g kg**-1/year'
 

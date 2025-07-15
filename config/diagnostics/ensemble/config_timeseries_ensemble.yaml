@@ -22,7 +22,7 @@ datasets:
     source: 'aqua-timeseries-annual'
 
 # Reference
-reference:
+references:
   - catalog: null  
     model: 'ERA5'
     exp: 'era5'
@@ -32,23 +32,29 @@ reference:
     exp: 'era5'
     source: 'aqua-timeseries-annual'
 
-outputdir: "./"
+setup:
+  loglevel: 'WARNING'
 
-# This is the variable that will be plotted as timeseries
-variable: '2t'
+output:
+  outputdir: "./"
+  #rebuild: true
+  save_netcdf: true
+  save_pdf: true
+  save_png: true
+  #dpi: 300
 
-startdate: '1990-01-01'
-enddate: '2000-12-31'
-
-# This is the current dask configuration which works for the inputs above. It could be adjusted based on the system this application is run.
-cluster:
-  nworkers: 8
-  threads_per_worker: 1
-  memory_limit: 30e9
-
-plot_options:
-  plot_ensemble_members: True
-  ensemble_label: 'Multi-model'
-  plot_title: 'Ensemble statistics for 2-meter temperature [K]'
-  ref_label: 'ERA5'
-  figure_size: [10,5]
+diagnostics:
+  ensemble:
+    run: true
+    diagnostic_name: 'EnsembleTimeseries'
+    variable: '2t'
+    params:
+      default:
+        startdate_data: "1990-01-01"
+        enddate_data: "2005-01-01"
+        startdate_ref: "1990-01-01"
+        enddate_ref: "2005-01-01"
+    plot_params:
+      default:
+        title: "Multi-Model Ensemble Statistics"
+        plot_ensemble_members: False

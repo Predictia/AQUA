@@ -6,31 +6,42 @@ Description
 
 The `Ensemble` module is a tool to perform uncertainty quantification and visualising the ensemble statistics namely, mean and standard deviation.
 It is also possible to calculate the weighted mean and standard deviation in case of multi-model ensemble.  
-This module contains three classes namely, `EnsembleTimeseries`, `EnsembleLatLon` and `EnsembleZonal`. 
+This module contains three main classes namely, `EnsembleTimeseries`, `EnsembleLatLon` and `EnsembleZonal`. 
+Additionally, this module also contains three supporting plotting classes namely, `PlotEnsembleTimeseries`, `PlotEnsembleLatLon` and `PlotEnsembleZonal`. 
 
-The `EnsembleTimeseries` class takes `1D` timesries as input and performs following functionalities:
+The `EnsembleTimeseries` class takes `1D` `xarray.Dataset` timesries as input and performs following functionalities:
 - Computes ensemble mean and standatd deviation for monthly and annual timeseries.
+
+The `PlotEnsembleTimeseries` class takes `1D` `xarray.Dataset` timeseries as input and performs the following functionalities:
 - Plots the ensemble mean and \pm along the given timeseries.
 - A reference timeseries can also be plotted. 
 
 The `EnsembleLatLon` class takes `2D` `LatLon` `xarray.Dataset` as input and performs the following functionalities:
 - Compute ensemble mean and standard deviation for `2D` Maps.
+
+The `PlotEnsembleLatLon` class takes `2D` `LatLon` `xarray.Dataset` as input and performs the following functionalities:
 - Plots the ensemble mean and standard deviation separately on two different maps.
 
-The `EnsembleZonal` class take zonal-averages `Lev-Lon` as input and performs the following functionalities:
+The `EnsembleZonal` class take zonal-averages `Lev-Lon` `xarray.Dataset` as input and performs the following functionalities:
 - Computes ensemble mean and standard deviation of the given input.
+
+The `PlotEnsembleZonal` class take zonal-averages `Lev-Lon` `xarray.Dataset` as input and performs the following functionalities:
 - Plots the ensemble mean and standard deviation of the computed statistics. 
 
 Structure
 ---------
 
 * ``ensembleTimeseries.py``: contains the `EnsembleTimeseries` class.
-* ``ensembleLatLon.py``: contains the `EnsembleLatLon` class
+* ``plot_ensemble_timeseries.py``: contains the `PlotEnsembleTimeseries` class.
+* ``ensembleLatLon.py``: contains the `EnsembleLatLon` class.
+* ``plot_ensemble_latlon.py``: contains the `PlotEnsembleLatLon.py` class.
 * ``ensembleZonal.py``: contains the `EnsembleZonal` class.
-* ``cli_timeseries_ensemble.py``: the command line interfance (CLI) script to run the ensemble-timeseries diagnostic.
+* ``plot_ensemble_zonal.py``: contains the `PlotEnsembleLatLon.py` class.
+* ``cli_timeseries_ensemble.py``: the command line interfance (CLI) script to run the ensemble-timeseries `1D` diagnostic.
 * ``cli_global_2D_ensemble.py``: the command line interfance (CLI) script to run the ensemble-2D-maps in `Lat-Lon` diagnostic.
 * ``cli_zonal_ensemble.py``: the command line interfance (CLI) script to run the ensemble-zonal `Lev-Lon` diagnostic.
 * ``util.py``: contains the `retrieve_merge_ensemble_data` and `compute_statistics` functions.
+* ``base.py``: contains the base class which contains functions for saving the output as png, pdf and netcdf.
 * ``config/diagnostics/ensemble/config_global_2D_ensemble.yaml``: config file for `cli_global_2D_ensemble.py`.
 * ``config/diagnostics/ensemble/config_timeseries_ensemble.yaml``: config file for `ensembleTimeseries.py`.
 * ``config/diagnostics/ensemble/config_zonalmean_ensemble.yaml``: config file for `ensembleZonal.py`.

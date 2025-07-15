@@ -6,108 +6,141 @@ This CLI allows to plot a map of aqua analysis zonalmean
 defined in a yaml configuration file for multiple models.
 """
 import argparse
-import os
 import sys
-from dask.distributed import Client, LocalCluster
-from dask.utils import format_bytes
-from aqua.util import load_yaml, get_arg, ConfigPath
+from aqua.util import get_arg
 from aqua.logger import log_configure
-from aqua.diagnostics import EnsembleZonal
+from aqua.version import __version__ as aqua_version
+from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_cluster
+from aqua.diagnostics.core import load_diagnostic_config, merge_config_args
+
 from aqua.diagnostics.ensemble.util import retrieve_merge_ensemble_data
+from aqua.diagnostics import EnsembleZonal
+from aqua.diagnostics import PlotEnsembleZonal
 
 def parse_arguments(args):
-    """Parse command line arguments."""
+    """Parse command-line arguments for EnsembleZonal diagnostic.
 
-    parser = argparse.ArgumentParser(description="Ensemble zonalmean map CLI")
-
-    parser.add_argument("-c", "--config",
-                        type=str, required=False,
-                        help="yaml configuration file")
-    parser.add_argument('-n', '--nworkers', type=int,
-                        help='number of dask distributed workers')
-    parser.add_argument("--loglevel", "-l", type=str,
-                        required=False, help="loglevel")
-
-    # These will override the first one in the config file if provided
-    parser.add_argument("--catalog", type=str,
-                        required=False, help="catalog name")
-    parser.add_argument("--model", type=str,
-                        required=False, help="model name")
-    parser.add_argument("--exp", type=str,
-                        required=False, help="experiment name")
-    parser.add_argument("--source", type=str,
-                        required=False, help="source name")
-    parser.add_argument("--outputdir", type=str,
-                        required=False, help="output directory")
-    parser.add_argument("--cluster", type=str, 
-                        required=False, help="dask cluster address")
-
+    Args:
+        args (list): list of command-line arguments to parse.
+    """
+    parser = argparse.ArgumentParser(description="EnsembleZonal CLI")
+    parser = template_parse_arguments(parser)
     return parser.parse_args(args)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
 
     args = parse_arguments(sys.argv[1:])
 
     loglevel = get_arg(args, "loglevel", "WARNING")
-    logger = log_configure(loglevel, 'CLI multi-model ensemble calculation of zonalmean')
-    logger.info("Running multi-model ensemble calculation of zonalmean")
+    logger = log_configure(loglevel, "CLI Single model Zonal ensemble")
+    logger.info("Starting Ensemble Zonal diagnostic")
 
-    # Load configuration file
-    configdir = ConfigPath(loglevel=loglevel).configdir
-    default_config = os.path.join(configdir, "diagnostics", "ensemble",
-                                  "config_zonalmean_ensemble.yaml")
-    file = get_arg(args, "config", default_config)
-    logger.info(f"Reading configuration file {file}")
-    config = load_yaml(file)
+    cluster = get_arg(args, "cluster", None)
+    nworkers = get_arg(args, "nworkers", None)
 
-    # Initialize the Dask cluster
-    nworkers = get_arg(args, 'nworkers', None)
-    config_cluster = get_arg(args, 'cluster', None)
+    (
+        client,
+        cluster,
+        private_cluster,
+    ) = open_cluster(nworkers=nworkers, cluster=cluster, loglevel=loglevel)
 
-    # If nworkers is not provided, use the value from the config
-    if nworkers is None or config_cluster is None:
-        config_cluster = config['cluster'].copy()
-    if nworkers is not None:
-        config_cluster['nworkers'] = nworkers
+    # Load the configuration file and then merge it with the command-line arguments
+    config_dict = load_diagnostic_config(
+        diagnostic="ensemble",
+        config=args.config,
+        default_config="config_zonalmean_ensemble.yaml",
+        loglevel=loglevel,
+    )
+    config_dict = merge_config_args(config=config_dict, args=args, loglevel=loglevel)
 
-    cluster = LocalCluster(n_workers=config_cluster['nworkers'], threads_per_worker=1)
-    client = Client(cluster)
+    # Output options
+    outputdir = config_dict["output"].get("outputdir", "./")
+    # rebuild = config_dict['output'].get('rebuild', True)
+    save_netcdf = config_dict["output"].get("save_netcdf", True)
+    save_pdf = config_dict["output"].get("save_pdf", True)
+    save_png = config_dict["output"].get("save_png", True)
+    dpi = config_dict["output"].get("dpi", 300)
 
-    # Get the Dask dashboard URL
-    logger.info("Dask Dashboard URL: %s", client.dashboard_link)
-    workers = client.scheduler_info()["workers"]
-    worker_count = len(workers)
-    total_memory = format_bytes(
-        sum(w["memory_limit"] for w in workers.values() if w["memory_limit"]))
-    memory_text = f"Workers={worker_count}, Memory={total_memory}"
-    logger.info(memory_text)
+    # EnsembleLatLon diagnostic
+    if "ensemble" in config_dict["diagnostics"]:
+        if config_dict["diagnostics"]["ensemble"]["run"]:
+            logger.info("EnsembleZonal module is used.")
 
-    variable = config['variable']
-    region = config['region']
-    outputdir = get_arg(args, "outputdir", config["outputdir"])
-    plot_options = config.get("plot_options", {})
+            variable = config_dict["diagnostics"]["ensemble"].get("variable", None)
+            region = config_dict["diagnostics"]["ensemble"].get("region", None)
 
-    logger.info(f"Loading {variable} Zonal average lon-Lev data")
+            logger.info(f"Variable under consideration: {variable}")
+            title_mean = config_dict["diagnostics"]["ensemble"]["plot_params"]["default"].get(
+                "title_mean", None
+            )
+            title_std = config_dict["diagnostics"]["ensemble"]["plot_params"]["default"].get(
+                "title_std", None
+            )
+            cbar_label = config_dict["diagnostics"]["ensemble"]["plot_params"]["default"].get(
+                "cbar_label", None
+            )
+            figure_size = config_dict["diagnostics"]["ensemble"]["plot_params"]["default"].get(
+                "figure_size", None
+            )
 
-    models = config['datasets']
-    model_list = []
-    exp_list = []
-    source_list = []
-    if models is not None:
-        models[0]['catalog'] = get_arg(args, 'catalog', models[0]['catalog'])
-        models[0]['model'] = get_arg(args, 'model', models[0]['model'])
-        models[0]['exp'] = get_arg(args, 'exp', models[0]['exp'])
-        models[0]['source'] = get_arg(args, 'source', models[0]['source'])
-        for model in models:
-            model_list.append(model['model'])
-            exp_list.append(model['exp'])
-            source_list.append(model['source'])
+            # Model data
+            models = config_dict["datasets"]
 
-    zonal_dataset = retrieve_merge_ensemble_data(region=region, variable=variable, models_catalog_list=model_list, exps_catalog_list=exp_list, sources_catalog_list=source_list)
-    zm = EnsembleZonal(var=variable, dataset=zonal_dataset, outputdir=outputdir, plot_options=plot_options)
-    zm.compute()
-    zm.plot()
-    logger.info(f"Finished Ensemble Zonal Average diagnostic for {variable}.")
+            catalog_list = []
+            model_list = []
+            exp_list = []
+            source_list = []
+            if models is not None:
+                models[0]["catalog"] = get_arg(args, "catalog", models[0]["catalog"])
+                models[0]["model"] = get_arg(args, "model", models[0]["model"])
+                models[0]["exp"] = get_arg(args, "exp", models[0]["exp"])
+                models[0]["source"] = get_arg(args, "source", models[0]["source"])
+                for model in models:
+                    catalog_list.append(model["catalog"])
+                    model_list.append(model["model"])
+                    exp_list.append(model["exp"])
+                    source_list.append(model["source"])
+
+            ens_dataset = retrieve_merge_ensemble_data(
+                region=region,
+                variable=variable,
+                model_list=model_list,
+                exp_list=exp_list,
+                source_list=source_list,
+            )
+            ens_zm = EnsembleZonal(
+                var=variable,
+                dataset=ens_dataset,
+                catalog_list=catalog_list,
+                model_list=model_list,
+                source_list=source_list,
+                outputdir=outputdir,
+            )
+            ens_zm.run()
+
+            # PlotEnsembleZonal class
+            plot_arguments = {
+                "var": variable,
+                "catalog_list": catalog_list,
+                "model_list": model_list,
+                "exp_list": exp_list,
+                "source_list": source_list,
+                "save_pdf": save_pdf,
+                "save_png": save_png,
+                "title_mean": title_mean,
+                "title_std": title_std,
+                "cbar_label": cbar_label,
+                "figure_size": figure_size,
+            }
+
+            ens_zm_plot = PlotEnsembleZonal(
+                **plot_arguments, dataset_mean=ens_zm.dataset_mean, dataset_std=ens_zm.dataset_std
+            )
+            ens_zm_plot.plot()
+            logger.info(f"Finished Ensemble_Zonal diagnostic for {variable}.")
+
     # Close the Dask client and cluster
-    client.close()
-    cluster.close()
+    close_cluster(
+        client=client, cluster=cluster, private_cluster=private_cluster, loglevel=loglevel
+    )
