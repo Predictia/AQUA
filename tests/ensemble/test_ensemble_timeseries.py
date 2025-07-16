@@ -1,46 +1,70 @@
 """Test ensemble Ensemble module"""
-import os
-import subprocess
 import pytest
-import xarray as xr
-import numpy as np
-from aqua import Reader
 from aqua.diagnostics import EnsembleTimeseries
 from aqua.diagnostics.ensemble.util import retrieve_merge_ensemble_data
+from aqua.diagnostics import PlotEnsembleTimeseries
+
 
 @pytest.mark.ensemble
 def test_ensemble_timeseries():
     """Initialize variables before the test."""
     catalog_list = ['ci', 'ci']
-    models_catalog_list = ['FESOM', 'FESOM']
-    exps_catalog_list = ['results', 'results']
-    sources_catalog_list = ['timeseries1D', 'timeseries1D']
+    model_list = ['FESOM', 'FESOM']
+    exp_list = ['results', 'results']
+    source_list = ['timeseries1D', 'timeseries1D']
     variable = '2t'
     
     # loading and merging the data
     dataset = retrieve_merge_ensemble_data(
         variable=variable,
         catalog_list=catalog_list,
-        models_catalog_list=models_catalog_list,
-        exps_catalog_list=exps_catalog_list,
-        sources_catalog_list=sources_catalog_list
+        model_list=model_list,
+        exp_list=exp_list,
+        source_list=source_list
         )
-    print(dataset)
     assert dataset is not None
-
     ts = EnsembleTimeseries(
-    var=variable,
-    mon_model_dataset=dataset,
-    ann_model_dataset=dataset,
+        var=variable,
+        monthly_data=dataset,
+        annual_data=dataset,
+        catalog_list=catalog_list,
+        model_list=model_list,
+        exp_list=exp_list,
+        source_list=source_list,
     )
-    ts.compute()
-    assert ts.mon_dataset_mean is not None
-    assert ts.ann_dataset_mean is not None
-    assert ts.mon_dataset_std.values.all() == 0
-    assert ts.ann_dataset_std.values.all() == 0
+
+    ts.run()
+    assert ts.monthly_data_mean is not None
+    assert ts.annual_data_mean is not None
+    assert ts.monthly_data_std.values.all() == 0
+    assert ts.annual_data_std.values.all() == 0
     
-    #fig, ax = ts.plot()
-    #assert fig is not None
+    # PlotEnsembleTimeseries class
+    plot_arguments = {
+        "var": variable,
+        "catalog_list": catalog_list,
+        "model_list": model_list,
+        "exp_list": exp_list,
+        "source_list": source_list,
+        "save_pdf": True,
+        "save_png": True,
+        "plot_ensemble_members": True,
+        "title": "test timeseries data",
+    }
+
+
+    ts_plot = PlotEnsembleTimeseries(
+        **plot_arguments,
+        monthly_data=ts.monthly_data,
+        monthly_data_mean=ts.monthly_data_mean,
+        monthly_data_std=ts.monthly_data_std,
+        annual_data=ts.annual_data,
+        annual_data_mean=ts.annual_data_mean,
+        annual_data_std=ts.annual_data_std,
+    )
+    fig, ax = ts_plot.plot() 
+
+    assert fig is not None
    
 
 

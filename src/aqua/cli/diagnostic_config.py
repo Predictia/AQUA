@@ -191,7 +191,7 @@ diagnostic_config = {
     ],
     'ensemble': [
         {
-            'config_file': 'config_atmglobalmean_ensemble.yaml',
+            'config_file': 'config_global_2D_ensemble.yaml',
             'source_path': 'config/diagnostics/ensemble',
             'target_path': 'diagnostics/ensemble'
         },
