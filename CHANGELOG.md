@@ -37,6 +37,7 @@ AQUA diagnostics complete list:
 - Timeseries: `center_time` option to center the time axis is exposed in the CLI (#2028)
 - Timeseries: fix the missing variable name in some netcdf output (#2023)
 - Diagnostic core: new `_select_region` method in `Diagnostic`, wrapped by `select_region` to select a region also on custom datasets (#2020, #2032)
+- Ensemble: Updating the ensemble module according the the issue #1925 (#2004)
 
 ## [v0.16.0]
 
@@ -75,7 +76,6 @@ AQUA core complete list:
 - Use scientific notation in multiple maps plotting to avoid label overlapping (#1953)
 
 AQUA diagnostics complete list:
-- Ensemble: Updating the ensemble module according the the issue #1925 (#2004)
 - Diagnostic core: a `diagnostic_name` is now available in the configuration file to override the default name (#2000)
 - Ecmean, GlobalBiases, Teleconnections: regrid functionality correctly working in cli (#2006)
 - Diagnostic core: updated docs for `OutputSaver` (#2010)
