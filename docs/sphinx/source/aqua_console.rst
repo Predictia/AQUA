@@ -251,6 +251,7 @@ It is very useful if you pull a new version of AQUA and want to update your loca
     This command will check if there is a new version of the catalog available and update it by overwriting the current installation.
     This will work only for catalogs installed from the Climate-DT repository.
     If the catalog is installed in editable mode, this command will not work.
+    It is possible to specify 'all' as catalog name to update all the catalogs installed not in editable mode.
 
 
 .. _aqua-fixes:
