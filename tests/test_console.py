@@ -495,6 +495,11 @@ class TestAquaConsole():
         assert 'climatedt-phase1' in out
         assert 'lumi-phase1' in out
 
+        run_aqua(['-v', 'update', '-c', 'all'])
+
+        out, _ = capfd.readouterr()
+        assert '.aqua/catalogs/ci ..' in out
+
         # uninstall everything again
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir, '.aqua'))
