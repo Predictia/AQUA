@@ -148,8 +148,8 @@ def plot_timeseries_ensemble(ax: plt.Axes,
     if std_data is not None:
         if kind == 'monthly':
             ax.fill_between(data.time,
-                            data - 2.*std_data,
-                            data + 2.*std_data,
+                            data - 2.*std_data, #.sel(month=data["time.dt.month"]),
+                            data + 2.*std_data, #.sel(month=data["time.dt.month"]),
                             alpha=0.25, facecolor="#1898e0")
         elif kind == 'annual':
             ax.fill_between(data.time,
