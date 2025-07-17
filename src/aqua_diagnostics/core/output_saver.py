@@ -5,8 +5,9 @@ AQUA diagnostics.
 """
 
 import os
-import matplotlib.pyplot as plt
+from typing import Optional, Union
 import xarray as xr
+from matplotlib.figure import Figure
 from aqua.logger import log_configure, log_history
 from aqua.util import create_folder, add_pdf_metadata, add_png_metadata, update_metadata
 
@@ -20,8 +21,10 @@ class OutputSaver:
     """
 
     def __init__(self, diagnostic: str,
-                 catalog: str | list = None, model: str | list = None, exp: str | list = None, realization: str | list = None,
-                 catalog_ref: str | list = None, model_ref: str | list = None, exp_ref: str | list = None,
+                 catalog: Optional[Union[str, list]] = None, model: Optional[Union[str, list]] = None, 
+                 exp: Optional[Union[str, list]] = None, realization: Optional[Union[str, list]] = None,
+                 catalog_ref: Optional[Union[str, list]] = None, model_ref: Optional[Union[str, list]] = None, 
+                 exp_ref: Optional[Union[str, list]] = None,
                  outdir: str = '.', loglevel: str = 'WARNING'):
         """
         Initialize the OutputSaver with diagnostic parameters and output directory.
@@ -74,7 +77,7 @@ class OutputSaver:
         self.outdir = outdir
 
     @staticmethod
-    def _format_realization(realization: str | int | list | None) -> str | list:
+    def _format_realization(realization: Optional[Union[str, int, list]]) -> Union[str, list]:
         """
         Format the realization string by prepending 'r' if it is a digit.
 
@@ -95,7 +98,7 @@ class OutputSaver:
             return f'r{realization}' if str(realization).isdigit() else str(realization)
 
     @staticmethod
-    def unpack_list(value: str | list | None) -> str | None:
+    def unpack_list(value: Optional[Union[str, list]]) -> Optional[Union[str, list]]:
         """
         Unpack a value that can be a string, list, or None.
 
@@ -144,7 +147,7 @@ class OutputSaver:
         self.logger.debug("Attributes values: %s", values)
         raise ValueError(f"Attributes {attr_names} must be either all strings or all lists of the same length.")
 
-    def generate_name(self, diagnostic_product: str, extra_keys: dict = None) -> str:
+    def generate_name(self, diagnostic_product: str, extra_keys: Optional[dict] = None) -> str:
         """
         Generate a filename based on provided parameters and additional user-defined keywords
 
@@ -189,8 +192,25 @@ class OutputSaver:
         self.logger.debug("Generated filename: %s", filename)
         return filename
 
+    def _core_save(self, diagnostic_product: str, file_format: str,
+                   extra_keys: Optional[dict] = None):
+        """
+        Core method to handle the common logic for saving files, including checking if the file exists.
+        """
+
+        if file_format not in ['pdf', 'png', 'nc']:
+            raise ValueError("file_format must be either 'pdf',  'png' or 'nc'")
+
+        filename = self.generate_name(
+            diagnostic_product=diagnostic_product, extra_keys=extra_keys
+        ) + f'.{file_format}'
+        dir_format = 'netcdf' if file_format == 'nc' else file_format
+        folder = os.path.join(self.outdir, dir_format)
+        create_folder(folder=str(folder), loglevel=self.loglevel)
+        return os.path.join(folder, filename)
+
     def save_netcdf(self, dataset: xr.Dataset, diagnostic_product: str,
-                    rebuild: bool = True, extra_keys: dict = None, metadata: dict = None):
+                    rebuild: bool = True, extra_keys: Optional[dict] = None, metadata: Optional[dict] = None):
         """
         Save an xarray Dataset as a NetCDF file with a generated filename.
 
@@ -227,26 +247,10 @@ class OutputSaver:
         self.logger.info("Saved NetCDF %s", filepath)
         return filepath
 
-    def _core_save(self, diagnostic_product: str, file_format: str,
-                   extra_keys: dict = None):
-        """
-        Core method to handle the common logic for saving files, including checking if the file exists.
-        """
 
-        if file_format not in ['pdf', 'png', 'nc']:
-            raise ValueError("file_format must be either 'pdf',  'png' or 'nc'")
-
-        filename = self.generate_name(
-            diagnostic_product=diagnostic_product, extra_keys=extra_keys
-        ) + f'.{file_format}'
-        dir_format = 'netcdf' if file_format == 'nc' else file_format
-        folder = os.path.join(self.outdir, dir_format)
-        create_folder(folder=str(folder), loglevel=self.loglevel)
-        return os.path.join(folder, filename)
-
-    def _save_figure(self, fig: plt.Figure, diagnostic_product: str, file_format: str,
-                     rebuild: bool = True, extra_keys: dict = None, metadata: dict = None,
-                     dpi: int = None):
+    def _save_figure(self, fig: Figure, diagnostic_product: str, file_format: str,
+                     rebuild: bool = True, extra_keys: Optional[dict] = None, metadata: Optional[dict] = None,
+                     dpi: Optional[int] = None):
         """
         Internal method to save a Matplotlib figure with common logic for PDF and PNG.
 
@@ -286,21 +290,21 @@ class OutputSaver:
         self.logger.info("Saved %s: %s", file_format.upper(), filepath)
         return filepath
 
-    def save_pdf(self, fig: plt.Figure, diagnostic_product: str, rebuild: bool = True,
-                 extra_keys: dict = None, metadata: dict = None):
+    def save_pdf(self, fig: Figure, diagnostic_product: str, rebuild: bool = True,
+                 extra_keys: Optional[dict] = None, metadata: Optional[dict] = None):
         """
         Save a Matplotlib figure as a PDF.
         """
         return self._save_figure(fig, diagnostic_product, 'pdf', rebuild, extra_keys, metadata)
 
-    def save_png(self, fig: plt.Figure, diagnostic_product: str, rebuild: bool = True,
-                 extra_keys: dict = None, metadata: dict = None, dpi: int = 300):
+    def save_png(self, fig: Figure, diagnostic_product: str, rebuild: bool = True,
+                 extra_keys: Optional[dict] = None, metadata: Optional[dict] = None, dpi: int = 300):
         """
         Save a Matplotlib figure as a PNG.
         """
         return self._save_figure(fig, diagnostic_product, 'png', rebuild, extra_keys, metadata, dpi)
 
-    def create_metadata(self, diagnostic_product: str, extra_keys: dict = None, metadata: dict = None) -> dict:
+    def create_metadata(self, diagnostic_product: str, extra_keys: Optional[dict] = None, metadata: Optional[dict] = None) -> dict:
         """
         Create metadata dictionary for a plot or output file.
 
@@ -325,16 +329,14 @@ class OutputSaver:
 
         # Process extra keys safely
         if extra_keys:
-            # Filter out None values
-            # This line is commented out because it is not needed in the current implementation
-            # filtered_keys = {k: v for k, v in extra_keys.items() if v is not None}
-
             processed_extra_keys = {
                 key: ",".join(map(str, value)) if isinstance(value, list) else str(value)
                 for key, value in extra_keys.items()
             }
             base_metadata.update(processed_extra_keys)
 
-        # Merge with provided metadata
+        # Merge with provided metadata, ensuring second argument is always a dict
+        if metadata is None:
+            metadata = {}
         metadata = update_metadata(base_metadata, metadata)
         return metadata
