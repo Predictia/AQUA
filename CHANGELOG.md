@@ -11,8 +11,11 @@ Removed:
 -  removed Reader.info() method (#2076)
 
 AQUA core complete list:
+- `aqua add <catalog>` option in the AQUA console can use GITHUB_TOKEN and GITHUB_USER environment variables to authenticate with GitHub API (#2081)
+- Added a `aqua update -c all` option in the AQUA console to update all the catalogs intalled from the Climate-DT repository (#2081)
+- `Reader` can filter kwargs so that a parameter not available in the intake source is removed and not passed to the intake driver (#2074)
+- Adapt catgen to changes in data-portfolio v1.3.2 (#2076)
 - Add `get_projection()` utility function for selection of Cartopy map projections (#2068)
-- Adapt catgen to changes in data-portfolio
 - `aqua-analysis.py` now supports a `--realization` option to enable the analysis of a specific realization (#2041)
 - Separate new histogram function in the framework (#2061)
 - Introducing `timsum()` method to compute cumulative sum (#2059)
@@ -28,7 +31,6 @@ AQUA core complete list:
 - `Trender()` class provide also coefficients and normalize them (#1991)
 
 AQUA diagnostics complete list:
-- Ocean Trends: Trends class to create trend data along with zonal trend, notebook and tests added. (#1990)
 - ECmean: diagnostics refactored to use `OutputSaver` and new common configuration file (#2012)
 - ECmean: dependency to 0.1.15 (#2012)
 - Timeseries, Global Biases, Teleconnections, Ecmean: `--realization` option to select a specific realization in the CLI (#2041)
