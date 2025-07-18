@@ -5,6 +5,7 @@ import cartopy.crs as ccrs
 from aqua.logger import log_configure
 from aqua.diagnostics.core import OutputSaver
 from aqua.graphics import plot_single_map, plot_single_map_diff, plot_maps
+from aqua.util import get_projection
 from .util import handle_pressure_level
 
 class PlotGlobalBiases: 
@@ -76,7 +77,7 @@ class PlotGlobalBiases:
             raise ValueError(f'Format {format} not supported. Use png or pdf.')
 
 
-    def plot_climatology(self, data, var, plev=None, vmin=None, vmax=None, cbar_label=None):
+    def plot_climatology(self, data, var, plev=None, proj='robinson', proj_kwargs={}, vmin=None, vmax=None, cbar_label=None):
         """
         Plots the climatology map for a given variable and time range.
 
@@ -84,7 +85,8 @@ class PlotGlobalBiases:
             data (xarray.Dataset): Climatology dataset to plot.
             var (str): Variable name.
             plev (float, optional): Pressure level to plot (if applicable).
-            proj (cartopy.crs.Projection, optional): Cartopy projection for the map.
+            proj (string, optional): Desired projection for the map.
+            proj_kwargs (dict, optional): Additional arguments for the projection (e.g., {'central_longitude': 0}).
             vmin (float, optional): Minimum color scale value.
             vmax (float, optional): Maximum color scale value.
             cbar_label (str, optional): Label for the colorbar.
@@ -98,6 +100,8 @@ class PlotGlobalBiases:
         if data is None:
             return None
 
+        proj = get_projection(proj, **proj_kwargs)
+        
         title = (f"Climatology of {data[var].attrs.get('long_name', var)} for {data.model} {data.exp}" 
                 + (f" at {int(plev / 100)} hPa" if plev else ""))
 
@@ -105,9 +109,9 @@ class PlotGlobalBiases:
             data[var],
             return_fig=True,
             title=title,
-            proj=proj,
             vmin=vmin,
             vmax=vmax,
+            proj=proj,
             loglevel=self.loglevel,
             cbar_label=cbar_label
         )
@@ -129,7 +133,7 @@ class PlotGlobalBiases:
                               description=description, var=var, plev=plev)
 
 
-    def plot_bias(self, data, data_ref, var, plev=None, vmin=None, vmax=None, cbar_label=None):
+    def plot_bias(self, data, data_ref, var, plev=None, proj='robinson', proj_kwargs={}, vmin=None, vmax=None, cbar_label=None):
         """
         Plots the bias map between two datasets.
 
@@ -138,7 +142,8 @@ class PlotGlobalBiases:
             data_ref (xarray.Dataset): Reference dataset.
             var (str): Variable name.
             plev (float, optional): Pressure level.
-            proj (cartopy.crs.Projection, optional): Cartopy projection for the map.
+            proj (str, optional): Desired projection for the map.
+            proj_kwargs (dict, optional): Additional arguments for the projection.
             vmin (float, optional): Minimum colorbar value.
             vmax (float, optional): Maximum colorbar value.
             cbar_label (str, optional): Label for the colorbar.
@@ -149,6 +154,8 @@ class PlotGlobalBiases:
         data_ref = handle_pressure_level(data_ref, var, plev, loglevel=self.loglevel)
 
         sym = vmin is None or vmax is None
+
+        proj = get_projection(proj, **proj_kwargs)
 
         title = (f"Global bias of {data[var].attrs.get('long_name', var)} for {data.model} {data.exp}\n"
                  f"relative to {data_ref.model} climatology"
@@ -185,7 +192,7 @@ class PlotGlobalBiases:
                               description=description, var=var, plev=plev)
 
 
-    def plot_seasonal_bias(self, data, data_ref, var, plev=None, vmin=None, vmax=None, cbar_label=None):
+    def plot_seasonal_bias(self, data, data_ref, var, plev=None, proj='robinson', proj_kwargs={}, vmin=None, vmax=None, cbar_label=None):
         """
         Plots seasonal biases for each season (DJF, MAM, JJA, SON).
 
@@ -194,7 +201,8 @@ class PlotGlobalBiases:
             data_ref (xarray.Dataset): Reference dataset.
             var (str): Variable name.
             plev (float, optional): Pressure level.
-            proj (cartopy.crs.Projection, optional): Cartopy projection for the map.
+            proj (str, optional): Desired projection for the map.
+            proj_kwargs (dict, optional): Additional arguments for the projection.
             vmin (float, optional): Minimum colorbar value.
             vmax (float, optional): Maximum colorbar value.
             cbar_label (str, optional): Label for the colorbar.
@@ -212,6 +220,7 @@ class PlotGlobalBiases:
 
         plot_kwargs = {
             'maps': [data[var].sel(season=season) - data_ref[var].sel(season=season) for season in season_list],
+            'proj': get_projection(proj, **proj_kwargs),
             'return_fig': True,
             'titles': season_list,
             'contour': True,
