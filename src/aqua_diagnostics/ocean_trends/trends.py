@@ -4,6 +4,8 @@ from aqua.diagnostics.core import Diagnostic
 from aqua.util import area_selection
 from itertools import product
 from aqua import reader
+from aqua.reader import Trender
+
 
 xr.set_options(keep_attrs=True)
 
@@ -35,61 +37,7 @@ class Trends(Diagnostic):
         self.trend_coef = self.compute_trend(data = self.data, loglevel=self.loglevel)
         self.save_netcdf(outputdir= outputdir, rebuild=rebuild, region=region)
     
-    @staticmethod
-    def trend_from_polyfit(data, loglevel="WARNING"):
-        """
-        Calculate the linear trend (slope) from a dataset along the time dimension.
-
-        Parameters:
-            data (xarray.Dataset): Input dataset with variables to calculate trends.
-            loglevel (str): Logging level for debugging. Default is "WARNING".
-
-        Returns:
-            xarray.Dataset: Dataset containing the linear trends (slopes) for each variable.
-        """
-        # Initialize the logger (assuming log_configure is defined elsewhere)
-        logger = log_configure(loglevel, 'trend_from_polyfit')
-
-        logger.debug("Starting trend calculation")
-
-        trend_dict = {}
-        
-        time_frequency = data["time"].to_index().inferred_freq
-
-        if time_frequency is not None:
-            # Define the conversion factor
-            if time_frequency.startswith("D"):
-                factor = 1e9 * 60 * 60 * 24  # Convert ns⁻¹ to days⁻¹
-            elif time_frequency.startswith("M"):
-                factor = 1e9 * 60 * 60 * 24 * 30.4375  # Convert ns⁻¹ to months⁻¹
-            elif time_frequency.startswith("A") or time_frequency.startswith("Y"):  
-                factor = 1e9 * 60 * 60 * 24 * 365.25  # Convert ns⁻¹ to years⁻¹
-            else:
-                factor = 1
-                logger.warning (f"Unsupported time frequency: {time_frequency}. It will result wrong values in trend. To fix it please report of look at the unit of time in the dataset")
-
-        # Iterate over variables in the input dataset
-        for var in data.data_vars:
-            logger.debug(f"Calculating trend for {var}")
-            # Perform the polyfit to calculate the trend (slope)
-            poly_coeffs = data.polyfit(dim="time", deg=1)
-            
-            trend_dict[var] = poly_coeffs[f"{var}_polyfit_coefficients"].sel(degree=1)* factor
-            trend_dict[var].attrs = data[var].attrs
-            # Apply necessary adjustments for time frequency if needed (optional)
-            trend_dict[var] = Trends.adjust_trend_for_time_frequency(trend_dict[var], data[var], loglevel=loglevel)
-            
-            logger.debug(f"Trend for {var} calculated successfully")
-
-        # Merge trends into a single dataset
-        trend_ds = xr.Dataset(trend_dict)
-
-        logger.info("Trend dataset created successfully")
-
-        return trend_ds
-
-    @staticmethod
-    def adjust_trend_for_time_frequency(trend, y_array, loglevel= "WARNING"):
+    def adjust_trend_for_time_frequency(self, trend, y_array, loglevel= "WARNING"):
         """
         Adjust the trend values based on time frequency.
 
@@ -123,14 +71,9 @@ class Trends(Diagnostic):
             raise ValueError(f"The frequency: {time_frequency} of the data must be in Daily/Monthly/Yearly")
         
         trend.attrs['units'] = f"{trend.attrs['units']}/year"
-            
-        
-        # trend.attrs['units'] = f"{y_array.units}/year"
-        
         return trend
     
-    @staticmethod
-    def compute_trend(data, loglevel= "WARNING"):
+    def compute_trend(self, data, loglevel= "WARNING"):
         """
         Compute the trend values for temperature and salinity variables in a 3D dataset.
 
@@ -143,10 +86,17 @@ class Trends(Diagnostic):
         """
         logger = log_configure(loglevel, 'TS_3dtrend')
         logger.debug("Calculating linear trend")
-        TS_3dtrend_data = Trends.trend_from_polyfit(data, loglevel= loglevel)
-        TS_3dtrend_data.attrs = data.attrs
+
+        trend_init = Trender()
+        trend_data = trend_init.coeffs(data, dim= 'time',skipna= True, normalize= True)
+        trend_data.attrs = data.attrs
+        trend_dict = {}
+        for var in data.data_vars:
+            trend_dict[var] = self.adjust_trend_for_time_frequency(trend_data[var], data, loglevel=loglevel)
+            trend_dict[var].attrs = data[var].attrs
+        
         logger.debug("Trend value calculated")
-        return TS_3dtrend_data
+        return trend_data
     
     
     def save_netcdf(self, diagnostic: str = "trends",
@@ -156,14 +106,14 @@ class Trends(Diagnostic):
     
         save_kwargs = {}
 
-        if region is not None:
-            save_kwargs["region"] = region
+        # if region is not None:
+        #     save_kwargs["region"] = region
         
         super().save_netcdf(
             diagnostic=diagnostic,
             diagnostic_product=diagnostic_product,
-            outputdir=outputdir,
+            outdir=outputdir,
             rebuild=rebuild,
             data=self.trend_coef,
-            **save_kwargs
+            extra_keys={"region": region.replace(" ", "_") if region else None},
         )
