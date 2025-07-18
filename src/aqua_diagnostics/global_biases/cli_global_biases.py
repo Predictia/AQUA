@@ -106,7 +106,10 @@ if __name__ == '__main__':
 
             for var, is_formula in all_vars:
                 logger.info(f"Running Global Biases diagnostic for {'formula' if is_formula else 'variable'}: {var}")
-                plot_params = config_dict['diagnostics']['globalbiases']['plot_params'].get(var, {})
+
+                all_plot_params = config_dict['diagnostics']['globalbiases'].get('plot_params', {})
+                plot_params = all_plot_params.get(var) or all_plot_params.get('default', {})
+
                 vmin, vmax = plot_params.get('vmin'), plot_params.get('vmax')
                 param_dict = config_dict['diagnostics']['globalbiases'].get('params', {}).get(var, {})
                 units = param_dict.get('units', None)
@@ -137,13 +140,20 @@ if __name__ == '__main__':
                 for p in plev_list:
                     logger.info(f"Processing variable: {var} at pressure level: {p}" if p else f"Processing variable: {var} at surface level")
 
+                    proj = plot_params.get('projection', 'robinson')
+                    proj_params = plot_params.get('projection_params', {})
+                    logger.debug(f"Using projection: {proj} for variable: {var}")
                     plot_biases = PlotGlobalBiases(save_pdf=save_pdf, save_png=save_png, dpi=dpi, outputdir=outputdir, loglevel=loglevel)
                     plot_biases.plot_bias(data=biases_dataset.climatology, data_ref=biases_reference.climatology,
-                                          var=var, plev=p, vmin=vmin, vmax=vmax) 
+                                          var=var, plev=p,
+                                          proj=proj, proj_params=proj_params,
+                                          vmin=vmin, vmax=vmax) 
                     if seasons:
                         plot_biases.plot_seasonal_bias(data=biases_dataset.seasonal_climatology, 
                                                        data_ref=biases_reference.seasonal_climatology,
-                                                       var=var, plev=p, vmin=vmin, vmax=vmax)
+                                                       var=var, plev=p, 
+                                                       proj=proj, proj_params=proj_params,
+                                                       vmin=vmin, vmax=vmax)
 
                 if vertical and 'plev' in biases_dataset.data.get(var, {}).dims:
                     logger.debug(f"Plotting vertical bias for variable: {var}")

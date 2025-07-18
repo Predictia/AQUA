@@ -52,7 +52,9 @@ diagnostics:
         short_name: "cre_toa_net"
         long_name: "Net cloud radiative effect at TOA (All Sky - Clear Sky)"
     plot_params: 
-      default:  {}
+      default: 
+        projection: 'robinson'
+        projection_params: {}
       tnlwrf:
         vmin: -30
         vmax: 30

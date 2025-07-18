@@ -45,7 +45,9 @@ diagnostics:
         units: "mm/day"
 
     plot_params:
-      default:  {}
+      default: 
+        projection: 'robinson'
+        projection_params: {}
       2t:
         vmin: -15
         vmax: 15

@@ -77,7 +77,7 @@ class PlotGlobalBiases:
             raise ValueError(f'Format {format} not supported. Use png or pdf.')
 
 
-    def plot_climatology(self, data, var, plev=None, proj='robinson', proj_kwargs={}, vmin=None, vmax=None, cbar_label=None):
+    def plot_climatology(self, data, var, plev=None, proj='robinson', proj_params={}, vmin=None, vmax=None, cbar_label=None):
         """
         Plots the climatology map for a given variable and time range.
 
@@ -86,7 +86,7 @@ class PlotGlobalBiases:
             var (str): Variable name.
             plev (float, optional): Pressure level to plot (if applicable).
             proj (string, optional): Desired projection for the map.
-            proj_kwargs (dict, optional): Additional arguments for the projection (e.g., {'central_longitude': 0}).
+            proj_params (dict, optional): Additional arguments for the projection (e.g., {'central_longitude': 0}).
             vmin (float, optional): Minimum color scale value.
             vmax (float, optional): Maximum color scale value.
             cbar_label (str, optional): Label for the colorbar.
@@ -100,7 +100,7 @@ class PlotGlobalBiases:
         if data is None:
             return None
 
-        proj = get_projection(proj, **proj_kwargs)
+        proj = get_projection(proj, **proj_params)
         
         title = (f"Climatology of {data[var].attrs.get('long_name', var)} for {data.model} {data.exp}" 
                 + (f" at {int(plev / 100)} hPa" if plev else ""))
@@ -133,7 +133,7 @@ class PlotGlobalBiases:
                               description=description, var=var, plev=plev)
 
 
-    def plot_bias(self, data, data_ref, var, plev=None, proj='robinson', proj_kwargs={}, vmin=None, vmax=None, cbar_label=None):
+    def plot_bias(self, data, data_ref, var, plev=None, proj='robinson', proj_params={}, vmin=None, vmax=None, cbar_label=None):
         """
         Plots the bias map between two datasets.
 
@@ -143,7 +143,7 @@ class PlotGlobalBiases:
             var (str): Variable name.
             plev (float, optional): Pressure level.
             proj (str, optional): Desired projection for the map.
-            proj_kwargs (dict, optional): Additional arguments for the projection.
+            proj_params (dict, optional): Additional arguments for the projection.
             vmin (float, optional): Minimum colorbar value.
             vmax (float, optional): Maximum colorbar value.
             cbar_label (str, optional): Label for the colorbar.
@@ -155,7 +155,7 @@ class PlotGlobalBiases:
 
         sym = vmin is None or vmax is None
 
-        proj = get_projection(proj, **proj_kwargs)
+        proj = get_projection(proj, **proj_params)
 
         title = (f"Global bias of {data[var].attrs.get('long_name', var)} for {data.model} {data.exp}\n"
                  f"relative to {data_ref.model} climatology"
@@ -192,7 +192,7 @@ class PlotGlobalBiases:
                               description=description, var=var, plev=plev)
 
 
-    def plot_seasonal_bias(self, data, data_ref, var, plev=None, proj='robinson', proj_kwargs={}, vmin=None, vmax=None, cbar_label=None):
+    def plot_seasonal_bias(self, data, data_ref, var, plev=None, proj='robinson', proj_params={}, vmin=None, vmax=None, cbar_label=None):
         """
         Plots seasonal biases for each season (DJF, MAM, JJA, SON).
 
@@ -202,7 +202,7 @@ class PlotGlobalBiases:
             var (str): Variable name.
             plev (float, optional): Pressure level.
             proj (str, optional): Desired projection for the map.
-            proj_kwargs (dict, optional): Additional arguments for the projection.
+            proj_params (dict, optional): Additional arguments for the projection.
             vmin (float, optional): Minimum colorbar value.
             vmax (float, optional): Maximum colorbar value.
             cbar_label (str, optional): Label for the colorbar.
@@ -220,7 +220,7 @@ class PlotGlobalBiases:
 
         plot_kwargs = {
             'maps': [data[var].sel(season=season) - data_ref[var].sel(season=season) for season in season_list],
-            'proj': get_projection(proj, **proj_kwargs),
+            'proj': get_projection(proj, **proj_params),
             'return_fig': True,
             'titles': season_list,
             'contour': True,
