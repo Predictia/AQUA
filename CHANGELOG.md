@@ -11,7 +11,7 @@ Removed:
 -  removed Reader.info() method (#2076)
 
 Workflow modifications:
-- Add possibility to change the 'default' realization in Catalog Generator config file (#2058)
+- Add possibility to change the 'default' realization in Catalog Generator config file (#2058) 
 
 AQUA core complete list:
 - `aqua add <catalog>` option in the AQUA console can use GITHUB_TOKEN and GITHUB_USER environment variables to authenticate with GitHub API (#2081)
