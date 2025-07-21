@@ -7,10 +7,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 Unreleased in the current development version (target v0.17.0): 
 
+Removed:
+-  removed Reader.info() method (#2076)
+
 Workflow modifications:
 - Add possibility to change the 'default' realization in Catalog Generator config file (#2058)
 
 AQUA core complete list:
+- `aqua add <catalog>` option in the AQUA console can use GITHUB_TOKEN and GITHUB_USER environment variables to authenticate with GitHub API (#2081)
+- Added a `aqua update -c all` option in the AQUA console to update all the catalogs intalled from the Climate-DT repository (#2081)
+- `Reader` can filter kwargs so that a parameter not available in the intake source is removed and not passed to the intake driver (#2074)
+- Adapt catgen to changes in data-portfolio v1.3.2 (#2076)
+- Add `get_projection()` utility function for selection of Cartopy map projections (#2068)
+- `aqua-analysis.py` now supports a `--realization` option to enable the analysis of a specific realization (#2041)
+- Separate new histogram function in the framework (#2061)
+- Introducing `timsum()` method to compute cumulative sum (#2059)
+- `EvaluateFormula` class to replace the `eval_formula` function with extra provenance features (#2042)
+- Solve fixer issue leading to wrong target variable names (#2057)
 - Upgrade to `smmregrid=0.1.2`, which fixes coastal erosion in conservative regridding (#1963)
 - Refactor LRA of output and catalog entry creatro with `OutputPathBuilder` and `CatalogEntryBuilder` classes (#1932)
 - LRA cli support realization, stat and frequency (#1932)
@@ -21,12 +34,17 @@ AQUA core complete list:
 - `Trender()` class provide also coefficients and normalize them (#1991)
 
 AQUA diagnostics complete list:
+- ECmean: diagnostics refactored to use `OutputSaver` and new common configuration file (#2012)
+- ECmean: dependency to 0.1.15 (#2012)
+- Timeseries, Global Biases, Teleconnections, Ecmean: `--realization` option to select a specific realization in the CLI (#2041)
+- Global Biases: add try-except block in cli (#2069)
+- Global Biases: handling of formulae and Cloud Radiative Forcing Computation (#2031)
 - Global Biases: pressure levels plot works correctly with the CLI (#2027)
 - Timeseries: `diagnostic_name` option to override the default name in the CLI (#2027)
 - Global Biases: output directory is now correctly set in the cli (#2027)
 - Timeseries: `center_time` option to center the time axis is exposed in the CLI (#2028)
 - Timeseries: fix the missing variable name in some netcdf output (#2023)
-- Diagnostic core: new `_select_region` method in `Diagnostic`, wrapped by `select_region` to select a region also on custom datasets (#2020)
+- Diagnostic core: new `_select_region` method in `Diagnostic`, wrapped by `select_region` to select a region also on custom datasets (#2020, #2032)
 
 ## [v0.16.0]
 
