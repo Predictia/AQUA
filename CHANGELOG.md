@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 Unreleased in the current development version (target v0.17.0): 
 
+Workflow modifications:
+- Add possibility to change the 'default' realization in Catalog Generator config file (#2058)
+
 AQUA core complete list:
 - Upgrade to `smmregrid=0.1.2`, which fixes coastal erosion in conservative regridding (#1963)
 - Refactor LRA of output and catalog entry creatro with `OutputPathBuilder` and `CatalogEntryBuilder` classes (#1932)
