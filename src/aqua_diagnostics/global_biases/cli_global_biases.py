@@ -160,7 +160,7 @@ if __name__ == '__main__':
 
                 if vertical and 'plev' in biases_dataset.data.get(var, {}).dims:
                     logger.debug(f"Plotting vertical bias for variable: {var}")
-                    vmin, vmax = plot_params.get('vmin_v'), plot_params.get('vmax_v')
+                    vmin_v , vmax_v = plot_params.get('vmin_v'), plot_params.get('vmax_v')
                     plot_biases.plot_vertical_bias(data=biases_dataset.climatology, data_ref=biases_reference.climatology, 
                                                    var=var, vmin=vmin_v, vmax=vmax_v)
 
