@@ -28,7 +28,7 @@ diagnostics:
   globalbiases:
     run: true
     diagnostic_name: 'global_biases'
-    variables: ['2t']
+    variables: ['tprate', '2t', 'msl', 'tnlwrf', 't', 'u', 'v', 'q', 'tos']
     params:
       default:
         plev: [85000, 20000] # Level plot for 2D bias map if variable 3d
