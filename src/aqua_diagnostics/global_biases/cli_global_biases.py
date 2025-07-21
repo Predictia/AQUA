@@ -108,7 +108,9 @@ if __name__ == '__main__':
                 logger.info(f"Running Global Biases diagnostic for {'formula' if is_formula else 'variable'}: {var}")
 
                 all_plot_params = config_dict['diagnostics']['globalbiases'].get('plot_params', {})
-                plot_params = all_plot_params.get(var) or all_plot_params.get('default', {})
+                default_params = all_plot_params.get('default', {})
+                var_params = all_plot_params.get(var, {})
+                plot_params = {**default_params, **var_params}
 
                 vmin, vmax = plot_params.get('vmin'), plot_params.get('vmax')
                 param_dict = config_dict['diagnostics']['globalbiases'].get('params', {}).get(var, {})
@@ -142,6 +144,7 @@ if __name__ == '__main__':
 
                     proj = plot_params.get('projection', 'robinson')
                     proj_params = plot_params.get('projection_params', {})
+
                     logger.debug(f"Using projection: {proj} for variable: {var}")
                     plot_biases = PlotGlobalBiases(save_pdf=save_pdf, save_png=save_png, dpi=dpi, outputdir=outputdir, loglevel=loglevel)
                     plot_biases.plot_bias(data=biases_dataset.climatology, data_ref=biases_reference.climatology,
