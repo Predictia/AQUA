@@ -55,6 +55,7 @@ FDB Request definitions (to be filled by the user/workflow):
 - ``generation``: the generation to use. Default is ``1``
 - ``expver: 0001``:  Default is ``0001``
 - ``num_of_realizations``: number of realizations in case of ensembles. Default is ``1``.
+- ``default_realization``: in case of ensembles, the first realization to be loaded by default. Default is ``1``.
 
 Info on the experiment:
 
