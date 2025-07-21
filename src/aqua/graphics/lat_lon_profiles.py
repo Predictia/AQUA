@@ -10,7 +10,6 @@ def plot_lat_lon_profiles(data: xr.DataArray = None,
                           ref_data: xr.DataArray = None,
                           data_labels: list = None,
                           ref_label: str = None,
-                          data_type: str = 'auto',
                           style: str = None,
                           fig: plt.Figure = None, 
                           ax: plt.Axes = None,
@@ -24,7 +23,6 @@ def plot_lat_lon_profiles(data: xr.DataArray = None,
         ref_data (xr.DataArray, optional): Reference data to plot.
         data_labels (list, optional): Labels for the data.
         ref_label (str, optional): Label for the reference data.
-        data_type (str, optional): Type of data for styling ('monthly', 'annual', or 'auto').
         style (str, optional): Style for the plot.
         fig (plt.Figure, optional): Matplotlib figure object.
         ax (plt.Axes, optional): Matplotlib axes object.
