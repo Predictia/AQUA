@@ -242,14 +242,14 @@ class LatLonProfiles(Diagnostic):
                 
                 self.direct_profile = direct_data
         def save_netcdf(self, diagnostic: str, freq: str,
-                        outputdir: str = './', rebuild: bool = True):
+                        outdir: str = './', rebuild: bool = True):
                 """
                 Save the data to a netcdf file.
 
                 Args:
                 diagnostic (str): The diagnostic to be saved.
                 freq (str): The frequency of the data ('seasonal' or 'annual').
-                outputdir (str): The directory to save the data.
+                outdir (str): The directory to save the data.
                 rebuild (bool): If True, rebuild the data from the original files.
                 """
                 str_freq = self._str_freq(freq)
@@ -278,19 +278,19 @@ class LatLonProfiles(Diagnostic):
                                 region = self.region.replace(' ', '').lower() if self.region is not None else None
                                 diagnostic_product += f'.{region}' if region is not None else ''
                                 
-                                self.logger.info('Saving %s data for %s to netcdf in %s', seasons[i], diagnostic_product, outputdir)
+                                self.logger.info('Saving %s data for %s to netcdf in %s', seasons[i], diagnostic_product, outdir)
                                 super().save_netcdf(data=season_data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                                                default_path=outputdir, rebuild=rebuild)
+                                                outdir=outdir, rebuild=rebuild)
                 else:
                         # Handle annual data
                         diagnostic_product = getattr(data, 'standard_name', 'unknown')
                         diagnostic_product += f'.{str_freq}'
                         region = self.region.replace(' ', '').lower() if self.region is not None else None
                         diagnostic_product += f'.{region}' if region is not None else ''
-                        
-                        self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
+                        outdir
+                        self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outdir)
                         super().save_netcdf(data=data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                                        default_path=outputdir, rebuild=rebuild)
+                                        outdir=outdir, rebuild=rebuild)
 
                 # Save std data if available
                 if data_std is not None:
@@ -304,14 +304,14 @@ class LatLonProfiles(Diagnostic):
                                                 region = self.region.replace(' ', '').lower() if self.region is not None else None
                                                 diagnostic_product += f'.{region}' if region is not None else ''
                                                 super().save_netcdf(data=std_data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                                                                default_path=outputdir, rebuild=rebuild)
+                                                                outdir=outdir, rebuild=rebuild)
                         else:
                                 diagnostic_product = getattr(data_std, 'standard_name', 'unknown')
                                 diagnostic_product += f'.{str_freq}.std'
                                 region = self.region.replace(' ', '').lower() if self.region is not None else None
                                 diagnostic_product += f'.{region}' if region is not None else ''
                                 super().save_netcdf(data=data_std, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                                                default_path=outputdir, rebuild=rebuild)
+                                                outdir=outdir, rebuild=rebuild)
 
         def _check_data(self, var: str, units: str):
                 """
@@ -411,7 +411,7 @@ class LatLonProfiles(Diagnostic):
                 units: str = None, standard_name: str = None, std: bool = False,
                 freq: list = ['seasonal', 'annual'], extend: bool = True,
                 exclude_incomplete: bool = True, center_time: bool = True,
-                box_brd: bool = True, outputdir: str = './', rebuild: bool = True,
+                box_brd: bool = True, outdir: str = './', rebuild: bool = True,
                 mean_type: str = None, timestep: str = None):
                 """
                 Run all the steps necessary for the computation of the LatLonProfiles.
@@ -428,7 +428,7 @@ class LatLonProfiles(Diagnostic):
                         exclude_incomplete (bool): Whether to exclude incomplete time periods.
                         center_time (bool): Whether to center the time coordinate.
                         box_brd (bool): Whether to include the box boundaries.
-                        outputdir (str): The output directory for saving files.
+                        outdir (str): The output directory to save the results.
                         rebuild (bool): Whether to rebuild existing files.
                         mean_type (str): The type of mean to compute ('zonal', 'meridional', 'global').
                         timestep (str): Specific timestep to compute (e.g., '1995-07', '1995-07-15').
@@ -469,6 +469,6 @@ class LatLonProfiles(Diagnostic):
                         
                         self.logger.info(f'Saving {f} netcdf file')
                         self.save_netcdf(diagnostic='lat_lon_profiles', freq=f, 
-                                        outputdir=outputdir, rebuild=rebuild)
+                                        outdir=outdir, rebuild=rebuild)
                 
                 self.logger.info('LatLonProfiles computation completed')
