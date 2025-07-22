@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.17.0): 
 
 Removed:
--  removed Reader.info() method (#2076)
+-  removed Reader.info() method (#2076) 
 
 AQUA core complete list:
 - `aqua add <catalog>` option in the AQUA console can use GITHUB_TOKEN and GITHUB_USER environment variables to authenticate with GitHub API (#2081)
@@ -32,6 +32,7 @@ AQUA core complete list:
 
 AQUA diagnostics complete list:
 - Ocean Trends: Trends class to create trend data along with zonal trend, notebook and tests added. (#1990)
+- Global Biases: allow GlobalBias to take projection as argument (#2036)
 - ECmean: diagnostics refactored to use `OutputSaver` and new common configuration file (#2012)
 - ECmean: dependency to 0.1.15 (#2012)
 - Timeseries, Global Biases, Teleconnections, Ecmean: `--realization` option to select a specific realization in the CLI (#2041)
