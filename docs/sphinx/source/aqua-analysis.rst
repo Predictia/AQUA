@@ -56,6 +56,11 @@ so that the script can be used in a batch job or in a workflow. These override c
     The target grid to use for regridding the data.
     If not specified, the default is ``null``, which means no regridding will be applied.
 
+.. option:: --realization <realization>
+
+    The realization to use. If not specified or set to ``None``,
+    no realization argument will be passed to the diagnostics.
+
 .. option:: -d <dir>, --outputdir <dir>
 
     The output directory to use. 
@@ -98,6 +103,11 @@ The configuration file is divided in three main sections:
 - ``job``: contains the technical details of the analysis.
 - ``cluster``: contains the details of the dask cluster to use.
 - ``diagnostics``: contains the list of diagnostics to run.
+
+.. note::
+
+    The configuration file allows for the definition of a custom folder path where the individual diagnostics configuration files are stored.
+    This is done by setting an environment variable ``AQUA_CONFIG``.
 
 Job
 ^^^

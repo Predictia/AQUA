@@ -165,6 +165,11 @@ class TestAquaConsole():
             run_aqua(['-v', 'add', 'antani'])
             assert excinfo.value.code == 1
 
+        # add from wrongly formatted repository
+        with pytest.raises(SystemExit) as excinfo:
+            run_aqua(['-v', 'add', 'pippo', '--repository', 'thisisnotauserandrepo'])
+            assert excinfo.value.code == 1
+
         # add existing folder which is not a catalog
         with pytest.raises(SystemExit) as excinfo:
             run_aqua(['add', 'config/fixes'])
@@ -231,7 +236,7 @@ class TestAquaConsole():
 
         # aqua install
         run_aqua(['install', machine])
-        run_aqua(['add', 'ci'])
+        run_aqua(['add', 'ci', '--repository', 'DestinE-Climate-DT/Climate-DT-catalog'])
 
         # create fake config file
         lratest = os.path.join(mydir, 'faketrip.yaml')
@@ -261,14 +266,14 @@ class TestAquaConsole():
         # run the LRA and verify that at least one file exist
         run_aqua(['lra', '--config', lratest, '-w', '1', '-d', '--rebuild'])
         path = os.path.join(os.path.join(mydir, 'lra_test'),
-                            "ci/IFS/test-tco79/r200/monthly/2t_test-tco79_r200_monthly_mean_202002.nc")
-        assert os.path.isfile(path)
+                            "ci/IFS/test-tco79/r1/r200/monthly/mean/global/2t_ci_IFS_test-tco79_r1_r200_monthly_mean_global_202002.nc")
+        assert os.path.isfile(path), f"File not found: {path}"
 
         # run the LRA with a different stat and verify that at least one file exist
         run_aqua(['lra', '--config', lratest, '-w', '1', '-d', '--rebuild', '--stat', 'min'])
         path = os.path.join(os.path.join(mydir, 'lra_test'),
-                            "ci/IFS/test-tco79/r200/monthly/2t_test-tco79_r200_monthly_min_202002.nc")
-        assert os.path.isfile(path)
+                            "ci/IFS/test-tco79/r1/r200/monthly/min/global/2t_ci_IFS_test-tco79_r1_r200_monthly_min_global_202002.nc")
+        assert os.path.isfile(path), f"File not found: {path}"
         
         # remove aqua
         run_aqua_console_with_input(['uninstall'], 'yes')
@@ -301,6 +306,11 @@ class TestAquaConsole():
         # add catalog with editable option
         run_aqua(['-v', 'add', 'ci', '-e', 'AQUA_tests/catalog_copy'])
         assert os.path.isdir(os.path.join(mydir, '.aqua/catalogs/ci'))
+
+        # update a catalog installed in editable mode
+        with pytest.raises(SystemExit) as excinfo:
+            run_aqua(['-v', 'update', '-c', 'ci'])
+            assert excinfo.value.code == 1
 
         # add catalog again and error
         with pytest.raises(SystemExit) as excinfo:
@@ -489,11 +499,16 @@ class TestAquaConsole():
         assert 'IFS.yaml' in out
         assert 'HealPix.yaml' in out
 
-        run_aqua(['avail'])
+        run_aqua(['avail', '--repository', 'DestinE-Climate-DT/Climate-DT-catalog'])
         out, _ = capfd.readouterr()
 
         assert 'climatedt-phase1' in out
         assert 'lumi-phase1' in out
+
+        run_aqua(['-v', 'update', '-c', 'all'])
+
+        out, _ = capfd.readouterr()
+        assert '.aqua/catalogs/ci ..' in out
 
         # uninstall everything again
         run_aqua_console_with_input(['uninstall'], 'yes')

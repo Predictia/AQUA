@@ -135,8 +135,14 @@ This structure ensures that all configuration files are neatly organized and eas
 aqua avail
 ----------
 
-This simple command will print all the available catalogs on the `Climate-DT-catalog <https://github.com/DestinE-Climate-DT/Climate-DT-catalog>`_.
-You don't need to have access to the repository to see the available catalogs.
+This simple command will print all the available catalogs on a repository.
+By default this will be the `Climate-DT-catalog <https://github.com/DestinE-Climate-DT/Climate-DT-catalog>`_.
+
+.. option:: -r, --repository <user/repo>
+
+    It is possible to specify a different repository to explore.
+    The format is ``user/repo``. For example, ``DestinE-Climate-DT/Climate-DT-catalog``.
+    If this option is not specified, the default repository will be used.
 
 .. _aqua-add:
 
@@ -154,8 +160,8 @@ and it is possible to install extra catalogs not present in the AQUA release.
 
 Multiple catalogs can be installed with multiple calls to ``aqua add``.
 By default the catalog will be downloaded from the external Climate-DT catalog repository,
-if a matching catalog is found. As shown below, it is possible to specify a local path
-and install the catalog from there.
+if a matching catalog is found. It is possible to specify a different repository.
+As shown below, it is also possible to specify a local path and install the catalog from there.
 
 .. option:: catalog
 
@@ -169,9 +175,17 @@ and install the catalog from there.
     It will create a symbolic link to the catalog folder.
     This is very recommended for developers. Please read the :ref:`dev-notes` section.
 
-.. note::
+.. option:: --repository, -r <user/repo>
 
-    With the editable mode it is possible to install a catalog not present in the Climate-DT repository.
+    It is possible to specify a different repository to explore.
+    The format is ``user/repo``. For example, ``DestinE-Climate-DT/Climate-DT-catalog``.
+    If this option is not specified, the default repository will be used.
+
+.. warning::
+    Adding a catalog not in editable mode makes use of GitHub API.
+    These are limited to 60 requests per hour for unauthenticated users and it may easily hit the limit.
+    If you encounter this issue, you can generate a personal access token and set it as an environment variable
+    ``GITHUB_TOKEN``, together with a ``GITHUB_USER`` variable with your GitHub username.
 
 .. _aqua-remove:
 
@@ -239,6 +253,7 @@ It is very useful if you pull a new version of AQUA and want to update your loca
     This command will check if there is a new version of the catalog available and update it by overwriting the current installation.
     This will work only for catalogs installed from the Climate-DT repository.
     If the catalog is installed in editable mode, this command will not work.
+    It is possible to specify 'all' as catalog name to update all the catalogs installed not in editable mode.
 
 
 .. _aqua-fixes:
