@@ -50,6 +50,9 @@ class AquaFDBGenerator:
         self.author = self.config.get('author')
         if not self.author: 
             raise ValueError("Please specify the author of the experiment")
+        self.machine = self.config.get('machine')
+        if not self.machine:
+            raise ValueError("Please specify the machine you are using")
         self.dp_dir_path = self.config["repos"]["data-portfolio_path"]
         self.catalog_dir_path = self.config["repos"]["Climate-DT-catalog_path"]
         self.model = self.config["model"].lower()
@@ -324,7 +327,7 @@ class AquaFDBGenerator:
             'metadata': {
                 'author': self.author,
                 'maintainer': self.config.get('maintainer') or 'not specified',
-                'machine': self.config['machine'],
+                'machine': self.machine,
                 'expid': self.config['expver'],
                 'resolution_atm': self.atm_grid,
                 'resolution_oce': self.ocean_grid,
