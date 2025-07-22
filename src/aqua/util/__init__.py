@@ -7,6 +7,8 @@ from .graphics import add_cyclic_lon, plot_box, minmax_maps
 from .graphics import evaluate_colorbar_limits, cbar_get_label, set_map_title
 from .graphics import coord_names, ticks_round, set_ticks
 from .graphics import get_nside, get_npix, healpix_resample
+from .projections import get_projection
+from .realizations import format_realization
 from .sci_util import area_selection, check_coordinates, select_season
 from .util import generate_random_string, get_arg, create_folder, to_list
 from .util import file_is_complete, find_vert_coord
@@ -31,6 +33,8 @@ __all__ = ['ConfigPath',
            'file_is_complete', 'find_vert_coord',
            'extract_literal_and_numeric', 'add_pdf_metadata', 'add_png_metadata',
            'get_nside', 'get_npix', 'healpix_resample',
+           'get_projection',
+           'format_realization',
            'open_image', 'username', 'update_metadata',
            'load_yaml', 'dump_yaml', 'load_multi_yaml',
            'check_chunk_completeness', 'frequency_string_to_pandas',
