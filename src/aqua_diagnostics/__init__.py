@@ -13,4 +13,4 @@ __all__ = ["NAO", "ENSO", "MJO",
            "GlobalBiases", "PlotGlobalBiases",
            "Radiation",
            "EnsembleTimeseries", "EnsembleLatLon", "EnsembleZonal",
-           "GlobalMean", "PerformanceIndices", "SeaIce", "PlotSeaIce"]
+           "GlobalMean", "PerformanceIndices", "SeaIce", "PlotSeaIce", "Plot2DSeaIce"]

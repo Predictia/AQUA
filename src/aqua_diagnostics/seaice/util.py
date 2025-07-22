@@ -108,3 +108,17 @@ def merge_attrs(target, source, overwrite=False):
     for k, v in source.items():
         if overwrite or k not in target:
             target[k] = v
+
+def check_list_regions_type(regions_to_plot, logger=None):
+    """Ensures regions_to_plot is a list of strings before assigning it."""
+    if regions_to_plot is None:
+        logger.warning("Expected regions_to_plot to be a list, but got None. Plotting all available regions in data.")
+        return None
+
+    if not isinstance(regions_to_plot, list):
+        raise TypeError(  f"Expected regions_to_plot to be a list, but got {type(regions_to_plot).__name__}.")
+    
+    if not all(isinstance(region, str) for region in regions_to_plot):
+        invalid_types = [type(region).__name__ for region in regions_to_plot]
+        raise TypeError(  f"Expected a list of strings, but found element types: {invalid_types}.")
+    return regions_to_plot

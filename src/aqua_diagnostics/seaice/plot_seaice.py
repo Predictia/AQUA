@@ -9,7 +9,7 @@ from aqua.logger import log_configure, log_history
 from aqua.util import ConfigPath, OutputSaver
 from aqua.graphics import plot_timeseries, plot_seasonalcycle
 from collections import defaultdict
-from .util import defaultdict_to_dict, extract_dates
+from .util import defaultdict_to_dict, extract_dates, check_list_regions_type
 
 xr.set_options(keep_attrs=True)
 
@@ -76,7 +76,7 @@ class PlotSeaIce:
         self.source = source
         self.catalog = catalog
 
-        self.regions_to_plot = self._check_list_regions_type(regions_to_plot)
+        self.regions_to_plot = check_list_regions_type(regions_to_plot, logger=self.logger)
 
         # define and check data types
         self.repacked_dict = self.repack_datasetlists(monthly_models=monthly_models, 
@@ -89,22 +89,6 @@ class PlotSeaIce:
         self.outdir  = outdir
         self.rebuild = rebuild
         self.dpi = dpi
-
-    def _check_list_regions_type(self, regions_to_plot):
-        """Ensures regions_to_plot is a list of strings before assigning it."""
-        if regions_to_plot is None:
-            self.logger.warning("Expected regions_to_plot to be a list, but got None. Plotting all available regions in data.")
-            return None
-
-        if not isinstance(regions_to_plot, list):
-            self.logger.error(f"Expected regions_to_plot to be a list, but got {type(regions_to_plot).__name__}.")
-            raise TypeError(  f"Expected regions_to_plot to be a list, but got {type(regions_to_plot).__name__}.")
-        
-        if not all(isinstance(region, str) for region in regions_to_plot):
-            invalid_types = [type(region).__name__ for region in regions_to_plot]
-            self.logger.error(f"Expected a list of strings, but found element types: {invalid_types}.")
-            raise TypeError(  f"Expected a list of strings, but found element types: {invalid_types}.")
-        return regions_to_plot
     
     def _check_as_datasets_list(self, datain) -> list[xr.Dataset] | None :
         """ Check that the input (`datain`) is either:
