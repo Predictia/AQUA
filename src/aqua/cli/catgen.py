@@ -61,8 +61,8 @@ class AquaFDBGenerator:
 
         # portfolio
         self.logger.info("Running FDB catalog generator for %s portfolio for model %s", data_portfolio, self.model)
-        self.dp = load_yaml(os.path.join(self.dp_dir_path, data_portfolio, 'portfolio.yaml'))
-        self.grids = load_yaml(os.path.join(self.dp_dir_path, data_portfolio, 'grids.yaml'))
+        self.dp = load_yaml(os.path.join(self.dp_dir_path, 'portfolios', data_portfolio, 'portfolio.yaml'))
+        self.grids = load_yaml(os.path.join(self.dp_dir_path, 'portfolios', data_portfolio, 'grids.yaml'))
         self.levels = load_yaml(os.path.join(self.dp_dir_path, 'definitions', 'levels.yaml'))
 
         self.local_grids = self.get_local_grids(self.resolution, self.grids)
