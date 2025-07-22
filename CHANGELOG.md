@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.17.0): 
 
 Removed:
--  removed Reader.info() method (#2076)
+-  removed Reader.info() method (#2076) 
 
 Workflow modifications:
 - Add possibility to change the 'default' realization in Catalog Generator config file (#2058)
