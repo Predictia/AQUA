@@ -11,6 +11,7 @@ Removed:
 -  removed Reader.info() method (#2076) 
 
 AQUA core complete list:
+- Support for data-portfolio v2.0.0: updated catalog generator, pinned gsv to v2.12.0. Machine now required in config. (#2092)
 - `aqua add <catalog>` option in the AQUA console can use GITHUB_TOKEN and GITHUB_USER environment variables to authenticate with GitHub API (#2081)
 - Added a `aqua update -c all` option in the AQUA console to update all the catalogs intalled from the Climate-DT repository (#2081)
 - `Reader` can filter kwargs so that a parameter not available in the intake source is removed and not passed to the intake driver (#2074)
