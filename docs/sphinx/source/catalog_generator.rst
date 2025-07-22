@@ -40,7 +40,7 @@ The configuration file ``config.tmpl`` contains the following keys:
 
 - ``author``: the author of the experiment. This field is mandatory.
 - ``maintainer``: the maintainer of the experiment. 
-- ``machine``: the machine where the experiment is running. Default is ``lumi``.
+- ``machine``: the machine where the experiment is running (default is ``lumi``). This field is mandatory.
 - ``repos``: the paths to the data-portfolio and Climate-DT-catalog repositories.
 - ``resolution``: the resolution of the experiment, which can be ``production``, ``develop``, ``lowres`` (if production portfolio), or ``intermediate`` (if reduced portfolio).
 - ``catalog_dir``: the folder in the Climate-DT-catalog where the catalog entry will be stored.
