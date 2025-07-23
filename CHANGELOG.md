@@ -16,7 +16,7 @@ AQUA core complete list:
 - `Reader` can filter kwargs so that a parameter not available in the intake source is removed and not passed to the intake driver (#2074)
 - Adapt catgen to changes in data-portfolio v1.3.2 (#2076)
 - Add `get_projection()` utility function for selection of Cartopy map projections (#2068)
-- `aqua-analysis.py` now supports a `--realization` option to enable the analysis of a specific realization (#2041)
+- `aqua-analysis.py` now supports a `--realization` option to enable the analysis of a specific realization (#2041, #2090)
 - Separate new histogram function in the framework (#2061)
 - Introducing `timsum()` method to compute cumulative sum (#2059)
 - `EvaluateFormula` class to replace the `eval_formula` function with extra provenance features (#2042)
@@ -31,6 +31,7 @@ AQUA core complete list:
 - `Trender()` class provide also coefficients and normalize them (#1991)
 
 AQUA diagnostics complete list:
+- Ocean Trends: Trends class to create trend data along with zonal trend, notebook and tests added. (#1990)
 - Global Biases: allow GlobalBias to take projection as argument (#2036)
 - ECmean: diagnostics refactored to use `OutputSaver` and new common configuration file (#2012)
 - ECmean: dependency to 0.1.15 (#2012)
