@@ -11,10 +11,8 @@ def format_realization(realization: int | str = None) -> str:
     Returns:
         str: the realization formatted to be used in folder or filename creation.
     """
-    if realization is None or realization == "":
+    if not realization:
         return "r1"
-    if isinstance(realization, int):
-        return f"r{realization}"
-    if isinstance(realization, str) and realization.isdigit():
+    if isinstance(realization, int) or (isinstance(realization, str) and realization.isdigit()):
         return f"r{realization}"
     return realization
