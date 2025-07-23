@@ -109,7 +109,7 @@ def merge_attrs(target, source, overwrite=False):
         if overwrite or k not in target:
             target[k] = v
 
-def check_list_regions_type(regions_to_plot, logger=None):
+def _check_list_regions_type(regions_to_plot, logger=None):
     """Ensures regions_to_plot is a list of strings before assigning it."""
     if regions_to_plot is None:
         logger.warning("Expected regions_to_plot to be a list, but got None. Plotting all available regions in data.")

@@ -9,7 +9,7 @@ from aqua.logger import log_configure, log_history
 from aqua.util import ConfigPath, OutputSaver
 from aqua.graphics import plot_timeseries, plot_seasonalcycle
 from collections import defaultdict
-from .util import defaultdict_to_dict, extract_dates, check_list_regions_type
+from .util import defaultdict_to_dict, extract_dates, _check_list_regions_type
 
 xr.set_options(keep_attrs=True)
 
@@ -76,7 +76,7 @@ class PlotSeaIce:
         self.source = source
         self.catalog = catalog
 
-        self.regions_to_plot = check_list_regions_type(regions_to_plot, logger=self.logger)
+        self.regions_to_plot = _check_list_regions_type(regions_to_plot, logger=self.logger)
 
         # define and check data types
         self.repacked_dict = self.repack_datasetlists(monthly_models=monthly_models, 
@@ -336,11 +336,8 @@ class PlotSeaIce:
 
         fig_height = 6 if self.plot_type == 'seasonal_cycle' else 10
 
-        # create a figure and an array of axes for each region
         fig, axes = plt.subplots(nrows=self.num_regions, ncols=1, 
                                  figsize=(fig_height, 4 * self.num_regions), squeeze=False)
-
-        # flatten the axes array for easier iteration when there's only one column
         axes = axes.flatten()
 
         self.logger.debug("Start looping over sea ice regions")
