@@ -31,6 +31,7 @@ AQUA core complete list:
 - `Trender()` class provide also coefficients and normalize them (#1991)
 
 AQUA diagnostics complete list:
+- Ocean Trends: Trends class to create trend data along with zonal trend, notebook and tests added. (#1990)
 - Global Biases: allow GlobalBias to take projection as argument (#2036)
 - ECmean: diagnostics refactored to use `OutputSaver` and new common configuration file (#2012)
 - ECmean: dependency to 0.1.15 (#2012)
