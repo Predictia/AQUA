@@ -183,7 +183,6 @@ def plot_single_map(data: xr.DataArray,
 
         cbar = fig.colorbar(cs, cax=cbar_ax, orientation='horizontal', label=cbar_label)
 
-        # Make tick of colorbar symmetric if sym=True
         cbar_ticks_rounding = kwargs.get('cbar_ticks_rounding', None)
         cbar_ticks = generate_colorbar_ticks(vmin=vmin,
                                              vmax=vmax, 
