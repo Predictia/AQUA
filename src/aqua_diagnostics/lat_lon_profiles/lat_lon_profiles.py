@@ -154,9 +154,10 @@ class LatLonProfiles(Diagnostic):
                 # Return the computed profile for easy variable assignment
                 return self.direct_profile
         
+        """
         def compute_std(self, freq: str, exclude_incomplete: bool = True, center_time: bool = True,
                         box_brd: bool = True):
-                """
+                """"""
                 Compute the standard deviation of the data. Support for seasonal and annual frequencies.
 
                 Args:
@@ -165,7 +166,7 @@ class LatLonProfiles(Diagnostic):
                 center_time (bool): If True, the time will be centered.
                 box_brd (bool,opt): choose if coordinates are comprised or not in area selection.
                                         Default is True
-                """
+                """"""
                 if freq is None:
                         self.logger.error('Frequency not provided')
                         raise ValueError('Frequency not provided')
@@ -198,7 +199,7 @@ class LatLonProfiles(Diagnostic):
                         annual_std.attrs['std_startdate'] = time_to_string(self.std_startdate)
                         annual_std.attrs['std_enddate'] = time_to_string(self.std_enddate)
                         self.std_annual = annual_std
-        
+        """
         def _compute_direct_profile(self, timestep: str, box_brd: bool = True):
                 """
                 Compute direct profile for a specific timestep.
