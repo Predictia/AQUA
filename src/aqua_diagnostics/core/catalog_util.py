@@ -42,12 +42,15 @@ class Catalog_util:
         catalogfile = os.path.join(self.configdir, 'catalogs', self.catalog, 'catalog', self.model, self.exp + '.yaml')
         cat_file = load_yaml(catalogfile)
 
-        frequency = extra_keys['freq'] if 'freq' in extra_keys else None
+        #frequency = extra_keys['freq'] if 'freq' in extra_keys else None
         # if extra key has mon/ann then use frequency
-        if frequency is not None:
-            entry_name = f'aqua-{self.diagnostic_name}-{self.diagnostic_product}-{frequency}'
-        else:
-            entry_name = f'aqua-{self.diagnostic_name}-{self.diagnostic_product}'
+        #if frequency is not None:
+        #    entry_name = f'aqua-{self.diagnostic_name}-{self.diagnostic_product}-{frequency}'
+        #else:
+        #    entry_name = f'aqua-{self.diagnostic_name}-{self.diagnostic_product}'
+
+        #entry_name = f'aqua-{self.diagnostic_name}-{self.diagnostic_product}'
+        entry_name = f'aqua-{self.diagnostic_name}'
 
         self.logger.info('Creating catalog entry %s %s %s', self.model, self.exp, entry_name)
         # source_grid_name 
@@ -130,14 +133,21 @@ class Catalog_util:
             # TODO: add kwargs in form of key-value pairs to be added to the intake jinja strings
             
             ### working on this part
+            catblock = self.replace_urlpath_jinja(catblock, self.diagnostic_product, 'diagnostic_product')
             catblock = self.replace_urlpath_jinja(catblock, self.realization, 'realization')
-            region = extra_keys['region'] if 'region' in extra_keys else None
-            if region is not None:
-                catblock = self.replace_urlpath_jinja(catblock, region, 'region')
+            #region = extra_keys['region'] if 'region' in extra_keys else None
+            #if region is not None:
+            #    catblock = self.replace_urlpath_jinja(catblock, region, 'region')
 
-            stat = extra_keys['stat'] if 'stat' in extra_keys else None
-            if stat is not None:
-                catblock = self.replace_urlpath_jinja(catblock, stat, 'stat')
+            #stat = extra_keys['stat'] if 'stat' in extra_keys else None
+            #if stat is not None:
+            #    catblock = self.replace_urlpath_jinja(catblock, stat, 'stat')
+
+            for key in extra_keys:
+                value = extra_keys[key] if key in extra_keys else None
+                if value is not None:
+                    catblock = replace_urlpath_jinja(catblock, value, key)
+
 
         return catblock
 
