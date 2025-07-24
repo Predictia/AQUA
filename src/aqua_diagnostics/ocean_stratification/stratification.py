@@ -2,6 +2,7 @@ import xarray as xr
 from aqua.logger import log_configure
 from aqua.diagnostics.core import Diagnostic
 from aqua.util import to_list
+from .util import *
 
 xr.set_options(keep_attrs=True)
 
@@ -38,25 +39,45 @@ class Stratification(Diagnostic):
         dim_mean=["lat", "lon"],
         anomaly_ref: str = None,
         reader_kwargs: dict = {},
+        mld: bool = False,
         ):
         super().retrieve(var=var, reader_kwargs=reader_kwargs)
-        super().select_region(region=region, diagnostic="ocean3d")
+        if region:
+            super().select_region(region=region, diagnostic="ocean3d")
+        if dim_mean:
+            self.logger.debug("Averaging data over dimensions: %s", dim_mean)
+            self.data = self.data.mean(dim=dim_mean, keep_attrs=True)
         self.stacked_data = self.compute_stratification()
-        self.save_netcdf(outputdir=outputdir, rebuild=rebuild, region=region)
+        if mld:
+            self.compute_mld()
+        # self.save_netcdf(outputdir=outputdir, rebuild=rebuild, region=region)
         self.logger.info("Stratification diagram saved to netCDF file")
 
     def compute_stratification(self):
-        self.compute_climatology()
+        self.compute_climatology(climatology="season")
         self.compute_rho()
-        if self.mld:  
-            self.compute_mld()
+        self.logger.debug("Stratification computation completed")
+    def compute_climatology(self, climatology: str = "season"):
+        """
+        Compute climatology for the data.
         
-    def compute_climatology(self):
+        Args:
+            climatology (str): Type of climatology to compute, e.g., 'seasonal'.
+        """
+        self.logger.debug("Computing %s climatology", climatology)
+        self.data = self.data.groupby(f"time.{climatology}").mean("time")
+        self.logger.debug("Climatology computed successfully")
     
     def compute_rho(self):
+        self.data = convert_variables(self.data, loglevel=self.loglevel)
+        # Compute potential density in-situ at reference pressure 0 dbar
+        rho = compute_rho(self.data["so"], self.data["thetao"], 0)
+        self.data["rho"] = rho -1000  # Convert to kg/m^3
+        self.logger.debug("Converted variables to absolute salinity, conservative temperature, and potential density")
     
     def compute_mld(self):
-        
+        self.data["mld"] = compute_mld_cont(self.data["rho"], loglevel=self.loglevel)
+
     def save_netcdf(
         self,
         diagnostic: str = "ocean_drift",
