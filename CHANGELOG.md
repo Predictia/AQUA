@@ -11,10 +11,13 @@ Removed:
 -  removed Reader.info() method (#2076) 
 
 Workflow modifications:
-- Add possibility to change the 'default' realization in Catalog Generator config file (#2058)
-- AQUA analysis can take a `--realization` option to enable the analysis of a specific realization (#2041)
+- `machine` and `author` are mandatory fields in the catalog generator config file.
+- Data portfolio required is v2.0.0, no API changes are involved in this change.
+- Add possibility to change the 'default' realization in Catalog Generator config file.
+- AQUA analysis can take a `--realization` option to enable the analysis of a specific realization.
 
 AQUA core complete list:
+- Support for data-portfolio v2.0.0: updated catalog generator, pinned gsv to v2.12.0. Machine now required in config. (#2092)
 - Add possibility to change the 'default' realization in Catalog Generator config file (#2058) 
 - `aqua add <catalog>` option in the AQUA console can use GITHUB_TOKEN and GITHUB_USER environment variables to authenticate with GitHub API (#2081)
 - Added a `aqua update -c all` option in the AQUA console to update all the catalogs intalled from the Climate-DT repository (#2081)
