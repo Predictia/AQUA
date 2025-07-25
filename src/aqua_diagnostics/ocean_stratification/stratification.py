@@ -37,6 +37,7 @@ class Stratification(Diagnostic):
         region: str = None,
         var: list = ["thetao", "so"],
         dim_mean=None,
+        climatology: str = "month",
         reader_kwargs: dict = {},
         mld: bool = False,
     ):
@@ -67,12 +68,13 @@ class Stratification(Diagnostic):
         -------
         None
         """
+        self.climatology = climatology
         self.logger.info("Starting stratification diagnostic run.")
         super().retrieve(var=var, reader_kwargs=reader_kwargs)
         self.logger.debug(f"Variables retrieved: {var}, region: {region}, dim_mean: {dim_mean}")
         if region:
             self.logger.info(f"Selecting region: {region} for diagnostic 'ocean3d'.")
-            super().select_region(region=region, diagnostic="ocean3d")
+            self.data, region, lon_limits, lat_limits = super().select_region(region=region, diagnostic="ocean3d")
         if dim_mean:
             self.logger.debug(f"Averaging data over dimensions: {dim_mean}")
             self.data = self.data.mean(dim=dim_mean, keep_attrs=True)
@@ -96,7 +98,7 @@ class Stratification(Diagnostic):
         None
         """
         self.logger.debug("Starting computation of climatology and density.")
-        self.compute_climatology(climatology="season")
+        self.compute_climatology()
         self.compute_rho()
         self.logger.debug("Stratification computation completed successfully.")
 
@@ -113,9 +115,9 @@ class Stratification(Diagnostic):
         -------
         None
         """
-        self.logger.debug(f"Computing {climatology} climatology.")
-        self.data = self.data.groupby(f"time.{climatology}").mean("time")
-        self.logger.debug(f"{climatology.capitalize()} climatology computed successfully.")
+        self.logger.debug(f"Computing {self.climatology} climatology.")
+        self.data = self.data.groupby(f"time.{self.climatology}").mean("time")
+        self.logger.debug(f"{self.climatology.capitalize()} climatology computed successfully.")
 
     def compute_rho(self):
         """
