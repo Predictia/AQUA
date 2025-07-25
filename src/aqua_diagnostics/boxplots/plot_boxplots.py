@@ -1,6 +1,6 @@
 import xarray as xr
 import numpy as np
-from aqua.util import to_list
+from aqua.util import to_list, extract_attrs
 from aqua.logger import log_configure
 from aqua.diagnostics.core import OutputSaver
 
@@ -32,22 +32,6 @@ class PlotBoxplots:
         self.loglevel = loglevel
         self.logger = log_configure(log_level=loglevel, log_name='Boxplots')
 
-    
-    def _extract_attrs(self, ds_list, attr):
-        """Extract attribute(s) from dataset or list of datasets.
-        Args:
-            ds_list (xarray.Dataset or list of xarray.Dataset): Dataset(s) to extract
-            attr (str): Attribute name to extract.
-            Returns:
-                list: List of attribute values from the dataset(s).
-        """
-        if ds_list is None:
-            return None
-        if isinstance(ds_list, list):
-            return [getattr(ds, attr, None) for ds in ds_list]
-        return [getattr(ds_list, attr, None)]
-
-
     def _save_figure(self, fig,
                      data, data_ref, var, format='png'):
         """
@@ -62,15 +46,15 @@ class PlotBoxplots:
             var (str): Variable name.
             format (str): Format to save the figure ('png' or 'pdf').
         """
-        catalog = self._extract_attrs(data, 'catalog')
-        model = self._extract_attrs(data, 'model')
-        exp = self._extract_attrs(data, 'exp')
+        catalog = extract_attrs(data, 'catalog')
+        model = extract_attrs(data, 'model')
+        exp = extract_attrs(data, 'exp')
 
-        model_ref = self._extract_attrs(data_ref, 'model')
-        exp_ref = self._extract_attrs(data_ref, 'exp')
+        model_ref = extract_attrs(data_ref, 'model')
+        exp_ref = extract_attrs(data_ref, 'exp')
 
         self.logger.info(f'catalogs: {catalog}, models: {model}, experiments: {exp}')
-        self.logger.info(f'ref catalogs: {self._extract_attrs(data_ref, "catalog")}, models: {model_ref}, experiments: {exp_ref}')
+        self.logger.info(f'ref catalogs: {extract_attrs(data_ref, "catalog")}, models: {model_ref}, experiments: {exp_ref}')
 
         outputsaver = OutputSaver(
             diagnostic=self.diagnostic,
@@ -114,8 +98,8 @@ class PlotBoxplots:
         data_ref = to_list(data_ref) if data_ref is not None else []
 
         fldmeans = data + data_ref if data_ref else data
-        model_names = self._extract_attrs(fldmeans, 'model')
-        exp_names = self._extract_attrs(fldmeans, 'exp')
+        model_names = extract_attrs(fldmeans, 'model')
+        exp_names = extract_attrs(fldmeans, 'exp')
 
         dataset_info = ', '.join(f'{m} (experiment {e})' for m, e in zip(model_names, exp_names))
         description = f"Boxplot of ({', '.join(variables) if isinstance(variables, list) else variables}) for: {dataset_info}"
@@ -123,7 +107,7 @@ class PlotBoxplots:
         long_names = []
         for var_name in to_list(variables):
             var = var_name[1:] if var_name.startswith('-') else var_name
-            long_name = self._extract_attrs(fldmeans[0][var], 'long_name')
+            long_name = extract_attrs(fldmeans[0][var], 'long_name')
             long_names.append(long_name[0] if long_name else var)
 
         fig, ax = boxplot(fldmeans=fldmeans, model_names=model_names, variables=variables,
