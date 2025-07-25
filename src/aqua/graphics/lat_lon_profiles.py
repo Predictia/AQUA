@@ -8,6 +8,8 @@ from .styles import ConfigStyle
 
 def plot_lat_lon_profiles(data: xr.DataArray = None,
                           ref_data: xr.DataArray = None,
+                          std_data: xr.DataArray = None,
+                          ref_std_data: xr.DataArray = None,
                           data_labels: list = None,
                           ref_label: str = None,
                           style: str = None,
@@ -21,6 +23,8 @@ def plot_lat_lon_profiles(data: xr.DataArray = None,
     Args:
         data (xr.DataArray or list): Data to plot.
         ref_data (xr.DataArray, optional): Reference data to plot.
+        std_data (xr.DataArray or list, optional): Standard deviation of the main data.
+        ref_std_data (xr.DataArray, optional): Standard deviation of the reference data.
         data_labels (list, optional): Labels for the data.
         ref_label (str, optional): Label for the reference data.
         style (str, optional): Style for the plot.
@@ -102,11 +106,39 @@ def plot_lat_lon_profiles(data: xr.DataArray = None,
             
         label = labels_list[i] if i < len(labels_list) else f"Data {i+1}"
         ax.plot(x_coord, d.values, label=label, linewidth=3)
-
-    # Handle reference data
+    
+    # Plot standard deviation for main data
+    if std_data is not None:
+        if isinstance(std_data, list):
+            std_data_list = std_data
+        else:
+            std_data_list = [std_data]
+        
+        for i, (d, std_d) in enumerate(zip(data_list, std_data_list)):
+            if std_d is not None and std_d.size > 0:
+                try:
+                    if 'lat' in d.dims:
+                        x_coord = d.lat.values
+                    elif 'lon' in d.dims:
+                        x_coord = d.lon.values
+                    else:
+                        continue
+                    
+                    # Get the color of the corresponding line
+                    line_color = ax.lines[i].get_color()
+                    
+                    # Plot fill_between for 2*std
+                    ax.fill_between(x_coord,
+                                d.values - 2.*std_d.values,
+                                d.values + 2.*std_d.values,
+                                facecolor=line_color, 
+                                alpha=0.3)
+                except Exception as e:
+                    logger.warning(f"Failed to plot std for data {i}: {e}")
+    
+    # Handle reference data with std
     if ref_data is not None:
         if isinstance(ref_data, xr.DataArray) and ref_data.size > 0:
-            # Check if ref_data has spatial dimensions
             if any(dim in ref_data.dims for dim in ['lat', 'lon', 'latitude', 'longitude']):
                 ref_label_final = ref_label if ref_label is not None else "Reference"
                 
@@ -122,11 +154,19 @@ def plot_lat_lon_profiles(data: xr.DataArray = None,
                         # Plot reference data
                         ax.plot(ref_x_coord, ref_data.values, 
                             label=ref_label_final, 
-                            color='black',        # Always black
-                            linestyle='-',        # Always solid
-                            linewidth=3,          # Thick line
-                            alpha=1.0)            # Full opacity
-                            
+                            color='black',
+                            linestyle='-',
+                            linewidth=3,
+                            alpha=1.0)
+                        
+                        # Plot reference std if available
+                        if ref_std_data is not None and ref_std_data.size > 0:
+                            ax.fill_between(ref_x_coord,
+                                        ref_data.values - 2.*ref_std_data.values,
+                                        ref_data.values + 2.*ref_std_data.values,
+                                        facecolor='grey', 
+                                        alpha=0.5)
+                        
                 except Exception as e:
                     logger.warning(f"Failed to plot reference data: {e}")
             else:
