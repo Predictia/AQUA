@@ -33,7 +33,7 @@ class Boxplots(Diagnostic):
         self.var = var
         self.save_netcdf = save_netcdf
         self.outputdir = outputdir
-
+        self.loglevel = loglevel
 
     def run(self, var: None, save_netcdf=False, units: str = None) -> None:
         """
@@ -41,7 +41,7 @@ class Boxplots(Diagnostic):
 
         Args:
             var (str or list of str, optional): list of variables to retrieve. If None, uses self.var.
-            units (str, optional): Target units (e.g., 'mm/day').
+            units (str or list of str, optional): Target units (e.g., 'mm/day').
 
         Raises:
             NoDataError: If variable not found in dataset.
@@ -50,6 +50,8 @@ class Boxplots(Diagnostic):
          
         if var is not None:
             self.var = [v.lstrip('-') for v in (var if isinstance(var, list) else [var])] # Ensure var is a list
+        if units is not None:
+            units = [units] if isinstance(units, str) else units 
 
         super().retrieve(var=self.var)
 
@@ -62,9 +64,14 @@ class Boxplots(Diagnostic):
 
         self.save_netcdf = save_netcdf or self.save_netcdf
 
-        if units:
-            self.logger.info(f'Adjusting units for variable {self.var} to {units}.')
-            self.data =  super()._check_data(data=self.data, var=self.var, units=units, loglevel=self.loglevel)
+        for i, var_name in enumerate(self.var):
+            units_attr = self.data[var_name].attrs.get('units')
+            if units_attr:
+                if units:
+                    self.data[var_name] =  super()._check_data(data=self.data[var_name], var=var_name, units=units[i])
+                if units_attr and "m-2" in units_attr:   ##TO CHECK FIXER BEHAVIOUR!
+                    corrected_units = units_attr.replace("m-2", "m**-2")
+                    self.data[var_name].attrs['units'] = corrected_units
 
         # Compute field means
         fldmeans = {}
