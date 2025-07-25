@@ -419,6 +419,7 @@ def apply_circular_boundary(ax, extent=None, apply_black_circle=False):
             fill=False, color='black', linewidth=1.5, zorder=10)
         ax.add_patch(circle_patch)
     return ax
+    
 """
 Following functions are taken and adjusted from the easygems package,
 on this repository:
