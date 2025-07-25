@@ -83,14 +83,14 @@ class PlotBoxplots:
             raise ValueError(f'Unsupported format: {format}. Use "png" or "pdf".')
 
 
-    def plot_boxplots(self, data, data_ref=None, variables=None, title=None):
+    def plot_boxplots(self, data, data_ref=None, var=None, title=None):
         """
         Plot boxplots for specified variables in the dataset.
 
         Args:
             data (xarray.Dataset or list of xarray.Dataset): Input dataset(s) containing the fldmeans of the variables to plot.
             data_ref (xarray.Dataset or list of xarray.Dataset, optional): Reference dataset(s) for comparison.
-            variables (str or list of str): Variable name(s) to plot. If None, uses all variables in the dataset.
+            var (str or list of str): Variable name(s) to plot. If None, uses all variables in the dataset.
             title (str, optional): Title for the plot. If None, a default title will be generated.
         """
 
@@ -102,15 +102,15 @@ class PlotBoxplots:
         exp_names = extract_attrs(fldmeans, 'exp')
 
         dataset_info = ', '.join(f'{m} (experiment {e})' for m, e in zip(model_names, exp_names))
-        description = f"Boxplot of ({', '.join(variables) if isinstance(variables, list) else variables}) for: {dataset_info}"
+        description = f"Boxplot of ({', '.join(var) if isinstance(var, list) else var}) for: {dataset_info}"
 
         long_names = []
-        for var_name in to_list(variables):
-            var = var_name[1:] if var_name.startswith('-') else var_name
-            long_name = extract_attrs(fldmeans[0][var], 'long_name')
-            long_names.append(long_name[0] if long_name else var)
+        for var_name in to_list(var):
+            var_name = var_name[1:] if var_name.startswith('-') else var_name
+            long_name = extract_attrs(fldmeans[0][var_name], 'long_name')
+            long_names.append(long_name if long_name else var_name)
 
-        fig, ax = boxplot(fldmeans=fldmeans, model_names=model_names, variables=variables,
+        fig, ax = boxplot(fldmeans=fldmeans, model_names=model_names, variables=var,
                          variable_names=long_names, title=title, loglevel=self.loglevel)
         
         if self.save_pdf:
