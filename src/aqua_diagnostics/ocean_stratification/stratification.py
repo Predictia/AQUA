@@ -151,7 +151,7 @@ class Stratification(Diagnostic):
 
     def save_netcdf(
         self,
-        diagnostic: str = "ocean_drift",
+        diagnostic: str = "ocean_circulation",
         diagnostic_product: str = "stratification",
         region: str = None,
         outputdir: str = ".",
