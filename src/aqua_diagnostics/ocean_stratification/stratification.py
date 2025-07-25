@@ -36,7 +36,7 @@ class Stratification(Diagnostic):
         rebuild: bool = True,
         region: str = None,
         var: list = ["thetao", "so"],
-        dim_mean=["lat", "lon"],
+        dim_mean= None,
         anomaly_ref: str = None,
         reader_kwargs: dict = {},
         mld: bool = False,
@@ -47,10 +47,10 @@ class Stratification(Diagnostic):
         if dim_mean:
             self.logger.debug("Averaging data over dimensions: %s", dim_mean)
             self.data = self.data.mean(dim=dim_mean, keep_attrs=True)
-        self.stacked_data = self.compute_stratification()
+        self.compute_stratification()
         if mld:
             self.compute_mld()
-        # self.save_netcdf(outputdir=outputdir, rebuild=rebuild, region=region)
+        self.save_netcdf(outputdir=outputdir, rebuild=rebuild, region=region)
         self.logger.info("Stratification diagram saved to netCDF file")
 
     def compute_stratification(self):
@@ -76,7 +76,8 @@ class Stratification(Diagnostic):
         self.logger.debug("Converted variables to absolute salinity, conservative temperature, and potential density")
     
     def compute_mld(self):
-        self.data["mld"] = compute_mld_cont(self.data["rho"], loglevel=self.loglevel)
+        mld = compute_mld_cont(self.data[["rho"]], loglevel=self.loglevel)
+        self.data["mld"] = mld["mld"] 
 
     def save_netcdf(
         self,
@@ -86,13 +87,12 @@ class Stratification(Diagnostic):
         outputdir: str = ".",
         rebuild: bool = True,
     ):
-        for processed_data in self.processed_data_list:
-            super().save_netcdf(
-                data=processed_data,
-                diagnostic=diagnostic,
-                diagnostic_product=f"{diagnostic_product}_{processed_data.attrs['AQUA_ocean_drift_type']}",
-                outdir=outputdir,
-                rebuild=rebuild,
-                extra_keys={"region": region}
+        super().save_netcdf(
+            data=self.data,
+            diagnostic=diagnostic,
+            diagnostic_product=f"{diagnostic_product}",
+            outdir=outputdir,
+            rebuild=rebuild,
+            extra_keys={"region": region}
             )
             
