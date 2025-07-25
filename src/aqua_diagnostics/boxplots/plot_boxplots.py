@@ -4,7 +4,7 @@ from aqua.util import to_list
 from aqua.logger import log_configure
 from aqua.diagnostics.core import OutputSaver
 
-from aqua.graphics import boxplot, ConfigStyle
+from aqua.graphics import boxplot
 
 
 class PlotBoxplots: 
@@ -34,7 +34,13 @@ class PlotBoxplots:
 
     
     def _extract_attrs(self, ds_list, attr):
-        """Extract attribute(s) from dataset or list of datasets."""
+        """Extract attribute(s) from dataset or list of datasets.
+        Args:
+            ds_list (xarray.Dataset or list of xarray.Dataset): Dataset(s) to extract
+            attr (str): Attribute name to extract.
+            Returns:
+                list: List of attribute values from the dataset(s).
+        """
         if ds_list is None:
             return None
         if isinstance(ds_list, list):
@@ -93,30 +99,36 @@ class PlotBoxplots:
             raise ValueError(f'Unsupported format: {format}. Use "png" or "pdf".')
 
 
-    def plot_boxplots(self, data, data_ref=None, var=None, style='aqua'):
+    def plot_boxplots(self, data, data_ref=None, variables=None, title=None):
         """
         Plot boxplots for specified variables in the dataset.
 
         Args:
             data (xarray.Dataset or list of xarray.Dataset): Input dataset(s) containing the fldmeans of the variables to plot.
             data_ref (xarray.Dataset or list of xarray.Dataset, optional): Reference dataset(s) for comparison.
-            var (str or list of str): Variable name(s) to plot. If None, uses all variables in the dataset.
-            style (str): Style to use for the plot. Default is 'aqua'.
+            variables (str or list of str): Variable name(s) to plot. If None, uses all variables in the dataset.
+            title (str, optional): Title for the plot. If None, a default title will be generated.
         """
-        ConfigStyle(style=style)
+
         data = to_list(data)
         data_ref = to_list(data_ref) if data_ref is not None else []
 
         fldmeans = data + data_ref if data_ref else data
         model_names = self._extract_attrs(fldmeans, 'model')
+        exp_names = self._extract_attrs(fldmeans, 'exp')
 
-        #dataset_info = ', '.join(f'{m} (experiment {e})' for m, e in zip(all_models, all_exps))
+        dataset_info = ', '.join(f'{m} (experiment {e})' for m, e in zip(model_names, exp_names))
+        description = f"Boxplot of ({', '.join(variables) if isinstance(variables, list) else variables}) for: {dataset_info}"
 
-        title = (f"Boxplot of {data[var].attrs.get('long_name', var)} for {data.model} {data.exp}")
-        #f"Boxplot of variables ({', '.join(var) if isinstance(var, list) else var}) for: {dataset_info}"
+        long_names = []
+        for var_name in to_list(variables):
+            var = var_name[1:] if var_name.startswith('-') else var_name
+            long_name = self._extract_attrs(fldmeans[0][var], 'long_name')
+            long_names.append(long_name[0] if long_name else var)
 
-        fig, ax = boxplot(fldmeans=fldmeans, model_names=model_names, variables=var, title=title, loglevel=self.loglevel)
-
+        fig, ax = boxplot(fldmeans=fldmeans, model_names=model_names, variables=variables,
+                         variable_names=long_names, title=title, loglevel=self.loglevel)
+        
         if self.save_pdf:
             self._save_figure(fig, data, data_ref, var, format='pdf')
         if self.save_png:
