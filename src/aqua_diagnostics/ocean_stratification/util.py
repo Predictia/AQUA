@@ -23,7 +23,10 @@ def convert_so(so, loglevel= "WARNING"):
 
     """
     logger = log_configure(loglevel, 'convert_so')
-    return so / 0.99530670233846
+    logger.debug("Converting practical salinity to absolute salinity.")
+    absso = so / 0.99530670233846
+    logger.info("Practical salinity successfully converted to absolute salinity.")
+    return absso
 
 
 def convert_thetao(absso, thetao, loglevel= "WARNING"):
@@ -48,6 +51,7 @@ def convert_thetao(absso, thetao, loglevel= "WARNING"):
 
     """
     logger = log_configure(loglevel, 'convert_thetao')
+    logger.debug("Converting potential temperature to conservative temperature.")
     x = xr.ufuncs.sqrt(0.0248826675584615 * absso)
     y = thetao*0.025e0
     enthalpy = 61.01362420681071e0 + y*(168776.46138048015e0 +
@@ -67,7 +71,9 @@ def convert_thetao(absso, thetao, loglevel= "WARNING"):
                                                                                                                             y*(-942.7827304544439e0 + y*(369.4389437509002e0 +
                                                                                                                                                          (-33.83664947895248e0 - 9.987880382780322e0*y)*y))))))
 
-    return enthalpy/3991.86795711963
+    bigthetao = enthalpy/3991.86795711963
+    logger.info("Potential temperature successfully converted to conservative temperature.")
+    return bigthetao
 
 
 def compute_rho(absso, bigthetao, ref_pressure, loglevel= "WARNING"):
@@ -94,6 +100,7 @@ def compute_rho(absso, bigthetao, ref_pressure, loglevel= "WARNING"):
 
     """
     logger = log_configure(loglevel, 'compute_rho')
+    logger.debug("Computing potential density in-situ.")
     # reduced variables
     SAu = 40.*35.16504/35.
     CTu = 40.
@@ -203,23 +210,17 @@ def convert_variables(data, loglevel= "WARNING"):
 
     """
     logger = log_configure(loglevel, 'convert_variables')
-    logger.debug("Converting variables to absolute salinity, conservative temperature, and potential density")
-    
+    logger.info("Starting conversion of variables: practical salinity, potential temperature.")
     # Convert practical salinity to absolute salinity
     absso = convert_so(data.so)
-    logger.debug("Practical salinity converted to absolute salinity")
+    logger.debug("Practical salinity converted to absolute salinity.")
     # Convert potential temperature to conservative temperature
     thetao = convert_thetao(absso, data.thetao)
-    logger.debug("Potential temperature converted to conservative temperature")
-    logger.debug(
-        "Calculated potential density in-situ at reference pressure 0 dbar ")
+    logger.debug("Potential temperature converted to conservative temperature.")
     # Merge the converted variables into a new dataset
     data["thetao"] = thetao
     data["so"] = absso
-
-    # data = converted_data.merge(
-    #     {"thetao": thetao, "so": absso, "rho": rho})
-
+    logger.info("Variables successfully converted and updated in dataset.")
     return data
 
 
@@ -242,38 +243,43 @@ def compute_mld_cont(rho, loglevel= "WARNING"):
     mld: xarray.DataArray, dims of time, space
     """
     logger = log_configure(loglevel, 'compute_mld_cont')
+    logger.info("Starting computation of mixed layer depth (MLD) from density field.")
     # Here we identify the first level to represent the surface
+    logger.debug("Identifying surface density.")
     surf_dens = rho.isel(level=slice(0, 1)).mean("level")
 
     # We compute the density anomaly between surface and whole field
+    logger.debug("Computing density anomaly between surface and whole field.")
     dens_ano = rho-surf_dens
 
     # We define now a sigma difference wrt to the threshold of 0.03 kg/m3 in de Boyer Montegut (2004)
+    logger.debug("Applying sigma difference threshold (0.03 kg/m3).")
     dens_diff = dens_ano-0.03
 
     # Now we only keep the levels for which the threshold has not been surpassed
     # The threshold in de Boyer Montegut (2004)
+    logger.debug("Filtering levels where threshold has not been surpassed.")
     dens_diff2 = dens_diff.where(dens_diff < 0)
 
     # And keep the deepest one
+    logger.debug("Finding deepest level before threshold is exceeded.")
     cutoff_lev1 = dens_diff2.level.where(dens_diff2 > -9999).max(["level"])
     # And the following one (for which the threshold will have been overcome)
+    logger.debug("Finding first level after threshold is exceeded.")
     cutoff_lev2 = dens_diff2.level.where(
         dens_diff2.level> cutoff_lev1).min(["level"])
 
     # Here we identify the last level of the ocean
+    logger.debug("Identifying last valid ocean level.")
     depth = rho.level.where(rho > -9999).max(["level"])
 
     ddif = cutoff_lev2-cutoff_lev1
-    # The MLD is established by linearly interpolating to the level on which the difference wrt to the reference is zero
-    rdif1 = dens_diff.where(dens_diff.level== cutoff_lev1).max(
-        ["level"])  # rho diff in first lev
-
-    rdif2 = dens_diff.where(dens_diff.level== cutoff_lev2).max(
-        ["level"])  # rho diff in second lev
+    logger.debug("Interpolating to estimate MLD between threshold levels.")
+    rdif1 = dens_diff.where(dens_diff.level== cutoff_lev1).max(["level"])  # rho diff in first lev
+    rdif2 = dens_diff.where(dens_diff.level== cutoff_lev2).max(["level"])  # rho diff in second lev
     mld = cutoff_lev1+((ddif)*(rdif1))/(rdif1-rdif2)
-    # The MLD is set as the maximum depth if the threshold is not exceeded before
+    logger.debug("Setting MLD as maximum depth if threshold not exceeded.")
     mld = xr.ufuncs.fmin(mld, depth)
-    mld=mld.rename({"rho":"mld"})
-
+    mld = mld.rename({"rho":"mld"})
+    logger.info("MLD computation completed and variable renamed.")
     return mld
