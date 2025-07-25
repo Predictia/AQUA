@@ -17,6 +17,7 @@ Workflow modifications:
 - AQUA analysis can take a `--realization` option to enable the analysis of a specific realization.
 
 AQUA core complete list:
+- Introduce a tentative command to generate grids from sources, `aqua grids build` based on `GridBuilder` class (#2066)
 - Support for data-portfolio v2.0.0: updated catalog generator, pinned gsv to v2.12.0. Machine now required in config. (#2092)
 - Add possibility to change the 'default' realization in Catalog Generator config file (#2058) 
 - `aqua add <catalog>` option in the AQUA console can use GITHUB_TOKEN and GITHUB_USER environment variables to authenticate with GitHub API (#2081)
