@@ -36,10 +36,37 @@ class Stratification(Diagnostic):
         rebuild: bool = True,
         region: str = None,
         var: list = ["thetao", "so"],
-        dim_mean= None,
+        dim_mean=None,
         reader_kwargs: dict = {},
         mld: bool = False,
-        ):
+    ):
+        """
+        Run the stratification diagnostic workflow.
+
+        This method retrieves the required variables, optionally selects a region, averages over specified dimensions,
+        computes stratification (climatology and density), optionally computes mixed layer depth (MLD), and saves the results to a netCDF file.
+
+        Parameters
+        ----------
+        outputdir : str, optional
+            Directory to save the output netCDF file. Default is current directory.
+        rebuild : bool, optional
+            Whether to rebuild the output file if it exists. Default is True.
+        region : str, optional
+            Region name to select for the diagnostic. If None, no region selection is performed.
+        var : list, optional
+            List of variable names to retrieve. Default is ["thetao", "so"].
+        dim_mean : list or str, optional
+            Dimensions over which to average the data. If None, no averaging is performed.
+        reader_kwargs : dict, optional
+            Additional keyword arguments to pass to the data reader.
+        mld : bool, optional
+            If True, compute mixed layer depth (MLD) and add to output.
+
+        Returns
+        -------
+        None
+        """
         self.logger.info("Starting stratification diagnostic run.")
         super().retrieve(var=var, reader_kwargs=reader_kwargs)
         self.logger.debug(f"Variables retrieved: {var}, region: {region}, dim_mean: {dim_mean}")
@@ -58,30 +85,65 @@ class Stratification(Diagnostic):
         self.logger.info("Stratification diagnostic saved to netCDF file.")
 
     def compute_stratification(self):
+        """
+        Compute the stratification by calculating climatology and density.
+
+        This method first computes the climatology (default: seasonal) and then computes the potential density.
+        Updates the internal dataset with the results.
+
+        Returns
+        -------
+        None
+        """
         self.logger.debug("Starting computation of climatology and density.")
         self.compute_climatology(climatology="season")
         self.compute_rho()
         self.logger.debug("Stratification computation completed successfully.")
+
     def compute_climatology(self, climatology: str = "season"):
         """
         Compute climatology for the data.
-        
-        Args:
-            climatology (str): Type of climatology to compute, e.g., 'seasonal'.
+
+        Parameters
+        ----------
+        climatology : str, optional
+            Type of climatology to compute (e.g., 'season', 'month'). Default is 'season'.
+
+        Returns
+        -------
+        None
         """
         self.logger.debug(f"Computing {climatology} climatology.")
         self.data = self.data.groupby(f"time.{climatology}").mean("time")
         self.logger.debug(f"{climatology.capitalize()} climatology computed successfully.")
-    
+
     def compute_rho(self):
+        """
+        Convert variables to absolute salinity and conservative temperature, then compute potential density.
+
+        Updates the internal dataset with the computed potential density anomaly ('rho').
+
+        Returns
+        -------
+        None
+        """
         self.logger.debug("Converting variables to absolute salinity and conservative temperature.")
         self.data = convert_variables(self.data, loglevel=self.loglevel)
         self.logger.debug("Computing potential density at reference pressure 0 dbar.")
         rho = compute_rho(self.data["so"], self.data["thetao"], 0)
         self.data["rho"] = rho - 1000  # Convert to kg/m^3
         self.logger.debug("Added 'rho' (potential density anomaly) to dataset.")
-    
+
     def compute_mld(self):
+        """
+        Compute the mixed layer depth (MLD) from the density field.
+
+        Uses the potential density anomaly ('rho') in the dataset to compute MLD and adds it as 'mld'.
+
+        Returns
+        -------
+        None
+        """
         self.logger.debug("Computing mixed layer depth (MLD) from density.")
         mld = compute_mld_cont(self.data[["rho"]], loglevel=self.loglevel)
         self.data["mld"] = mld["mld"]
