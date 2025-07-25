@@ -119,10 +119,10 @@ class FldStat():
 
         # align dimensions naming of area to match data
         self.area = self.align_area_dimensions(data)
-
+        """
         # align coordinates values of area to match data
         self.area = self.align_area_coordinates(data)
-
+        """
         if lon_limits is not None or lat_limits is not None:
             data = area_selection(data, lon=lon_limits, lat=lat_limits,
                                   loglevel=self.loglevel, **kwargs)
