@@ -388,7 +388,7 @@ def generate_colorbar_ticks(vmin, vmax, nlevels=11, sym=False,
 
     return cbar_ticks
 
-def apply_circular_boundary(ax, extent=None, apply_black_circle=False):
+def apply_circular_window(ax, extent=None, apply_black_circle=False):
     """
     Apply a circular boundary mask to a Cartopy GeoAxes and set geographic extent
     to avoid the default rectangular plotting window with some projections.
