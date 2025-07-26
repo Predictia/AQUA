@@ -10,6 +10,7 @@ import healpy as hp
 from scipy.interpolate import griddata
 import matplotlib.pyplot as plt
 import matplotlib.path as mpath
+import matplotlib.patches as mpatches
 
 from aqua.logger import log_configure
 from .sci_util import check_coordinates
@@ -416,7 +417,7 @@ def apply_circular_boundary(ax, extent=None, apply_black_circle=False):
         # overlay a more visible black circle outline (drawn in axes coordinates)
         circle_patch = mpatches.Circle(
             center, radius=radius, transform=ax.transAxes,
-            fill=False, color='black', linewidth=1.5, zorder=10)
+            fill=False, color='darkgrey', linewidth=1.5, zorder=10)
         ax.add_patch(circle_patch)
     return ax
     
