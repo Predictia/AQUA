@@ -154,19 +154,17 @@ class LatLonProfiles(Diagnostic):
                 # Return the computed profile for easy variable assignment
                 return self.direct_profile
         
-        """
         def compute_std(self, freq: str, exclude_incomplete: bool = True, center_time: bool = True,
                         box_brd: bool = True):
-                """"""
+                """
                 Compute the standard deviation of the data. Support for seasonal and annual frequencies.
 
                 Args:
                 freq (str): The frequency to be used ('seasonal' or 'annual').
                 exclude_incomplete (bool): If True, exclude incomplete periods.
                 center_time (bool): If True, the time will be centered.
-                box_brd (bool,opt): choose if coordinates are comprised or not in area selection.
-                                        Default is True
-                """"""
+                box_brd (bool,opt): choose if coordinates are comprised or not in area selection. Default is True
+                """
                 if freq is None:
                         self.logger.error('Frequency not provided')
                         raise ValueError('Frequency not provided')
@@ -177,10 +175,21 @@ class LatLonProfiles(Diagnostic):
                         
                 self.logger.info('Computing %s standard deviation', str_freq)
 
+                # Determine dimensions for averaging based on mean_type
+                if self.mean_type == 'zonal':
+                        dims = ['lon']  # Average over longitude, keep latitude
+                elif self.mean_type == 'meridional':
+                        dims = ['lat']  # Average over latitude, keep longitude  
+                elif self.mean_type == 'global':
+                        dims = ['lat', 'lon']  # Average over both
+                else:
+                        dims = ['lat', 'lon']  # Default to global
+
                 # Start with monthly data for both seasonal and annual std calculations
                 data = self.data
                 data = self.reader.fldmean(data, box_brd=box_brd,
-                                        lon_limits=self.lon_limits, lat_limits=self.lat_limits)
+                                        lon_limits=self.lon_limits, lat_limits=self.lat_limits,
+                                        dims=dims)
                 monthly_data = self.reader.timmean(data, freq='monthly', exclude_incomplete=exclude_incomplete,
                                                 center_time=center_time)
                 monthly_data = monthly_data.sel(time=slice(self.std_startdate, self.std_enddate))
@@ -199,7 +208,7 @@ class LatLonProfiles(Diagnostic):
                         annual_std.attrs['std_startdate'] = time_to_string(self.std_startdate)
                         annual_std.attrs['std_enddate'] = time_to_string(self.std_enddate)
                         self.std_annual = annual_std
-        """
+
         def _compute_direct_profile(self, timestep: str, box_brd: bool = True):
                 """
                 Compute direct profile for a specific timestep.
@@ -242,6 +251,7 @@ class LatLonProfiles(Diagnostic):
                 direct_data.attrs['mean_type'] = self.mean_type
                 
                 self.direct_profile = direct_data
+                
         def save_netcdf(self, diagnostic: str, freq: str,
                         outdir: str = './', rebuild: bool = True):
                 """

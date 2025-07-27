@@ -16,6 +16,8 @@ class PlotLatLonProfiles():
                 seasonal_annual_data=None,
                 seasonal_annual_ref_data=None,
                 std_data=None,
+                ref_std_data=None,
+                std_seasonal_annual_data=None, 
                 loglevel: str = 'WARNING'):
         """
         Initialise the PlotLatLonProfiles class.
@@ -39,6 +41,8 @@ class PlotLatLonProfiles():
         self.seasonal_annual_data = seasonal_annual_data  
         self.seasonal_annual_ref_data = seasonal_annual_ref_data 
         self.std_data = std_data
+        self.ref_std_data = ref_std_data
+        self.std_seasonal_annual_data = std_seasonal_annual_data
 
         self.len_data, self.len_ref = self._check_data_length()
         self.get_data_info()
@@ -237,6 +241,8 @@ class PlotLatLonProfiles():
         return plot_lat_lon_profiles(
             data=self.data,
             ref_data=self.ref_data,
+            std_data=self.std_data,  # NUOVO
+            ref_std_data=self.ref_std_data,  # NUOVO
             data_labels=data_labels,
             ref_label=ref_label,
             title=title,
@@ -384,8 +390,16 @@ class PlotLatLonProfiles():
         self.logger.debug('Description: %s', description)
         return description
 
-    def run(self, var: str, units: str = None, region: str = None, outputdir: str = './',
-        rebuild: bool = True, dpi: int = 300, format: str = 'png', plot_type: str = 'standard'):
+    def run(self, 
+            var: str, 
+            units: str = None, 
+            region: str = None, 
+            outputdir: str = './',
+            rebuild: bool = True, 
+            dpi: int = 300, 
+            format: str = 'png', 
+            plot_type: str = 'standard',
+            plot_std: bool = False):
         """
         Run the PlotLatLonProfiles class.
 
@@ -422,6 +436,11 @@ class PlotLatLonProfiles():
             description = self.set_description(region=region)
             title = self.set_title(region=region, var=var, units=units)
             
+            # Include std information in title/description if available
+            if plot_std and (self.std_data is not None or self.ref_std_data is not None):
+                title += " (±2σ)"
+                description += " with standard deviation bands"
+
             fig, _ = self.plot_lat_lon_profiles(data_labels=data_label, ref_label=ref_label, title=title)
             
             region_short = region.replace(' ', '').lower() if region is not None else None
@@ -449,15 +468,18 @@ class PlotLatLonProfiles():
         
         seasonal_data_only = self.seasonal_annual_data[:4]
         seasonal_ref_only = self.seasonal_annual_ref_data[:4] if self.seasonal_annual_ref_data else None
+        seasonal_std_only = self.std_seasonal_annual_data[:4] if self.std_seasonal_annual_data else None
         
         return plot_seasonal_data(
             maps=seasonal_data_only,
             ref_maps=seasonal_ref_only,
+            std_maps=seasonal_std_only,
             data_labels=data_labels,
             title=title,
             style=style,
             loglevel=self.loglevel
         )
+    
     def plot_annual_mean(self, data_labels=None, ref_label=None, title=None):
         """
         Plot only the annual mean as a separate single plot.
