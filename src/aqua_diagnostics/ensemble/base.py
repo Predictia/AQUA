@@ -64,63 +64,80 @@ class BaseMixin(Diagnostic):
         self.ref_model = ref_model
         self.ref_exp = ref_exp
 
+        # To handle None case
+        None_catalog = "ensemble_catalog"
+        None_model = "ensemble_model"
+        None_exp = "ensemble_exp"
+        None_source = "ensemble_source"
+
+        # Multi catalog/model/exp/source
+        multi_catalog = "multi-catalog"
+        multi_model = "multi-model"
+        multi_exp = "multi-exp"
+        multi_source = "multi-source"
+        
+
         # Handling catalog name
         if catalog_list is None:
             logger.info("No catalog names given. Assigning it to catalog_name.")
-            self.catalog = "None_catalog"
+            self.catalog = None_catalog
         else:
             catalog_counts = dict(Counter(catalog_list))
             if len(catalog_counts.keys()) <= 1:
                 logger.info("Catalog name is given. Single-model ensemble is given.")
                 catalog_str_list = [str(item) for item in catalog_list]
-                self.catalog = catalog_str_list[0] + "_catalog"
+                if catalog_str_list[0] == "None": catalog_str_list[0] = None_catalog 
+                self.catalog = catalog_str_list[0]
             else:
                 logger.info(
                     "Multi-model ensemble is given. Assigning catalog name to multi-catalog"
                 )
-                self.catalog = "multi-catalog"
+                self.catalog = multi_catalog
 
         # Handling model name:
         if model_list is None:
             logger.info("No model name is given. Assigning it to model_name")
-            self.model = "None_model"
+            self.model = None_model
         else:
             model_counts = dict(Counter(model_list))
             if len(model_counts.keys()) <= 1:
                 logger.info("Model name is given. Single-model ensemble is given.")
                 model_str_list = [str(item) for item in model_list]
-                self.model = model_str_list[0] + "_model"
+                if model_str_list[0] == "None": model_str_list[0] = None_model
+                self.model = model_str_list[0]
             else:
                 logger.info("Multi-model ensmeble is given. Assigning model name to multi-model")
-                self.model = "multi-model"
+                self.model = multi_model
 
         # Handling exp name:
         if exp_list is None:
             logger.info("No exp name is given. Assigning it to exp_name")
-            self.exp = "None_exp"
+            self.exp = None_exp
         else:
             exp_counts = dict(Counter(exp_list))
             if len(exp_counts.keys()) <= 1:
                 logger.info("Model name is given. Single-exp ensemble is given.")
                 exp_str_list = [str(item) for item in exp_list]
-                self.exp = exp_str_list[0] + "_exp"
+                if exp_str_list[0] == "None": exp_str_list[0] = None_exp
+                self.exp = exp_str_list[0] 
             else:
                 logger.info("Multi-exp ensmeble is given. Assigning exp name to multi-exp")
-                self.exp = "multi-exp"
+                self.exp = multi_exp
 
         # Handling source name:
         if source_list is None:
             logger.info("No source name is given. Assigning it to source_name")
-            self.source = "None_source"
+            self.source = None_source
         else:
             source_counts = dict(Counter(source_list))
             if len(source_counts.keys()) <= 1:
                 logger.info("Model name is given. Single-source ensemble is given.")
                 source_str_list = [str(item) for item in source_list]
-                self.source = source_str_list[0] + "_source"
+                if source_str_list[0] == "None": source_str_list[0] = None_source
+                self.source = source_str_list[0]
             else:
                 logger.info("Multi-source ensmeble is given. Assigning source name to multi-source")
-                self.source = "multi-source"
+                self.source = multi_source
 
         super().__init__(
             catalog=self.catalog,
@@ -211,6 +228,7 @@ class BaseMixin(Diagnostic):
             description = self.diagnostic_name + "_" + self.diagnostic_product
         outputsaver = OutputSaver(
             diagnostic=self.diagnostic_name,
+            #diagnostic_product=self.diagnostic_product,
             catalog=self.catalog,
             model=self.model,
             exp=self.exp,
@@ -224,6 +242,7 @@ class BaseMixin(Diagnostic):
 
         outputsaver.save_netcdf(
             dataset=data,
+            #diagnostic=self.diagnostic_name,
             diagnostic_product=self.diagnostic_product,
             metadata=metadata,
             extra_keys=extra_keys,
@@ -244,6 +263,7 @@ class BaseMixin(Diagnostic):
         """
         outputsaver = OutputSaver(
             diagnostic=self.diagnostic_name,
+            #diagnostic_product=self.diagnostic_product,
             catalog=self.catalog,
             model=self.model,
             exp=self.exp,
@@ -267,6 +287,7 @@ class BaseMixin(Diagnostic):
         if format == "pdf":
             outputsaver.save_pdf(
                 fig,
+                #diagnostic=self.diagnostic_name,
                 diagnostic_product=self.diagnostic_product,
                 extra_keys=extra_keys,
                 metadata=metadata,
@@ -274,6 +295,7 @@ class BaseMixin(Diagnostic):
         elif format == "png":
             outputsaver.save_png(
                 fig,
+                #diagnostic=self.diagnostic_name,
                 diagnostic_product=self.diagnostic_product,
                 extra_keys=extra_keys,
                 metadata=metadata,
@@ -284,6 +306,7 @@ class BaseMixin(Diagnostic):
         if fig_std is not None:
             outputsaver = OutputSaver(
                 diagnostic=self.diagnostic_name,
+                #diagnostic_product=self.diagnostic_product,
                 catalog=self.catalog,
                 model=self.model,
                 exp=self.exp,
@@ -312,6 +335,7 @@ class BaseMixin(Diagnostic):
             elif format == "png":
                 outputsaver.save_png(
                     fig_std,
+                    #diagnostic=self.diagnostic_name,
                     diagnostic_product=self.diagnostic_product,
                     extra_keys=extra_keys,
                     metadata=metadata,
