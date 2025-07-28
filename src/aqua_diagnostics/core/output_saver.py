@@ -26,7 +26,7 @@ class OutputSaver:
                  catalog: Optional[Union[str, list]] = None, model: Optional[Union[str, list]] = None, 
                  exp: Optional[Union[str, list]] = None, realization: Optional[Union[str, list]] = None,
                  catalog_ref: Optional[Union[str, list]] = None, model_ref: Optional[Union[str, list]] = None, 
-                 exp_ref: Optional[Union[str, list]] = None, create_catalog_entry: bool = True,
+                 exp_ref: Optional[Union[str, list]] = None,
                  outdir: str = '.', loglevel: str = 'WARNING'):
         """
         Initialize the OutputSaver with diagnostic parameters and output directory.
@@ -77,10 +77,6 @@ class OutputSaver:
         })
 
         self.outdir = outdir
-
-        # if need to create a catalog entry for netcdf output
-        # this will be used in save_netcdf function default is true
-        self.create_catalog_entry = create_catalog_entry
 
     @staticmethod
     def _format_realization(realization: Optional[Union[str, int, list]]) -> Union[str, list]:
@@ -217,7 +213,8 @@ class OutputSaver:
         return os.path.join(folder, filename)
 
     def save_netcdf(self, dataset: xr.Dataset, diagnostic_product: str,
-                    rebuild: bool = True, extra_keys: Optional[dict] = None, metadata: Optional[dict] = None):
+                    rebuild: bool = True, extra_keys: Optional[dict] = None,
+                    metadata: Optional[dict] = None, create_catalog_entry: bool = False):
         """
         Save an xarray Dataset as a NetCDF file with a generated filename.
 
@@ -227,6 +224,7 @@ class OutputSaver:
             rebuild (bool, optional): Whether to rebuild the output file if it already exists. Defaults to True.
             extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
             metadata (dict, optional): Additional metadata to include in the NetCDF file.
+            create_catalog_entry (bool, optional): Whether to create a catalog entry for the NetCDF file. Defaults to False.
         """
 
         filepath = self._core_save(
@@ -253,16 +251,8 @@ class OutputSaver:
         dataset.to_netcdf(filepath)
 
         # create catalog entry for netcdf file
-        if self.create_catalog_entry:
+        if create_catalog_entry:
             _cat = self._create_catalog_entry(metadata=metadata, filepath=filepath)
-
-        self.logger.info("Saved NetCDF: %s", filepath)
-        return filepath
-    
-    def generate_folder(self, extension: str = 'pdf'):
-        """
-        Generate a folder for saving output files based on the specified format.
-        """        
 
         self.logger.info("Saved NetCDF: %s", filepath)
         return filepath
@@ -385,11 +375,17 @@ class OutputSaver:
         metadata = update_metadata(base_metadata, metadata)
         return metadata
 
-    
+
     def _create_catalog_entry(self, metadata, filepath):
         """
         Creates an entry in the catalog
+
+        Args:
+            metadata (dict): Metadata dictionary containing information about the diagnostic.
+            filepath (str): The file path where the data is stored.
+
         """
+
         configpath = ConfigPath(catalog=self.catalog)
         configdir = configpath.configdir
         # find the catalog of the experiment and load it
@@ -398,7 +394,7 @@ class OutputSaver:
         # Remove None values
         urlpath = self.replace_intake_vars(catalog=self.catalog, path=filepath) 
         
-        source_grid_name = 'null'
+        source_grid_name = False
         entry_name = f'aqua-{self.diagnostic}'
         if entry_name in cat_file['sources']:
             catblock = cat_file['sources'][entry_name]
@@ -426,8 +422,6 @@ class OutputSaver:
             if driver == 'netcdf':
                 catblock['args']['xarray_kwargs'] = {
                     'decode_times': True,
-                    #'combine': 'by_coords'
-                    #'combine': nested
                 }
         # These variables are replaced from the url as {{ variable }}    
         for key in ['diagnostic', 'diagnostic_product', 'var', 'freq', 'catalog', 'model', 'std', 'mean', 'exp', 'realization', 'region']:
@@ -437,7 +431,7 @@ class OutputSaver:
     
         cat_file['sources'][entry_name] = catblock
 
-        # dump the update file 
+        # dump the update file
         dump_yaml(outfile=catalogfile, cfg=cat_file)
         return catblock # using this in the tests
 
