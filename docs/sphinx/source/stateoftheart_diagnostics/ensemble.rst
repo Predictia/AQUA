@@ -54,7 +54,7 @@ In order to use the `Ensemble` module, a pre-processing step is required. To loa
 .. code-block:: python
    
    import glob
-   from  aqua.diagnostics.ensemble.util import retrieve_merge_ensemble_data
+   from  aqua.diagnostics import retrieve_merge_ensemble_data
    
    file_list = glob.glob('/work/ab0995/a270260/pre_computed_aqua_analysis/*/historical-1990/atmglobalmean/netcdf/atmglobalmean.statistics_maps.2t.*_historical-1990.nc')
    file_list.sort()
@@ -110,19 +110,19 @@ Ensemble module provides output plots as PDF and PNG.
     :align: center
     :width: 100%
     
-    Ensemble of global monthly and annual timeseries and compared with ERA5 global monthly and annual average.
+    Ensemble of multi-model global monthly and annual timeseries and compared with ERA5 global monthly and annual average. Models considered as IFS-NEMO and IFS-FESM.
 
 .. figure:: figures/2t_LatLon_mean.png
     :align: center
     :width: 100%
     
-    Ensemble mean of the global mean of 2-meter temperature.
+    Ensemble mean of multi-model of global mean of 2-meter temperature. Models considered as IFS-NEMO and IFS-FESM.  
 
 .. figure:: figures/2t_LatLon_STD.png
     :align: center
     :width: 100%
     
-    Ensemble standard devation of the global mean of 2-meter temperature.
+    Ensemble standard devation of multi-model of the global mean of 2-meter temperature. Models considered as IFS-NEMO and IFS-FESM.
 
 .. figure:: figures/avg_so_LevLon_mean.png
     :align: center

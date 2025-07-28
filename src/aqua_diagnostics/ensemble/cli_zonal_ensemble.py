@@ -13,7 +13,7 @@ from aqua.version import __version__ as aqua_version
 from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_cluster
 from aqua.diagnostics.core import load_diagnostic_config, merge_config_args
 
-from aqua.diagnostics.ensemble.util import retrieve_merge_ensemble_data
+from aqua.diagnostics import retrieve_merge_ensemble_data
 from aqua.diagnostics import EnsembleZonal
 from aqua.diagnostics import PlotEnsembleZonal
 

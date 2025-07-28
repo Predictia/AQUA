@@ -6,6 +6,7 @@ from .ensembleLatLon import EnsembleLatLon
 from .plot_ensemble_latlon import PlotEnsembleLatLon
 from .ensembleZonal import EnsembleZonal
 from .plot_ensemble_zonal import PlotEnsembleZonal
+from .util import retrieve_merge_ensemble_data
 
 __all__ = [
     "EnsembleTimeseries",
@@ -14,4 +15,5 @@ __all__ = [
     "PlotEnsembleTimeseries",
     "PlotEnsembleLatLon",
     "PlotEnsembleZonal",
+    "retrieve_merge_ensemble_data",
 ]
