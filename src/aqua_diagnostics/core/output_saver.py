@@ -10,8 +10,8 @@ import xarray as xr
 from matplotlib.figure import Figure
 from aqua.logger import log_configure, log_history
 from aqua.util import create_folder, add_pdf_metadata, add_png_metadata, update_metadata
-#from .catalog_util import Catalog_util
-from .util_catalog import create_catalog_entry
+from aqua.util import dump_yaml, load_yaml
+from aqua.util import ConfigPath
 
 DEFAULT_REALIZATION = 'r1'  # Default realization if not specified
 
@@ -26,7 +26,7 @@ class OutputSaver:
                  catalog: Optional[Union[str, list]] = None, model: Optional[Union[str, list]] = None, 
                  exp: Optional[Union[str, list]] = None, realization: Optional[Union[str, list]] = None,
                  catalog_ref: Optional[Union[str, list]] = None, model_ref: Optional[Union[str, list]] = None, 
-                 exp_ref: Optional[Union[str, list]] = None,
+                 exp_ref: Optional[Union[str, list]] = None, create_catalog_entry: bool = True,
                  outdir: str = '.', loglevel: str = 'WARNING'):
         """
         Initialize the OutputSaver with diagnostic parameters and output directory.
@@ -77,6 +77,7 @@ class OutputSaver:
         })
 
         self.outdir = outdir
+        self.create_catalog_entry = create_catalog_entry
 
     @staticmethod
     def _format_realization(realization: Optional[Union[str, int, list]]) -> Union[str, list]:
@@ -184,29 +185,14 @@ class OutputSaver:
         # Add additional filename keys if provided
         if extra_keys:
             parts_dict.update(extra_keys)
-
+       
         # Remove None values
         parts = [str(value) for value in parts_dict.values() if value is not None]
-        
-        #cat_block = create_catalog_entry(parts_dict=parts_dict, outdir=self.outdir)
-        cat_block = create_catalog_entry(parts_dict=parts_dict)
-        # create catalog entry 
-        #cat_entry = Catalog_util(
-        #    diagnostic_name=self.diagnostic_name,
-        #    diagnostic_product=self.diagnostic_product,
-        #    catalog=self.catalog,
-        #    model=self.model,
-        #    exp=self.model,
-        #    realization=self.realization,
-        #    extra_keys=self.extra_keys,
-        #    parts_dict=parts_dict,
-        #    basedir=self.outdir,
-        #)
-        #cat_entry.create_catalog_entry()
 
         # Join all parts
         filename = '.'.join(parts)
 
+        self.logger.debug("Generated filename: %s", filename)
         self.logger.debug("Generated filename: %s", filename)
         return filename
 
@@ -246,6 +232,7 @@ class OutputSaver:
 
         if not rebuild and os.path.exists(filepath):
             self.logger.info("File already exists and rebuild=False, skipping: %s", filepath)
+            self.logger.info("File already exists and rebuild=False, skipping: %s", filepath)
             return filepath
 
         metadata = self.create_metadata(
@@ -262,9 +249,37 @@ class OutputSaver:
 
         dataset.to_netcdf(filepath)
 
-        self.logger.info("Saved NetCDF %s", filepath)
-        return filepath
+        # create catalog entry for netcdf file
+        if self.create_catalog_entry:
+            _cat = self._create_catalog_entry(metadata=metadata, filepath=filepath)
 
+        self.logger.info("Saved NetCDF: %s", filepath)
+        return filepath
+    
+    def generate_folder(self, extension: str = 'pdf'):
+        """
+        Generate a folder for saving output files based on the specified format.
+
+        Args:
+            extension (str): The extension of the output files (e.g., 'pdf', 'png', 'netcdf').
+        
+        Returns:
+            str: The path to the generated folder.
+        """
+        folder = os.path.join(self.outdir, extension)
+        create_folder(folder=str(folder), loglevel=self.loglevel)
+        return folder
+    
+    def generate_path(self, extension: str, diagnostic_product: str,
+                      extra_keys: dict = None) -> str:
+        """
+        Generate a full file path for saving output files based on the provided parameters.
+        Simplified wrapper around `generate_name` and `generate_folder` to include the output directory.
+        """
+        filename = self.generate_name(diagnostic_product=diagnostic_product,
+                                       extra_keys=extra_keys)
+        folder = self.generate_folder(extension=extension) 
+        return os.path.join(folder, filename + '.' + extension)
 
     def _save_figure(self, fig: Figure, diagnostic_product: str, file_format: str,
                      rebuild: bool = True, extra_keys: Optional[dict] = None, metadata: Optional[dict] = None,
@@ -358,3 +373,138 @@ class OutputSaver:
             metadata = {}
         metadata = update_metadata(base_metadata, metadata)
         return metadata
+
+    
+    def _create_catalog_entry(self, metadata, filepath):
+        """
+        Creates an entry in the catalog
+        """
+        configpath = ConfigPath(catalog=self.catalog)
+        configdir = configpath.configdir
+        # find the catalog of the experiment and load it
+        catalogfile = os.path.join(configdir, 'catalogs', self.catalog, 'catalog', self.model, self.exp + '.yaml')
+        cat_file = load_yaml(catalogfile)
+        # Remove None values
+        urlpath = self.replace_intake_vars(catalog=self.catalog, path=filepath) 
+        
+        source_grid_name = 'null'
+        entry_name = f'aqua-{self.diagnostic}'
+        if entry_name in cat_file['sources']:
+            catblock = cat_file['sources'][entry_name]
+        else:
+            catblock = None
+
+        driver = 'netcdf'
+        if catblock is None:
+            # if the entry is not there, define the block to be uploaded into the catalog
+            catblock = {
+                'driver': driver,
+                'description': f'AQUA {driver} data',
+                'args': {
+                    'urlpath': urlpath,
+                    'chunks': {},
+                },
+                'metadata': {
+                    'source_grid_name': source_grid_name,
+                }
+            }
+        else:
+            # if the entry is there, we just update the urlpath
+            catblock['args']['urlpath'] = urlpath
+
+            if driver == 'netcdf':
+                catblock['args']['xarray_kwargs'] = {
+                    'decode_times': True,
+                    #'combine': 'by_coords'
+                    #'combine': nested
+                }
+        # These variables are replaced from the url as {{ variable }}    
+        for key in ['diagnostic', 'diagnostic_product', 'var', 'freq', 'catalog', 'model', 'std', 'mean', 'exp', 'realization', 'region']:
+            value = metadata[key] if key in metadata else None
+            if value is not None:
+                catblock = self.replace_urlpath_jinja(catblock, value, key, self.diagnostic)
+    
+        cat_file['sources'][entry_name] = catblock
+
+        # dump the update file 
+        dump_yaml(outfile=catalogfile, cfg=cat_file)
+        return catblock # using this in the tests
+
+    @staticmethod
+    def replace_urlpath_jinja(block, value, name, diagnostic):
+        """
+        Replace the urlpath in the catalog entry with the given jinja parameter and
+        add the parameter to the parameters block
+
+        Args:
+            block (dict): The catalog entry generated by `catalog_entry_details' to be updated
+            value (str): The value to replace in the urlpath (e.g., 'r1', 'global', 'mean')
+            name (str): The name of the parameter to add to the parameters block
+                        and to be used in the urlpath (e.g., 'realization', 'region', 'stat')
+        """
+        if not value:
+            return block
+
+        # this conditional is a bit tricky but is made to ensure that the right value is replaced
+        if name == 'diagnostic':
+             block['args']['urlpath'] = block['args']['urlpath'].replace(
+                 value + '.',  "{{" + name + "}}" + '.')
+        if 'parameters' not in block:
+            block['parameters'] = {}
+        if name not in block['parameters']:
+            block['parameters'][name] = {}
+            block['parameters'][name]['description'] = f"Parameter {name} for the {diagnostic}"
+            block['parameters'][name]['default'] = value
+            block['parameters'][name]['type'] = 'str'
+            block['parameters'][name]['allowed'] = [value]
+        else:
+            if value not in block['parameters'][name]['allowed']:
+                block['parameters'][name]['allowed'].append(value)
+
+        # this loop is a bit tricky but is made to ensure that the right value is replaced
+        for character in ['_', '/', '.']:
+            block['args']['urlpath'] = block['args']['urlpath'].replace(
+                character + value + character, character + "{{" + name + "}}" + character)
+        if 'parameters' not in block:
+            block['parameters'] = {}
+        if name not in block['parameters']:
+            block['parameters'][name] = {}
+            block['parameters'][name]['description'] = f"Parameter {name} for the {diagnostic}"
+            block['parameters'][name]['default'] = value
+            block['parameters'][name]['type'] = 'str'
+            block['parameters'][name]['allowed'] = [value]
+        else:
+            if value not in block['parameters'][name]['allowed']:
+                block['parameters'][name]['allowed'].append(value)
+
+        return block
+
+    @staticmethod
+    def get_urlpath(block):
+        """
+        Get the urlpath for the catalog entry
+        """
+        return block['args']['urlpath']
+
+    @staticmethod
+    def replace_intake_vars(path, catalog=None):
+        """
+        Replace the intake jinja vars into a string for a predefined catalog
+
+        Args:
+            catalog:  the catalog name where the intake vars must be read
+            path: the original path that you want to update with the intake variables
+        """
+
+        # We exploit of configurerto get info on intake_vars so that we can replace them in the urlpath
+        Configurer = ConfigPath(catalog=catalog)
+        _, intake_vars = Configurer.get_machine_info()
+        
+        # loop on available intake_vars, replace them in the urlpath
+        for name in intake_vars.keys():
+            replacepath = intake_vars[name]
+            if replacepath is not None and replacepath in path:
+                # quotes used to ensure that then you can read the source
+                path = path.replace(replacepath, "{{ " + name + " }}")
+
+        return path
