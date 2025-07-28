@@ -68,10 +68,23 @@ def ensure_istype(obj, expected_types, logger=None):
         expected_names_type = expected_types.__name__
 
     if not isinstance(obj, expected_types):
-        errmsg = f"Expected type {expected_names_type}, but got {type(obj).__name__}."
-        if logger:
-            logger.error(errmsg)
-        raise ValueError(errmsg)
+        raise ValueError(f"Expected type {expected_names_type}, but got {type(obj).__name__}.")
+
+def ensure_list(datain):
+    """ Ensure the input is returned as a list of xarray objects.
+
+    Args:
+        datain (xr.Dataset | xr.DataArray | list | tuple): Input data.
+
+    Returns:
+        list: A list containing the input data or the input itself if already a list/tuple.
+    """
+    if isinstance(datain, (xr.Dataset, xr.DataArray)):
+        return [datain]
+    elif isinstance(datain, (list, tuple)):
+        return datain
+    else:
+        raise TypeError(f"Input must be a Dataset, DataArray, list, or tuple, got {type(datain)}.")
 
 def extract_dates(data):
     return (data.attrs.get('AQUA_startdate', 'No startdate found'),
@@ -79,9 +92,9 @@ def extract_dates(data):
 
 def strlist_to_phrase(items: list[str]) -> str:
     """ Convert a list of str to a english-consistent list.
-       ['A'] will return 'A'
-       ['A','B'] will return 'A and B'
-       ['A','B','C'] will return 'A, B, and C'
+       ['A'] will return "A"
+       ['A','B'] will return "A and B"
+       ['A','B','C'] will return "A, B, and C"
     """
     if not items:
         return ""

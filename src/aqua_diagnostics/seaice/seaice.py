@@ -230,10 +230,8 @@ class SeaIce(Diagnostic):
 
             masked_data_region = self._select_region(masked_data, region=region, diagnostic='seaice').get('data')
 
-            if self.method == 'fraction':
+            if self.method in ['fraction','thickness']:
                 seaice_2d_result = self._calc_time_stat(masked_data_region, stat, freq)
-            elif self.method == 'thickness':
-                seaice_2d_result = self._calc_thickness_NOEXIST(masked_data_region, stat, freq)
             else:
                 raise ValueError(f"Method '{self.method}' is not supported for 2D computation.")
 
@@ -465,7 +463,7 @@ class SeaIce(Diagnostic):
         # set attributes: 'method','unit'   
         units_dict = {"extent": "million km^2",
                       "volume": "thousands km^3",
-                      "fraction": "",
+                      "fraction": "[0-1]",
                       "thickness": "m"}
 
         if self.method not in units_dict:
@@ -474,7 +472,8 @@ class SeaIce(Diagnostic):
             da_seaice_computed.attrs["units"] = units_dict.get(self.method)
 
         da_seaice_computed.attrs["long_name"] = (f"{'Std ' if std_flag else ''}Sea ice {self.method} "
-                                                 f"{'integrated ' if self.method in ['extent', 'volume'] else ''}over: {region}")
+                                                 f"{'integrated ' if self.method in ['extent', 'volume'] else ''}"
+                                                 f"over {da_seaice_computed.attrs["AQUA_region"]}")
         da_seaice_computed.attrs["standard_name"] = f"{region}_{'std_' if std_flag else ''}sea_ice_{self.method}"
         da_seaice_computed.attrs["AQUA_method"] = f"{self.method}"
         if startdate is not None: da_seaice_computed.attrs["AQUA_startdate"] = f"{startdate}"
