@@ -241,8 +241,8 @@ class PlotLatLonProfiles():
         return plot_lat_lon_profiles(
             data=self.data,
             ref_data=self.ref_data,
-            std_data=self.std_data,  # NUOVO
-            ref_std_data=self.ref_std_data,  # NUOVO
+            std_data=self.std_data,
+            ref_std_data=self.ref_std_data,
             data_labels=data_labels,
             ref_label=ref_label,
             title=title,
@@ -269,6 +269,8 @@ class PlotLatLonProfiles():
         return plot_lat_lon_profiles(
             data=self.data,
             ref_data=self.ref_data,
+            std_data=self.std_data,
+            ref_std_data=self.ref_std_data,
             data_labels=data_labels,
             ref_label=ref_label,
             title=title,
@@ -399,7 +401,9 @@ class PlotLatLonProfiles():
             dpi: int = 300, 
             format: str = 'png', 
             plot_type: str = 'standard',
-            plot_std: bool = False):
+            plot_std: bool = False,
+            std_maps: list = None,
+            ref_std_maps: list = None):
         """
         Run the PlotLatLonProfiles class.
 
@@ -422,7 +426,10 @@ class PlotLatLonProfiles():
             title = self.set_title(region=region, var=var, units=units)
             
             # Call the updated seasonal plot function with only 4 seasons
-            fig, axs = self.plot_seasonal_lines(data_labels=data_labels, title=title)
+            fig, axs = self.plot_seasonal_lines(data_labels=data_labels, 
+                                                title=title, 
+                                                std_maps=std_maps, 
+                                                ref_std_maps=ref_std_maps)
             
             # Save the plot
             region_short = region.replace(' ', '').lower() if region is not None else None
@@ -449,7 +456,12 @@ class PlotLatLonProfiles():
         
         self.logger.info('PlotLatLonProfiles completed successfully')
 
-    def plot_seasonal_lines(self, data_labels=None, title=None, style=None):
+    def plot_seasonal_lines(self, 
+                            data_labels=None, 
+                            title=None, 
+                            style=None,
+                            std_maps=None, 
+                            ref_std_maps=None):
         """
         Plot seasonal means using plot_seasonal_data.
         Creates a 4-panel plot with DJF, MAM, JJA, SON only (no annual).
@@ -473,7 +485,8 @@ class PlotLatLonProfiles():
         return plot_seasonal_data(
             maps=seasonal_data_only,
             ref_maps=seasonal_ref_only,
-            std_maps=seasonal_std_only,
+            std_maps=std_maps if std_maps else seasonal_std_only,
+            ref_std_maps=ref_std_maps,
             data_labels=data_labels,
             title=title,
             style=style,
