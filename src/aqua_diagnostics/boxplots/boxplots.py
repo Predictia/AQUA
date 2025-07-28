@@ -47,11 +47,9 @@ class Boxplots(Diagnostic):
             NoDataError: If variable not found in dataset.
             KeyError: If the variable is missing from the data.
         """
-         
+
         if var is not None:
-            self.var = [v.lstrip('-') for v in (var if isinstance(var, list) else [var])] # Ensure var is a list
-        if units is not None:
-            units = [units] if isinstance(units, str) else units 
+            self.var = [v.lstrip('-') for v in (var if isinstance(var, list) else [var])]
 
         super().retrieve(var=self.var)
 
@@ -64,14 +62,16 @@ class Boxplots(Diagnostic):
 
         self.save_netcdf = save_netcdf or self.save_netcdf
 
-        for i, var_name in enumerate(self.var):
-            units_attr = self.data[var_name].attrs.get('units')
-            if units_attr:
-                if units:
-                    self.data[var_name] =  super()._check_data(data=self.data[var_name], var=var_name, units=units[i])
-                if units_attr and "m-2" in units_attr:   ##TO CHECK FIXER BEHAVIOUR!
-                    corrected_units = units_attr.replace("m-2", "m**-2")
-                    self.data[var_name].attrs['units'] = corrected_units
+        # Unit check and conversion
+        if units:
+            units = [units] if isinstance(units, str) else units
+            if len(units) != len(self.var):
+                raise ValueError(f"Length of 'units' ({len(units)}) must match number of variables ({len(self.var)})")
+
+            for var_name, target_unit in zip(self.var, units):
+                current_units = self.data[var_name].attrs.get('units')
+                if current_units:
+                    self.data[var_name] = super()._check_data(data=var_data, var=var_name, units=target_unit)
 
         # Compute field means
         fldmeans = {}
