@@ -541,3 +541,10 @@ def healpix_resample(
     result = xr.DataArray(res, coords=[("lat", yvals), ("lon", xvals)])
     result.attrs = getattr(var, "attrs", {}).copy()
     return result
+
+def find_spatial_coord(data: xr.DataArray):
+    """Find spatial coordinate in data, preferring latitude over longitude."""
+    coord_name = next((c for c in data.coords if c in ['lat', 'latitude']), None)
+    if coord_name is None:
+        coord_name = next((c for c in data.coords if c in ['lon', 'longitude']), None)
+    return coord_name

@@ -2,13 +2,12 @@ import xarray as xr
 import matplotlib.pyplot as plt
 
 from aqua.logger import log_configure
-from aqua.util import to_list
-from .util_timeseries import plot_timeseries_data
+from aqua.util import to_list, find_spatial_coord
 from .styles import ConfigStyle
 
-def plot_lat_lon_profiles(data: xr.DataArray = None,
+def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray] | None = None,
                           ref_data: xr.DataArray = None,
-                          std_data: xr.DataArray = None,
+                          std_data: xr.DataArray | list[xr.DataArray] | None = None,
                           ref_std_data: xr.DataArray = None,
                           data_labels: list = None,
                           ref_label: str = None,
@@ -21,9 +20,12 @@ def plot_lat_lon_profiles(data: xr.DataArray = None,
     Plot latitude or longitude profiles of data, averaging over the specified axis.
 
     Args:
-        data (xr.DataArray or list): Data to plot.
+        data (xr.DataArray | list[xr.DataArray] | None): Data to plot. Must be xarray DataArrays 
+            with 'lat', 'lon', 'latitude', or 'longitude' dimensions. Can be a single DataArray 
+            or a list of DataArrays.
         ref_data (xr.DataArray, optional): Reference data to plot.
-        std_data (xr.DataArray or list, optional): Standard deviation of the main data.
+        std_data (xr.DataArray | list[xr.DataArray] | None, optional): Standard deviation 
+            of the data.
         ref_std_data (xr.DataArray, optional): Standard deviation of the reference data.
         data_labels (list, optional): Labels for the data.
         ref_label (str, optional): Label for the reference data.
@@ -39,150 +41,119 @@ def plot_lat_lon_profiles(data: xr.DataArray = None,
 
     logger = log_configure(loglevel, 'plot_lat_lon_profiles')
     ConfigStyle(style=style, loglevel=loglevel)
-
-    # Handle the input data - convert to list safely
-    if data is None:
-        raise ValueError("No data provided for plotting")
     
     # Convert data to list, handling both single DataArrays and lists
-    if isinstance(data, list):
-        data_list = data
-    else:
-        data_list = [data]
-    
-    # Validate that we have actual data
-    if not data_list or len(data_list) == 0:
-        raise ValueError("No data provided for plotting")
-    
-    # Validate each data array
-    valid_data_list = []
+    data_list = to_list(data)
+    """
+    # Validate main data
     for i, d in enumerate(data_list):
-        if d is None:
-            logger.warning(f"Data array {i} is None, skipping")
-            continue
-        if not isinstance(d, xr.DataArray):
-            logger.warning(f"Data array {i} is not an xarray DataArray, skipping")
-            continue
-        if d.size == 0:
-            logger.warning(f"Data array {i} is empty, skipping")
-            continue
-        # Check if data has spatial dimensions for profiling
-        if not any(dim in d.dims for dim in ['lat', 'lon', 'latitude', 'longitude']):
-            logger.warning(f"Data array {i} has no spatial dimensions (lat/lon), skipping")
-            continue
-        valid_data_list.append(d)
+        validate_spatial_data(d, f"data[{i}]")
     
-    if not valid_data_list:
-        raise ValueError("No valid data arrays found for plotting")
+    # Validate reference data if provided
+    if ref_data is not None:
+        validate_spatial_data(ref_data, "ref_data")
     
-    data_list = valid_data_list
-    
+    # Validate std data if provided  
+    if std_data is not None:
+        std_data_list = to_list(std_data)
+        for i, std_d in enumerate(std_data_list):
+            if std_d is not None:
+                validate_spatial_data(std_d, f"std_data[{i}]")
+    """
     # Handle labels
-    if data_labels is None or len(data_labels) < len(data_list):
-        labels_list = [
-            d.attrs.get("long_name", f"Data {i+1}") for i, d in enumerate(data_list)
-        ]
+    if data_labels is None:
+        labels_list = []
+        for i, d in enumerate(data_list):
+            # AQUA-specific attributes first
+            if 'AQUA_model' in d.attrs:
+                model = d.attrs['AQUA_model']
+                exp = d.attrs.get('AQUA_exp', '')
+                label = f"{model} {exp}".strip() if exp else model
+            else:
+                # Fall back to standard attributes
+                label = d.attrs.get("long_name", f"Data {i+1}")
+            labels_list.append(label)
+    elif len(data_labels) == len(data_list):
+        labels_list = data_labels
     else:
-        labels_list = data_labels[:len(data_list)]
+        raise ValueError(f"data_labels length ({len(data_labels)}) must match data length ({len(data_list)})")
 
     # Create figure if needed
-    if fig is None and ax is None:
+    if fig is None:
         fig_size = kwargs.get('figsize', (10, 5))
-        fig, ax = plt.subplots(1, 1, figsize=fig_size)
+        fig = plt.figure(figsize=fig_size)
+    if ax is None:
+        ax = fig.add_subplot(1, 1, 1)
 
     logger.debug(f"Plotting {len(data_list)} data arrays")
 
-    # Plot main data using direct matplotlib instead of plot_timeseries_data
+    # Plot
     for i, d in enumerate(data_list):
-        if 'lat' in d.dims:
-            x_coord = d.lat.values
-            x_label = 'Latitude'
-        elif 'lon' in d.dims:
-            x_coord = d.lon.values  
-            x_label = 'Longitude'
-        else:
-            logger.warning(f"Data {i} has no lat/lon dimension, skipping")
+        # Determine coordinate name based on 'lat' or 'lon' - FIX: add None default
+        coord_name = find_spatial_coord(d)
+        if coord_name is None:
+            logger.warning(f"Data {i} has no spatial coordinates, skipping")
             continue
             
-        label = labels_list[i] if i < len(labels_list) else f"Data {i+1}"
+        x_coord = d[coord_name].values
+        label = labels_list[i]
         ax.plot(x_coord, d.values, label=label, linewidth=3)
-    
+
     # Plot standard deviation for main data
     if std_data is not None:
-        if isinstance(std_data, list):
-            std_data_list = std_data
-        else:
-            std_data_list = [std_data]
-        
+        std_data_list = to_list(std_data)
         for i, (d, std_d) in enumerate(zip(data_list, std_data_list)):
-            if std_d is not None and std_d.size > 0:
-                try:
-                    if 'lat' in d.dims:
-                        x_coord = d.lat.values
-                    elif 'lon' in d.dims:
-                        x_coord = d.lon.values
-                    else:
-                        continue
-                    
-                    # Get the color of the corresponding line
-                    line_color = ax.lines[i].get_color()
-                    
-                    # Plot fill_between for 2*std
-                    ax.fill_between(x_coord,
-                                d.values - 2.*std_d.values,
-                                d.values + 2.*std_d.values,
-                                facecolor=line_color, 
-                                alpha=0.3)
-                except Exception as e:
-                    logger.warning(f"Failed to plot std for data {i}: {e}")
-    
-    # Handle reference data with std
+            if std_d is not None:
+                coord_name = find_spatial_coord(d)
+                if coord_name is None:
+                    continue
+
+                x_coord = d[coord_name].values
+                line_color = ax.lines[i].get_color()
+                ax.fill_between(x_coord,
+                            d.values - 2.*std_d.values,
+                            d.values + 2.*std_d.values,
+                            facecolor=line_color, alpha=0.3)
+
+    # Handle reference data
     if ref_data is not None:
-        if isinstance(ref_data, xr.DataArray) and ref_data.size > 0:
-            if any(dim in ref_data.dims for dim in ['lat', 'lon', 'latitude', 'longitude']):
-                ref_label_final = ref_label if ref_label is not None else "Reference"
-                
-                try:
-                    if 'lat' in ref_data.dims:
-                        ref_x_coord = ref_data.lat.values
-                    elif 'lon' in ref_data.dims:
-                        ref_x_coord = ref_data.lon.values
-                    else:
-                        ref_x_coord = None
-                        
-                    if ref_x_coord is not None:
-                        # Plot reference data
-                        ax.plot(ref_x_coord, ref_data.values, 
-                            label=ref_label_final, 
-                            color='black',
-                            linestyle='-',
-                            linewidth=3,
-                            alpha=1.0)
-                        
-                        # Plot reference std if available
-                        if ref_std_data is not None and ref_std_data.size > 0:
-                            ax.fill_between(ref_x_coord,
-                                        ref_data.values - 2.*ref_std_data.values,
-                                        ref_data.values + 2.*ref_std_data.values,
-                                        facecolor='grey', 
-                                        alpha=0.5)
-                        
-                except Exception as e:
-                    logger.warning(f"Failed to plot reference data: {e}")
-            else:
-                logger.warning("Reference data has no spatial dimensions, skipping")
+        # AQUA-specific label extraction
+        if 'AQUA_model' in ref_data.attrs:
+            model = ref_data.attrs['AQUA_model']
+            exp = ref_data.attrs.get('AQUA_exp', '')
+            ref_label_final = ref_label or (f"{model} {exp}".strip() if exp else model)
         else:
-            logger.warning("Reference data is invalid or empty, skipping")
+            ref_label_final = ref_label or ref_data.attrs.get("long_name", "Reference")
+        
+        # Find coordinate for ref_data
+        coord_name = find_spatial_coord(ref_data)
+        
+        if coord_name is not None:
+            ref_x_coord = ref_data[coord_name].values
+            
+            # Plot reference data
+            ax.plot(ref_x_coord, ref_data.values, 
+                label=ref_label_final, 
+                color='black', linestyle='-', linewidth=3, alpha=1.0)
+            
+            # Plot reference std if available
+            if ref_std_data is not None:
+                ax.fill_between(ref_x_coord,
+                            ref_data.values - 2.*ref_std_data.values,
+                            ref_data.values + 2.*ref_std_data.values,
+                            facecolor='grey', alpha=0.5)
 
     # Finalize plot
     ax.legend(fontsize='small')
     ax.grid(True, axis="y", linestyle='-', color='silver', alpha=0.8)
-    
-    # Set x-label based on the dimension
+
+    # Set x-label based on the first valid coordinate found
     first_data = data_list[0]
-    if 'lat' in first_data.dims:
+    coord_name = find_spatial_coord(first_data)
+
+    if coord_name and 'lat' in coord_name:
         ax.set_xlabel('Latitude')
-    elif 'lon' in first_data.dims:
+    elif coord_name and 'lon' in coord_name:
         ax.set_xlabel('Longitude')
 
     title = kwargs.get('title', None)
