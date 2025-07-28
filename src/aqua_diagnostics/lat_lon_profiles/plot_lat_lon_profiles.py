@@ -310,12 +310,11 @@ class PlotLatLonProfiles():
             diagnostic = 'lat_lon_profiles'
 
         outputsaver = OutputSaver(diagnostic='lat_lon_profiles',
-                                catalog=catalog,
-                                model=model,
-                                exp=exp,
-                                outdir=outputdir,
-                                rebuild=rebuild,
-                                loglevel=self.loglevel)
+                                  catalog=catalog,
+                                  model=model,
+                                  exp=exp,
+                                  outdir=outputdir,
+                                  loglevel=self.loglevel)
 
         metadata = {"Description": description, "dpi": dpi }
         extra_keys = {'diagnostic_product': diagnostic}
