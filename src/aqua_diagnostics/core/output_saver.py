@@ -262,6 +262,14 @@ class OutputSaver:
     def generate_folder(self, extension: str = 'pdf'):
         """
         Generate a folder for saving output files based on the specified format.
+        """        
+
+        self.logger.info("Saved NetCDF: %s", filepath)
+        return filepath
+    
+    def generate_folder(self, extension: str = 'pdf'):
+        """
+        Generate a folder for saving output files based on the specified format.
 
         Args:
             extension (str): The extension of the output files (e.g., 'pdf', 'png', 'netcdf').
