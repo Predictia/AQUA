@@ -22,7 +22,7 @@ from .styles import ConfigStyle
 
 def plot_single_map(data: xr.DataArray,
                     contour=True, sym=False,
-                    proj: ccrs.Projection = ccrs.Robinson(),
+                    proj: ccrs.Projection = ccrs.Robinson(), gridlines=False,
                     extent=None, coastlines=True,
                     style=None, figsize=(11, 8.5), nlevels=11,
                     vmin=None, vmax=None, cmap='RdBu_r',
@@ -164,11 +164,17 @@ def plot_single_map(data: xr.DataArray,
         nyticks = kwargs.get('nyticks', 7)
         ticks_rounding = kwargs.get('ticks_rounding', None)
         if ticks_rounding:
-            logger.debug("Setting ticks rounding to %s", ticks_rounding)
+            logger.debug(f"Setting ticks rounding to {ticks_rounding}")
 
         fig, ax = set_ticks(data=data, fig=fig, ax=ax, nticks=(nxticks, nyticks),
                             ticks_rounding=ticks_rounding, lon_name=lon_name,
                             lat_name=lat_name, proj=proj, loglevel=loglevel)
+    else:
+        if gridlines:
+            gl = ax.gridlines(draw_labels=True, color='none')  # invisible lines
+            gl.xlabels_top = False
+            gl.ylabels_right = False
+            draw_manual_gridlines(ax=ax, lon_interval=30, lat_interval=30, zorder=50)
 
     if cbar:
         # Adjust the location of the subplots on the page to make room for the colorbar
@@ -208,6 +214,40 @@ def plot_single_map(data: xr.DataArray,
         logger.debug("Returning figure and axes")
         return fig, ax
 
+def draw_manual_gridlines(ax, lon_interval=30, lat_interval=30, 
+                          lon_range=(-180, 180), lat_range=(-90, 90),
+                          linestyle='--', color='gray', linewidth=1,
+                          alpha=0.5, zorder=50):
+    """
+    Draw manual gridlines over a Cartopy map using ax.plot, with full zorder control.
+
+    Args:
+        ax (GeoAxes): The Cartopy axis to draw on.
+        lon_interval (int): Interval for longitude lines (degrees).
+        lat_interval (int): Interval for latitude lines (degrees).
+        lon_range (tuple): Min/max longitudes to span.
+        lat_range (tuple): Min/max latitudes to span.
+        linestyle (str): Line style for gridlines.
+        color (str): Color of the gridlines.
+        linewidth (float): Width of the lines.
+        alpha (float): Opacity.
+        zorder (int): Z-order for rendering.
+    """
+    # Meridians (vertical lines)
+    lons = np.arange(lon_range[0], lon_range[1] + lon_interval, lon_interval)
+    lats = np.arange(lat_range[0], lat_range[1] + 1, 1)
+    for lon in lons:
+        ax.plot([lon] * len(lats), lats, transform=ccrs.PlateCarree(),
+                linestyle=linestyle, color=color, linewidth=linewidth,
+                alpha=alpha, zorder=zorder)
+
+    # Parallels (horizontal lines)
+    lats = np.arange(lat_range[0], lat_range[1] + lat_interval, lat_interval)
+    lons = np.arange(lon_range[0], lon_range[1] + 1, 1)
+    for lat in lats:
+        ax.plot(lons, [lat] * len(lons), transform=ccrs.PlateCarree(),
+                linestyle=linestyle, color=color, linewidth=linewidth,
+                alpha=alpha, zorder=zorder)
 
 def plot_single_map_diff(data: xr.DataArray, data_ref: xr.DataArray,
                          proj: ccrs.Projection = ccrs.Robinson(), extent: list = None,
