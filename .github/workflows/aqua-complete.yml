@@ -55,6 +55,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          path: AQUA
       # The FDB docker image does not have git and other dependencies
       - name: Install GH Actions dependencies
         run: |
@@ -72,6 +74,8 @@ jobs:
       - name: Clone GitLab data-portfolio repository
         run: |
           git clone https://oauth2:${{ secrets.BSC_GITLAB }}@earth.bsc.es/gitlab/digital-twins/de_340-2/data-portfolio data-portfolio
+          cd data-portfolio
+          git checkout tags/v2.0.0
       - name: List Workspace Contents
         run: |
           echo "Current Directory: $PWD"
@@ -80,7 +84,7 @@ jobs:
         uses: mamba-org/setup-micromamba@v2
         with:
           micromamba-version: 'latest'
-          environment-file: environment.yml 
+          environment-file: AQUA/environment.yml 
           environment-name: aqua
           cache-downloads: true
           cache-environment: false
@@ -105,13 +109,14 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=__init__.py
       - name: Download and set up tests
         run: |
+          cd AQUA
           ./download_data_for_tests.sh
       - name: Set up FDB
         run: |
           export
           # FDB for GSV
           rm -rf /app/
-          cp -r ./AQUA_tests/fdb/ /app/
+          cp -r ./AQUA/AQUA_tests/fdb/ /app/
           cat /app/etc/fdb/config.yaml
           mkdir -pv /app/localroot/
           cd /app/
@@ -149,5 +154,6 @@ jobs:
           EOF
       - name: Run tests
         run: |
+          cd AQUA
           # Produce the HTML report. Defaults to writing in htmlcov/index.html.
           pytest -m "aqua or slow or gsv or graphics or catgen or diagnostics"
