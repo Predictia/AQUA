@@ -5,18 +5,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ## [Unreleased]
 
-Unreleased in the current development version (target v0.17.0): 
+Unreleased in the current development version (target v0.18.0): 
+
+## [v0.17.0]
+
+Main changes are:
+1. Support for realizations for `aqua-analysis`, `aqua-push` and a set of diagnostics (Timeseries, Global Biases, Teleconnections, Ecmean)
+2. Support for data-portfolio v2.0.0
+3. LRA output tree refactored accomodating for realization, statistic and frequency
 
 Removed:
 -  removed Reader.info() method (#2076) 
 
+Workflow modifications:
+- `machine` and `author` are mandatory fields in the catalog generator config file.
+- Data portfolio required is v2.0.0, no API changes are involved in this change.
+- Add possibility to change the 'default' realization in Catalog Generator config file.
+- AQUA analysis can take a `--realization` option to enable the analysis of a specific realization.
+
 AQUA core complete list:
+- Introduce a tentative command to generate grids from sources, `aqua grids build` based on `GridBuilder` class (#2066)
+- Support for data-portfolio v2.0.0: updated catalog generator, pinned gsv to v2.12.0. Machine now required in config. (#2092)
+- Add possibility to change the 'default' realization in Catalog Generator config file (#2058) 
 - `aqua add <catalog>` option in the AQUA console can use GITHUB_TOKEN and GITHUB_USER environment variables to authenticate with GitHub API (#2081)
 - Added a `aqua update -c all` option in the AQUA console to update all the catalogs intalled from the Climate-DT repository (#2081)
 - `Reader` can filter kwargs so that a parameter not available in the intake source is removed and not passed to the intake driver (#2074)
 - Adapt catgen to changes in data-portfolio v1.3.2 (#2076)
 - Add `get_projection()` utility function for selection of Cartopy map projections (#2068)
-- `aqua-analysis.py` now supports a `--realization` option to enable the analysis of a specific realization (#2041)
+- Tools to push to dashboard support ensemble realizations (#2070)
+- `aqua-analysis.py` now supports a `--realization` option to enable the analysis of a specific realization (#2041, #2090)
 - Separate new histogram function in the framework (#2061)
 - Introducing `timsum()` method to compute cumulative sum (#2059)
 - `EvaluateFormula` class to replace the `eval_formula` function with extra provenance features (#2042)
@@ -31,6 +48,7 @@ AQUA core complete list:
 - `Trender()` class provide also coefficients and normalize them (#1991)
 
 AQUA diagnostics complete list:
+- Ocean Trends: Trends class to create trend data along with zonal trend, notebook and tests added. (#1990)
 - Global Biases: allow GlobalBias to take projection as argument (#2036)
 - ECmean: diagnostics refactored to use `OutputSaver` and new common configuration file (#2012)
 - ECmean: dependency to 0.1.15 (#2012)
@@ -1006,7 +1024,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.16.0...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.17.0...HEAD
+[v0.17.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.16.0...v0.17.0
 [v0.16.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.15.0...v0.16.0
 [v0.15.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.14.0...v0.15.0
 [v0.14.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.1...v0.14.0
