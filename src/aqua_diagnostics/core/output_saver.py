@@ -77,6 +77,9 @@ class OutputSaver:
         })
 
         self.outdir = outdir
+
+        # if need to create a catalog entry for netcdf output
+        # this will be used in save_netcdf function default is true
         self.create_catalog_entry = create_catalog_entry
 
     @staticmethod
