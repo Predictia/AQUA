@@ -165,10 +165,6 @@ class LatLonProfiles(Diagnostic):
                 center_time (bool): If True, the time will be centered.
                 box_brd (bool,opt): choose if coordinates are comprised or not in area selection. Default is True
                 """
-                if freq is None:
-                        self.logger.error('Frequency not provided')
-                        raise ValueError('Frequency not provided')
-
                 str_freq = self._str_freq(freq)
                 if str_freq is None:
                         return
@@ -298,7 +294,6 @@ class LatLonProfiles(Diagnostic):
                         diagnostic_product += f'.{str_freq}'
                         region = self.region.replace(' ', '').lower() if self.region is not None else None
                         diagnostic_product += f'.{region}' if region is not None else ''
-                        outdir
                         self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outdir)
                         super().save_netcdf(data=data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
                                         outdir=outdir, rebuild=rebuild)
@@ -420,7 +415,7 @@ class LatLonProfiles(Diagnostic):
 
         def run(self, var: str, formula: bool = False, long_name: str = None,
                 units: str = None, standard_name: str = None, std: bool = False,
-                freq: list = ['seasonal', 'annual'], extend: bool = True,
+                freq: list = ['seasonal', 'annual'],
                 exclude_incomplete: bool = True, center_time: bool = True,
                 box_brd: bool = True, outdir: str = './', rebuild: bool = True,
                 mean_type: str = None, timestep: str = None):
@@ -435,7 +430,6 @@ class LatLonProfiles(Diagnostic):
                         standard_name (str): The standard name of the variable.
                         std (bool): Whether to compute the standard deviation.
                         freq (list): The frequencies to compute ('seasonal', 'annual').
-                        extend (bool): Whether to extend the time dimension.
                         exclude_incomplete (bool): Whether to exclude incomplete time periods.
                         center_time (bool): Whether to center the time coordinate.
                         box_brd (bool): Whether to include the box boundaries.
@@ -449,7 +443,7 @@ class LatLonProfiles(Diagnostic):
                 
                 # Retrieve the data
                 self.retrieve(var=var, formula=formula, long_name=long_name, 
-                                units=units, standard_name=standard_name)
+                              units=units, standard_name=standard_name)
                 
                 # Set mean_type if provided
                 if mean_type is not None:
