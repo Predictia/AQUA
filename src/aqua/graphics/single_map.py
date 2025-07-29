@@ -123,39 +123,31 @@ def plot_single_map(data: xr.DataArray,
         contour = False  # Disable contour if map is zero
 
     # Plot the data
+    common_plot_kwargs = {
+        "transform": ccrs.PlateCarree(),
+        "cmap": cmap,
+        "norm": norm,
+        "vmin": vmin if norm is None else None,
+        "vmax": vmax if norm is None else None,
+        "add_colorbar": False
+    }
     if contour:
         try:
             cs = data.plot.contourf(ax=ax,
-                                    transform=ccrs.PlateCarree(),
-                                    cmap=cmap, norm=norm,
-                                    vmin=vmin, vmax=vmax,
+                                    **common_plot_kwargs,
                                     levels=levels,
                                     extend='both',
-                                    transform_first=transform_first,
-                                    add_colorbar=False)
+                                    transform_first=transform_first)
         except ValueError as e:
             logger.error("Cannot plot contourf: %s", e)
             logger.warning(f"Trying with transform_first={not transform_first}")
             cs = data.plot.contourf(ax=ax,
-                                    transform=ccrs.PlateCarree(),
-                                    cmap=cmap, norm=norm,
-                                    vmin=vmin, vmax=vmax,
+                                    **common_plot_kwargs,
                                     levels=levels,
                                     extend='both',
-                                    transform_first=not transform_first,
-                                    add_colorbar=False)
+                                    transform_first=not transform_first)
     else:
-        if norm is None:
-            cs = data.plot.pcolormesh(ax=ax,
-                                      transform=ccrs.PlateCarree(),
-                                      cmap=cmap, norm=norm,
-                                      vmin=vmin, vmax=vmax,
-                                      add_colorbar=False)
-        else:
-            cs = data.plot.pcolormesh(ax=ax,
-                                      transform=ccrs.PlateCarree(),
-                                      cmap=cmap, norm=norm,
-                                      add_colorbar=False)
+        cs = data.plot.pcolormesh(ax=ax, **common_plot_kwargs)
 
     if coastlines:
         logger.debug("Adding coastlines")
