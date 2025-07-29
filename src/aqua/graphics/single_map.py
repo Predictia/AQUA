@@ -15,14 +15,14 @@ import xarray as xr
 import healpy as hp
 from aqua.logger import log_configure
 from aqua.util import add_cyclic_lon, evaluate_colorbar_limits
-from aqua.util import healpix_resample, coord_names, set_ticks, ticks_round
+from aqua.util import healpix_resample, coord_names, set_ticks
 from aqua.util import cbar_get_label, set_map_title, generate_colorbar_ticks
-from aqua.exceptions import NoDataError
+from .gridlines import draw_manual_gridlines
 from .styles import ConfigStyle
 
 def plot_single_map(data: xr.DataArray,
-                    contour=True, sym=False,
-                    proj: ccrs.Projection = ccrs.Robinson(), gridlines=False,
+                    contour: bool = True, sym: bool = False,
+                    proj: ccrs.Projection = ccrs.Robinson(), gridlines: bool = False,
                     extent=None, coastlines=True,
                     style=None, figsize=(11, 8.5), nlevels=11,
                     vmin=None, vmax=None, cmap='RdBu_r',
@@ -38,6 +38,8 @@ def plot_single_map(data: xr.DataArray,
         data (xr.DataArray):         Data to plot.
         contour (bool, optional):    If True, plot a contour map, otherwise a pcolormesh. Defaults to True.
         sym (bool, optional):        If True, set the colorbar to be symmetrical. Defaults to False.
+        proj (cartopy.crs.Projection, optional): Projection to use. Defaults to ccrs.Robinson().
+        gridlines (bool, optional):  If True, add gridlines. Defaults to False
         extent (list, optional):     Extent of the map to limit the projection. Defaults to None.
         coastlines (bool, optional): If True, add coastlines. Defaults to True.
         style (str, optional):       Style to use. Defaults to None (aqua style).
@@ -214,40 +216,6 @@ def plot_single_map(data: xr.DataArray,
         logger.debug("Returning figure and axes")
         return fig, ax
 
-def draw_manual_gridlines(ax, lon_interval=30, lat_interval=30, 
-                          lon_range=(-180, 180), lat_range=(-90, 90),
-                          linestyle='--', color='gray', linewidth=1,
-                          alpha=0.5, zorder=50):
-    """
-    Draw manual gridlines over a Cartopy map using ax.plot, with full zorder control.
-
-    Args:
-        ax (GeoAxes): The Cartopy axis to draw on.
-        lon_interval (int): Interval for longitude lines (degrees).
-        lat_interval (int): Interval for latitude lines (degrees).
-        lon_range (tuple): Min/max longitudes to span.
-        lat_range (tuple): Min/max latitudes to span.
-        linestyle (str): Line style for gridlines.
-        color (str): Color of the gridlines.
-        linewidth (float): Width of the lines.
-        alpha (float): Opacity.
-        zorder (int): Z-order for rendering.
-    """
-    # Meridians (vertical lines)
-    lons = np.arange(lon_range[0], lon_range[1] + lon_interval, lon_interval)
-    lats = np.arange(lat_range[0], lat_range[1] + 1, 1)
-    for lon in lons:
-        ax.plot([lon] * len(lats), lats, transform=ccrs.PlateCarree(),
-                linestyle=linestyle, color=color, linewidth=linewidth,
-                alpha=alpha, zorder=zorder)
-
-    # Parallels (horizontal lines)
-    lats = np.arange(lat_range[0], lat_range[1] + lat_interval, lat_interval)
-    lons = np.arange(lon_range[0], lon_range[1] + 1, 1)
-    for lat in lats:
-        ax.plot(lons, [lat] * len(lons), transform=ccrs.PlateCarree(),
-                linestyle=linestyle, color=color, linewidth=linewidth,
-                alpha=alpha, zorder=zorder)
 
 def plot_single_map_diff(data: xr.DataArray, data_ref: xr.DataArray,
                          proj: ccrs.Projection = ccrs.Robinson(), extent: list = None,
