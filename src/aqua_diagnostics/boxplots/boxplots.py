@@ -71,7 +71,7 @@ class Boxplots(Diagnostic):
             for var_name, target_unit in zip(self.var, units):
                 current_units = self.data[var_name].attrs.get('units')
                 if current_units:
-                    self.data[var_name] = super()._check_data(data=var_data, var=var_name, units=target_unit)
+                    self.data[var_name] = super()._check_data(data=self.data[var_name], var=var_name, units=target_unit)
 
         # Compute field means
         fldmeans = {}
