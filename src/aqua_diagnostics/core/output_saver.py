@@ -385,7 +385,7 @@ class OutputSaver:
         if metadata is None:
             metadata = {}
         metadata = update_metadata(base_metadata, metadata)
-        self.logger.debug("Created metadata: %s", metadata)
+        self.logger.debug("Available metadata: %s", metadata)
         return metadata
 
 
