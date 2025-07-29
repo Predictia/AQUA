@@ -159,8 +159,12 @@ class SeaIceExtent:
             if regrid:
                 self.logger.info("Regridding data")
                 data = reader.regrid(data)
+                areacello = reader.tgt_grid_area
+                spacecoord = reader.tgt_space_coord
+            else:
+                areacello = reader.src_grid_area
+                spacecoord = reader.src_space_coord
 
-            areacello = reader.grid_area
             try:
                 lat = data.coords["lat"]
                 lon = data.coords["lon"]
@@ -214,7 +218,7 @@ class SeaIceExtent:
                         & (lon <= lonE)
                     )
        
-                myExtent = areacello.where(regionMask).where(ci_mask.notnull()).sel(time=slice(timespan[0], timespan[1])).sum(skipna = True, min_count = 1, dim=reader.space_coord) / 1e12
+                myExtent = areacello.where(regionMask).where(ci_mask.notnull()).sel(time=slice(timespan[0], timespan[1])).sum(skipna = True, min_count = 1, dim=spacecoord) / 1e12
            
                 myExtent.attrs["units"] = "million km^2"
                 myExtent.attrs["long_name"] = "Sea ice extent"
@@ -475,8 +479,12 @@ class SeaIceVolume:
             if regrid:
                 self.logger.info("Regridding data")
                 data = reader.regrid(data)
+                areacello = reader.tgt_grid_area
+                spacecoord = reader.tgt_space_coord
+            else:
+                areacello = reader.src_grid_area
+                spacecoord = reader.src_space_coord
 
-            areacello = reader.grid_area
             try:
                 lat = data.coords["lat"]
                 lon = data.coords["lon"]
@@ -526,7 +534,7 @@ class SeaIceVolume:
                 sivol_mask = data.sivol.where((data.sivol > 0) &
                                         (data.sivol < 99.0))
 
-                myVolume = (sivol_mask * areacello.where(regionMask)).sel(time=slice(timespan[0], timespan[1])).sum(dim=reader.space_coord, 
+                myVolume = (sivol_mask * areacello.where(regionMask)).sel(time=slice(timespan[0], timespan[1])).sum(dim=spacecoord,
                                                                               skipna = True, min_count = 1) / 1e12
                                
                 myVolume.attrs["units"] = "thousands km^3"
