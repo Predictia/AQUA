@@ -214,7 +214,7 @@ class OutputSaver:
 
     def save_netcdf(self, dataset: xr.Dataset, diagnostic_product: str,
                     rebuild: bool = True, extra_keys: Optional[dict] = None,
-                    metadata: Optional[dict] = None, create_catalog_entry: bool = False,
+                    metadata: Optional[dict] = None, create_catalog_entry: bool = True,
                     dict_catalog_entry: Optional[dict] = None):
         """
         Save an xarray Dataset as a NetCDF file with a generated filename.
@@ -250,7 +250,7 @@ class OutputSaver:
         # define a default list of jinja and wildcard variables if not provided
         if not dict_catalog_entry:
             dict_catalog_entry = {
-                'jinjalist': ['frequency', 'stat', 'region', 'realization'],
+                'jinjalist': ['freq', 'stat', 'region', 'realization'],
                 'wildcardlist': ['var']
             }
 
@@ -290,7 +290,7 @@ class OutputSaver:
         """
         filename = self.generate_name(diagnostic_product=diagnostic_product,
                                        extra_keys=extra_keys)
-        folder = self.generate_folder(extension=extension) 
+        folder = self.generate_folder(extension=extension)
         return os.path.join(folder, filename + '.' + extension)
 
     def _save_figure(self, fig: Figure, diagnostic_product: str, file_format: str,
@@ -364,6 +364,7 @@ class OutputSaver:
             'catalog': self.catalog,
             'model': self.model,
             'exp': self.exp,
+            'realization': self.realization,
             'catalog_ref': self.catalog_ref,
             'model_ref': self.model_ref,
             'exp_ref': self.exp_ref
@@ -384,6 +385,7 @@ class OutputSaver:
         if metadata is None:
             metadata = {}
         metadata = update_metadata(base_metadata, metadata)
+        self.logger.debug("Created metadata: %s", metadata)
         return metadata
 
 
@@ -399,6 +401,7 @@ class OutputSaver:
 
         """
 
+        self.logger.info("Creating catalog entry for %s", filepath)
         configpath = ConfigPath(catalog=self.catalog)
         configdir = configpath.configdir
         # find the catalog of the experiment and load it
@@ -438,13 +441,17 @@ class OutputSaver:
             for key in jinjalist:
                 value = metadata.get(key)
                 if value is not None:
+                    self.logger.debug("Replacing jinja variable %s with value %s in urlpath", key, value)
                     catblock = self.replace_urlpath_jinja(catblock, value, key, self.diagnostic)
         
         if wildcardlist:
-            for key in wildcardlist:
-                value = metadata.get(key)
-                if value is not None:
-                    catblock = self.replace_urlpath_wildcard(catblock, value)
+           for key in wildcardlist:
+               value = metadata.get(key)
+               if value is not None:
+                   self.logger.debug("Replacing wildcard variable %s with value %s in urlpath", key, value)
+                   catblock = self.replace_urlpath_wildcard(catblock, value)
+
+        self.logger.info('Final urlpath: %s', catblock['args']['urlpath'])
         
         cat_file['sources'][entry_name] = catblock
 
@@ -469,6 +476,8 @@ class OutputSaver:
         for character in ['_', '/', '.']:
             block['args']['urlpath'] = block['args']['urlpath'].replace(
                 character + value + character, character + "*" + character)
+            
+        return block
         
     @staticmethod
     def replace_urlpath_jinja(block, value, name, diagnostic):
