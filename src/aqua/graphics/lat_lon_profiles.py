@@ -2,7 +2,7 @@ import xarray as xr
 import matplotlib.pyplot as plt
 
 from aqua.logger import log_configure
-from aqua.util import to_list, find_spatial_coord
+from aqua.util import to_list, coord_names
 from .styles import ConfigStyle
 
 def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
@@ -44,22 +44,7 @@ def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
     
     # Convert data to list, handling both single DataArrays and lists
     data_list = to_list(data)
-    """
-    # Validate main data
-    for i, d in enumerate(data_list):
-        validate_spatial_data(d, f"data[{i}]")
-    
-    # Validate reference data if provided
-    if ref_data is not None:
-        validate_spatial_data(ref_data, "ref_data")
-    
-    # Validate std data if provided  
-    if std_data is not None:
-        std_data_list = to_list(std_data)
-        for i, std_d in enumerate(std_data_list):
-            if std_d is not None:
-                validate_spatial_data(std_d, f"std_data[{i}]")
-    """
+
     # Handle labels
     if data_labels is None:
         labels_list = []
@@ -90,7 +75,7 @@ def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
     # Plot
     for i, d in enumerate(data_list):
         # Determine coordinate name based on 'lat' or 'lon' - FIX: add None default
-        coord_name = find_spatial_coord(d)
+        coord_name = coord_names(d, return_single=True, prefer_lat=True)
         if coord_name is None:
             logger.warning(f"Data {i} has no spatial coordinates, skipping")
             continue
@@ -104,7 +89,7 @@ def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
         std_data_list = to_list(std_data)
         for i, (d, std_d) in enumerate(zip(data_list, std_data_list)):
             if std_d is not None:
-                coord_name = find_spatial_coord(d)
+                coord_name = coord_names(d, return_single=True, prefer_lat=True)
                 if coord_name is None:
                     continue
 
@@ -126,7 +111,7 @@ def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
             ref_label_final = ref_label or ref_data.attrs.get("long_name", "Reference")
         
         # Find coordinate for ref_data
-        coord_name = find_spatial_coord(ref_data)
+        coord_name = coord_names(ref_data, return_single=True, prefer_lat=True)
         
         if coord_name is not None:
             ref_x_coord = ref_data[coord_name].values
@@ -149,7 +134,7 @@ def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
 
     # Set x-label based on the first valid coordinate found
     first_data = data_list[0]
-    coord_name = find_spatial_coord(first_data)
+    coord_name = coord_names(first_data, return_single=True, prefer_lat=True)
 
     if coord_name and 'lat' in coord_name:
         ax.set_xlabel('Latitude')

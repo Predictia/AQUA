@@ -8,7 +8,6 @@ from .graphics import evaluate_colorbar_limits, cbar_get_label, set_map_title
 from .graphics import coord_names, ticks_round, set_ticks, generate_colorbar_ticks
 from .graphics import apply_circular_window
 from .graphics import get_nside, get_npix, healpix_resample
-from .graphics import find_spatial_coord
 from .projections import get_projection
 from .realizations import format_realization
 from .sci_util import area_selection, check_coordinates, select_season
@@ -36,7 +35,6 @@ __all__ = ['ConfigPath',
            'file_is_complete', 'find_vert_coord',
            'extract_literal_and_numeric', 'add_pdf_metadata', 'add_png_metadata',
            'get_nside', 'get_npix', 'healpix_resample',
-           'find_spatial_coord',
            'get_projection',
            'format_realization',
            'open_image', 'username', 'update_metadata',
