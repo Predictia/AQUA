@@ -26,7 +26,7 @@ def plot_single_map(data: xr.DataArray,
                     extent=None, coastlines=True,
                     style=None, figsize=(11, 8.5), nlevels=11,
                     vmin=None, vmax=None, cmap='RdBu_r',
-                    cbar: bool = True, cbar_label=None,
+                    cbar: bool = True, cbar_label=None, norm=None,
                     title=None, transform_first=False, cyclic_lon=True,
                     fig: plt.Figure = None, ax: plt.Axes = None,
                     ax_pos: tuple = (1, 1, 1),
@@ -47,6 +47,7 @@ def plot_single_map(data: xr.DataArray,
         vmax (float, optional):      Maximum value for the colorbar.
                                      Defaults to None.
         cmap (str, optional):        Colormap. Defaults to 'RdBu_r'.
+        norm (matplotlib.colors.Normalize, optional): Normalization to use for the colormap.
         cbar (bool, optional):       If True, add a colorbar. Defaults to True.
         cbar_label (str, optional):  Colorbar label. Defaults to None.
         title (str, optional):       Title of the figure. Defaults to None.
@@ -123,7 +124,7 @@ def plot_single_map(data: xr.DataArray,
         try:
             cs = data.plot.contourf(ax=ax,
                                     transform=ccrs.PlateCarree(),
-                                    cmap=cmap,
+                                    cmap=cmap, norm=norm,
                                     vmin=vmin, vmax=vmax,
                                     levels=levels,
                                     extend='both',
@@ -134,18 +135,24 @@ def plot_single_map(data: xr.DataArray,
             logger.warning(f"Trying with transform_first={not transform_first}")
             cs = data.plot.contourf(ax=ax,
                                     transform=ccrs.PlateCarree(),
-                                    cmap=cmap,
+                                    cmap=cmap, norm=norm,
                                     vmin=vmin, vmax=vmax,
                                     levels=levels,
                                     extend='both',
                                     transform_first=not transform_first,
                                     add_colorbar=False)
     else:
-        cs = data.plot.pcolormesh(ax=ax,
-                                  transform=ccrs.PlateCarree(),
-                                  cmap=cmap,
-                                  vmin=vmin, vmax=vmax,
-                                  add_colorbar=False)
+        if norm is None:
+            cs = data.plot.pcolormesh(ax=ax,
+                                      transform=ccrs.PlateCarree(),
+                                      cmap=cmap, norm=norm,
+                                      vmin=vmin, vmax=vmax,
+                                      add_colorbar=False)
+        else:
+            cs = data.plot.pcolormesh(ax=ax,
+                                      transform=ccrs.PlateCarree(),
+                                      cmap=cmap, norm=norm,
+                                      add_colorbar=False)
 
     if coastlines:
         logger.debug("Adding coastlines")
