@@ -137,12 +137,7 @@ class FldStat():
         if stat in ["mean"]:
             weighted_data = data.weighted(weights=self.area.fillna(0))
 
-            if dims == ["lon"]:
-                self.logger.info("Computing area-weighted zonal %s", stat)
-            elif dims == ["lat"]:
-                self.logger.info("Computing area-weighted meridional %s", stat)
-            elif set(dims) == set(["lon", "lat"]):
-                self.logger.info("Computing area-weighted %s on %s dimensions", stat, dims)
+            self.logger.info("Computing area-weighted %s on %s dimensions", stat, dims)
                 
             out = getattr(weighted_data, stat)(dim=dims)
 
