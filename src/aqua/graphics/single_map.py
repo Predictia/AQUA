@@ -8,6 +8,7 @@ Contains the following functions:
 Author: Matteo Nurisso
 Date: Feb 2024
 """
+from typing import Optional
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,12 +24,12 @@ from .styles import ConfigStyle
 def plot_single_map(data: xr.DataArray,
                     contour: bool = True, sym: bool = False,
                     proj: ccrs.Projection = ccrs.Robinson(), gridlines: bool = False,
-                    extent=None, coastlines=True,
-                    style=None, figsize=(11, 8.5), nlevels=11,
-                    vmin=None, vmax=None, cmap='RdBu_r',
-                    cbar: bool = True, cbar_label=None,
-                    title=None, transform_first=False, cyclic_lon=True,
-                    fig: plt.Figure = None, ax: plt.Axes = None,
+                    extent: Optional[list] = None, coastlines: bool = True,
+                    style: Optional[str] = None, figsize: tuple = (11, 8.5), nlevels: int = 11,
+                    vmin: Optional[float] = None, vmax: Optional[float] = None, cmap: str = 'RdBu_r',
+                    cbar: bool = True, cbar_label: Optional[str] = None,
+                    title: Optional[str] = None, transform_first: bool = False, cyclic_lon: bool = True,
+                    fig: Optional[plt.Figure] = None, ax: Optional[plt.Axes] = None,
                     ax_pos: tuple = (1, 1, 1),
                     return_fig=False, loglevel='WARNING',  **kwargs):
     """
@@ -218,13 +219,13 @@ def plot_single_map(data: xr.DataArray,
 
 
 def plot_single_map_diff(data: xr.DataArray, data_ref: xr.DataArray,
-                         proj: ccrs.Projection = ccrs.Robinson(), extent: list = None,
-                         vmin_fill: float = None, vmax_fill: float = None,
-                         vmin_contour: float = None, vmax_contour: float = None,
+                         proj: ccrs.Projection = ccrs.Robinson(), extent: Optional[list] = None,
+                         vmin_fill: Optional[float] = None, vmax_fill: Optional[float] = None,
+                         vmin_contour: Optional[float] = None, vmax_contour: Optional[float] = None,
                          sym_contour: bool = False, sym: bool = True,
                          cyclic_lon: bool = True, return_fig: bool = False,
-                         fig: plt.Figure = None, ax: plt.Axes = None,
-                         title: str = None, loglevel: str = 'WARNING', **kwargs):
+                         fig: Optional[plt.Figure] = None, ax: Optional[plt.Axes] = None,
+                         title: Optional[str] = None, loglevel: str = 'WARNING', **kwargs):
     """
     Plot the difference of data-data_ref as map and add the data
     as a contour plot.
