@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.18.0): 
 
 AQUA core complete list:
+- Add `norm` keyword argument to the `plot_single_map` to allow non-linear colorbar normalisation (#2107)
 - `apply_circular_window()` utility function to apply a circular window to cartopy maps (#2100)
 
 ## [v0.17.0]
