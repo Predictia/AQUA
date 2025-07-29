@@ -5,16 +5,16 @@ from aqua.logger import log_configure
 from aqua.util import to_list, find_spatial_coord
 from .styles import ConfigStyle
 
-def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray] | None = None,
-                          ref_data: xr.DataArray = None,
+def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
+                          ref_data: xr.DataArray | None = None,
                           std_data: xr.DataArray | list[xr.DataArray] | None = None,
-                          ref_std_data: xr.DataArray = None,
-                          data_labels: list = None,
-                          ref_label: str = None,
-                          style: str = None,
-                          fig: plt.Figure = None, 
-                          ax: plt.Axes = None,
-                          loglevel='WARNING',
+                          ref_std_data: xr.DataArray | None = None,
+                          data_labels: list | None = None,
+                          ref_label: str | None = None,
+                          style: str | None = None,
+                          fig: plt.Figure | None = None,
+                          ax: plt.Axes | None = None,
+                          loglevel: str = 'WARNING',
                           **kwargs):
     """
     Plot latitude or longitude profiles of data, averaging over the specified axis.
@@ -26,12 +26,12 @@ def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray] | None = None,
         ref_data (xr.DataArray, optional): Reference data to plot.
         std_data (xr.DataArray | list[xr.DataArray] | None, optional): Standard deviation 
             of the data.
-        ref_std_data (xr.DataArray, optional): Standard deviation of the reference data.
-        data_labels (list, optional): Labels for the data.
-        ref_label (str, optional): Label for the reference data.
-        style (str, optional): Style for the plot.
-        fig (plt.Figure, optional): Matplotlib figure object.
-        ax (plt.Axes, optional): Matplotlib axes object.
+        ref_std_data (xr.DataArray | None, optional): Standard deviation of the reference data.
+        data_labels (list | None, optional): Labels for the data.
+        ref_label (str | None, optional): Label for the reference data.
+        style (str | None, optional): Style for the plot.
+        fig (plt.Figure | None, optional): Matplotlib figure object.
+        ax (plt.Axes | None, optional): Matplotlib axes object.
         loglevel (str, optional): Logging level.
         **kwargs: Additional keyword arguments for customization.
 
