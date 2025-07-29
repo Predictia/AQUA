@@ -7,7 +7,9 @@ from aqua.version import __version__ as aqua_version
 from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_cluster
 from aqua.diagnostics.core import load_diagnostic_config, merge_config_args
 from aqua.util import get_arg, to_list
+from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.diagnostics import GlobalBiases, PlotGlobalBiases
+
 
 def parse_arguments(args):
     """Parse command-line arguments for GlobalBiases diagnostic.
