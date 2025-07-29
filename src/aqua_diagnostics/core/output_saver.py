@@ -214,7 +214,8 @@ class OutputSaver:
 
     def save_netcdf(self, dataset: xr.Dataset, diagnostic_product: str,
                     rebuild: bool = True, extra_keys: Optional[dict] = None,
-                    metadata: Optional[dict] = None, create_catalog_entry: bool = False):
+                    metadata: Optional[dict] = None, create_catalog_entry: bool = False,
+                    dict_catalog_entry: Optional[dict] = None):
         """
         Save an xarray Dataset as a NetCDF file with a generated filename.
 
@@ -246,13 +247,23 @@ class OutputSaver:
             # Remove the history attribute from the metadata dictionary
             metadata.pop('history')
 
-        dataset.attrs.update(metadata)
+        # define a default list of jinja and wildcard variables if not provided
+        if not dict_catalog_entry:
+            dict_catalog_entry = {
+                'jinjalist': ['frequency', 'stat', 'region', 'realization'],
+                'wildcardlist': ['var']
+            }
 
+        dataset.attrs.update(metadata)
         dataset.to_netcdf(filepath)
 
         # create catalog entry for netcdf file
         if create_catalog_entry:
-            _cat = self._create_catalog_entry(metadata=metadata, filepath=filepath)
+            self._create_catalog_entry(
+                metadata=metadata, filepath=filepath,
+                jinjalist=dict_catalog_entry.get('jinjalist', None),
+                wildcardlist=dict_catalog_entry.get('wildcardlist', None)
+            )
 
         self.logger.info("Saved NetCDF: %s", filepath)
         return filepath
@@ -376,13 +387,15 @@ class OutputSaver:
         return metadata
 
 
-    def _create_catalog_entry(self, metadata, filepath):
+    def _create_catalog_entry(self, filepath, metadata, jinjalist=None, wildcardlist=None):
         """
         Creates an entry in the catalog
 
         Args:
-            metadata (dict): Metadata dictionary containing information about the diagnostic.
             filepath (str): The file path where the data is stored.
+            metadata (dict): Metadata dictionary containing information about the diagnostic.
+            jinjalist (list, optional): List of Jinja variables to replace in the URL path.
+            wildcardlist (list, optional): List of wildcard variables to replace in the URL path.
 
         """
 
@@ -392,49 +405,71 @@ class OutputSaver:
         catalogfile = os.path.join(configdir, 'catalogs', self.catalog, 'catalog', self.model, self.exp + '.yaml')
         cat_file = load_yaml(catalogfile)
         # Remove None values
-        urlpath = self.replace_intake_vars(catalog=self.catalog, path=filepath) 
+        urlpath = self.replace_intake_vars(catalog=self.catalog, path=filepath)
         
-        source_grid_name = False
-        entry_name = f'aqua-{self.diagnostic}'
+        entry_name = f'aqua-{self.diagnostic}-{metadata.get("diagnostic_product")}'
         if entry_name in cat_file['sources']:
             catblock = cat_file['sources'][entry_name]
         else:
             catblock = None
 
-        driver = 'netcdf'
         if catblock is None:
             # if the entry is not there, define the block to be uploaded into the catalog
             catblock = {
-                'driver': driver,
-                'description': f'AQUA {driver} data',
+                'driver': 'netcdf',
+                'description': f'AQUA {self.diagnostic} data for {metadata.get("diagnostic_product")}',
                 'args': {
                     'urlpath': urlpath,
                     'chunks': {},
                 },
                 'metadata': {
-                    'source_grid_name': source_grid_name,
+                    'source_grid_name': False,
                 }
             }
         else:
             # if the entry is there, we just update the urlpath
             catblock['args']['urlpath'] = urlpath
 
-            if driver == 'netcdf':
-                catblock['args']['xarray_kwargs'] = {
+            catblock['args']['xarray_kwargs'] = {
                     'decode_times': True,
-                }
-        # These variables are replaced from the url as {{ variable }}    
-        for key in ['diagnostic', 'diagnostic_product', 'var', 'freq', 'catalog', 'model', 'std', 'mean', 'exp', 'realization', 'region']:
-            value = metadata[key] if key in metadata else None
-            if value is not None:
-                catblock = self.replace_urlpath_jinja(catblock, value, key, self.diagnostic)
-    
+            }
+        # These variables are replaced from the url as {{ variable }}
+        if jinjalist:
+            for key in jinjalist:
+                value = metadata.get(key)
+                if value is not None:
+                    catblock = self.replace_urlpath_jinja(catblock, value, key, self.diagnostic)
+        
+        if wildcardlist:
+            for key in wildcardlist:
+                value = metadata.get(key)
+                if value is not None:
+                    catblock = self.replace_urlpath_wildcard(catblock, value)
+        
         cat_file['sources'][entry_name] = catblock
 
         # dump the update file
         dump_yaml(outfile=catalogfile, cfg=cat_file)
         return catblock # using this in the tests
+    
+    @staticmethod
+    def replace_urlpath_wildcard(block, value):
+        """
+        Replace the urlpath in the catalog entry with "*" 
 
+        Args:
+            block (dict): The catalog entry generated by `catalog_entry_details' to be updated
+            value (str): The value to replace in the urlpath (e.g., 'r1', 'global', 'mean')
+
+        """
+        if not value:
+            return block
+        
+        # this loop is a bit tricky but is made to ensure that the right value is replaced
+        for character in ['_', '/', '.']:
+            block['args']['urlpath'] = block['args']['urlpath'].replace(
+                character + value + character, character + "*" + character)
+        
     @staticmethod
     def replace_urlpath_jinja(block, value, name, diagnostic):
         """
