@@ -57,10 +57,10 @@ class FldStat():
         """
         return self.fldstat(data, stat="mean", **kwargs)
 
-    def fldstat(self, data, 
-                stat="mean", 
-                lon_limits=None, lat_limits=None, 
-                dims = None,
+    def fldstat(self, data: xr.DataArray | xr.Dataset,
+                stat: str = "mean",
+                lon_limits: list | None = None, lat_limits: list | None = None,
+                dims: list | None = None,
                 **kwargs):
         """
         Perform a weighted global average.
@@ -119,10 +119,12 @@ class FldStat():
 
         # align dimensions naming of area to match data
         self.area = self.align_area_dimensions(data)
-        """
-        # align coordinates values of area to match data
-        self.area = self.align_area_coordinates(data)
-        """
+
+        # TODO: check why with only one dim to average, this is not working
+        if dims == self.horizontal_dims:
+            # align coordinates values of area to match data
+            self.area = self.align_area_coordinates(data)
+
         if lon_limits is not None or lat_limits is not None:
             data = area_selection(data, lon=lon_limits, lat=lat_limits,
                                   loglevel=self.loglevel, **kwargs)
