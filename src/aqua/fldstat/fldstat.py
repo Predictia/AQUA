@@ -120,10 +120,8 @@ class FldStat():
         # align dimensions naming of area to match data
         self.area = self.align_area_dimensions(data)
 
-        # TODO: check why with only one dim to average, this is not working
-        if dims == self.horizontal_dims:
-            # align coordinates values of area to match data
-            self.area = self.align_area_coordinates(data)
+        # align coordinates values of area to match data
+        self.area = self.align_area_coordinates(data)
 
         if lon_limits is not None or lat_limits is not None:
             data = area_selection(data, lon=lon_limits, lat=lat_limits,
