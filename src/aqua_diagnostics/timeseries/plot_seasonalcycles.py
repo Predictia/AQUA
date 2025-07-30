@@ -52,7 +52,7 @@ class PlotSeasonalCycles(PlotBaseMixin):
         description = self.set_description()
         title = self.set_title(var=var, units=units)
         fig, _ = self.plot_seasonalcycles(data_labels=data_label, ref_label=ref_label, title=title)
-        self.save_plot(fig, var=var, description=description, rebuild=rebuild,
+        self.save_plot(fig, var=var, description=description, region=self.region, rebuild=rebuild,
                        outputdir=outputdir, dpi=dpi, format=format)
         self.logger.info('PlotSeasonalCycles completed successfully')
 
@@ -143,7 +143,7 @@ class PlotSeasonalCycles(PlotBaseMixin):
 
         return fig, ax
 
-    def save_plot(self, fig, var: str, description: str = None, rebuild: bool = True,
+    def save_plot(self, fig, var: str, description: str = None, region: str = None, rebuild: bool = True,
                   outputdir: str = './', dpi: int = 300, format: str = 'png'):
         """
         Save the plot to a file.
@@ -152,11 +152,12 @@ class PlotSeasonalCycles(PlotBaseMixin):
             fig (matplotlib.figure.Figure): Figure object.
             var (str): Variable name to be used in the title and description.
             description (str): Description of the plot.
+            region (str): Region to be used in the title and description.
             rebuild (bool): If True, rebuild the plot even if it already exists.
             outputdir (str): Output directory to save the plot.
             dpi (int): Dots per inch for the plot.
             format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
         """
         super().save_plot(fig, var=var, description=description,
-                          region=self.region, rebuild=rebuild,
+                          region=region, rebuild=rebuild,
                           outputdir=outputdir, dpi=dpi, format=format, diagnostic_product='seasonalcycles')
