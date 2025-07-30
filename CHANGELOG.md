@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.18.0): 
 
 AQUA core complete list:
+
+- Add `norm` keyword argument to the `plot_single_map` to allow non-linear colorbar normalisation (#2107)
 - `draw_manual_gridlines()` utility function to draw gridlines on cartopy maps (#2105)
 - `apply_circular_window()` utility function to apply a circular window to cartopy maps (#2100)
 
@@ -52,6 +54,7 @@ AQUA core complete list:
 - `Trender()` class provide also coefficients and normalize them (#1991)
 
 AQUA diagnostics complete list:
+- Sea-ice extent and volume: bugs related to use of legacy reader functionality (#2111)
 - Ocean Trends: Trends class to create trend data along with zonal trend, notebook and tests added. (#1990)
 - Global Biases: allow GlobalBias to take projection as argument (#2036)
 - ECmean: diagnostics refactored to use `OutputSaver` and new common configuration file (#2012)
