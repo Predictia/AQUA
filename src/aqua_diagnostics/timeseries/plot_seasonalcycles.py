@@ -24,10 +24,10 @@ class PlotSeasonalCycles(PlotBaseMixin):
 
         # TODO: support ref list
         self.monthly_data = to_list(monthly_data)
-        self.ref_monthly_data = ref_monthly_data  if isinstance(ref_monthly_data, xr.DataArray) else ref_monthly_data[0]
-        self.std_monthly_data = std_monthly_data if isinstance(std_monthly_data, xr.DataArray) else std_monthly_data[0]
+        self.ref_monthly_data = ref_monthly_data  if isinstance(ref_monthly_data, xr.DataArray) else ref_monthly_data[0] if isinstance(ref_monthly_data, list) else None
+        self.std_monthly_data = std_monthly_data if isinstance(std_monthly_data, xr.DataArray) else std_monthly_data[0] if isinstance(std_monthly_data, list) else None
 
-        self.len_data, self.len_ref = len(self.monthly_data), 1
+        self.len_data, self.len_ref = len(self.monthly_data), 1 if self.ref_monthly_data is not None else 0
 
         # Filling them
         self.get_data_info()
