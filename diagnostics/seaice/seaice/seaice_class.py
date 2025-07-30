@@ -222,6 +222,9 @@ class SeaIceExtent:
            
                 myExtent.attrs["units"] = "million km^2"
                 myExtent.attrs["long_name"] = "Sea ice extent"
+
+                myExtent = myExtent.to_dataarray()
+
                 self.regionExtents.append(myExtent)
 
             # Save set of diagnostics for that setup
@@ -268,13 +271,13 @@ class SeaIceExtent:
                     self.logger.debug("Not plotting osisaf nh in the south and conversely")
                     pass
                 else:
-                    ax1[jr].plot(extent.time, extent, label=label, color=color_plot)
+                    ax1[jr].plot(extent.time, extent.squeeze(), label=label, color=color_plot)
                     ax2[jr].plot(monthsNumeric, extentCycle, label=label, lw=3, color=color_plot)
 
                     # Plot ribbon of uncertainty
                     if setup["model"] == "OSI-SAF":
                         mult = 2.0
-                        ax2[jr].fill_between(monthsNumeric, extentCycle - mult * extentStd, extentCycle + mult * extentStd,
+                        ax2[jr].fill_between(monthsNumeric, (extentCycle - mult * extentStd).flatten(), (extentCycle + mult * extentStd).flatten(),
                                              alpha=0.5, zorder=0, color=color_plot, lw=0)
 
                 ax1[jr].set_title("Sea ice extent: region " + region)
@@ -536,9 +539,11 @@ class SeaIceVolume:
 
                 myVolume = (sivol_mask * areacello.where(regionMask)).sel(time=slice(timespan[0], timespan[1])).sum(dim=spacecoord,
                                                                               skipna = True, min_count = 1) / 1e12
-                               
+               
                 myVolume.attrs["units"] = "thousands km^3"
                 myVolume.attrs["long_name"] = "Sea ice volume"
+
+                myVolume = myVolume.to_dataarray()
 
                 self.regionVolumes.append(myVolume)
 
@@ -584,13 +589,13 @@ class SeaIceVolume:
                     self.logger.debug("Not plotting PIOMAS in the SH and GIOMAS in the NH")
                     pass
                 else:
-                    ax1[jr].plot(volume.time, volume, label=label, color=color_plot)
+                    ax1[jr].plot(volume.time, volume.squeeze(), label=label, color=color_plot)
                     ax2[jr].plot(monthsNumeric, volumeCycle, label=label, lw=3, color=color_plot)
 
                     # Plot ribbon of uncertainty
                     if setup["model"] == "PSC":
                         mult = 2.0
-                        ax2[jr].fill_between(monthsNumeric, volumeCycle - mult * volumeStd, volumeCycle + mult * volumeStd,
+                        ax2[jr].fill_between(monthsNumeric, (volumeCycle - mult * volumeStd).flatten(), (volumeCycle + mult * volumeStd).flatten(),
                                              alpha=0.5, zorder=0, color=color_plot, lw=0)
 
                 ax1[jr].set_title("Sea ice volume: region " + region)
