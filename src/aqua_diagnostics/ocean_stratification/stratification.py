@@ -1,8 +1,9 @@
 import xarray as xr
 from aqua.logger import log_configure
 from aqua.diagnostics.core import Diagnostic
-from aqua.util import to_list
-from .util import *
+from .compute_mld import compute_mld_cont
+from .compute_rho import compute_rho
+from .convert_variables import convert_variables
 
 xr.set_options(keep_attrs=True)
 
