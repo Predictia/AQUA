@@ -90,28 +90,24 @@ class PlotSeaIce:
         self.rebuild = rebuild
         self.dpi = dpi
     
-    def _check_as_datasets_list(self, datain) -> list[xr.Dataset] | None :
+    def _check_as_datasets_list(self, datain) -> list[xr.Dataset | None] :
         """ Check that the input (`datain`) is either:
             - A single `xarray.Dataset` (which is converted into a list).
             - A list of `xarray.Dataset` objects.
             - `None` (which is returned as is).
         Args:
             datain (xr.Dataset | list[xr.Dataset] | None): The input dataset(s) to check.
-        Returns:
-            list[xr.Dataset] | None: None if datain is None
         """
         if datain is None:
             return datain
         elif isinstance(datain, xr.Dataset):
-            # if a single Dataset is passed, wrap it in a list
             return [datain]
         elif isinstance(datain, list):
-            if all((ds is None or isinstance(ds, xr.Dataset)) for ds in datain):
-                return datain
+            if not all((ds is None or isinstance(ds, xr.Dataset)) for ds in datain):
+                raise ValueError("All elements of the list must be xarray.Dataset instances.")
             return datain
         else:
-            self.logger.error(f"Check data type: {type(datain)}. Expected xr.Dataset, list of xr.Dataset, or None.")
-            raise ValueError("Invalid input. Expected xr.Dataset, list of xr.Dataset, or None.")
+            raise ValueError(f"Invalid type: {type(datain)}. Expected xr.Dataset, list of xr.Dataset, or None.")
 
     def _get_region_name_in_datarray(self, da: xr.DataArray) -> str:
         """Get the region variable from the dataset or derive it from the variable name."""
@@ -165,7 +161,7 @@ class PlotSeaIce:
                 continue
             
             for dataset in dataset_list:
-                if dataset is None:  # Skip None entries
+                if dataset is None:
                     self.logger.warning("Warning: Found dataset as None in dataset_list during repacking data, skipping...")
                     continue
 
@@ -238,15 +234,12 @@ class PlotSeaIce:
         return None
     
     def _update_description(self, method, region, data_dict, region_idx):
-        """ Create the caption description from attributes
-        Returns:
-            the updated string 
-        """
+        """ Create the caption description from attributes returning the updated string """
         # initialise string if _description doesn't exist
         if not hasattr(self, '_description'):
             self._description = ''
         
-        # --- generate dynamic string for regions
+        # generate dynamic string for regions
         if region not in self._description:
             if not hasattr(self, 'region_str'):
                 self.region_str = region  # start with first region
@@ -256,7 +249,7 @@ class PlotSeaIce:
                 else:
                     self.region_str += f", {region}"
         
-        # --- generate dynamic string for model data
+        # generate dynamic string for model data
         if hasattr(self, "data_labels") and self.data_labels:
             # remove duplicates while keeping order
             unique_labels = list(dict.fromkeys(self.data_labels))
@@ -283,7 +276,7 @@ class PlotSeaIce:
         else:
             self.model_labels_str = ''
 
-        # --- generate dynamic string for reference data
+        # generate dynamic string for reference data
         if hasattr(self, "ref_label") and self.ref_label:
             if not hasattr(self, 'ref_label_list'):
                 self.ref_label_list = []
@@ -301,7 +294,7 @@ class PlotSeaIce:
         else:
             self.ref_label_str = ''
 
-        # --- generate string for reference std data
+        # generate string for reference std data
         if hasattr(self, "std_label") and self.std_label:
             sdtdata = self._getdata_fromdict(data_dict,'monthly_std_ref')
             std_sdate, std_edate = extract_dates(sdtdata)
@@ -309,7 +302,7 @@ class PlotSeaIce:
         else:
             self.std_label_str = ''
 
-        # --- generate plot type name
+        # generate plot type name
         if hasattr(self, "plot_type") and self.plot_type:
             if self.plot_type == 'seasonal_cycle':
                 pl_type = 'Seasonal cycle of the '
