@@ -145,14 +145,15 @@ def plot_seasonalcycle(data: list[xr.DataArray] | xr.DataArray,
 
     logger = log_configure(loglevel, 'PlotSeasonalCycle')
 
-    if fig is None and ax is None:
-        fig, ax = plt.subplots(1, 1, figsize=fig_size)
+    if fig is None:
+        fig = plt.figure(figsize=figsize)
+    if ax is None:
+        ax = fig.add_subplot(1, 1, figsize=figsize)
 
     ConfigStyle(style=style, loglevel=loglevel)
 
     monthsNumeric = range(0, 13 + 1)  # Numeric months
     monthsNames = ["", "J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D", ""]
-
 
     if data is not None:
         if isinstance(data, xr.DataArray):
@@ -186,7 +187,6 @@ def plot_seasonalcycle(data: list[xr.DataArray] | xr.DataArray,
         ax.set_title(title, fontsize=13, fontweight='bold')
 
     return fig, ax
-
 
 def _extend_cycle(data: xr.DataArray, loglevel: str = 'WARNING'):
     """

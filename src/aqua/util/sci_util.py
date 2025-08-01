@@ -263,3 +263,21 @@ def select_season(xr_data, season: str):
         return xr_data
     else:
         raise ValueError(f"Invalid season abbreviation. Available options are: {', '.join(triplet_months.keys())}, or 'annual' to perform no season selection.")
+
+def merge_attrs(target, source, overwrite=False):
+    """Merge attributes from source into target.
+
+    Args:
+        target (xr.Dataset or xr.DataArray or dict): The target for merging.
+        source (xr.Dataset or xr.DataArray or dict): The source of attributes.
+        overwrite (bool): If True, overwrite existing keys in target.
+                          If False, only add keys that don't already exist.
+    """
+    if isinstance(target, (xr.Dataset, xr.DataArray)):
+        target = target.attrs
+    if isinstance(source, (xr.Dataset, xr.DataArray)):
+        source = source.attrs
+
+    for k, v in source.items():
+        if overwrite or k not in target:
+            target[k] = v

@@ -70,57 +70,9 @@ def ensure_istype(obj, expected_types, logger=None):
     if not isinstance(obj, expected_types):
         raise ValueError(f"Expected type {expected_names_type}, but got {type(obj).__name__}.")
 
-def ensure_list(datain):
-    """ Ensure the input is returned as a list of xarray objects.
-
-    Args:
-        datain (xr.Dataset | xr.DataArray | list | tuple): Input data.
-
-    Returns:
-        list: A list containing the input data or the input itself if already a list/tuple.
-    """
-    if isinstance(datain, (xr.Dataset, xr.DataArray)):
-        return [datain]
-    elif isinstance(datain, (list, tuple)):
-        return datain
-    else:
-        raise TypeError(f"Input must be a Dataset, DataArray, list, or tuple, got {type(datain)}.")
-
 def extract_dates(data):
     return (data.attrs.get('AQUA_startdate', 'No startdate found'),
             data.attrs.get('AQUA_enddate',   'No enddate found'))
-
-def strlist_to_phrase(items: list[str]) -> str:
-    """ Convert a list of str to a english-consistent list.
-       ['A'] will return "A"
-       ['A','B'] will return "A and B"
-       ['A','B','C'] will return "A, B, and C"
-    """
-    if not items:
-        return ""
-    if len(items) == 1:
-        return items[0]
-    if len(items) == 2:
-        return f"{items[0]} and {items[1]}"
-    return ", ".join(items[:-1]) + f", and {items[-1]}"
-
-def merge_attrs(target, source, overwrite=False):
-    """Merge attributes from source into target.
-
-    Args:
-        target (xr.Dataset or xr.DataArray or dict): The target for merging.
-        source (xr.Dataset or xr.DataArray or dict): The source of attributes.
-        overwrite (bool): If True, overwrite existing keys in target.
-                          If False, only add keys that don't already exist.
-    """
-    if isinstance(target, (xr.Dataset, xr.DataArray)):
-        target = target.attrs
-    if isinstance(source, (xr.Dataset, xr.DataArray)):
-        source = source.attrs
-
-    for k, v in source.items():
-        if overwrite or k not in target:
-            target[k] = v
 
 def _check_list_regions_type(regions_to_plot, logger=None):
     """Ensures regions_to_plot is a list of strings before assigning it."""

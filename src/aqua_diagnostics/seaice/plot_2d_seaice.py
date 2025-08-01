@@ -41,7 +41,7 @@ class Plot2DSeaIce:
         self.dpi = dpi
 
     def plot_2d_seaice(self, plot_type='var', months=[2,9], method='fraction', projkw=None,
-                       save_pdf=True, save_png=True, **kwargs):
+                       plot_ref_contour=False, save_pdf=True, save_png=True, **kwargs):
         """
         Plot sea ice data and biases.
 
@@ -51,11 +51,8 @@ class Plot2DSeaIce:
             projkw (dict):  Dictionary with projection parameters for the plot.
             save_pdf (bool): Whether to save the plot as a PDF.
             save_png (bool): Whether to save the plot as a PNG.
-            **kwargs: Additional keyword arguments for customization. Supported kwargs include:
-                projkw (dict):               Dictionary with projection parameters for the plot.
-                cbar_ticks_rounding (int):   Rounding for colorbar ticks.
-                plot_ref_contour (bool):     Whether to add a reference line at 0.2 for sea ice fraction.
-                bias_vmin_vmax (str | dict): Dictionary with vmin and vmax
+            plot_ref_contour (bool):     Whether to add a reference line at 0.2 for sea ice fraction.
+            **kwargs: Additional keyword arguments for customization. See below functions for details.
         """
         self.logger.info("Starting Plot2DSeaIce run")
 
@@ -76,7 +73,7 @@ class Plot2DSeaIce:
         self.projpars = projkw.get('projpars', {})
         self.extent_regions = projkw.get('extent_regions', {})
 
-        self.plot_ref_contour = kwargs.get('plot_ref_contour', False)
+        self.plot_ref_contour = plot_ref_contour
 
         if not self.models or not self.ref:
             raise ValueError("Missing models or reference data")
@@ -102,6 +99,7 @@ class Plot2DSeaIce:
         """
         ticks_rounding = kwargs.get('cbar_ticks_rounding', 1)
         bias_vmin_vmax = kwargs.get('bias_vmin_vmax', None)
+        add_land = kwargs.get('add_land', True)
 
         self._get_data_in_region(region)
 
@@ -135,13 +133,13 @@ class Plot2DSeaIce:
 
                 plot_single_map(monref, proj=self.proj, fig=fig, ax=axs[0],
                                 cmap=setup['colormap'], norm=setup['norm'],
-                                contour=False, cbar=False,
+                                contour=False, cbar=False, add_land=add_land,
                                 loglevel=self.loglevel,
                                 **kwargs)
 
                 cbar_ref = self._add_colorbar(fig, monref, ax=axs[0], orientation='vertical',
                                               norm=setup['norm'], boundaries=setup['boundaries'],
-                                              ticks_rounding=ticks_rounding,
+                                              ticks_rounding=ticks_rounding, 
                                               **{'fraction': 0.046, 'pad': 0.04})
                 axs[0].set_title(f"{set_map_title(monref, skip_varname=True)}")
 
@@ -150,7 +148,7 @@ class Plot2DSeaIce:
 
                 plot_single_map(monmod, proj=self.proj, fig=fig, ax=axs[1],
                                 cmap=setup['colormap'], norm=setup['norm'],
-                                contour=False, cbar=False,
+                                contour=False, cbar=False, add_land=add_land,
                                 loglevel=self.loglevel,
                                 **kwargs)
 
@@ -172,7 +170,7 @@ class Plot2DSeaIce:
                 vmax = bias_vmin_vmax.get('vmax', default_vmax)
 
                 plot_single_map_diff(monmod, monref, proj=self.proj, fig=fig, ax=axs[2],
-                                     add_contour=False,
+                                     add_contour=False, add_land=add_land,
                                      nlevels=26,
                                      vmin_fill=vmin, vmax_fill=vmax,
                                      sym=False, # set False to later override with symmetric min-max values
@@ -234,8 +232,8 @@ class Plot2DSeaIce:
                                           loglevel=self.loglevel, ax_pos=(nrows, ncols, jm+1), 
                                           **kwargs)
                 if self.plot_ref_contour:
-                    self._plot_reference_contour(ax=ax, month=month, 
-                                                    idat=idat, **kwargs)
+                    self._plot_reference_contour(ax=ax, month=month, idat=idat, **kwargs)
+
                 if self.extent_regions:
                     ext_coords = self.extent_regions.get(region, None)
                     ax = apply_circular_window(ax, extent=ext_coords)
@@ -266,7 +264,19 @@ class Plot2DSeaIce:
     def _get_colorbar_ticks(self, data, vmin=None, vmax=None, norm=None,
                             boundaries=None, sym=False, ticks_rounding=1):
         """
-        Generate ticks for colorbar.
+        Generate ticks for colorbar based on data range, normalization, or specified boundaries.
+
+        Args:
+            data (xarray.DataArray): DataArray containing the data for which to generate colorbar ticks.
+            vmin (float, optional): Minimum value for the colorbar. If None, it will be calculated from data.
+            vmax (float, optional): Maximum value for the colorbar. If None, it will be calculated from data.
+            norm (matplotlib.colors.Normalize, optional): Normalization instance to use for the colorbar.
+            boundaries (list, optional): List of boundaries for discrete normalization (can be non-linear discretisation).
+            sym (bool, optional): If True, use symmetric limits for the colorbar.
+            ticks_rounding (int, optional): Rounding for colorbar ticks.
+
+        Returns:
+            list: A list of ticks for the colorbar.
         """
         if norm is None:
             if vmin is None or vmax is None:
@@ -282,6 +292,25 @@ class Plot2DSeaIce:
                       sym=False, orientation='horizontal', ticks_rounding=1, **cb_kwargs):
         """
         Add a colorbar to the current figure.
+
+        Args:
+            fig (matplotlib.Figure): The figure to which the colorbar will be added.
+            data (xarray.DataArray): DataArray containing the data for which the colorbar is generated.
+            mappable (matplotlib.cm.ScalarMappable, optional): The mappable object to which the colorbar applies. 
+                                                               Defaults to the first collection in the axis.
+            ax (matplotlib.axes.Axes, optional): The axis to which the colorbar is associated. Defaults to None.
+            cax (matplotlib.axes.Axes, optional): The axis on which the colorbar is drawn. Defaults to None.
+            vmin (float, optional): Minimum value for the colorbar. Defaults to None.
+            vmax (float, optional): Maximum value for the colorbar. Defaults to None.
+            norm (matplotlib.colors.Normalize, optional): Normalization instance to use for the colorbar. Defaults to None.
+            boundaries (list, optional): List of boundaries for discrete normalization. Defaults to None.
+            sym (bool, optional): If True, use symmetric limits for the colorbar. Defaults to False.
+            orientation (str, optional): Orientation of the colorbar ('horizontal' or 'vertical'). Defaults to 'horizontal'.
+            ticks_rounding (int, optional): Rounding for colorbar ticks. Defaults to 1.
+            **cb_kwargs: Additional keyword arguments for the colorbar.
+
+        Returns:
+            matplotlib.colorbar.Colorbar: The created colorbar object.
         """
         if mappable is None:
             mappable = ax.collections[0]
@@ -380,15 +409,22 @@ class Plot2DSeaIce:
     def _mask_ice_at_mid_lats(self, datarr):
         """
         Further clean the data array.
-        For 'thickness' method, remove values below 0.01 and mask lats outside the [-50, 50] range.
+        For 'thickness' method, remove values below 0.01 and mask lats inside the [-50, 50] range.
+        For 'fraction' method, for lats values inside the range [-45, 40] overwrite NaNs with 0.
+        Args:
+            datarr (xarray.DataArray): DataArray containing sea ice data with attributes.
+
+        Returns:
+            xarray.DataArray: Cleaned DataArray with masked values.
         """
-        lat_vals = datarr['lat'].broadcast_like(datarr)
-        condition = (lat_vals > -50) & (lat_vals < 50)
+        lat = datarr['lat'].broadcast_like(datarr)
         if self.method == 'thickness':
-            datarr = datarr.where(~condition) 
-            datarr = datarr.where(datarr >= 0.01)
-        return datarr
-        
+            mask = ((lat > -50) & (lat < 50)) | (datarr < 0.01)
+            return datarr.where(~mask)
+        elif self.method == 'fraction':
+            mask = (lat >= -45) & (lat <= 40)
+            return datarr.where(~mask, 0) # overwrite NaNs
+
     def _handle_data(self, datain) -> list | None:
         """
         Handle `datain` and return a flat list of xarray.DataArray objects.

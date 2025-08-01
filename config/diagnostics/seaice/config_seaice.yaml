@@ -54,7 +54,7 @@ setup:
 
 # =======  Output Configuration  =======
 output:
-  outputdir: "/project/project_465000454/tovazzie/src/AQUA/" # mandatory
+  outputdir: "./" # mandatory
   rebuild: true
   save_netcdf: false # mandatory
   save_pdf: false    # mandatory

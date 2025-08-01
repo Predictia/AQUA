@@ -162,34 +162,29 @@ def cbar_get_label(data: xr.DataArray, cbar_label: str = None,
     return cbar_label
 
 
-def set_map_title(data: xr.DataArray, title: str = None, 
-                  loglevel='WARNING', **kwargs):
+def set_map_title(data: xr.DataArray, title: str = None,
+                  put_units=False, set_units=None,
+                  use_attr_name=None, put_model_name=True,
+                  put_exp_name=True, skip_varname=False,
+                  loglevel='WARNING'):
     """
     Evaluate the map title.
 
     Args:
         data (xarray.DataArray):   Input data array.
         title (str, opt):          Explicit title override.
+        put_units (bool):      Whether to include units in the title. Default True.
+        set_units (str):       Manually override units in title.
+        use_attr_name (str):   Specific attribute name to use as title.
+        put_model_name (bool): Include 'AQUA_model' in title. Default True.
+        put_exp_name (bool):   Include 'AQUA_exp' in title. Default True.
+        skip_varname (bool):   Skip including variable name in title. Default False.
         loglevel (str, opt):       Logging level.
-        **kwargs:
-            put_units (bool):      Whether to include units in the title. Default True.
-            set_units (str):       Manually override units in title.
-            use_attr_name (str):   Specific attribute name to use as title.
-            put_model_name (bool): Include 'AQUA_model' in title. Default True.
-            put_exp_name (bool):   Include 'AQUA_exp' in title. Default True.
-            skip_varname (bool):   Skip including variable name in title. Default False.
 
     Returns:
         title (str): Map title.
     """
     logger = log_configure(loglevel, 'set map title')
-
-    put_units = kwargs.get('put_units', False)
-    set_units = kwargs.get('set_units', None)
-    use_attr_name = kwargs.get('use_attr_name', None)
-    put_model_name = kwargs.get('put_model_name', True)
-    put_exp_name = kwargs.get('put_exp_name', True)
-    skip_varname = kwargs.get('skip_varname', False)
 
     if title:
         logger.debug("Explicit title provided: %s", title)
