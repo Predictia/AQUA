@@ -12,12 +12,12 @@ def test_stratification():
                           regrid='r100', loglevel='DEBUG')
 
     strat.run(
-        # dim_mean="lat",
-              var=['thetao', 'so'],
-              region='Labrador Sea',
-              mld=True,
-              )
+        dim_mean=["lat","lon"],
+        var=['thetao', 'so'],
+        region='ls',
+        mld=True,
+        )
     data = strat.data.sel(month=12)
     assert strat is not None, "strat instance should not be None"
-    assert data["mld"].isel(lon=10, lat=10).values == pytest.approx(-0.06603967,rel=approx_rel)
-    assert data["rho"].isel(lev=5).values == pytest.approx(0.02622599,rel=approx_rel)
+    assert data["mld"].values == pytest.approx(13.76194609,rel=approx_rel)
+    assert data["rho"].isel(level=1).values == pytest.approx(26.63128532,rel=approx_rel)
