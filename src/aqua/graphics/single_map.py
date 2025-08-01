@@ -8,6 +8,7 @@ Contains the following functions:
 Author: Matteo Nurisso
 Date: Feb 2024
 """
+from typing import Optional
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,21 +18,22 @@ from aqua.logger import log_configure
 from aqua.util import add_cyclic_lon, evaluate_colorbar_limits
 from aqua.util import healpix_resample, coord_names, set_ticks, ticks_round
 from aqua.util import cbar_get_label, set_map_title, generate_colorbar_ticks
-from aqua.exceptions import NoDataError
+from .gridlines import draw_manual_gridlines
 from .styles import ConfigStyle
 import cartopy.feature as cfeature
 
 def plot_single_map(data: xr.DataArray,
-                    contour=True, sym=False,
-                    proj: ccrs.Projection = ccrs.Robinson(),
-                    extent=None, coastlines=True,
-                    style=None, figsize=(11, 8.5), nlevels=11,
-                    vmin=None, vmax=None, cmap='RdBu_r', norm=None,
-                    cbar: bool = True, cbar_label=None,
-                    title=None, transform_first=False, cyclic_lon=True,
-                    add_land=False, fig: plt.Figure = None, ax: plt.Axes = None,
-                    ax_pos: tuple = (1, 1, 1),
-                    return_fig=False, loglevel='WARNING',  **kwargs):
+                    contour: bool = True, sym: bool = False,
+                    proj: ccrs.Projection = ccrs.Robinson(), gridlines: bool = False,
+                    extent: Optional[list] = None, coastlines: bool = True,
+                    style: Optional[str] = None, figsize: tuple = (11, 8.5), nlevels: int = 11,
+                    vmin: Optional[float] = None, vmax: Optional[float] = None, cmap: str = 'RdBu_r',
+                    cbar: bool = True, cbar_label: Optional[str] = None, 
+                    norm: Optional[object] = None,
+                    title: Optional[str] = None, transform_first: bool = False, cyclic_lon: bool = True,
+                    add_land: bool = False, fig: Optional[plt.Figure] = None, ax: Optional[plt.Axes] = None,
+                    ax_pos: tuple = (1, 1, 1), return_fig: bool = False, 
+                    loglevel='WARNING',  **kwargs):
     """
     Plot contour or pcolormesh map of a single variable. By default the contour map is plotted.
 
@@ -39,7 +41,8 @@ def plot_single_map(data: xr.DataArray,
         data (xr.DataArray):         Data to plot.
         contour (bool, optional):    If True, plot a contour map, otherwise a pcolormesh. Defaults to True.
         sym (bool, optional):        If True, set the colorbar to be symmetrical. Defaults to False.
-        proj (cartopy.crs.Projection, optional): Projection to use. Defaults to Robinson.
+        proj (cartopy.crs.Projection, optional): Projection to use. Defaults to ccrs.Robinson().
+        gridlines (bool, optional):  If True, add gridlines. Defaults to False
         extent (list, optional):     Extent of the map to limit the projection. Defaults to None.
         coastlines (bool, optional): If True, add coastlines. Defaults to True.
         style (str, optional):       Style to use. Defaults to None (aqua style).
@@ -76,7 +79,6 @@ def plot_single_map(data: xr.DataArray,
     """
     logger = log_configure(loglevel, 'plot_single_map')
     ConfigStyle(style=style, loglevel=loglevel)
-
 
     # Check if the data is in HEALPix format
     npix = data.size  # Number of cells in the data
@@ -149,7 +151,7 @@ def plot_single_map(data: xr.DataArray,
                                     transform_first=not transform_first)
     else:
         cs = data.plot.pcolormesh(ax=ax, **common_plot_kwargs)
-        
+
     if coastlines:
         logger.debug("Adding coastlines")
         ax.coastlines()
@@ -157,11 +159,6 @@ def plot_single_map(data: xr.DataArray,
     if add_land:
         logger.debug("Adding land")
         ax.add_feature(cfeature.LAND, facecolor='#efebd7', edgecolor='k', zorder=3)
-        
-    # TODO: To reimplement, we need a meshgrid for this
-    # if gridlines:
-    #     logger.debug("Adding gridlines")
-    #     ax.gridlines()
 
     # Longitude labels
     # Evaluate the longitude ticks
@@ -171,11 +168,17 @@ def plot_single_map(data: xr.DataArray,
         nyticks = kwargs.get('nyticks', 7)
         ticks_rounding = kwargs.get('ticks_rounding', None)
         if ticks_rounding:
-            logger.debug("Setting ticks rounding to %s", ticks_rounding)
+            logger.debug(f"Setting ticks rounding to {ticks_rounding}")
 
         fig, ax = set_ticks(data=data, fig=fig, ax=ax, nticks=(nxticks, nyticks),
                             ticks_rounding=ticks_rounding, lon_name=lon_name,
                             lat_name=lat_name, proj=proj, loglevel=loglevel)
+    else:
+        if gridlines:
+            gl = ax.gridlines(draw_labels=True, color='none')  # invisible lines
+            gl.xlabels_top = False
+            gl.ylabels_right = False
+            draw_manual_gridlines(ax=ax, lon_interval=30, lat_interval=30, zorder=50)
 
     if cbar:
         # Adjust the location of the subplots on the page to make room for the colorbar
@@ -190,10 +193,12 @@ def plot_single_map(data: xr.DataArray,
 
         cbar = fig.colorbar(cs, cax=cbar_ax, orientation='horizontal', label=cbar_label)
 
-        # Make tick of colorbar symmetric if sym=True
         cbar_ticks_rounding = kwargs.get('cbar_ticks_rounding', None)
-        cbar_ticks = generate_colorbar_ticks(vmin=vmin, vmax=vmax,
-                                             sym=sym, ticks_rounding=cbar_ticks_rounding,
+        cbar_ticks = generate_colorbar_ticks(vmin=vmin,
+                                             vmax=vmax, 
+                                             sym=sym,
+                                             nlevels=nlevels,
+                                             ticks_rounding=cbar_ticks_rounding,
                                              loglevel=loglevel)
         cbar.set_ticks(cbar_ticks)
         cbar.ax.ticklabel_format(style='sci', axis='x', scilimits=(-3, 3))
@@ -215,14 +220,14 @@ def plot_single_map(data: xr.DataArray,
 
 
 def plot_single_map_diff(data: xr.DataArray, data_ref: xr.DataArray,
-                         proj: ccrs.Projection = ccrs.Robinson(), extent: list = None,
-                         vmin_fill: float = None, vmax_fill: float = None, norm = None,
-                         vmin_contour: float = None, vmax_contour: float = None,
-                         sym_contour: bool = False, sym: bool = True,
+                         proj: ccrs.Projection = ccrs.Robinson(), extent: Optional[list] = None,
+                         vmin_fill: Optional[float] = None, vmax_fill: Optional[float] = None,
+                         vmin_contour: Optional[float] = None, vmax_contour: Optional[float] = None,
+                         norm = None, sym_contour: bool = False, sym: bool = True,
                          add_contour: bool = True, add_land=False,
                          cyclic_lon: bool = True, return_fig: bool = False,
-                         fig: plt.Figure = None, ax: plt.Axes = None,
-                         title: str = None, loglevel: str = 'WARNING', **kwargs):
+                         fig: Optional[plt.Figure] = None, ax: Optional[plt.Axes] = None,
+                         title: Optional[str] = None, loglevel: str = 'WARNING', **kwargs):
     """
     Plot the difference of data-data_ref as map and add the data
     as a contour plot.
