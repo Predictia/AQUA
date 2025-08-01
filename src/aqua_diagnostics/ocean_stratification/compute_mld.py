@@ -2,7 +2,7 @@ from aqua.logger import log_configure
 import xarray as xr
 
 
-def compute_mld_cont(rho, loglevel= "WARNING"):
+def compute_mld_cont(rho, loglevel="WARNING"):
     """
     Compute the mixed layer depth (MLD) from density fields with continuous levels.
 
@@ -27,7 +27,7 @@ def compute_mld_cont(rho, loglevel= "WARNING"):
     xarray.DataArray
         Mixed layer depth (MLD) with dimensions of time and space.
     """
-    logger = log_configure(loglevel, 'compute_mld_cont')
+    logger = log_configure(loglevel, "compute_mld_cont")
     logger.info("Starting computation of mixed layer depth (MLD) from density field.")
     # Identify the first level to represent the ocean surface
     logger.debug("Identifying surface density.")
@@ -60,8 +60,12 @@ def compute_mld_cont(rho, loglevel= "WARNING"):
     # Interpolate to estimate MLD between threshold levels
     ddif = cutoff_lev2 - cutoff_lev1
     logger.debug("Interpolating to estimate MLD between threshold levels.")
-    rdif1 = dens_diff.where(dens_diff.level == cutoff_lev1).max(["level"])  # Density diff at first level
-    rdif2 = dens_diff.where(dens_diff.level == cutoff_lev2).max(["level"])  # Density diff at second level
+    rdif1 = dens_diff.where(dens_diff.level == cutoff_lev1).max(
+        ["level"]
+    )  # Density diff at first level
+    rdif2 = dens_diff.where(dens_diff.level == cutoff_lev2).max(
+        ["level"]
+    )  # Density diff at second level
     mld = cutoff_lev1 + ((ddif) * (rdif1)) / (rdif1 - rdif2)
 
     # Set MLD as maximum depth if threshold is not exceeded

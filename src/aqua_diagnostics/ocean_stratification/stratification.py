@@ -7,6 +7,7 @@ from .convert_variables import convert_variables
 
 xr.set_options(keep_attrs=True)
 
+
 class Stratification(Diagnostic):
     def __init__(
         self,
@@ -72,10 +73,14 @@ class Stratification(Diagnostic):
         self.climatology = climatology
         self.logger.info("Starting stratification diagnostic run.")
         super().retrieve(var=var, reader_kwargs=reader_kwargs)
-        self.logger.debug(f"Variables retrieved: {var}, region: {region}, dim_mean: {dim_mean}")
+        self.logger.debug(
+            f"Variables retrieved: {var}, region: {region}, dim_mean: {dim_mean}"
+        )
         if region:
             self.logger.info(f"Selecting region: {region} for diagnostic 'ocean3d'.")
-            self.data, region, lon_limits, lat_limits = super().select_region(region=region, diagnostic="ocean3d")
+            self.data, region, lon_limits, lat_limits = super().select_region(
+                region=region, diagnostic="ocean3d"
+            )
         if dim_mean:
             self.logger.debug(f"Averaging data over dimensions: {dim_mean}")
             self.data = self.data.mean(dim=dim_mean, keep_attrs=True)
@@ -118,7 +123,9 @@ class Stratification(Diagnostic):
         """
         self.logger.debug(f"Computing {self.climatology} climatology.")
         self.data = self.data.groupby(f"time.{self.climatology}").mean("time")
-        self.logger.debug(f"{self.climatology.capitalize()} climatology computed successfully.")
+        self.logger.debug(
+            f"{self.climatology.capitalize()} climatology computed successfully."
+        )
 
     def compute_rho(self):
         """
@@ -130,7 +137,9 @@ class Stratification(Diagnostic):
         -------
         None
         """
-        self.logger.debug("Converting variables to absolute salinity and conservative temperature.")
+        self.logger.debug(
+            "Converting variables to absolute salinity and conservative temperature."
+        )
         self.data = convert_variables(self.data, loglevel=self.loglevel)
         self.logger.debug("Computing potential density at reference pressure 0 dbar.")
         rho = compute_rho(self.data["so"], self.data["thetao"], 0)
@@ -160,14 +169,15 @@ class Stratification(Diagnostic):
         outputdir: str = ".",
         rebuild: bool = True,
     ):
-        self.logger.info(f"Saving results to netCDF: diagnostic={diagnostic}, product={diagnostic_product}, outputdir={outputdir}, region={region}")
+        self.logger.info(
+            f"Saving results to netCDF: diagnostic={diagnostic}, product={diagnostic_product}, outputdir={outputdir}, region={region}"
+        )
         super().save_netcdf(
             data=self.data,
             diagnostic=diagnostic,
             diagnostic_product=f"{diagnostic_product}",
             outdir=outputdir,
             rebuild=rebuild,
-            extra_keys={"region": region}
+            extra_keys={"region": region},
         )
         self.logger.info("NetCDF file saved successfully.")
-            
