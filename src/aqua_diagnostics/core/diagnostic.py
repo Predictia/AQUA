@@ -166,25 +166,36 @@ class Diagnostic():
             data.attrs['units'] = final_units
 
         return data
-    
-    def _read_regions_file(self, diagnostic: str = None):
+
+    def _get_default_regions_file(self, diagnostic: str = None):
         """
-        Read the regions list from the relative diagnostic definition.
+        Get the default path to the regions file for the given diagnostic.
 
         Args:
             diagnostic (str): The diagnostic name. Used for creating the diagnostic file paths.
+        
+        Returns:
+            str: The path to the regions file.
+        """
+        regions_file = ConfigPath().get_config_dir()
+        regions_file = os.path.join(regions_file, 'diagnostics', diagnostic, 'definitions', 'regions.yaml')
+        if os.path.exists(regions_file):
+            return regions_file
+        else:
+            self.logger.error('Region file path not found')
+            raise FileNotFoundError(f'Region file path not found at: {regions_file}')
+    
+    def _read_regions_file(self, regions_file: str):
+        """
+        Read the regions list from the region file.
+
+        Args:
+            regions_file (str): The path to the regions file.
 
         Returns:
             dict: A dictionary containing the regions and their properties.
         """
-        region_file = ConfigPath().get_config_dir()
-        region_file = os.path.join(region_file, 'diagnostics',
-                                   diagnostic, 'definitions', 'regions.yaml')
-        if os.path.exists(region_file):
-            return load_yaml(region_file)
-        else:
-            self.logger.error('Region file path not found')
-            raise FileNotFoundError(f'Region file path not found at: {region_file}')
+        return load_yaml(regions_file)
         
     def _set_region(self, diagnostic: str, region: str = None, lon_limits: list = None, lat_limits: list = None):
         """

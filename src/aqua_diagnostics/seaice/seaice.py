@@ -76,7 +76,10 @@ class SeaIce(Diagnostic):
             regions (str or list of str): A region or list of region names to load. 
                 If None, all regions from the configuration are used.
         """
-        region_definitions = self._read_regions_file(diagnostic='seaice').get('regions', {})
+        if regions_file is None:
+            regions_file = self._get_default_regions_file(diagnostic='seaice')
+
+        region_definitions = self._read_regions_file(regions_file).get('regions', {})
         self.regions_definition = region_definitions
 
         selected_regions = to_list(regions)
@@ -89,7 +92,7 @@ class SeaIce(Diagnostic):
         invalid_regions = [reg for reg in selected_regions if reg not in region_definitions]
         if invalid_regions:
             raise ValueError(f"Invalid region name(s): [{', '.join(f'{i}' for i in invalid_regions)}]. "
-                             f"Please check the region file at: '{regions_file}'.")
+                             f"Please check regions names are lower case or the region file at: '{regions_file}'.")
 
         self.regions = selected_regions
         
@@ -431,16 +434,12 @@ class SeaIce(Diagnostic):
         if monthly_data is None:
             return None
             
-        if isinstance(monthly_data, list):
-            if 'time' not in monthly_data[0].coords:
+        def _group_bymonth(arr):
+            if 'time' not in arr.coords:
                 raise KeyError("Cannot compute seasonal cycle as 'time' coordinate is missing.")
+            return arr.groupby('time.month').mean('time')
 
-            return [da.groupby('time.month').mean('time') for da in monthly_data]
-        else:
-            if 'time' not in monthly_data.coords:
-                raise KeyError("Cannot compute seasonal cycle as 'time' coordinate is missing.")
-
-            return monthly_data.groupby('time.month').mean('time')
+        return [_group_bymonth(da) for da in monthly_data] if isinstance(monthly_data, list) else _group_bymonth(monthly_data)
     
     def add_seaice_attrs(self, da_seaice_computed: xr.DataArray, region: str,
                          startdate: str=None, enddate: str=None, std_flag=False):

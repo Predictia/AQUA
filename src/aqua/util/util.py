@@ -439,12 +439,9 @@ def strlist_to_phrase(items: list[str]) -> str:
        ['A','B'] will return "A and B"
        ['A','B','C'] will return "A, B, and C"
     """
-    if not items:
-        return ""
-    if len(items) == 1:
-        return items[0]
-    if len(items) == 2:
-        return f"{items[0]} and {items[1]}"
+    if not items: return ""
+    if len(items) == 1: return items[0]
+    if len(items) == 2: return f"{items[0]} and {items[1]}"
     return ", ".join(items[:-1]) + f", and {items[-1]}"
 
 
