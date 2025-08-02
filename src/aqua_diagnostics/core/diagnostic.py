@@ -197,13 +197,15 @@ class Diagnostic():
         """
         return load_yaml(regions_file)
         
-    def _set_region(self, diagnostic: str, region: str = None, lon_limits: list = None, lat_limits: list = None):
+    def _set_region(self, diagnostic: str, region: str = None, regions_file_path: str = None,
+                    lon_limits: list = None, lat_limits: list = None):
         """
         Set the region to be used.
 
         Args:
             diagnostic (str): The diagnostic name. Used for creating the diagnostic file paths.
             region (str): The region to select. This will define the lon and lat limits.
+            regions_file_path (str): The path to the regions file. If None, the default regions file will be used.
             lon_limits (list): The longitude limits to be used. Overridden by region.
             lat_limits (list): The latitude limits to be used. Overridden by region.
 
@@ -213,7 +215,10 @@ class Diagnostic():
             lat_limits (list): The latitude limits to be used.
         """
         if region is not None:
-            regions_file = self._read_regions_file(diagnostic)
+            if regions_file_path is None:
+                regions_file = self._read_regions_file(self._get_default_regions_file(diagnostic))
+            else:
+                regions_file = self._read_regions_file(regions_file_path)
 
             if region in regions_file['regions']:
                 lon_limits = regions_file['regions'][region].get('lon_limits', None)
