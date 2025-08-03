@@ -16,12 +16,25 @@ xr.set_options(keep_attrs=True)
 
 class Plot2DSeaIce:
     """
-    A class for processing and visualizing surface maps and 
-    biases of sea ice fraction or thickness. 
+    A class for processing and visualizing surface maps and biases of sea ice fraction or thickness.
+
+    Args:
+        ref (xarray.DataArray or xarray.Dataset): Reference sea ice data.
+        models (list of xarray.DataArray or xarray.Dataset): List of models with sea ice data.
+        regions_to_plot (list): List of strings with the region names to plot.
+        outdir (str): Output directory for saving plots.
+        rebuild (bool): Whether to rebuild the plots if they already exist.
+        dpi (int): Dots per inch for the saved figures.
+        loglevel (str): Logging level for the logger. Default is 'WARNING'.
+
+    Methods:
+        plot_2d_seaice: Main method to plot sea ice data and biases.
+        plot_bias_map: Plot sea ice variable biases (e.g. 'fraction' or 'thickness').
+        plot_var_map: Plot sea ice variable only (e.g. 'fraction' or 'thickness').
     """
     def __init__(self,
                  ref=None, models=None, 
-                 regions_to_plot: list = None, # ['Arctic', 'Antarctic'], # this is a list of strings with the region names to plot
+                 regions_to_plot: list = ['arctic', 'antarctic'], # this is a list of strings with the region names to plot
                  outdir='./',
                  rebuild=True,
                  dpi=300, 

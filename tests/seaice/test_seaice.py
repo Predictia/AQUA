@@ -7,6 +7,11 @@ approx_rel = 1e-4
 abs_rel = 1e-4
 loglevel = 'DEBUG'
 
+catalog = 'ci'
+model = 'FESOM'
+exp = 'hpz3'
+source = 'monthly-2d'
+
 @pytest.mark.diagnostics
 class TestSeaIce:
     """Test the SeaIce class."""
@@ -39,7 +44,7 @@ class TestSeaIce:
                                      calc_std_freq, expect_exception, error_message):
         """Test sea ice computation including std for both valid and invalid cases."""
 
-        seaice = SeaIce(catalog='ci', model='FESOM', exp='hpz3', source='monthly-2d', 
+        seaice = SeaIce(catalog=catalog, model=model, exp=exp, source=source, 
                         startdate="1991-01-01", enddate="2000-01-01", regions=region, regrid='r100', loglevel=loglevel)
 
         # Handle expected exceptions first
@@ -98,7 +103,7 @@ class TestSeaIce:
     def test_get_seasonal_cycle_with_region(self, method, region, variable, value, kwargs, expected_coords):
         """Test the get_seasonal_cycle functionality with region as a parameter."""
 
-        seaice = SeaIce(catalog='ci', model='FESOM', exp='hpz3', source='monthly-2d',
+        seaice = SeaIce(catalog=catalog, model=model, exp=exp, source=source,
                         startdate="1991-01-01", enddate="2000-01-01", regions=region, 
                         regrid='r100', loglevel=loglevel)
 
@@ -123,6 +128,7 @@ class TestSeaIce:
         ('thickness', 'antarctic', 0.0619, 'm',    'sithick',  None,   None,   None),
 
         # Invalid cases (Errors expected)
+        ('fraction',[1,2,3], None, None, 'siconc', None, ValueError, None),
         # ('wrong_method', 'antarctic',   None, None, 'siconc',   None, ValueError, "Invalid method"),
         # ('fraction',     'weddell_sea', None, None, 'errorvar', None, KeyError, None),
         # ('thickness',    'antarctic',   None, None, 'errorvar', None, KeyError, None),
@@ -136,16 +142,20 @@ class TestSeaIce:
                                            calc_std_freq, expect_exception, error_message):
         """Test sea ice computation for 2D monthly climatology including std for both valid and invalid cases."""
 
-        seaice = SeaIce(catalog='ci', model='FESOM', exp='hpz3', source='monthly-2d',
-                        startdate="1991-01-01", enddate="2000-01-01", regions=region, 
-                        regrid='r100', loglevel=loglevel)
-        
+        def create_seaice():
+            return SeaIce(catalog=catalog, model=model, exp=exp, source=source,
+                startdate="1991-01-01", enddate="2000-01-01", regions=region,
+                regrid='r100', loglevel=loglevel)
+
         # Handle expected exceptions first
         if expect_exception:
             with pytest.raises(expect_exception, match=error_message if error_message else ""):
+                seaice = create_seaice()
                 seaice.compute_seaice(method=method, var=variable)
             return
-
+        else:
+            seaice = create_seaice()
+        
         # Valid case: compute sea ice
         result = seaice.compute_seaice(method=method, var=variable)
         result = result[0]

@@ -20,7 +20,7 @@ class PlotSeaIce:
                  monthly_ref=None, annual_ref=None,
                  monthly_std_ref: str = None, annual_std_ref: str = None,
                  model: str = None, exp: str = None, source: str = None, catalog: str = None,
-                 regions_to_plot: list = None, # ['Arctic', 'Antarctic'], # this is a list of strings with the region names to plot
+                 regions_to_plot: list = ['Arctic', 'Antarctic'], # this is a list of strings with the region names to plot
                  outdir='./',
                  rebuild=True,
                  filename_keys=None,  # List of keys to keep in the filename. Default is None, which includes all keys.
@@ -51,7 +51,7 @@ class PlotSeaIce:
             catalog (str, optional): 
                 Catalog name of the dataset. Defaults to None.
             regions_to_plot (list, optional): 
-                List of region names to be plotted (e.g., `['Arctic', 'Antarctic']`). 
+                List of region names to be plotted (e.g., `['arctic', 'antarctic']`). 
                 If None, all available regions are plotted. Defaults to None.
             outdir (str, optional): 
                 Directory to save output plots. Defaults to './'.
@@ -67,9 +67,6 @@ class PlotSeaIce:
         # logging setup
         self.loglevel = loglevel
         self.logger = log_configure(log_level=self.loglevel, log_name='PlotSeaIce')
-
-        # Diagnostic instance for accessing its methods
-        self.diagnostic = Diagnostic(model=model, exp=exp, source=source, catalog=catalog, loglevel=loglevel)
 
         self.model = model
         self.exp = exp
@@ -176,7 +173,7 @@ class PlotSeaIce:
 
                     if self.regions_to_plot and (region not in self.regions_to_plot):
                         # if region is not in regions_to_plot, record as None
-                        repacked_defdict[method][region][str_data] = None
+                        continue
                     else:
                         # in the nested defaultdicts an empty list is configured by default, thus directly append
                         repacked_defdict[method][region][str_data].append(data_array)
@@ -364,7 +361,6 @@ class PlotSeaIce:
                                           std_annual_data=annual_std,
                                           data_labels=self.data_labels,
                                           ref_label=self.ref_label,
-                                          std_label=None,  # don't plot std in legend
                                           fig=fig,
                                           ax=ax,
                                           **kwargs)
@@ -375,7 +371,6 @@ class PlotSeaIce:
                                              std_data=monthly_std,
                                              data_labels=self.data_labels,
                                              ref_label=self.ref_label,
-                                             std_label=None,
                                              fig=fig,
                                              ax=ax,
                                              **kwargs)
@@ -427,8 +422,8 @@ class PlotSeaIce:
 
             # save figure            
             self.save_fig(fig, save_png, save_pdf,
-                            metadata=metadata,
-                            region_dict=region_dict)
+                          metadata=metadata,
+                          region_dict=region_dict)
 
     def save_fig(self, fig, save_png: bool, save_pdf: bool,
                  metadata: dict = None, region_dict: dict = None):
