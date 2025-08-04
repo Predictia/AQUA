@@ -2,7 +2,7 @@ from aqua.logger import log_configure
 import xarray as xr
 
 
-def convert_so(so, loglevel="WARNING"):
+def convert_so(so):
     """
     Convert practical salinity to absolute salinity using a TEOS-10 approximation.
 
@@ -13,7 +13,7 @@ def convert_so(so, loglevel="WARNING"):
 
     Returns
     -------
-    absso : dask.array.core.Array
+    abs_so : dask.array.core.Array
         Masked array containing the absolute salinity values (g/kg).
 
     Notes
@@ -21,20 +21,17 @@ def convert_so(so, loglevel="WARNING"):
     This function uses an approximation from TEOS-10 equations and may yield different values,
     particularly in the Baltic Sea. See: http://www.teos-10.org/pubs/gsw/pdf/SA_from_SP.pdf
     """
-    logger = log_configure(loglevel, "convert_so")
-    logger.debug("Converting practical salinity to absolute salinity.")
-    absso = so / 0.99530670233846
-    logger.info("Practical salinity successfully converted to absolute salinity.")
-    return absso
+    abs_so = so / 0.99530670233846
+    return abs_so
 
 
-def convert_thetao(absso, thetao, loglevel="WARNING"):
+def convert_thetao(abs_so, thetao, loglevel="WARNING"):
     """
     Convert potential temperature to conservative temperature.
 
     Parameters
     ----------
-    absso : dask.array.core.Array
+    abs_so : dask.array.core.Array
         Masked array containing the absolute salinity values (g/kg).
     thetao : dask.array.core.Array
         Masked array containing the potential temperature values (degC).
@@ -50,7 +47,7 @@ def convert_thetao(absso, thetao, loglevel="WARNING"):
     """
     logger = log_configure(loglevel, "convert_thetao")
     logger.debug("Converting potential temperature to conservative temperature.")
-    x = xr.ufuncs.sqrt(0.0248826675584615 * absso)
+    x = xr.ufuncs.sqrt(0.0248826675584615 * abs_so)
     y = thetao * 0.025e0
     enthalpy = (
         61.01362420681071e0
@@ -138,41 +135,3 @@ def convert_thetao(absso, thetao, loglevel="WARNING"):
         "Potential temperature successfully converted to conservative temperature."
     )
     return bigthetao
-
-
-def convert_variables(data, loglevel="WARNING"):
-    """
-    Convert variables in the given dataset to absolute salinity and conservative temperature.
-
-    This function updates the dataset in-place with absolute salinity ('so') and conservative temperature ('thetao').
-    Potential density ('rho') can be computed separately if needed.
-
-    Parameters
-    ----------
-    data : xarray.Dataset
-        Dataset containing the variables to be converted.
-    loglevel : str, optional
-        Logging level. Default is 'WARNING'.
-
-    Returns
-    -------
-    xarray.Dataset
-        Dataset with updated 'so' and 'thetao' variables.
-    """
-    logger = log_configure(loglevel, "convert_variables")
-    logger.info(
-        "Starting conversion of variables: practical salinity, potential temperature."
-    )
-    # Convert practical salinity to absolute salinity
-    absso = convert_so(data.so)
-    logger.debug("Practical salinity converted to absolute salinity.")
-
-    # Convert potential temperature to conservative temperature
-    thetao = convert_thetao(absso, data.thetao)
-    logger.debug("Potential temperature converted to conservative temperature.")
-
-    # Update the dataset with converted variables
-    data["thetao"] = thetao
-    data["so"] = absso
-    logger.info("Variables successfully converted and updated in dataset.")
-    return data

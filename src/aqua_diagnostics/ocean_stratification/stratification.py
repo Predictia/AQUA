@@ -3,12 +3,39 @@ from aqua.logger import log_configure
 from aqua.diagnostics.core import Diagnostic
 from .compute_mld import compute_mld_cont
 from .compute_rho import compute_rho
-from .convert_variables import convert_variables
+from .convert_variables import convert_so, convert_thetao
 
 xr.set_options(keep_attrs=True)
 
 
 class Stratification(Diagnostic):
+    """
+    Diagnostic class for analyzing ocean stratification.
+
+    Parameters
+    ----------
+    catalog : str, optional
+        Path to the data catalog (e.g., intake-esm catalog).
+    model : str, optional
+        Name of the climate model to analyze.
+    exp : str, optional
+        Experiment name (e.g., 'historical', 'ssp585').
+    source : str, optional
+        Data source (e.g., 'CMIP6', 'OBS').
+    regrid : str, optional
+        Regridding method or target grid (e.g., '1x1', 'nearest').
+    startdate : str, optional
+        Start date of the analysis period (format: 'YYYY-MM-DD').
+    enddate : str, optional
+        End date of the analysis period (format: 'YYYY-MM-DD').
+    loglevel : str, optional
+        Logging level (default is "WARNING").
+
+    Attributes
+    ----------
+    logger : logging.Logger
+        Configured logger for the diagnostic.
+    """
     def __init__(
         self,
         catalog: str = None,
@@ -140,7 +167,20 @@ class Stratification(Diagnostic):
         self.logger.debug(
             "Converting variables to absolute salinity and conservative temperature."
         )
-        self.data = convert_variables(self.data, loglevel=self.loglevel)
+        # Convert practical salinity to absolute salinity
+        abs_so = convert_so(self.data['so'])
+        self.logger.debug("Practical salinity converted to absolute salinity.")
+
+        # Convert potential temperature to conservative temperature
+        cons_thetao = convert_thetao(abs_so, self.data['thetao'])
+        self.logger.debug("Potential temperature converted to conservative temperature.")
+
+        # Update the dataset with converted variables
+        self.data["thetao"] = cons_thetao
+        self.data["so"] = abs_so
+        self.logger.info("Variables successfully converted and updated in dataset.")
+        
+        # self.data = convert_variables(self.data, loglevel=self.loglevel)
         self.logger.debug("Computing potential density at reference pressure 0 dbar.")
         rho = compute_rho(self.data["so"], self.data["thetao"], 0)
         self.data["rho"] = rho - 1000  # Convert to kg/m^3
@@ -169,6 +209,22 @@ class Stratification(Diagnostic):
         outputdir: str = ".",
         rebuild: bool = True,
     ):
+        """
+        Save the diagnostic output to a NetCDF file.
+
+        Parameters
+        ----------
+        diagnostic : str, optional
+            High-level diagnostic category (default is "ocean_circulation").
+        diagnostic_product : str, optional
+            Specific diagnostic product name (default is "stratification").
+        region : str, optional
+            Region name to include in metadata or filename.
+        outputdir : str, optional
+            Directory where the NetCDF file will be saved (default is current directory).
+        rebuild : bool, optional
+            If True, force rebuild of NetCDF file even if it exists (default is True).
+        """
         self.logger.info(
             f"Saving results to netCDF: diagnostic={diagnostic}, product={diagnostic_product}, outputdir={outputdir}, region={region}"
         )
