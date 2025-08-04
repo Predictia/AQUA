@@ -21,7 +21,8 @@ class Plot2DSeaIce:
     Args:
         ref (xarray.DataArray or xarray.Dataset): Reference sea ice data.
         models (list of xarray.DataArray or xarray.Dataset): List of models with sea ice data.
-        regions_to_plot (list): List of strings with the region names to plot.
+        regions_to_plot (list): List of strings with the region names to plot which must match 
+                                the 'AQUA_region' attribute in the data provided as input.
         outdir (str): Output directory for saving plots.
         rebuild (bool): Whether to rebuild the plots if they already exist.
         dpi (int): Dots per inch for the saved figures.
@@ -36,7 +37,7 @@ class Plot2DSeaIce:
     """
     def __init__(self,
                  ref=None, models=None, 
-                 regions_to_plot: list = None, #['arctic', 'antarctic'], # this is a list of strings with the region names to plot
+                 regions_to_plot: list = ['Arctic', 'Antarctic'],
                  outdir='./',
                  rebuild=True,
                  dpi=300, 
@@ -49,7 +50,9 @@ class Plot2DSeaIce:
         self.models = self._handle_data(models)
         
         self.regions_to_plot = _check_list_regions_type(regions_to_plot, logger=self.logger)
-        self._detect_common_regions([self.models, self.ref])
+
+        if self.regions_to_plot is None:
+            self._detect_common_regions([self.models, self.ref])
 
         self.outdir  = outdir
         self.rebuild = rebuild
@@ -96,6 +99,9 @@ class Plot2DSeaIce:
         for region in self.regions_to_plot:
             self.logger.info(f"Plotting region: {region}")
 
+            if not self._find_data_for_region(region):
+                continue  
+
             if plot_type == 'bias':
                 self._plot_bias_map(region, **kwargs)
             elif plot_type == 'var':
@@ -115,8 +121,6 @@ class Plot2DSeaIce:
         ticks_rounding = kwargs.get('cbar_ticks_rounding', 1)
         bias_vmin_vmax = kwargs.get('bias_vmin_vmax', None)
         add_land = kwargs.get('add_land', True)
-
-        self._get_data_in_region(region)
 
         if not self.reg_ref or not self.reg_models:
             self.logger.error(f"Missing data to plot biases. Ensure both models and ref data are available. Skipping {region}")
@@ -223,7 +227,6 @@ class Plot2DSeaIce:
         """
         Plot monthly climatological sea ice variable only (e.g. fraction or thickness).
         """
-        self._get_data_in_region(region)
         self.proj = get_projection(self.projname, **self._set_projpars())
 
         if self.reg_ref:
@@ -498,9 +501,8 @@ class Plot2DSeaIce:
             if dalist is None:
                 self.logger.warning(f"Input data list is None. Skipping region detection")
                 return
-            if self.regions_to_plot is None:
-                self.regions_to_plot = []
-                
+            
+            self.regions_to_plot = []
             for da in dalist:
                 if da is None:
                     continue
@@ -524,7 +526,7 @@ class Plot2DSeaIce:
         if not self.regions_to_plot:
             raise ValueError("No regions to plot detected.")
 
-    def _get_data_in_region(self, region):
+    def _find_data_for_region(self, aqua_region):
         """
         Filter a list of xarray.DataArray objects by a specific region.
         """
@@ -532,17 +534,16 @@ class Plot2DSeaIce:
             if dalist is None:
                 raise ValueError("No data available for filtering by region.")
 
-            filtered = [da for da in dalist if da.attrs.get('AQUA_region') == region]
+            filtered = [da for da in dalist if da.attrs.get('AQUA_region') == aqua_region]
             return filtered if filtered else None
 
         self.reg_ref = _filter_by_region_in_list(self.ref) if self.ref else None
         self.reg_models = _filter_by_region_in_list(self.models) if self.models else None
 
-        self.reg_comb = []
-
-        for reg_lst in (self.reg_ref, self.reg_models):
-            if reg_lst:
-                self.reg_comb += reg_lst
+        if not self.reg_ref and not self.reg_models:
+            self.logger.error(f"No data found for region '{aqua_region}'. Skipping this region.")
+            return False
+        return True
 
     def _save_figure(self, fig, diagnostic_product,
                      data, description, data_ref=None,
