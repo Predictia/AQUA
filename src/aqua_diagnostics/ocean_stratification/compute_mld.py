@@ -4,28 +4,27 @@ import xarray as xr
 
 def compute_mld_cont(rho, loglevel="WARNING"):
     """
-    Compute the mixed layer depth (MLD) from density fields with continuous levels.
+    Compute the Mixed Layer Depth (MLD) from a continuous density profile.
 
-    The MLD is determined using the criteria from de Boyer Montegut et al. (2004),
-    by interpolating between the first level that exceeds the density threshold (0.03 kg/m³)
-    and the next, to estimate where the threshold would be reached.
+    Uses the threshold method from de Boyer Montegut et al. (2004), identifying
+    the depth where density exceeds surface density by 0.03 kg/m³, with linear
+    interpolation between levels.
 
     Warning
     -------
-    This function may not provide reasonable estimates in cases where the upper level
-    has higher densities than the lower one. Use with caution until this issue is addressed.
+    May produce inaccurate results if surface levels are denser than deeper ones.
 
     Parameters
     ----------
     rho : xarray.DataArray
-        Density field (sigma0), must have dimensions time, space, and depth (in meters).
+        Seawater density (sigma0) with dimensions including 'level' (depth).
     loglevel : str, optional
-        Logging level. Default is 'WARNING'.
+        Logging level (default: "WARNING").
 
     Returns
     -------
     xarray.DataArray
-        Mixed layer depth (MLD) with dimensions of time and space.
+        Estimated MLD with same horizontal dimensions as `rho`.
     """
     logger = log_configure(loglevel, "compute_mld_cont")
     logger.info("Starting computation of mixed layer depth (MLD) from density field.")
