@@ -29,12 +29,14 @@ class Plot2DSeaIce:
 
     Methods:
         plot_2d_seaice: Main method to plot sea ice data and biases.
-        plot_bias_map: Plot sea ice variable biases (e.g. 'fraction' or 'thickness').
-        plot_var_map: Plot sea ice variable only (e.g. 'fraction' or 'thickness').
+
+    Private Methods:
+        _plot_bias_map: Plot sea ice variable biases (e.g. 'fraction' or 'thickness').
+        _plot_var_map: Plot sea ice variable only with horizontal colorbar (e.g. 'fraction' or 'thickness').
     """
     def __init__(self,
                  ref=None, models=None, 
-                 regions_to_plot: list = ['arctic', 'antarctic'], # this is a list of strings with the region names to plot
+                 regions_to_plot: list = None, #['arctic', 'antarctic'], # this is a list of strings with the region names to plot
                  outdir='./',
                  rebuild=True,
                  dpi=300, 
@@ -53,7 +55,7 @@ class Plot2DSeaIce:
         self.rebuild = rebuild
         self.dpi = dpi
 
-    def plot_2d_seaice(self, plot_type='var', months=[2,9], method='fraction', projkw=None,
+    def plot_2d_seaice(self, plot_type='var', months=[3,9], method='fraction', projkw=None,
                        plot_ref_contour=False, save_pdf=True, save_png=True, **kwargs):
         """
         Plot sea ice data and biases.
@@ -95,13 +97,13 @@ class Plot2DSeaIce:
             self.logger.info(f"Plotting region: {region}")
 
             if plot_type == 'bias':
-                self.plot_bias_map(region, **kwargs)
+                self._plot_bias_map(region, **kwargs)
             elif plot_type == 'var':
-                self.plot_var_map(region, **kwargs)
+                self._plot_var_map(region, **kwargs)
             else:
                 raise ValueError(f"Unsupported plot_type '{plot_type}'. Supported: ['var', 'bias']")
 
-    def plot_bias_map(self, region, **kwargs):
+    def _plot_bias_map(self, region, **kwargs):
         """
         Plot sea ice variable biases (e.g. fraction or thickness).
 
@@ -125,7 +127,7 @@ class Plot2DSeaIce:
 
         self.proj = get_projection(self.projname, **self._set_projpars())
 
-        for imod, reg_mod in enumerate(reg_models):
+        for reg_mod in reg_models:
 
             nrows, ncols = len(self.months), 3
             fig = plt.figure(figsize=(ncols * 4.8, nrows * 4.5))
@@ -169,8 +171,9 @@ class Plot2DSeaIce:
                                               norm=setup['norm'], boundaries=setup['boundaries'],
                                               ticks_rounding=ticks_rounding,
                                               **{'fraction': 0.046, 'pad': 0.04})
+
                 if self.plot_ref_contour:
-                    self._plot_reference_contour(ax=axs[1], month=month, idat=imod+1, **kwargs)
+                    self._plot_reference_contour(ax=axs[1], month=month, data_type='model', **kwargs)
 
                 axs[1].set_title(f"{set_map_title(monmod, skip_varname=True)}")
 
@@ -215,64 +218,81 @@ class Plot2DSeaIce:
         self._save_plots(fig=fig, data=monmod, data_ref=monref, diagnostic_product='bias', 
                          description=description, extra_keys={'method': self.method, 'region': region})
 
-    def plot_var_map(self, region, **kwargs):
-        """
-        Plot sea ice variable only (e.g. fraction or thickness).
-        """
-        ticks_rounding = kwargs.get('cbar_ticks_rounding', 1)
 
+    def _plot_var_map(self, region, **kwargs):
+        """
+        Plot monthly climatological sea ice variable only (e.g. fraction or thickness).
+        """
         self._get_data_in_region(region)
         self.proj = get_projection(self.projname, **self._set_projpars())
 
-        for idat, datarr in enumerate([da for da in self.reg_comb if da is not None]):
-            self.logger.info(f"Processing data {idat+1}/{len(list(filter(lambda x: x is not None, self.reg_comb)))}: {datarr.name}")
+        if self.reg_ref:
+            for datarr in self.reg_ref:
+                if datarr is not None:
+                    self._plot_single_dataset(datarr, region, 'reference', **kwargs)
 
-            nrows, ncols = plot_box(num_plots=len(self.months))
-            fig = plt.figure(figsize=(ncols * 4.5, nrows * 4))
-            fig.subplots_adjust(bottom=0.2, hspace=0.9)
+        if self.reg_models:
+            for datarr in self.reg_models:
+                if datarr is not None:
+                    self._plot_single_dataset(datarr, region, 'model', **kwargs)
 
-            setup = self._get_cmap(datarr)
-            cmap, norm, boundaries = (setup[k] for k in ('colormap', 'norm', 'boundaries'))
+    def _plot_single_dataset(self, datarr, region, data_type, **kwargs):
+        """
+        Plot a single dataset (reference or model).
+        
+        Args:
+            datarr: The data array to plot
+            data_type: 'reference' or 'model'
+            **kwargs: Additional plotting arguments
+        """
+        self.logger.info(f"Processing {data_type} data: {datarr.name}")
 
-            for jm, month in enumerate(self.months):
+        nrows, ncols = plot_box(num_plots=len(self.months))
+        fig = plt.figure(figsize=(ncols * 4.5, nrows * 4))
+        fig.subplots_adjust(bottom=0.2, hspace=0.9)
 
-                mondat = self._mask_ice_at_mid_lats(datarr.sel(month=month))
+        setup = self._get_cmap(datarr)
+        cmap, norm, boundaries = (setup[k] for k in ('colormap', 'norm', 'boundaries'))
 
-                fig, ax = plot_single_map(mondat, proj=self.proj, fig=fig,
-                                          cmap=cmap, norm=norm, 
-                                          add_land=True, contour=False, 
-                                          cbar=False, return_fig=True,
-                                          loglevel=self.loglevel, ax_pos=(nrows, ncols, jm+1), 
-                                          **kwargs)
-                if self.plot_ref_contour:
-                    self._plot_reference_contour(ax=ax, month=month, idat=idat, **kwargs)
+        for jm, month in enumerate(self.months):
+            mondat = self._mask_ice_at_mid_lats(datarr.sel(month=month))
 
-                if self.extent_regions:
-                    ext_coords = self.extent_regions.get(region, None)
-                    ax = apply_circular_window(ax, extent=ext_coords)
+            fig, ax = plot_single_map(mondat, proj=self.proj, fig=fig,
+                                      cmap=cmap, norm=norm, 
+                                      add_land=True, contour=False, 
+                                      cbar=False, return_fig=True,
+                                      loglevel=self.loglevel, ax_pos=(nrows, ncols, jm+1), 
+                                      **kwargs)
+            
+            if self.plot_ref_contour and data_type == 'model':
+                self._plot_reference_contour(ax=ax, month=month, data_type=data_type, **kwargs)
 
-                ax.set_title(f"Month: {int_month_name(month)}", fontsize=12)
-                                
-            # Adjust the location of the subplots on the page to make room for the colorbar
-            fig.subplots_adjust(bottom=0.25, top=0.8, left=0.15, right=0.85, wspace=0.03, hspace=0.5)
-            cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.03])
+            if self.extent_regions:
+                ext_coords = self.extent_regions.get(region, None)
+                ax = apply_circular_window(ax, extent=ext_coords)
 
-            cbar = self._add_colorbar(fig, mondat, ax=ax, cax=cbar_ax,
-                                      orientation='horizontal',
-                                      ticks_rounding=ticks_rounding,
-                                      **{'shrink': 0.3, 'pad': 0.07})
+            ax.set_title(f"Month: {int_month_name(month)}", fontsize=12)
+                            
+        # Adjust the location of the subplots on the page to make room for the colorbar
+        fig.subplots_adjust(bottom=0.25, top=0.8, left=0.15, right=0.85, wspace=0.03, hspace=0.5)
+        cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.03])
 
-            fig.suptitle(f"{set_map_title(datarr)}", fontsize=13)
+        cbar = self._add_colorbar(fig, mondat, ax=ax, cax=cbar_ax,
+                                  orientation='horizontal',
+                                  ticks_rounding=kwargs.get('cbar_ticks_rounding', 1),
+                                  **{'shrink': 0.3, 'pad': 0.07})
 
+        fig.suptitle(f"{set_map_title(datarr)}", fontsize=13)
+        
         description = (
             f"Spatial map of the sea ice {mondat.attrs.get('AQUA_method','')} climatology "
             f"for the {mondat.attrs.get('AQUA_model','')} model, experiment {mondat.attrs.get('AQUA_exp','')} "
             f"over {mondat.attrs.get('AQUA_region', 'geographic')} region "
             f"from {mondat.attrs.get('AQUA_startdate','')} to {mondat.attrs.get('AQUA_enddate','')}. "
             f"{'The red contour line represent the regional sea ice fraction equal to 0.2.' if self.method == 'fraction' and self.plot_ref_contour else ''}"
-            )
-        self._save_plots(fig=fig, data=monmod, data_ref=monref, diagnostic_product='varmap', 
-                         description=description, extra_keys={'method': self.method, 'region': region})
+        )
+        self._save_plots(fig=fig, data=mondat, data_ref=None, 
+                         diagnostic_product='varmap', description=description, extra_keys={'method': self.method, 'region': region})
 
     def _get_colorbar_ticks(self, data, vmin=None, vmax=None, norm=None,
                             boundaries=None, sym=False, ticks_rounding=1):
@@ -395,30 +415,31 @@ class Plot2DSeaIce:
                 self.logger.error(f"Unsupported type for projpars[{key}]: {type(fncall)}, skipping")
         return processed_projpars
 
-    def _plot_reference_contour(self, ax, month, idat, **kwargs):
+    def _plot_reference_contour(self, ax, month, data_type, **kwargs):
         """
         Add contour for reference data to a given axis for a specific month.
-
+        Only plot contours on model data plots.
         Args:
             ax (matplotlib.axes._subplots.AxesSubplot): Axis to add the contour to.
             month (int): Month for which the reference data is plotted.
-            idat (int): Index of the data being plotted, used to decide if contour should be drawn.
+            data_type (str): 'reference' or 'model' - only plot contours for 'model' data.
             **kwargs: Additional keyword arguments for customization, such as:
                 line_levels (list):      List of contour levels to draw. Default is [0.2].
         """
         line_levels = kwargs.get('line_levels', [0.2])
 
-        if self.reg_ref and idat >= 1 and self.plot_ref_contour:
-            # idat >= 1 means we're past the ref data (assumed first if exist), so contours are plotted only over models
+        if self.reg_ref and data_type == 'model':
+
             ref_dat = self.reg_ref[0].sel(month=month)
+
             if ref_dat is not None:
                 self.logger.debug(f"Adding contour for reference data at {line_levels} for month: {month}")
                 ref_dat.plot.contour(ax=ax, transform=ccrs.PlateCarree(),
-                                     levels=line_levels, colors='red', linewidths=1, 
-                                     linestyles='-', add_colorbar=False)
+                                    levels=line_levels, colors='red', linewidths=1, 
+                                    linestyles='-', add_colorbar=False)
         else:
-            self.logger.debug(f"No self.reg_ref data available or idat < 1 for month: {month}, skipping contour")
-    
+            self.logger.debug(f"No reference contours for data_type: {data_type}, month: {month}")
+
     def _mask_ice_at_mid_lats(self, datarr):
         """
         Further clean the data array.
@@ -538,6 +559,10 @@ class Plot2DSeaIce:
             var (str): Variable name.
             format (str): Format to save the figure ('png' or 'pdf').
         """
+        # Ensure data is not None
+        if data is None:
+            raise ValueError("Data cannot be None for saving figures")
+            
         outputsaver = OutputSaver(
             diagnostic='seaice',
             catalog=data.attrs.get('AQUA_catalog',''),
