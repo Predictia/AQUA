@@ -25,7 +25,7 @@ def convert_so(so):
     return abs_so
 
 
-def convert_thetao(abs_so, thetao, loglevel="WARNING"):
+def convert_thetao(abs_so, thetao):
     """
     Convert potential temperature to conservative temperature.
 
@@ -45,8 +45,6 @@ def convert_thetao(abs_so, thetao, loglevel="WARNING"):
     -----
     Uses an approximation based on TEOS-10. See: http://www.teos-10.org/pubs/gsw/html/gsw_CT_from_pt.html
     """
-    logger = log_configure(loglevel, "convert_thetao")
-    logger.debug("Converting potential temperature to conservative temperature.")
     x = xr.ufuncs.sqrt(0.0248826675584615 * abs_so)
     y = thetao * 0.025e0
     enthalpy = (
@@ -131,7 +129,4 @@ def convert_thetao(abs_so, thetao, loglevel="WARNING"):
     )
 
     bigthetao = enthalpy / 3991.86795711963
-    logger.info(
-        "Potential temperature successfully converted to conservative temperature."
-    )
     return bigthetao
