@@ -90,6 +90,7 @@ class SeaIce(Diagnostic):
             return
 
         invalid_regions = [reg for reg in selected_regions if reg not in region_definitions]
+        
         if invalid_regions:
             raise ValueError(f"Invalid region name(s): [{', '.join(f'{i}' for i in invalid_regions)}]. "
                              f"Please check regions names are lower case or the region file at: '{regions_file}'.")
@@ -214,7 +215,14 @@ class SeaIce(Diagnostic):
         return (self.result, self.result_std) if calc_std_freq else self.result
 
     def _compute_2d_bymethod(self, **kwargs):
-        """ Compute sea ice result by integrating data over specified regions.
+        """ This method computes sea ice climatology for each region.
+
+        Args:
+            **kwargs: Additional keyword arguments.
+                - stat (str): The statistic to compute ('mean' or 'std'). Default is 'mean'.
+                - freq (str): The frequency for grouping the data ('monthly' or 'annual'). Default is 'monthly'.
+        Returns:
+            list of xr.DataArray: A list containing the computed sea ice metrics for each region.
         """
         stat = kwargs.get('stat', 'mean')
         freq = kwargs.get('freq', 'monthly')
@@ -242,11 +250,14 @@ class SeaIce(Diagnostic):
 
             regional_2d_results.append(seaice_2d_result)
 
-        return regional_2d_results
+        # combine the result DataArrays into a single Dataset and keep as global attributes 
+        # only the attrs that are shared across all DataArrays
+        self.result = xr.merge(regional_2d_results, combine_attrs='drop_conflicts')
+
+        return self.result
 
     def _mask_data_bymethod(self):
         """ Mask the data based on the specified method.
-
         The case with sea ice 'extent' is calculated by applying a threshold to the sea ice concentration variable
         and summing the masked data over the regional spatial dimension.
 
@@ -482,20 +493,18 @@ class SeaIce(Diagnostic):
         return da_seaice_computed
 
     def save_netcdf(self, seaice_data, diagnostic: str, diagnostic_product: str = None,
-                    default_path: str = '.', rebuild: bool = True, output_file: str = None,
+                    rebuild: bool = True, output_file: str = None,
                     output_dir: str = None, **kwargs):
         """ Save the computed sea ice data to a NetCDF file.
 
         Args:
             seaice_data (xr.DataArray or xr.Dataset): The computed sea ice metric data.
             diagnostic (str): The diagnostic name. It is expected 'SeaIce' for this class.
-            diagnostic_product (str, optional): The diagnostic product. Can be used for namig the file more freely.
-            default_path (str, optional): The default path for saving. Default is '.'.
-            rebuild (bool, optional): If True, rebuild (overwrite) the NetCDF file. Default is True.
+            diagnostic_product (str, optional): The diagnostic product. Can be used for namig the file more freely.            rebuild (bool, optional): If True, rebuild (overwrite) the NetCDF file. Default is True.
             output_file (str, optional): The output file name.
             output_dir (str, optional): The output directory.
             **kwargs: Additional keyword arguments for saving the data.
         """
         # Use parent method to handle saving, including metadata
         super().save_netcdf(seaice_data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                            default_path=default_path, rebuild=rebuild, **kwargs)
+                            rebuild=rebuild, **kwargs)

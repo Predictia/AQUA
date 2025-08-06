@@ -177,26 +177,45 @@ class Diagnostic():
         Returns:
             str: The path to the regions file.
         """
+        if not diagnostic:
+            raise ValueError("A diagnostic name must be provided when regions_file_path is not specified.")
+
         regions_file = ConfigPath().get_config_dir()
         regions_file = os.path.join(regions_file, 'diagnostics', diagnostic, 'definitions', 'regions.yaml')
         if os.path.exists(regions_file):
             return regions_file
         else:
-            self.logger.error('Region file path not found')
             raise FileNotFoundError(f'Region file path not found at: {regions_file}')
     
     def _read_regions_file(self, regions_file: str):
         """
-        Read the regions list from the region file.
+        Read the regions list from the regions file.
 
         Args:
             regions_file (str): The path to the regions file.
 
         Returns:
-            dict: A dictionary containing the regions and their properties.
+            dict: A dictionary containing the regions and their properties form parsed YAML file.
         """
         return load_yaml(regions_file)
+    
+    def _load_regions_from_file(self, diagnostic: str = None, regions_file_path: str = None) -> dict:
+        """
+        Retrieve the regions dictionary from the specified or default regions file.
+
+        Args:
+            diagnostic (str): The diagnostic name.
+            regions_file_path (str, optional): Path to a custom regions file. 
+                If None, the default path for the diagnostic will be used.
+
+        Returns:
+            dict: A dictionary containing the regions and their properties.
+        """
+        if regions_file_path is None:
+            regions_file_path = self._get_default_regions_file(diagnostic)
         
+        return self._read_regions_file(regions_file_path)
+
     def _set_region(self, diagnostic: str, region: str = None, regions_file_path: str = None,
                     lon_limits: list = None, lat_limits: list = None):
         """
@@ -215,10 +234,7 @@ class Diagnostic():
             lat_limits (list): The latitude limits to be used.
         """
         if region is not None:
-            if regions_file_path is None:
-                regions_file = self._read_regions_file(self._get_default_regions_file(diagnostic))
-            else:
-                regions_file = self._read_regions_file(regions_file_path)
+            regions_file = self._load_regions_from_file(diagnostic, regions_file_path)
 
             if region in regions_file['regions']:
                 lon_limits = regions_file['regions'][region].get('lon_limits', None)
@@ -230,7 +246,7 @@ class Diagnostic():
                 raise ValueError(f'Region {region} not found')
         else:
             region = None
-            self.logger.info('No region provided, using lon_limits: %s, lat_limits: %s', lon_limits, lat_limits)
+            self.logger.info(f'No region provided, using lon_limits: {lon_limits}, lat_limits: {lat_limits}')
 
         return region, lon_limits, lat_limits
 

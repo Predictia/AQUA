@@ -17,7 +17,7 @@ datasets:
 # =======  Reference Datasets  =======
 references:
   # ---- Extent in NH ----
-  - &ref_nh_ext
+  - &ref_osi_nh
     catalog: 'obs'       # mandatory
     model: 'OSI-SAF'     # mandatory
     exp: 'osi-450'       # mandatory
@@ -25,7 +25,7 @@ references:
     regrid: 'r100'
 
   # ---- Extent in SH ----
-  - &ref_sh_ext
+  - &ref_osi_sh
     catalog: 'obs'       # mandatory
     model: 'OSI-SAF'     # mandatory
     exp: 'osi-450'       # mandatory
@@ -33,7 +33,7 @@ references:
     regrid: 'r100' 
 
   # ---- Volume in NH ----
-  - &ref_nh_vol
+  - &ref_psc_nh
     catalog: 'obs'
     model: 'PSC'
     exp: 'PIOMAS'
@@ -41,7 +41,7 @@ references:
     regrid: 'r100'
 
   # ---- Volume in SH ----
-  - &ref_sh_vol
+  - &ref_psc_sh
     catalog: 'obs'
     model: 'PSC'
     exp: 'GIOMAS'
@@ -66,7 +66,7 @@ output:
 # These are options that specify how the data is plotted
 # If you need specific options, you can add it here.
 seaice_timeseries:
-  run: true
+  run: false
   # List of methods to plot.
   methods: ["extent", "volume"]
   # List of regions to plot. The default regions are defined in config/diagnostics/seaice
@@ -86,7 +86,7 @@ seaice_timeseries:
 
   references:
   # -- OSI-SAF for "extent" in NH --
-  - <<: *ref_nh_ext
+  - <<: *ref_osi_nh
     domain: "nh"
     time: "monthly"
     # might be useful to add a key that allow to use a certain dataset only for a specific method
@@ -94,21 +94,21 @@ seaice_timeseries:
     varname: "siconc"
 
   # -- OSI-SAF for "extent" in SH --
-  - <<: *ref_sh_ext
+  - <<: *ref_osi_sh
     domain: "sh"
     time: "monthly"
     use_for_method: "extent"
     varname: "siconc"
 
   # -- PSC for "volume" in NH --
-  - <<: *ref_nh_vol
+  - <<: *ref_psc_nh
     domain: "nh"
     time: "monthly"
     use_for_method: "volume"
     varname: "sivol"
 
   # -- PSC for "volume" in SH --
-  - <<: *ref_sh_vol
+  - <<: *ref_psc_sh
     domain: "sh"
     time: "monthly"
     use_for_method: "volume"
@@ -119,7 +119,7 @@ seaice_timeseries:
 # These are options that specify how the data is plotted
 # If you need specific options, you can add it here.
 seaice_seasonal_cycle:
-  run: true
+  run: false
   # List of methods to plot.
   methods: ["extent", "volume"]
   # List of regions to plot. The default regions are defined in config/diagnostics/seaice
@@ -139,7 +139,7 @@ seaice_seasonal_cycle:
 
   references:
   # -- OSI-SAF for "extent" in NH --
-  - <<: *ref_nh_ext
+  - <<: *ref_osi_nh
     domain: "nh"
     time: "monthly"
     # might be useful to add a key that allow to use a 
@@ -148,22 +148,90 @@ seaice_seasonal_cycle:
     varname: "siconc"
     
   # -- OSI-SAF for "extent" in SH --
-  - <<: *ref_sh_ext
+  - <<: *ref_osi_sh
     domain: "sh"
     time: "monthly"
     use_for_method: "extent"
     varname: "siconc"
 
   # -- PSC for "volume" in NH --
-  - <<: *ref_nh_vol
+  - <<: *ref_psc_nh
     domain: "nh"
     time: "monthly"
     use_for_method: "volume"
     varname: "sivol"
 
   # -- PSC for "volume" in SH --
-  - <<: *ref_sh_vol
+  - <<: *ref_psc_sh
     domain: "sh"
     time: "monthly"
     use_for_method: "volume"
+    varname: "sivol"
+
+# =======  Config for 2d bias maps =======
+# =========================================
+# These are options that specify how the data is plotted
+# If you need specific options, you can add it here.
+seaice_2d_bias:
+  run: true
+  # List of methods to plot.
+  methods: ["fraction", "thickness"]
+  # List of regions to plot. The default regions are defined in config/diagnostics/seaice
+  regions: ['arctic','antarctic']
+  startdate: '1991-01-01'
+  enddate: '1999-12-31'
+  # List of months to plot (e.g., [3, 9] for March and September)
+  months: [3, 9]
+  # List of projections to use
+  projections:
+    orthographic:
+      projname: "orthographic"
+      projpars:
+        central_longitude: 0.0
+        central_latitude: "max_lat_signed"
+    azimuthal_equidistant:
+      projname: "azimuthal_equidistant"
+      projpars:
+        central_longitude: 0.0
+        central_latitude: "max_lat_signed"
+      extent_regions:
+        Arctic: [-180, 180, 50, 90]
+        Antarctic: [-180, 180, -50, -90]
+
+  # ====  Update Datasets and reference entries  ====
+  datasets:
+  - <<: *dts1  # Copy all values from dts1
+    time: "monthly"
+    varname:
+      fraction: 'siconc'
+      thickness: 'sithick'
+
+  references:
+  # -- OSI-SAF for fraction in NH --
+  - <<: *ref_osi_nh
+    domain: "nh"
+    time: "monthly"
+    # key that allow to use a certain dataset only for a specific method
+    use_for_method: "fraction"
+    varname: "siconc"
+
+  # -- OSI-SAF for fraction in SH --
+  - <<: *ref_osi_sh
+    domain: "sh"
+    time: "monthly"
+    use_for_method: "fraction"
+    varname: "siconc"
+
+  # -- PSC for thickness in NH --
+  - <<: *ref_psc_nh
+    domain: "nh"
+    time: "monthly"
+    use_for_method: "thickness"
+    varname: "sivol"
+
+  # -- PSC for thickness in SH --
+  - <<: *ref_psc_sh
+    domain: "sh"
+    time: "monthly"
+    use_for_method: "thickness"
     varname: "sivol"

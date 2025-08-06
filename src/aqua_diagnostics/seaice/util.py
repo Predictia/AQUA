@@ -17,8 +17,7 @@ def filter_region_list(regions_dict, regions_list, domain, logger, valid_domains
     This function checks if regions fall within the appropriate hemisphere based on their latitude bounds.
 
     Args:
-        regions_dict (dict): Dictionary containing region definitions. Each region should have
-            'latN' (northern latitude) and 'latS' (southern latitude) keys.
+        regions_dict (dict): Dictionary containing region definitions.
         regions_list (list): List of region names to be filtered.
         domain (str): Domain to filter regions by. Must be one of the valid domains, e.g., 'nh' or 'sh'.
         logger (logging.Logger): Logger instance for logging messages.
@@ -31,26 +30,23 @@ def filter_region_list(regions_dict, regions_list, domain, logger, valid_domains
         valid_domains = ['nh', 'sh']
 
     if domain not in valid_domains:
-        logger.error(f"Invalid domain '{domain}'. Expected {valid_domains}.")
+        raise ValueError(f"Invalid domain '{domain}'. Valid domains are: {valid_domains}")
     
     filtered_regions = []
 
     for r in regions_list:
-        if r in regions_dict.keys():
-            latN = regions_dict[r].get('latN')
-            latS = regions_dict[r].get('latS')
-
-            if domain == 'nh' and latN is not None and latN > 0:
+        if r in regions_dict['regions'].keys():
+            if domain == 'nh':
                 filtered_regions.append(r)
-            elif domain == 'sh' and latS is not None and latS < 0:
+            elif domain == 'sh':
                 filtered_regions.append(r)
             else:
-                logger.info(f"Region '{r}' does not meet the data domain criteria for {domain}, so removing it from regions_list.")
+                logger.debug(f"Region '{r}' doesn't meet the data domain criteria for {domain}, not including in regions_list.")
         else:
             logger.error(f"No region '{r}' defined in regions_dict from yaml. Check this mismatch.")
 
-    if len(filtered_regions) == 1:
-        return filtered_regions[0]
+    # if isinstance(filtered_regions, list) and len(filtered_regions) == 1:
+    #     return filtered_regions[0]
 
     return filtered_regions
 

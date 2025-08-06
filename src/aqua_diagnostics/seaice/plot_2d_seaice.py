@@ -448,6 +448,7 @@ class Plot2DSeaIce:
         Further clean the data array.
         For 'thickness' method, remove values below 0.01 and mask lats inside the [-50, 50] range.
         For 'fraction' method, for lats values inside the range [-45, 40] overwrite NaNs with 0.
+
         Args:
             datarr (xarray.DataArray): DataArray containing sea ice data with attributes.
 
@@ -468,7 +469,11 @@ class Plot2DSeaIce:
         Allow the following cases:
             - A single xarray.Dataset: includes all its data variables (data_vars)
             - A single xarray.DataArray: includes the DataArray itself
-            - A list or tuple of either type (mixed allowed)
+            - A list or tuple of either type (mixed allowed), skip None values in the list
+        
+        Args:
+            datain (xarray.DataArray, xarray.Dataset, list, tuple): Input data to process.
+
         Returns:
             list: A flat list of xarray.DataArray objects or None
         """
@@ -480,6 +485,8 @@ class Plot2DSeaIce:
         
         data_arrays = []
         for model in datain_list:
+            if model is None:
+                continue
             if isinstance(model, xr.Dataset):
                 data_arrays.extend(model.data_vars.values())
             elif isinstance(model, xr.DataArray):
