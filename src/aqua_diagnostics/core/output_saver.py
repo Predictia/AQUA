@@ -190,7 +190,6 @@ class OutputSaver:
         filename = '.'.join(parts)
 
         self.logger.debug("Generated filename: %s", filename)
-        self.logger.debug("Generated filename: %s", filename)
         return filename
 
     def _core_save(self, diagnostic_product: str, file_format: str,
@@ -228,7 +227,6 @@ class OutputSaver:
             file_format='nc', extra_keys=extra_keys)
 
         if not rebuild and os.path.exists(filepath):
-            self.logger.info("File already exists and rebuild=False, skipping: %s", filepath)
             self.logger.info("File already exists and rebuild=False, skipping: %s", filepath)
             return filepath
 

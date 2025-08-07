@@ -71,6 +71,7 @@ class TestMaps:
                                        dpi=100,
                                        nxticks=5,
                                        nyticks=5,
+                                       gridlines=True,
                                        loglevel=loglevel)
         assert fig is not None
         assert ax is not None
