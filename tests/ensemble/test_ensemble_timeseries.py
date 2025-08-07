@@ -11,11 +11,13 @@ def test_ensemble_timeseries():
     """Initialize variables before the test."""
     var = '2t'
     tmp_path = './'
+
+    # NOTE:
     # The variables filename1 and filename2 depend on 
-    # the names in the following list
-    # if the values of the values are to be changed
+    # the names in the following lists
+    # if any of the values are to be changed
     # then please update variables filename1 and filename2
-    # in lines 42 and 46.
+
     catalog_list = ['ci', 'ci'] 
     model_list = ['FESOM', 'FESOM']
     exp_list = ['results', 'results']
@@ -32,7 +34,8 @@ def test_ensemble_timeseries():
         ens_dim="ensemble",
     )
     assert dataset is not None
-
+    
+    # EnsembleTimeseries class
     ts = EnsembleTimeseries(
         var=var,
         monthly_data=dataset,
@@ -46,6 +49,7 @@ def test_ensemble_timeseries():
     )
 
     ts.run()
+
     filename1 = f'ensemble.EnsembleTimeseries.{catalog_list[0]}.{model_list[0]}.{exp_list[0]}.r1.{var}.mean.monthly.nc'
     file = os.path.join(tmp_path, 'netcdf', filename1)
     assert os.path.exists(file)
@@ -54,6 +58,7 @@ def test_ensemble_timeseries():
     file = os.path.join(tmp_path, 'netcdf', filename2)
     assert os.path.exists(file)
 
+    # test if mean is non-zero and variance is zero
     assert ts.monthly_data_mean is not None
     assert ts.annual_data_mean is not None
     assert ts.monthly_data_std.values.all() == 0
@@ -72,14 +77,15 @@ def test_ensemble_timeseries():
         "title": "test timeseries data",
     }
 
+    # STD values are zero. Therefore we are giving the mean value as std values to test the implementation
     ts_plot = PlotEnsembleTimeseries(
         **plot_arguments,
         monthly_data=ts.monthly_data,
         monthly_data_mean=ts.monthly_data_mean,
-        monthly_data_std=ts.monthly_data_std,
+        monthly_data_std=ts.monthly_data_mean,
         annual_data=ts.annual_data,
         annual_data_mean=ts.annual_data_mean,
-        annual_data_std=ts.annual_data_std,
+        annual_data_std=ts.annual_data_mean,
         ref_monthly_data=ts.monthly_data_mean,
         ref_annual_data=ts.annual_data_mean,
         outputdir=tmp_path,

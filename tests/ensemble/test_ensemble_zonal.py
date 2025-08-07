@@ -10,12 +10,19 @@ def test_ensemble_zonal():
     """Initialize variables before the test."""
     var = 'avg_so'
     tmp_path = './'
-    ############################
+
+    # NOTE:
+    # The variables filename1 and filename2 depend on 
+    # the names in the following lists
+    # if any of the values are to be changed
+    # then please update variables filename1 and filename2
+
     catalog_list = ['ci', 'ci']
     model_list = ['NEMO', 'NEMO']
     exp_list = ['results', 'results']
     source_list = ['zonal_mean-latlev', 'zonal_mean-latlev']
 
+    # loading and merging the data
     dataset = retrieve_merge_ensemble_data(
         variable=var, 
         catalog_list=catalog_list, 

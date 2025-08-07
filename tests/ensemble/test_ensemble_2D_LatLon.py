@@ -11,12 +11,19 @@ def test_ensemble_2D_LatLon():
     """Initialize variables before the test."""
     var = '2t'
     tmp_path = './'
-    #####################
+
+    # NOTE:
+    # The variables filename1 and filename2 depend on 
+    # the names in the following lists
+    # if any of the values are to be changed
+    # then please update variables filename1 and filename2
+
     catalog_list = ['ci', 'ci']
     model_list = ['FESOM', 'FESOM']
     exp_list = ['results', 'results']
     source_list = ['atmglobalmean2D', 'atmglobalmean2D']
 
+    # loading and merging the data
     dataset = retrieve_merge_ensemble_data(
         variable=var, 
         catalog_list=catalog_list, 
@@ -78,7 +85,6 @@ def test_ensemble_2D_LatLon():
     plot_dict = ens_latlon_plot.plot()
     
     assert plot_dict['mean_plot'][0] is not None
-    #assert plot_dict['std_plot'][0] is not None
 
     filename1 = f'ensemble.EnsembleLatLon.{catalog_list[0]}.{model_list[0]}.{exp_list[0]}.r1.{var}.mean.png'
     file = os.path.join(tmp_path, 'png', filename1)
