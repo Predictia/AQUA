@@ -10,6 +10,8 @@ xr.set_options(keep_attrs=True)
 class EnsembleTimeseries(BaseMixin):
     """
     This class computes mean and standard deviation of the timeseries ensemble.
+    
+    NOTE: The STD is computed Point-wise along the mean.
     """
 
     def __init__(
@@ -87,6 +89,7 @@ class EnsembleTimeseries(BaseMixin):
             exp_list=exp_list,
             source_list=source_list,
             log_level=loglevel,
+            outputdir=self.outputdir,
         )
 
     def run(self):
@@ -103,17 +106,17 @@ class EnsembleTimeseries(BaseMixin):
                 variable=self.var, ds=self.hourly_data, ens_dim=self.dim, log_level=self.loglevel
             )
             self.save_netcdf(
+                var=self.var,
                 freq="hourly",
                 data_name="mean",
                 data=self.hourly_data_mean,
-                outputdir=self.outputdir,
                 description=self.description,
             )
             self.save_netcdf(
+                var=self.var,
                 freq="hourly",
                 data_name="std",
                 data=self.hourly_data_std,
-                outputdir=self.outputdir,
                 description=self.description,
             )
         else:
@@ -125,17 +128,17 @@ class EnsembleTimeseries(BaseMixin):
                 variable=self.var, ds=self.daily_data, ens_dim=self.dim, log_level=self.loglevel
             )
             self.save_netcdf(
+                var=self.var,
                 freq="daily",
                 data_name="mean",
                 data=self.daily_data_mean,
-                outputdir=self.outputdir,
                 description=self.description,
             )
             self.save_netcdf(
+                var=self.var,
                 freq="daily",
                 data_name="std",
                 data=self.daily_data_std,
-                outputdir=self.outputdir,
                 description=self.description,
             )
         else:
@@ -147,17 +150,17 @@ class EnsembleTimeseries(BaseMixin):
                 variable=self.var, ds=self.monthly_data, ens_dim=self.dim, log_level=self.loglevel
             )
             self.save_netcdf(
+                var=self.var,
                 freq="monthly",
                 data_name="mean",
                 data=self.monthly_data_mean,
-                outputdir=self.outputdir,
                 description=self.description,
             )
             self.save_netcdf(
+                var=self.var,
                 freq="monthly",
                 data_name="std",
                 data=self.monthly_data_std,
-                outputdir=self.outputdir,
                 description=self.description,
             )
         else:
@@ -169,17 +172,17 @@ class EnsembleTimeseries(BaseMixin):
                 variable=self.var, ds=self.annual_data, ens_dim=self.dim, log_level=self.loglevel
             )
             self.save_netcdf(
+                var=self.var,
                 freq="annual",
                 data_name="mean",
                 data=self.annual_data_mean,
-                outputdir=self.outputdir,
                 description=self.description,
             )
             self.save_netcdf(
+                var=self.var,
                 freq="annual",
                 data_name="std",
                 data=self.annual_data_std,
-                outputdir=self.outputdir,
                 description=self.description,
             )
         else:

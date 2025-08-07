@@ -20,6 +20,7 @@ class BaseMixin(Diagnostic):
         ref_model: str = None,
         ref_exp: str = None,
         region: str = None,
+        outputdir: str = "./",
         log_level: str = "WARNING",
     ):
         
@@ -49,6 +50,7 @@ class BaseMixin(Diagnostic):
             ref_model (str): This is specific to timeseries reference data model. Default is None.
             ref_exp (str): This is specific to timeseries reference data exp. Default is None.
             region (str): This is variable assigns region name. Default is None. 
+            outputdir (str): String input for output path. Default is './'
             log_level (str): Default is set to "WARNING"
         """
         self.log_level = log_level
@@ -147,6 +149,7 @@ class BaseMixin(Diagnostic):
             loglevel=log_level,
         )
         logger.info(f"Outputs will be saved with {self.catalog}, {self.model} and {self.exp}.")
+        self.outputdir = outputdir
 
     def _str_freq(self, freq: str):
         """
@@ -177,7 +180,6 @@ class BaseMixin(Diagnostic):
         description=None,
         data_name=None,
         data=None,
-        outputdir: str = "./",
     ):
         """
         Handles the saving of the input data as 
@@ -193,7 +195,6 @@ class BaseMixin(Diagnostic):
             data_name (str): The variable is used to label the output file for mean or std. 
                              The dafault is set to None.
             data (xarray.Dataset) or (xarray.Dataarray).     
-            outputdir (str): The directory to save the data.
         """
 
         # In case of Timeseries data
@@ -211,7 +212,7 @@ class BaseMixin(Diagnostic):
                 "Saving %s data for %s to netcdf in %s",
                 str_freq,
                 self.diagnostic_product,
-                outputdir,
+                self.outputdir,
             )
             extra_keys.update({"freq": str_freq})
 
@@ -222,7 +223,7 @@ class BaseMixin(Diagnostic):
         extra_keys.update({"region": region})
 
         self.logger.info(
-            "Saving %s for %s to netcdf in %s", data_name, self.diagnostic_product, outputdir
+            "Saving %s for %s to netcdf in %s", data_name, self.diagnostic_product, self.outputdir
         )
         if description is None:
             description = self.diagnostic_name + "_" + self.diagnostic_product
@@ -234,7 +235,7 @@ class BaseMixin(Diagnostic):
             exp=self.exp,
             model_ref=self.ref_model,
             exp_ref=self.ref_exp,
-            outdir=outputdir,
+            outdir=self.outputdir,
             loglevel=self.log_level,
         )
 
@@ -249,7 +250,7 @@ class BaseMixin(Diagnostic):
         )
 
     # Save figure
-    def save_figure(self, var, fig, fig_std=None, description=None, outputdir="./", format="png"):
+    def save_figure(self, var, fig, fig_std=None, description=None, format="png"):
         """
         Handles the saving of a figure using OutputSaver.
         
@@ -258,8 +259,7 @@ class BaseMixin(Diagnostic):
             fig (matplotlib.figure.Figure): Figure object.
             fig_std (matplotlib.figure.Figure): Figure object.
             description (str): Description of the figure.
-            outputdir (str): Output directory to save the plot.
-            format (str): Format to save the figure ('png' or 'pdf').
+            format (str): Format to save the figure ('png' or 'pdf'). Default is 'png'.
         """
         outputsaver = OutputSaver(
             diagnostic=self.diagnostic_name,
@@ -269,7 +269,7 @@ class BaseMixin(Diagnostic):
             exp=self.exp,
             model_ref=self.ref_model,
             exp_ref=self.ref_exp,
-            outdir=outputdir,
+            outdir=self.outputdir,
             loglevel=self.log_level,
         )
         if description is None:
@@ -312,7 +312,7 @@ class BaseMixin(Diagnostic):
                 exp=self.exp,
                 model_ref=self.ref_model,
                 exp_ref=self.ref_exp,
-                outdir=outputdir,
+                outdir=self.outputdir,
                 loglevel=self.log_level,
             )
             if description is None:

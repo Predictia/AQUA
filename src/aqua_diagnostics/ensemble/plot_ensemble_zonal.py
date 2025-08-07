@@ -22,7 +22,7 @@ class PlotEnsembleZonal(BaseMixin):
         var: str = None,
         dataset_mean = None,
         dataset_std = None,
-        #description = None,
+        description = None,
         title_mean = None,
         title_std = None,
         cbar_label = None,
@@ -32,6 +32,7 @@ class PlotEnsembleZonal(BaseMixin):
         cmap = "RdBu_r",
         ylabel = "Depth (in m)",
         xlabel = "Latitude (in deg North)",
+        outputdir="./",
         log_level: str = "WARNING",
     ):
         self.diagnostic_product = diagnostic_product
@@ -55,6 +56,8 @@ class PlotEnsembleZonal(BaseMixin):
         self.ylim = ylim
         self.xlabel = xlabel
         self.ylabel = ylabel
+
+        self.outputdir = outputdir
         self.log_level = log_level
 
         super().__init__(
@@ -64,10 +67,12 @@ class PlotEnsembleZonal(BaseMixin):
             model_list=self.model_list,
             exp_list=self.exp_list,
             source_list=self.source_list,
+            outputdir=self.outputdir,
         )
 
         self.title_mean = "Ensemble mean of " + self.model if title_mean is None else title_mean
         self.title_std = "Ensemble standard deviation of " + self.model if title_std is None else title_std
+        self.description = self.catalog + "_" + self.model if description is None else description
 
     def plot(self):
         """
@@ -136,12 +141,11 @@ class PlotEnsembleZonal(BaseMixin):
         
         # Saving plots
         if self.save_png:
-            #self.save_figure(var=self.var, fig=fig, description=self.description, format='png')
-            self.save_figure(var=self.var, fig=fig1, fig_std=fig2, format='png')
+            self.save_figure(var=self.var, fig=fig1, fig_std=fig2,  description=self.description, format='png')
         if self.save_pdf:
-            #self.save_figure(var=self.var, fig=fig, description=self.description, format='pdf')
-            self.save_figure(var=self.var, fig=fig1, fig_std=fig2, format='pdf')
+            self.save_figure(var=self.var, fig=fig1, fig_std=fig2, description=self.description, format='pdf')
 
         return {'mean_plot': [fig1, ax1], 'std_plot': [fig2, ax2]}
+
 
 

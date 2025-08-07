@@ -162,6 +162,12 @@ if __name__ == "__main__":
                     ref_annual_exp = ref_model["exp"]
                     ref_annual_source = ref_model["source"]
 
+            # NOTE: Since the reference data is not in the catalog the data is loaded from the path
+            # Once the reference data is uploaded in the catalog, line 169-192 can be un-commented 
+            # and line 194-217 can be removed/commented. 
+            
+            #TODO: Need to upload the reference data into the catalogs
+            ## Monthly reference data
             # reader = Reader(
             #    model=ref_monthly_model,
             #    exp=ref_monthly_exp,
@@ -171,8 +177,9 @@ if __name__ == "__main__":
             #    areas=False,
             #    variable=variable,
             # )
-            # ref_monthly_dataset = reader.retrieve(var=variable)
+            # monthly_ref_data = reader.retrieve(var=variable)
 
+            ## Annual reference data
             # reader = Reader(
             #    model=ref_annual_model,
             #    exp=ref_annual_exp,
@@ -182,9 +189,7 @@ if __name__ == "__main__":
             #    areas=False,
             #    variable=variable,
             # )
-            # ref_annual_dataset = reader.retrieve(var=variable)
-
-            # loading the reference data as xarrays
+            # annual_ref_data = reader.retrieve(var=variable)
 
             # Monthly reference data
             ERA5_monthly = "/work/ab0995/a270260/pre_computed_aqua_analysis/IFS-FESOM/historical-1990/global_time_series/netcdf/global_time_series_timeseries_2t_ERA5_era5_mon.nc"
@@ -253,6 +258,7 @@ if __name__ == "__main__":
                 annual_data_std=ts.annual_data_std,
                 ref_monthly_data=monthly_ref_data,
                 ref_annual_data=annual_ref_data,
+                outputdir=outputdir,
                 log_level=loglevel,
             )
 

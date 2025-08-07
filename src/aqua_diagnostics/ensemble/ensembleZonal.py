@@ -66,6 +66,7 @@ class EnsembleZonal(BaseMixin):
             exp_list=exp_list,
             source_list=source_list,
             log_level=loglevel,
+            outputdir=self.outputdir,
         )
 
     def run(self):
@@ -82,14 +83,14 @@ class EnsembleZonal(BaseMixin):
                 variable=self.var, ds=self.dataset, ens_dim=self.dim, log_level=self.loglevel
             )
             self.save_netcdf(
+                var=self.var,
                 data_name="mean",
                 data=self.dataset_mean,
-                outputdir=self.outputdir,
             )
             self.save_netcdf(
+                var=self.var,
                 data_name="std",
                 data=self.dataset_std,
-                outputdir=self.outputdir,
             )
         else:
             self.logger.info("No ensemble data is provided to the compute method")

@@ -46,6 +46,7 @@ class PlotEnsembleTimeseries(BaseMixin):
         plot_ensemble_members=True,
         description=None,
         title=None,
+        outputdir="./",
         log_level: str = "WARNING",
     ):
         """
@@ -135,6 +136,8 @@ class PlotEnsembleTimeseries(BaseMixin):
         self.ref_monthly_data = ref_monthly_data
         self.ref_annual_data = ref_annual_data
         self.plot_ensemble_members = plot_ensemble_members
+
+        self.outputdir = outputdir
         self.log_level = log_level
 
         super().__init__(
@@ -147,6 +150,7 @@ class PlotEnsembleTimeseries(BaseMixin):
             ref_catalog=self.ref_catalog,
             ref_model=self.ref_model,
             ref_exp=self.ref_exp,
+            outputdir=self.outputdir,            
         )
 
         self.title = "Ensemble analysis of " + self.model if title is None else title
@@ -164,6 +168,8 @@ class PlotEnsembleTimeseries(BaseMixin):
 
         Returns:
             fig, ax
+
+        NOTE: The STD is computed and plotted Point-wise along the mean.
         """
         self.logger.info("Plotting the ensemble timeseries")
         self.logger.info("Assigning label to the given model name")
@@ -199,9 +205,6 @@ class PlotEnsembleTimeseries(BaseMixin):
         # Saving plots
         if self.save_png:
             self.save_figure(var=self.var, fig=fig, description=self.description, format='png')
-            #self.save_figure(var=self.var, fig=fig, format='png')
         if self.save_pdf:
             self.save_figure(var=self.var, fig=fig, description=self.description, format='pdf')
-            #self.save_figure(var=self.var, fig=fig, format='pdf')
-
         return fig, ax

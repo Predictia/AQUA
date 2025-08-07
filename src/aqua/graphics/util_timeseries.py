@@ -126,6 +126,9 @@ def plot_timeseries_ensemble(ax: plt.Axes,
     """
     Plot ensemble time series data (monthly or annual) on the given axis.
 
+    NOTE: The ensemble module computes the mean and standard deviation Point-wise along the time axis.
+          Therefore this function plots: mean(t) +/- 2xSTD(t)
+
     Args:
         ax (matplotlib.pyplot.Axes): Axis object to plot the data on.
         data (xr.DataArray): Ensemble mean time series data to plot.
@@ -148,9 +151,8 @@ def plot_timeseries_ensemble(ax: plt.Axes,
     if std_data is not None:
         if kind == 'monthly':
             ax.fill_between(data.time,
-                            # don't have "month" in the timeseries diagnotic output
-                            data - 2.*std_data, #.sel(month=data["time.dt.month"]), 
-                            data + 2.*std_data, #.sel(month=data["time.dt.month"]),                            
+                            data - 2.*std_data, #.sel(month=data["time.month"]), 
+                            data + 2.*std_data, #.sel(month=data["time.month"]),                            
                             alpha=0.25, facecolor="#1898e0")
         elif kind == 'annual':
             ax.fill_between(data.time,

@@ -9,8 +9,10 @@ xr.set_options(keep_attrs=True)
 
 
 class PlotEnsembleLatLon(BaseMixin):
-    """Class to plot the ensmeble timeseries""" 
-    # TODO: support sub-region selection
+    """Class to plot the ensmeble lat-lon"""
+ 
+    # TODO: support sub-region selection and reggriding option
+
     def __init__(
         self,
         diagnostic_product: str = "EnsembleLatLon",
@@ -39,9 +41,9 @@ class PlotEnsembleLatLon(BaseMixin):
         coastlines=True,
         cbar_label=None,
         units=None,
+        outputdir="./",
         log_level: str = "WARNING",
     ):
-
         """
         Args:
             var (str): Variable name.
@@ -85,12 +87,13 @@ class PlotEnsembleLatLon(BaseMixin):
         self.dataset_mean = dataset_mean
         self.dataset_std = dataset_std
 
+        self.outputdir = outputdir 
         self.log_level = log_level
 
         self.figure = None
         self.dpi = dpi
 
-        # TODO: mention is the config file
+        # TODO: include in the config file
         # Specific for colorbars is mean and std plots
         self.vmin_mean = vmin_mean
         self.vmax_mean = vmax_mean
@@ -118,6 +121,7 @@ class PlotEnsembleLatLon(BaseMixin):
             model_list=self.model_list,
             exp_list=self.exp_list,
             source_list=self.source_list,
+            outputdir=self.outputdir,
         )
 
         self.title_mean = "Ensemble mean of " + self.model if title_mean is None else title_mean
@@ -192,10 +196,8 @@ class PlotEnsembleLatLon(BaseMixin):
         # Saving plots
         if self.save_png:
             self.save_figure(var=self.var, fig=fig1, fig_std=fig2,  description=self.description, format='png')
-            #self.save_figure(var=self.var, fig=fig1, fig_std=fig2, format='png')
         if self.save_pdf:
             self.save_figure(var=self.var, fig=fig1, fig_std=fig2, description=self.description, format='pdf')
-            #self.save_figure(var=self.var, fig=fig1, fig_std=fig2, format='pdf')
 
         return {'mean_plot': [fig1, ax1], 'std_plot': [fig2, ax2]}
 
