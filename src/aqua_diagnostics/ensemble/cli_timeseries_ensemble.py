@@ -4,7 +4,12 @@ Command-line interface for ensemble global time series diagnostic.
 
 This CLI allows to plot ensemle of global timeseries of a variable
 defined in a yaml configuration file for multiple models.
+
+NOTE: Since the reference data is not in the catalog the data is loaded from the path
+      Once the reference data is uploaded in the catalog, line 170-192 can be un-commented 
+      and line 194-217 can be removed/commented.
 """
+
 import argparse
 import sys
 
@@ -162,11 +167,6 @@ if __name__ == "__main__":
                     ref_annual_exp = ref_model["exp"]
                     ref_annual_source = ref_model["source"]
 
-            # NOTE: Since the reference data is not in the catalog the data is loaded from the path
-            # Once the reference data is uploaded in the catalog, line 169-192 can be un-commented 
-            # and line 194-217 can be removed/commented. 
-            
-            #TODO: Need to upload the reference data into the catalogs
             ## Monthly reference data
             # reader = Reader(
             #    model=ref_monthly_model,
