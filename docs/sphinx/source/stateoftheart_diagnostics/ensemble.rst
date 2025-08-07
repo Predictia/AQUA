@@ -10,10 +10,11 @@ This module contains three main classes namely, `EnsembleTimeseries`, `EnsembleL
 Additionally, this module also contains three supporting plotting classes namely, `PlotEnsembleTimeseries`, `PlotEnsembleLatLon` and `PlotEnsembleZonal`. 
 
 The `EnsembleTimeseries` class takes `1D` `xarray.Dataset` timeseries as input and performs following functionalities:
-- Computes ensemble mean and standard deviation for monthly and annual timeseries.
+- Computes ensemble mean and standard deviation (Point-wise along time axis) for monthly and annual timeseries.
 
 The `PlotEnsembleTimeseries` class takes `1D` `xarray.Dataset` timeseries as input and performs the following functionalities:
-- Plots the ensemble-mean and 2x ensemble-std ± ensemble-mean along the given timeseries.
+- Plots the ensemble-mean and 2x ensemble-std ± ensemble-mean along the given timeseries. 
+- Note that the standard deviation is Point-wise along time axis.
 - A reference timeseries can also be plotted. 
 
 The `EnsembleLatLon` class takes `2D` `LatLon` `xarray.Dataset` as input and performs the following functionalities:
