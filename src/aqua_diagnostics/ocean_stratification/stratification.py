@@ -105,7 +105,7 @@ class Stratification(Diagnostic):
         )
         if region:
             self.logger.info(f"Selecting region: {region} for diagnostic 'ocean3d'.")
-            self.data, region, lon_limits, lat_limits = super().select_region(
+            region, lon_limits, lat_limits = super().select_region(
                 region=region, diagnostic="ocean3d"
             )
         if dim_mean:
