@@ -5,7 +5,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ## [Unreleased]
 
-Unreleased in the current development version (target v0.17.0): 
+Unreleased in the current development version (target v0.18.0): 
+
+AQUA core complete list:
+- Bugfix in `plot_seasonalcycles()` trying to use a non-existing `time` coordinate (#2114)
+- Add `norm` keyword argument to the `plot_single_map` to allow non-linear colorbar normalisation (#2107)
+- `draw_manual_gridlines()` utility function to draw gridlines on cartopy maps (#2105)
+- `apply_circular_window()` utility function to apply a circular window to cartopy maps (#2100)
+
+AQUA diagnostics complete list:
+- SeasonalCycles: fix a bug which was preventing to plot when no reference data is provided (#2114)
+
+## [v0.17.0]
+
+Main changes are:
+1. Support for realizations for `aqua-analysis`, `aqua-push` and a set of diagnostics (Timeseries, Global Biases, Teleconnections, Ecmean)
+2. Support for data-portfolio v2.0.0
+3. LRA output tree refactored accomodating for realization, statistic and frequency
 
 Removed:
 -  removed Reader.info() method (#2076) 
@@ -25,6 +41,7 @@ AQUA core complete list:
 - `Reader` can filter kwargs so that a parameter not available in the intake source is removed and not passed to the intake driver (#2074)
 - Adapt catgen to changes in data-portfolio v1.3.2 (#2076)
 - Add `get_projection()` utility function for selection of Cartopy map projections (#2068)
+- Tools to push to dashboard support ensemble realizations (#2070)
 - `aqua-analysis.py` now supports a `--realization` option to enable the analysis of a specific realization (#2041, #2090)
 - Separate new histogram function in the framework (#2061)
 - Introducing `timsum()` method to compute cumulative sum (#2059)
@@ -40,6 +57,7 @@ AQUA core complete list:
 - `Trender()` class provide also coefficients and normalize them (#1991)
 
 AQUA diagnostics complete list:
+- Sea-ice extent and volume: bugs related to use of legacy reader functionality (#2111)
 - Ocean Trends: Trends class to create trend data along with zonal trend, notebook and tests added. (#1990)
 - Global Biases: allow GlobalBias to take projection as argument (#2036)
 - ECmean: diagnostics refactored to use `OutputSaver` and new common configuration file (#2012)
@@ -1016,7 +1034,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.16.0...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.17.0...HEAD
+[v0.17.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.16.0...v0.17.0
 [v0.16.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.15.0...v0.16.0
 [v0.15.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.14.0...v0.15.0
 [v0.14.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.13.1...v0.14.0
