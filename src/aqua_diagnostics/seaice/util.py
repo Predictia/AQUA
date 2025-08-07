@@ -36,9 +36,15 @@ def filter_region_list(regions_dict, regions_list, domain, logger, valid_domains
 
     for r in regions_list:
         if r in regions_dict['regions'].keys():
-            if domain == 'nh':
+            region_info = regions_dict['regions'][r]
+            lat_limits = region_info.get('lat_limits', [])
+
+            if len(lat_limits) >= 2:
+                min_lat, max_lat = lat_limits[0], lat_limits[1]
+
+            if domain == 'nh' and min_lat >= 0:   # Northern hemisphere
                 filtered_regions.append(r)
-            elif domain == 'sh':
+            elif domain == 'sh' and max_lat <= 0: # Southern hemisphere
                 filtered_regions.append(r)
             else:
                 logger.debug(f"Region '{r}' doesn't meet the data domain criteria for {domain}, not including in regions_list.")
@@ -67,8 +73,17 @@ def ensure_istype(obj, expected_types, logger=None):
         raise ValueError(f"Expected type {expected_names_type}, but got {type(obj).__name__}.")
 
 def extract_dates(data):
-    return (data.attrs.get('AQUA_startdate', 'No startdate found'),
-            data.attrs.get('AQUA_enddate',   'No enddate found'))
+    """
+    Extracts start and end dates from data attributes.
+    If the date is a datetime object, it is formatted as 'YYYY-MM-DD'.
+    If the date is a string, it is returned as is.
+    """
+    def fmt_dt(attr_name):
+        dt = data.attrs.get(attr_name, f'No {attr_name} found')
+        if hasattr(dt, 'strftime'): return dt.strftime('%Y-%m-%d')
+        if isinstance(dt, str) and 'T' in dt: return dt.split('T')[0]
+        return dt
+    return fmt_dt('AQUA_startdate'), fmt_dt('AQUA_enddate')
 
 def _check_list_regions_type(regions_to_plot, logger=None):
     """Ensures regions_to_plot is a list of strings before assigning it."""

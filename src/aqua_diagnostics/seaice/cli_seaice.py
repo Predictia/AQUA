@@ -344,12 +344,8 @@ if __name__ == '__main__':
                     # Compute 2D data for each region
                     clims_mod[i] = seaice.compute_seaice(method=method, var=mod_var, stat='mean', freq='monthly')
                     
-                    # Save the computed data
-                    logger.info(f"Saving 2D data for model: {dataset['model']}, exp: {dataset['exp']}, "
-                                f"source: {dataset['source']}, method: {method}")
                     seaice.save_netcdf(clims_mod[i], 'SeaIce', diagnostic_product=f"{dataset['exp']}_{dataset['source']}_{method}_2d")
 
-                # Update the dict
                 plot_bias_seaice['models'] = clims_mod
             
             # Initialize a list of len from the number of references
@@ -361,6 +357,7 @@ if __name__ == '__main__':
                 for i, reference in enumerate(references):
 
                     use_for_method = reference.get("use_for_method", None)
+                    
                     if use_for_method is not None and use_for_method != method:
                         logger.info(f"Skipping ref data {reference['model']}, {reference['exp']}, "
                                     f"{reference['source']} as it is not meant to operate for method: '{method}'")
@@ -386,11 +383,9 @@ if __name__ == '__main__':
                                         loglevel=config_dict['setup']['loglevel'])
 
                     clims_ref[i] = seaice_ref.compute_seaice(method=method, var=reference.get('varname'), stat='mean', freq='monthly')
-
-                    # Save the computed data
+                    
                     seaice.save_netcdf(clims_ref[i], 'SeaIce', diagnostic_product=f"{reference['exp']}_{reference['source']}_{method}_2d")
 
-                # Update the dict
                 plot_bias_seaice['ref'] = clims_ref
 
             logger.info(f"Plotting 2D Bias Maps for method: {method}")

@@ -66,11 +66,11 @@ output:
 # These are options that specify how the data is plotted
 # If you need specific options, you can add it here.
 seaice_timeseries:
-  run: false
+  run: true
   # List of methods to plot.
   methods: ["extent", "volume"]
   # List of regions to plot. The default regions are defined in config/diagnostics/seaice
-  regions: ['Arctic','Antarctic']
+  regions: ['arctic','antarctic']
   startdate: '1991-01-01'
   enddate: '2000-01-01'
   calc_ref_std: true
@@ -119,11 +119,11 @@ seaice_timeseries:
 # These are options that specify how the data is plotted
 # If you need specific options, you can add it here.
 seaice_seasonal_cycle:
-  run: false
+  run: true
   # List of methods to plot.
   methods: ["extent", "volume"]
   # List of regions to plot. The default regions are defined in config/diagnostics/seaice
-  regions: ['Arctic','Antarctic']
+  regions: ['arctic','antarctic']
   startdate: '1991-01-01'
   enddate: '2000-01-01'
   calc_ref_std: true

@@ -90,7 +90,7 @@ class PlotSeaIce:
     def _check_as_datasets_list(self, datain) -> list[xr.Dataset | None] :
         """ Check that the input (`datain`) is either:
             - A single `xarray.Dataset` (which is converted into a list).
-            - A list of `xarray.Dataset` objects.
+            - A list of `xarray.Dataset` objects (which may contain None values).
             - `None` (which is returned as is).
         Args:
             datain (xr.Dataset | list[xr.Dataset] | None): The input dataset(s) to check.
@@ -101,7 +101,7 @@ class PlotSeaIce:
             return [datain]
         elif isinstance(datain, list):
             if not all((ds is None or isinstance(ds, xr.Dataset)) for ds in datain):
-                raise ValueError("All elements of the list must be xarray.Dataset instances.")
+                raise ValueError("All elements of the list must be xarray.Dataset instances or None.")
             return datain
         else:
             raise ValueError(f"Invalid type: {type(datain)}. Expected xr.Dataset, list of xr.Dataset, or None.")
@@ -226,8 +226,23 @@ class PlotSeaIce:
             - `None` if the key is missing or the value is not a valid list of xr.DataArray 
         """
         values = data_dict.get(dkey, None)
-        if isinstance(values, list) and all(isinstance(da, xr.DataArray) for da in values):
-            return values if len(values) > 1 else values[0]
+
+        if isinstance(values, xr.DataArray):
+            return values
+
+        if isinstance(values, list):
+            valid_values = [v for v in values if v is not None]
+
+            if not valid_values:
+                self.logger.error(f"No valid DataArrays found for key: {dkey}")
+                return None
+
+            if all(isinstance(v, xr.DataArray) for v in valid_values):
+                return valid_values[0] if len(valid_values) == 1 else valid_values
+
+            self.logger.error(f"Some elements in {dkey} are not DataArrays")
+
+        self.logger.info(f"Returning 'None' for key: {dkey}")
         return None
     
     def _update_description(self, method, region, data_dict, region_idx):
@@ -294,8 +309,8 @@ class PlotSeaIce:
         # generate string for reference std data
         if hasattr(self, "std_label") and self.std_label:
             sdtdata = self._getdata_fromdict(data_dict,'monthly_std_ref')
-            std_sdate, std_edate = extract_dates(sdtdata)
-            self.std_label_str = f" Reference data std is evaluated from {std_sdate} to {std_edate}."
+            std_sdate, std_edate = extract_dates(sdtdata[0]) 
+            self.std_label_str = f" Reference data std ranges from {std_sdate} to {std_edate}."
         else:
             self.std_label_str = ''
 
@@ -335,6 +350,8 @@ class PlotSeaIce:
         for region_idx, (ax, (region, data_dict)) in enumerate(zip(axes, region_dict.items())):
 
             self.logger.info(f"Processing {self.plot_type} for region: {region}")
+
+            self.logger.info(f"data_dict: {data_dict}") #2rem
 
             monthly_models = self._getdata_fromdict(data_dict, 'monthly_models')
             annual_models  = self._getdata_fromdict(data_dict, 'annual_models')

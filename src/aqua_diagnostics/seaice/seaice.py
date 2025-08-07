@@ -500,7 +500,8 @@ class SeaIce(Diagnostic):
         Args:
             seaice_data (xr.DataArray or xr.Dataset): The computed sea ice metric data.
             diagnostic (str): The diagnostic name. It is expected 'SeaIce' for this class.
-            diagnostic_product (str, optional): The diagnostic product. Can be used for namig the file more freely.            rebuild (bool, optional): If True, rebuild (overwrite) the NetCDF file. Default is True.
+            diagnostic_product (str, optional): The diagnostic product. Can be used for namig the file more freely.
+            rebuild (bool, optional): If True, rebuild (overwrite) the NetCDF file. Default is True.
             output_file (str, optional): The output file name.
             output_dir (str, optional): The output directory.
             **kwargs: Additional keyword arguments for saving the data.
