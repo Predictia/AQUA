@@ -30,15 +30,29 @@ class TestPlot2DSeaIce:
         cls.frac_model = cls.seaice.compute_seaice(method="fraction", var="siconc")
         cls.thick_model_ds = cls.seaice.compute_seaice(method="thickness", var="siconc")
         
-        cls.seaice_arctic = SeaIce(model="OSI-SAF", exp="osi-450", source="nh-monthly",
-                                  startdate=cls.startdate, enddate=cls.enddate, regions="arctic", regrid=cls.regrid, loglevel=cls.loglevel)
-        cls.seaice_antarctic = SeaIce(model="OSI-SAF", exp="osi-450", source="sh-monthly",
-                                     startdate=cls.startdate, enddate=cls.enddate, regions="antarctic", regrid=cls.regrid, loglevel=cls.loglevel)
+        # Use FESOM data as reference but add a small constant to avoid skipping the bias plot
+        # this should be changed in the future with proper data (e.g. ORAS5)
+        cls.frac_ref_arctic = cls.frac_model.copy()
+        cls.frac_ref_antarctic = cls.frac_model.copy()
         
-        cls.frac_ref_arctic = cls.seaice_arctic.compute_seaice(method="fraction", var="siconc")
-        cls.frac_ref_antarctic = cls.seaice_antarctic.compute_seaice(method="fraction", var="siconc")
-        cls.thick_ref_arctic = cls.seaice_arctic.compute_seaice(method="thickness", var="siconc")
-        cls.thick_ref_antarctic = cls.seaice_antarctic.compute_seaice(method="thickness", var="siconc")
+        # Add constant bias to create difference for plotting
+        bias_constant_fraction = 0.1
+        bias_constant_thickness = 0.5
+        
+        # For fraction data - add bias to each data variable in the dataset
+        for var_name in cls.frac_ref_arctic.data_vars:
+            cls.frac_ref_arctic[var_name] = cls.frac_ref_arctic[var_name] + bias_constant_fraction
+        for var_name in cls.frac_ref_antarctic.data_vars:
+            cls.frac_ref_antarctic[var_name] = cls.frac_ref_antarctic[var_name] + bias_constant_fraction
+        
+        # For thickness data - add bias to each data variable in the dataset
+        cls.thick_ref_arctic = cls.thick_model_ds.copy()
+        cls.thick_ref_antarctic = cls.thick_model_ds.copy()
+        
+        for var_name in cls.thick_ref_arctic.data_vars:
+            cls.thick_ref_arctic[var_name] = cls.thick_ref_arctic[var_name] + bias_constant_thickness
+        for var_name in cls.thick_ref_antarctic.data_vars:
+            cls.thick_ref_antarctic[var_name] = cls.thick_ref_antarctic[var_name] + bias_constant_thickness
         
         cls.p2d = Plot2DSeaIce(loglevel="DEBUG")
         

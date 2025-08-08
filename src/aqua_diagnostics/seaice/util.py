@@ -50,10 +50,7 @@ def filter_region_list(regions_dict, regions_list, domain, logger, valid_domains
                 logger.debug(f"Region '{r}' doesn't meet the data domain criteria for {domain}, not including in regions_list.")
         else:
             logger.error(f"No region '{r}' defined in regions_dict from yaml. Check this mismatch.")
-
-    # if isinstance(filtered_regions, list) and len(filtered_regions) == 1:
-    #     return filtered_regions[0]
-
+            
     return filtered_regions
 
 def ensure_istype(obj, expected_types, logger=None):
