@@ -158,11 +158,17 @@ class TestSeaIce:
         
         # Valid case: compute sea ice
         result = seaice.compute_seaice(method=method, var=variable)
-        result = result[0]
 
-        assert isinstance(result, xr.DataArray)
+        assert isinstance(result, xr.Dataset)
 
-        meanres = result.mean(skipna=True).values
+        # Get the specific variable from the dataset
+        regionlower = region.lower().replace(" ", "_")
+        var_name = f'sea_ice_{method}_{regionlower}'
+        result_data = result[var_name]
+
+        assert isinstance(result_data, xr.DataArray)
+
+        meanres = result_data.mean(skipna=True).values
 
         assert meanres == pytest.approx(value, rel=approx_rel, abs=abs_rel)
 

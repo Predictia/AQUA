@@ -148,7 +148,7 @@ def plot_seasonalcycle(data: list[xr.DataArray] | xr.DataArray,
     if fig is None:
         fig = plt.figure(figsize=figsize)
     if ax is None:
-        ax = fig.add_subplot(1, 1, figsize=figsize)
+        ax = fig.add_subplot(1, 1, 1)
 
     ConfigStyle(style=style, loglevel=loglevel)
 
