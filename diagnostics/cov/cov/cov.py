@@ -139,14 +139,16 @@ class COV:
                 self.logger.debug(f"Retrieving reference data for {data_key}")
                 data_ref = self.reader_data_ref.retrieve(**retrieve_args)
                 if level is not None and 'plev' in data_ref.coords:
-                    data_ref = data_ref.sel(plev=int(level), drop=True)
+                    # data_ref = data_ref.sel(plev=int(level), drop=True)
+                    data_ref = data_ref.isel(plev=0, drop=True)
                 self.retrieved_data_ref[data_key] = data_ref
 
                 # Retrieve Main Data
                 self.logger.debug(f"Retrieving main data for {data_key}")
                 data = self.reader_data.retrieve(**retrieve_args)
                 if level is not None and 'plev' in data.coords:
-                    data = data.sel(plev=int(level), drop=True)
+                    # data = data.sel(plev=int(level), drop=True)
+                    data = data.isel(plev=0, drop=True)
                 self.retrieved_data[data_key] = data
 
             except Exception as e:

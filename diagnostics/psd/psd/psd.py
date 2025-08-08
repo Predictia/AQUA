@@ -66,11 +66,19 @@ class PSD:
 
                 try:
                     self.logger.debug(f"Retrieving reference data for {var_name}{log_msg_suffix}")
-                    data_ref = self.reader_data_ref.retrieve(**retrieve_args).sel(plev=level, drop=True) if level is not None and 'plev' in self.reader_data_ref.retrieve(**retrieve_args).coords else self.reader_data_ref.retrieve(**retrieve_args)
+                    # data_ref = self.reader_data_ref.retrieve(**retrieve_args).sel(plev=level, drop=True) if level is not None and 'plev' in self.reader_data_ref.retrieve(**retrieve_args).coords else self.reader_data_ref.retrieve(**retrieve_args)
+                    if level is not None and 'plev' in self.reader_data_ref.retrieve(**retrieve_args).coords:
+                        data_ref = self.reader_data_ref.retrieve(**retrieve_args).isel(plev=0, drop=True)
+                    else:
+                        data_ref = self.reader_data_ref.retrieve(**retrieve_args)
                     self.retrieved_data_ref[data_key] = data_ref
 
                     self.logger.debug(f"Retrieving main data for {var_name}{log_msg_suffix}")
-                    data = self.reader_data.retrieve(**retrieve_args).sel(plev=level, drop=True) if level is not None and 'plev' in self.reader_data.retrieve(**retrieve_args).coords else self.reader_data.retrieve(**retrieve_args)
+                    # data = self.reader_data.retrieve(**retrieve_args).sel(plev=level, drop=True) if level is not None and 'plev' in self.reader_data.retrieve(**retrieve_args).coords else self.reader_data.retrieve(**retrieve_args)
+                    if level is not None and 'plev' in self.reader_data.retrieve(**retrieve_args).coords:
+                        data = self.reader_data.retrieve(**retrieve_args).isel(plev=0, drop=True)
+                    else:
+                        data = self.reader_data.retrieve(**retrieve_args)
                     self.retrieved_data[data_key] = data
                 except Exception as e:
                     self.logger.error(f"Failed to retrieve data for {data_key}: {e}", exc_info=True)
@@ -180,12 +188,23 @@ class PSD:
             data_da = self.retrieved_data[key][base_var]
             data_ref_da = self.retrieved_data_ref[key][base_var]
 
+            # Check for nans in the data
+            has_nans = np.isnan(data_da.values).any()
+            if has_nans:
+                self.logger.warning(f"Emulator data for {key} contains NaNs. Replacing them with 0.")
+
+            has_nans_ref = np.isnan(data_ref_da.values).any()
+            if has_nans_ref:
+                self.logger.warning(f"Reference data for {key} contains NaNs. Replacing them with 0.")
+
             # Time-Averaged PSD
             if do_time_averaged_psd:
                 try:
                     self.logger.info(f"  Calculating time-averaged PSD for {key}...")
                     
                     data_np = data_da.values
+                    data_np = np.nan_to_num(data_np, nan=0.0) if has_nans else data_np
+
                     fft_2d_stack = fft.fft2(data_np, axes=(-2, -1))
                     shifted_fft_stack = fft.fftshift(fft_2d_stack, axes=(-2, -1))
                     power_2d_stack = np.abs(shifted_fft_stack)**2
@@ -193,6 +212,8 @@ class PSD:
                     avg_psd_1d = np.mean(psd_1d_list, axis=0)
 
                     data_ref_np = data_ref_da.values
+                    data_ref_np = np.nan_to_num(data_ref_np, nan=0.0) if has_nans_ref else data_ref_np
+
                     fft_2d_stack_ref = fft.fft2(data_ref_np, axes=(-2, -1))
                     shifted_fft_stack_ref = fft.fftshift(fft_2d_stack_ref, axes=(-2, -1))
                     power_2d_stack_ref = np.abs(shifted_fft_stack_ref)**2
@@ -228,9 +249,11 @@ class PSD:
                     self.logger.info(f"  Calculating PSD of time-mean for {key}...")
 
                     data_mean = data_da.mean('time').values
+                    data_mean = np.nan_to_num(data_mean, nan=0.0) if has_nans else data_mean
                     psd_1d = self._radial_average(np.abs(fft.fftshift(fft.fft2(data_mean)))**2)
 
                     data_ref_mean = data_ref_da.mean('time').values
+                    data_ref_mean = np.nan_to_num(data_ref_mean, nan=0.0) if has_nans_ref else data_ref_mean
                     psd_1d_ref = self._radial_average(np.abs(fft.fftshift(fft.fft2(data_ref_mean)))**2)
 
                     fig, ax = plt.subplots(figsize=(10, 6))

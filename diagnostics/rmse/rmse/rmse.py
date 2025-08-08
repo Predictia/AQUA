@@ -138,11 +138,7 @@ class RMSE:
                     data_ref = self.reader_data_ref.retrieve(**retrieve_args)
 
                     if level is not None and 'plev' in data_ref.coords:
-                         if level in data_ref['plev']:
-                             data_ref = data_ref.sel(plev=level, drop=True) # drop=True removes plev coord
-                         else:
-                             self.logger.warning(f"Level {level} not found in reference data for {var_name}. Skipping this level.")
-                             continue # Skip to next level or variable
+                        data_ref = data_ref.isel(plev=0, drop=True)
 
                     self.retrieved_data_ref[data_key] = data_ref
                     self.logger.debug(f"Successfully retrieved reference data for key: {data_key}")
@@ -156,14 +152,7 @@ class RMSE:
                     data = self.reader_data.retrieve(**retrieve_args)
                     
                     if level is not None and 'plev' in data.coords:
-                         if level in data['plev']:
-                            data = data.sel(plev=level, drop=True)
-                         else:
-                             self.logger.warning(f"Level {level} not found in main data for {var_name}. Skipping this level.")
-                             # Clean up ref data if main data failed for this level
-                             if data_key in self.retrieved_data_ref:
-                                 del self.retrieved_data_ref[data_key]
-                             continue # Skip to next level or variable
+                        data = data.isel(plev=0, drop=True)
 
                     self.retrieved_data[data_key] = data
                     self.logger.debug(f"Successfully retrieved main data for key: {data_key}")

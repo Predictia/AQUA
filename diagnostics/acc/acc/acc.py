@@ -174,11 +174,14 @@ class ACC:
                     data_ref = self.reader_data_ref.retrieve(**retrieve_args)
 
                     if level is not None and 'plev' in data_ref.coords:
-                         if level in data_ref['plev']:
-                             data_ref = data_ref.sel(plev=level, drop=True) # drop=True removes plev coord
-                         else:
-                             self.logger.warning(f"Level {level} not found in reference data for {var_name}. Skipping this level.")
-                             continue # Skip to next level or variable
+                        data_ref = data_ref.isel(plev=0, drop=True)
+
+                    # if level is not None and 'plev' in data_ref.coords:
+                    #      if level in data_ref['plev']:
+                    #          data_ref = data_ref.sel(plev=level, drop=True) # drop=True removes plev coord
+                    #      else:
+                    #          self.logger.warning(f"Level {level} not found in reference data for {var_name}. Skipping this level.")
+                    #          continue # Skip to next level or variable
 
                     self.retrieved_data_ref[data_key] = data_ref
                     ref_ok = True
@@ -193,14 +196,17 @@ class ACC:
                     data = self.reader_data.retrieve(**retrieve_args)
 
                     if level is not None and 'plev' in data.coords:
-                         if level in data['plev']:
-                            data = data.sel(plev=level, drop=True)
-                         else:
-                             self.logger.warning(f"Level {level} not found in main data for {var_name}. Skipping this level.")
-                             # Clean up ref data if main data failed for this level
-                             if data_key in self.retrieved_data_ref:
-                                 del self.retrieved_data_ref[data_key]
-                             continue # Skip to next level or variable
+                        data = data.isel(plev=0, drop=True)
+
+                    # if level is not None and 'plev' in data.coords:
+                    #      if level in data['plev']:
+                    #         data = data.sel(plev=level, drop=True)
+                    #      else:
+                    #          self.logger.warning(f"Level {level} not found in main data for {var_name}. Skipping this level.")
+                    #          # Clean up ref data if main data failed for this level
+                    #          if data_key in self.retrieved_data_ref:
+                    #              del self.retrieved_data_ref[data_key]
+                    #          continue # Skip to next level or variable
 
                     self.retrieved_data[data_key] = data
                     data_ok = True
@@ -216,7 +222,10 @@ class ACC:
                 try:
                     self.logger.debug(f"Retrieving climatology data for {var_name}{log_msg_suffix}")
                     data_clim = self.reader_climatology.retrieve(**retrieve_args)
-                    if level is not None: data_clim = data_clim.sel(plev=level, drop=True)
+                    if level is not None and 'plev' in data_clim.coords:
+                        data_clim = data_clim.isel(plev=0, drop=True)
+
+                    # if level is not None: data_clim = data_clim.sel(plev=level, drop=True)
                     self.retrieved_climatology_data[data_key] = data_clim
                     clim_ok = True
                     self.logger.debug(f"Successfully retrieved climatology data for key: {data_key}")
@@ -562,7 +571,7 @@ class ACC:
 
                 # Plotting
                 vmin, vmax, cmap = -1, 1, 'RdBu_r'
-                title_level_part = f" at {int(level / 100)} hPa" if level is not None else ""
+                title_level_part = f" at {int(level)}" if level is not None else ""
                 title = (f"Spatial ACC Map: {base_var_name}{title_level_part}\n"
                          f"{model} {exp} ({source}) vs {model_ref} {exp_ref} ({source_ref})\n"
                          f"{self.startdate} to {self.enddate} (Clim: {self.clim_startdate}-{self.clim_enddate})")
@@ -690,7 +699,7 @@ class ACC:
                 ax.set_xlabel("Time")
                 ax.set_ylim(-1, 1)
                 ax.grid(True)
-                title_level_part = f" at {int(level / 100)} hPa" if level is not None else ""
+                title_level_part = f" at {int(level)}" if level is not None else ""
                 title = (f"Temporal Evolution of Spatial ACC: {base_var_name}{title_level_part}\n"
                          f"{model} {exp} ({source}) vs {model_ref} {exp_ref} ({source_ref})\n"
                          f"{self.startdate} to {self.enddate} (Clim: {self.clim_startdate}-{self.clim_enddate})")

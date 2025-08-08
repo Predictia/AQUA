@@ -26,7 +26,7 @@ ENSO:
   lonE: -120
 
 MJO: # http://www.bom.gov.au/climate/mjo
-  field: rlut # tnlwrf
+  field: tnlwrf
   latN: 15
   latS: -15
   lonW: null
