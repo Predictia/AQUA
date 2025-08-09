@@ -8,7 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.18.0): 
 
 AQUA core complete list:
+- Add new refactored `seaice` diagnostic with cli, relative `config_seaice.yaml` and `regions_definition.yaml` files. Add updated tests for the diagnostic. Introduce bias plot with custom projections. Extend some graphics functions features (e.g. `add_land` in `single_map.py` or fig,ax definition of `plot_seasonalcycle`  in `timeseries.py`). Enhance utils functions (e.g. `set_map_title`; add `merge_attrs` in `sci_util.py`). Add `int_month_name` in `time.py` and `strlist_to_phrase` for grammar-consistent descriptions (#1684)
+- Bugfix in `plot_seasonalcycles()` trying to use a non-existing `time` coordinate (#2114)
+- Add `norm` keyword argument to the `plot_single_map` to allow non-linear colorbar normalisation (#2107)
+- `draw_manual_gridlines()` utility function to draw gridlines on cartopy maps (#2105)
 - `apply_circular_window()` utility function to apply a circular window to cartopy maps (#2100)
+
+AQUA diagnostics complete list:
+- SeasonalCycles: fix a bug which was preventing to plot when no reference data is provided (#2114)
 
 ## [v0.17.0]
 
@@ -51,6 +58,7 @@ AQUA core complete list:
 - `Trender()` class provide also coefficients and normalize them (#1991)
 
 AQUA diagnostics complete list:
+- Sea-ice extent and volume: bugs related to use of legacy reader functionality (#2111)
 - Ocean Trends: Trends class to create trend data along with zonal trend, notebook and tests added. (#1990)
 - Global Biases: allow GlobalBias to take projection as argument (#2036)
 - ECmean: diagnostics refactored to use `OutputSaver` and new common configuration file (#2012)
