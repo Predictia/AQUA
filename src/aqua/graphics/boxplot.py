@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import xarray as xr
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -7,7 +8,13 @@ from aqua.util import to_list
 from aqua.logger import log_configure
 from .styles import ConfigStyle
 
-def boxplot(fldmeans, model_names, variables, variable_names=None, title=None, style=None, loglevel='WARNING'):
+def boxplot(fldmeans: list[xr.Dataset],
+            model_names: list[str],
+            variables: list[str],
+            variable_names: list[str] = None,
+            title: str = None,
+            style: str = None,
+            loglevel: str = 'WARNING'):
     """
     Generate a boxplot of precomputed field-mean values for multiple variables and models.
 

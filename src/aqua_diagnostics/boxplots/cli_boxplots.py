@@ -51,6 +51,7 @@ if __name__ == '__main__':
         if config_dict['diagnostics']['boxplots']['run']:
             logger.info("Boxplots diagnostic is enabled.")
 
+            diagnostic_name = config_dict['diagnostics']['boxplots'].get('diagnostic_name', 'boxplots')
             datasets = config_dict['datasets']
             references = config_dict['references']
             variables = config_dict['diagnostics']['boxplots'].get('variables', [])
@@ -80,7 +81,7 @@ if __name__ == '__main__':
                 fldmeans_ref.append(boxplots_ref.fldmeans)
 
 
-            plot = PlotBoxplots(diagnostic='radiation', save_pdf=save_pdf, save_png=save_png, dpi=dpi, outputdir=outputdir, loglevel=loglevel)
+            plot = PlotBoxplots(diagnostic=diagnostic_name, save_pdf=save_pdf, save_png=save_png, dpi=dpi, outputdir=outputdir, loglevel=loglevel)
             plot.plot_boxplots(data=fldmeans, data_ref=fldmeans_ref, var=variables)
 
     close_cluster(client=client, cluster=cluster, private_cluster=private_cluster, loglevel=loglevel)

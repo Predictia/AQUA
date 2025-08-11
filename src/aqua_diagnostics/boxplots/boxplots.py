@@ -2,7 +2,7 @@ import pandas as pd
 import xarray as xr
 from aqua.logger import log_configure
 from aqua.diagnostics.core import Diagnostic
-from aqua.util import select_season
+from aqua.util import select_season, to_list
 from aqua.exceptions import NoDataError
 
 class Boxplots(Diagnostic):
@@ -21,9 +21,18 @@ class Boxplots(Diagnostic):
         outputdir (str, optional): Directory to save output files. Defaults to './'.
         loglevel (str, optional): Logging level. Defaults to 'WARNING'.
     """
-    def __init__(self, catalog=None, model=None, exp=None, source=None,
-                var=None, startdate=None, enddate=None, regrid=None,
-                save_netcdf=False, outputdir='./', loglevel='WARNING'):
+    def __init__(self,
+                 catalog: str = None,
+                 model: str = None,
+                 exp: str = None,
+                 source: str = None,
+                 var: str | list[str] = None,
+                 startdate: str = None,
+                 enddate: str = None,
+                 regrid: str = None,
+                 save_netcdf: bool = False,
+                 outputdir: str = './',
+                 loglevel: str = 'WARNING'):
 
         super().__init__(catalog=catalog, model=model, exp=exp, source=source,
                          startdate=startdate, enddate=enddate, regrid=regrid,
@@ -64,7 +73,7 @@ class Boxplots(Diagnostic):
 
         # Unit check and conversion
         if units:
-            units = [units] if isinstance(units, str) else units
+            units = to_list(units)
             if len(units) != len(self.var):
                 raise ValueError(f"Length of 'units' ({len(units)}) must match number of variables ({len(self.var)})")
 
@@ -79,7 +88,7 @@ class Boxplots(Diagnostic):
             if var_name not in self.data: 
                 self.logger.warning(f"Variable {var_name} not found in dataset.")
                 continue
-            fldmean = self.data[var_name].aqua.fldmean()
+            fldmean = self.reader.fldmean(self.data[var_name])
             fldmeans[var_name] = fldmean
 
         self.fldmeans = xr.Dataset(fldmeans)
