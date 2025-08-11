@@ -213,7 +213,7 @@ class OutputSaver:
 
     def save_netcdf(self, dataset: xr.Dataset, diagnostic_product: str,
                     rebuild: bool = True, extra_keys: Optional[dict] = None,
-                    metadata: Optional[dict] = None, create_catalog_entry: bool = True,
+                    metadata: Optional[dict] = None, create_catalog_entry: bool = False,
                     dict_catalog_entry: Optional[dict] = None):
         """
         Save an xarray Dataset as a NetCDF file with a generated filename.
