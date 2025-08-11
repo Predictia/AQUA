@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from aqua import Reader
 from aqua.util import extract_literal_and_numeric, file_is_complete, to_list, convert_data_units
-from aqua.util import format_realization
+from aqua.util import format_realization, extract_attrs
 
 @pytest.fixture
 def test_text():
@@ -160,6 +160,18 @@ def test_format_realization():
     assert format_realization("test") == "test"
     assert format_realization("") == "r1"
     assert format_realization(None) == "r1"
+
+@pytest.mark.aqua
+def test_extract_attrs():
+    assert extract_attrs(None, "attr") is None # Data is None
+    ds_with_attr = xr.Dataset()
+    ds_with_attr.attrs = {"attr": "value1"}
+    ds_without_attr = xr.Dataset()
+    assert extract_attrs(ds_with_attr, "attr") == "value1" # Single dataset with attribute
+    assert extract_attrs(ds_without_attr, "attr") is None # Single dataset without attribute
+    result = extract_attrs([ds_with_attr, ds_without_attr], "attr") 
+    assert result == ["value1", None] # List of datasets
+
 
 # Uncomment this test if the flip_time function is uncommented in aqua/util/coord.py
 # def test_flip_time():
