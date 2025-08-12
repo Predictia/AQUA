@@ -6,20 +6,17 @@ def convert_so(so):
     """
     Convert practical salinity to absolute salinity using a TEOS-10 approximation.
 
-    Parameters
-    ----------
-    so : dask.array.core.Array
-        Masked array containing the practical salinity values (psu or 0.001).
+    Args:
+        so (dask.array.core.Array): masked array containing the practical salinity 
+            values (PSU or 0.001).
 
-    Returns
-    -------
-    abs_so : dask.array.core.Array
-        Masked array containing the absolute salinity values (g/kg).
+    Returns:
+        dask.array.core.Array: masked array containing the absolute salinity values (g/kg).
 
-    Notes
-    -----
-    This function uses an approximation from TEOS-10 equations and may yield different values,
-    particularly in the Baltic Sea. See: http://www.teos-10.org/pubs/gsw/pdf/SA_from_SP.pdf
+    Notes:
+        Uses an approximation from TEOS-10 equations and may yield different results, 
+        particularly in the Baltic Sea.
+        Reference: http://www.teos-10.org/pubs/gsw/pdf/SA_from_SP.pdf
     """
     abs_so = so / 0.99530670233846
     return abs_so
@@ -29,21 +26,19 @@ def convert_thetao(abs_so, thetao):
     """
     Convert potential temperature to conservative temperature.
 
-    Parameters
-    ----------
-    abs_so : dask.array.core.Array
-        Masked array containing the absolute salinity values (g/kg).
-    thetao : dask.array.core.Array
-        Masked array containing the potential temperature values (degC).
+    Args:
+        abs_so (dask.array.core.Array): masked array containing the absolute 
+            salinity values (g/kg).
+        thetao (dask.array.core.Array): masked array containing the potential 
+            temperature values (°C).
 
-    Returns
-    -------
-    bigthetao : dask.array.core.Array
-        Masked array containing the conservative temperature values (degC).
+    Returns:
+        dask.array.core.Array: masked array containing the conservative 
+        temperature values (°C).
 
-    Notes
-    -----
-    Uses an approximation based on TEOS-10. See: http://www.teos-10.org/pubs/gsw/html/gsw_CT_from_pt.html
+    Notes:
+        Uses an approximation based on TEOS-10.
+        Reference: http://www.teos-10.org/pubs/gsw/html/gsw_CT_from_pt.html
     """
     x = xr.ufuncs.sqrt(0.0248826675584615 * abs_so)
     y = thetao * 0.025e0
