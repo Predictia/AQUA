@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.18.0): 
 
 AQUA core complete list:
+- Add new refactored `seaice` diagnostic with cli, relative `config_seaice.yaml` and `regions_definition.yaml` files. Add updated tests for the diagnostic. Introduce bias plot with custom projections. Extend some graphics functions features (e.g. `add_land` in `single_map.py` or fig,ax definition of `plot_seasonalcycle`  in `timeseries.py`). Enhance utils functions (e.g. `set_map_title`; add `merge_attrs` in `sci_util.py`). Add `int_month_name` in `time.py` and `strlist_to_phrase` for grammar-consistent descriptions (#1684)
 - Bugfix in `plot_seasonalcycles()` trying to use a non-existing `time` coordinate (#2114)
 - Add `norm` keyword argument to the `plot_single_map` to allow non-linear colorbar normalisation (#2107)
 - `draw_manual_gridlines()` utility function to draw gridlines on cartopy maps (#2105)
@@ -15,6 +16,7 @@ AQUA core complete list:
 
 AQUA diagnostics complete list:
 - Stratification: Stratification class to create density and mixed layer depth data, notebook and tests added. (#2093)
+- Radiation: complete refactor of the diagnostic, now based on the `Boxplots` diagnostic and the  `boxplot ` function in graphics (#2007)
 - SeasonalCycles: fix a bug which was preventing to plot when no reference data is provided (#2114)
 
 ## [v0.17.0]
