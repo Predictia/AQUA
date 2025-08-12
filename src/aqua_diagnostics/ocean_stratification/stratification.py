@@ -4,7 +4,6 @@ from aqua.diagnostics.core import Diagnostic
 from .compute_mld import compute_mld_cont
 from .compute_rho import compute_rho
 from .convert_variables import convert_so, convert_thetao
-
 xr.set_options(keep_attrs=True)
 
 
@@ -73,25 +72,32 @@ class Stratification(Diagnostic):
         """
         Run the stratification diagnostic workflow.
 
-        This method retrieves the required variables, optionally selects a region, averages over specified dimensions,
-        computes stratification (climatology and density), optionally computes mixed layer depth (MLD), and saves the results to a netCDF file.
+        This method orchestrates the complete diagnostic process:
+        1. Reads the required variables from the input source.
+        2. Optionally selects a specified region.
+        3. Optionally computes mean values over given dimensions.
+        4. Computes stratification by generating climatology and potential density.
+        5. Optionally computes mixed layer depth (MLD).
+        6. Saves the processed dataset to a NetCDF file.
 
         Parameters
         ----------
         outputdir : str, optional
-            Directory to save the output netCDF file. Default is current directory.
+            Directory where the output NetCDF file will be saved. Default is the current directory (" . ").
         rebuild : bool, optional
-            Whether to rebuild the output file if it exists. Default is True.
+            If True, overwrite the existing output file. Default is True.
         region : str, optional
-            Region name to select for the diagnostic. If None, no region selection is performed.
-        var : list, optional
-            List of variable names to retrieve. Default is ["thetao", "so"].
-        dim_mean : list or str, optional
-            Dimensions over which to average the data. If None, no averaging is performed.
+            Name of the region to select for analysis. If None, no region selection is applied.
+        var : list of str, optional
+            Names of variables to retrieve. Default is ["thetao", "so"].
+        dim_mean : list of str or str, optional
+            Dimensions over which to average the data. If None, no averaging is applied.
+        climatology : str, optional
+            Type of climatology to compute ("month", "year", "season", "total"). Default is "month".
         reader_kwargs : dict, optional
-            Additional keyword arguments to pass to the data reader.
+            Additional keyword arguments passed to the data reader.
         mld : bool, optional
-            If True, compute mixed layer depth (MLD) and add to output.
+            If True, compute mixed layer depth (MLD) and include it in the output.
 
         Returns
         -------
@@ -134,25 +140,39 @@ class Stratification(Diagnostic):
         None
         """
         self.logger.debug("Starting computation of climatology and density.")
-        self.compute_climatology()
+        self.compute_climatology(climatology=self.climatology)
         self.compute_rho()
         self.logger.debug("Stratification computation completed successfully.")
 
     def compute_climatology(self, climatology: str = "season"):
         """
-        Compute climatology for the data.
+        Compute climatology for the dataset based on the specified period type.
+
+        Depending on the value of `self.climatology`, the method will:
+        - Group and average the data along the corresponding time accessor if 
+        `self.climatology` is not one of ["month", "year", "season"].
+        - Compute the overall mean across the time dimension if `self.climatology` is "total".
 
         Parameters
         ----------
         climatology : str, optional
-            Type of climatology to compute (e.g., 'season', 'month'). Default is 'season'.
+            Type of climatology to compute. Expected values:
+            - "month"   : Monthly climatology
+            - "year"    : Yearly climatology
+            - "season"  : Seasonal climatology
+            - "total"   : Mean over all available time steps
+            - Other     : Groups data by `time.<self.climatology>` and averages
+            Default is "season".
 
         Returns
         -------
         None
         """
         self.logger.debug(f"Computing {self.climatology} climatology.")
-        self.data = self.data.groupby(f"time.{self.climatology}").mean("time")
+        if self.climatology in ["month", "year", "season"]:
+            self.data = self.data.groupby(f"time.{self.climatology}").mean("time")
+        elif self.climatology == "total":
+            self.data = self.data.mean("time", keep_attrs=True)
         self.logger.debug(
             f"{self.climatology.capitalize()} climatology computed successfully."
         )
