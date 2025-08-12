@@ -52,7 +52,6 @@ def to_list(arg):
     return [arg]
 
 
-
 def files_exist(path):
     """
     Verify that a list or path includes files
@@ -424,6 +423,21 @@ def update_metadata(metadata: dict = None, additional_metadata: dict = None) -> 
     return metadata
 
 
+def extract_attrs(data, attr):
+    """Extract attribute(s) from dataset or list of datasets.
+    Args:
+        data (xarray.Dataset or list of xarray.Dataset): Dataset(s) to extract
+        attr (str): Attribute name to extract.
+        Returns:
+            list: List of attribute values from the dataset(s).
+    """
+    if data is None:
+        return None
+    if isinstance(data, list):
+        return [getattr(ds, attr, None) for ds in data]
+    return getattr(data, attr, None)
+
+
 def username():
     """
     Retrieves the current user's username from the 'USER' environment variable.
@@ -432,6 +446,18 @@ def username():
     if user is None:
         raise EnvironmentError("The 'USER' environment variable is not set.")
     return user
+
+
+def strlist_to_phrase(items: list[str]) -> str:
+    """ Convert a list of str to a english-consistent list.
+       ['A'] will return "A"
+       ['A','B'] will return "A and B"
+       ['A','B','C'] will return "A, B, and C"
+    """
+    if not items: return ""
+    if len(items) == 1: return items[0]
+    if len(items) == 2: return f"{items[0]} and {items[1]}"
+    return ", ".join(items[:-1]) + f", and {items[-1]}"
 
 
 class HiddenPrints:
