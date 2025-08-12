@@ -46,12 +46,12 @@ class PlotBoxplots:
             var (str): Variable name.
             format (str): Format to save the figure ('png' or 'pdf').
         """
-        catalog = extract_attrs(data, 'catalog')
-        model = extract_attrs(data, 'model')
-        exp = extract_attrs(data, 'exp')
+        catalog = extract_attrs(data, 'AQUA_catalog')
+        model = extract_attrs(data, 'AQUA_model')
+        exp = extract_attrs(data, 'AQUA_exp')
 
-        model_ref = extract_attrs(data_ref, 'model')
-        exp_ref = extract_attrs(data_ref, 'exp')
+        model_ref = extract_attrs(data_ref, 'AQUA_model')
+        exp_ref = extract_attrs(data_ref, 'AQUA_exp')
 
         self.logger.info(f'catalogs: {catalog}, models: {model}, experiments: {exp}')
         self.logger.info(f'ref catalogs: {extract_attrs(data_ref, "catalog")}, models: {model_ref}, experiments: {exp_ref}')
@@ -98,8 +98,8 @@ class PlotBoxplots:
         data_ref = to_list(data_ref) if data_ref is not None else []
 
         fldmeans = data + data_ref if data_ref else data
-        model_names = extract_attrs(fldmeans, 'model')
-        exp_names = extract_attrs(fldmeans, 'exp')
+        model_names = extract_attrs(fldmeans, 'AQUA_model')
+        exp_names = extract_attrs(fldmeans, 'AQUA_exp')
 
         dataset_info = ', '.join(f'{m} (experiment {e})' for m, e in zip(model_names, exp_names))
         description = f"Boxplot of ({', '.join(var) if isinstance(var, list) else var}) for: {dataset_info}"

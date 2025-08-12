@@ -95,9 +95,9 @@ class Boxplots(Diagnostic):
         self.logger.info(f"Field means computed for variables: {self.var}")
 
         self.fldmeans.attrs.update({
-            'catalog': self.catalog,
-            'model': self.model,
-            'exp': self.exp,
+            'AQUA_catalog': self.catalog,
+            'AQUA_model': self.model,
+            'AQUA_exp': self.exp,
             'startdate': str(self.startdate),
             'enddate': str(self.enddate)
             })
