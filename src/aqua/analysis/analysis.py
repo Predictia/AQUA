@@ -8,7 +8,7 @@ from aqua.util import create_folder, ConfigPath
 from aqua import __path__ as pypath
 
 
-def run_command(cmd: str, log_file: str = None, logger=None) -> int:
+def run_command(cmd: str, log_file: str, logger=None) -> int:
     """
     Run a system command and capture the exit code, redirecting output to the specified log file.
 
@@ -77,6 +77,7 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
     Args:
         diagnostic (str): Name of the diagnostic to run.
         parallel (bool): Whether to run in parallel mode.
+        regrid (str): Regrid option.
         config (dict): Configuration dictionary loaded from YAML.
         catalog (str): Catalog name.
         model (str): Model name.
