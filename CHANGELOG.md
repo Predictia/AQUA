@@ -15,6 +15,7 @@ AQUA core complete list:
 - `apply_circular_window()` utility function to apply a circular window to cartopy maps (#2100)
 
 AQUA diagnostics complete list:
+- Boxplots: add tests and update docs (#2129)
 - Radiation: complete refactor of the diagnostic, now based on the `Boxplots` diagnostic and the  `boxplot ` function in graphics (#2007)
 - SeasonalCycles: fix a bug which was preventing to plot when no reference data is provided (#2114)
 
