@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.18.0): 
 
 AQUA core complete list:
+- Add `aqua analysis` to replace the `aqua-analysis.py` script, with a more flexible CLI interface (#2065)
 - Bugfix in `plot_seasonalcycles()` trying to use a non-existing `time` coordinate (#2114)
 - Add `norm` keyword argument to the `plot_single_map` to allow non-linear colorbar normalisation (#2107)
 - `draw_manual_gridlines()` utility function to draw gridlines on cartopy maps (#2105)
