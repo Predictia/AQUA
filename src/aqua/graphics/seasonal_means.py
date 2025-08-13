@@ -2,6 +2,7 @@ import xarray as xr
 import matplotlib.pyplot as plt
 
 from aqua.logger import log_configure
+from aqua.util import clean_std
 from .styles import ConfigStyle
 from .lat_lon_profiles import plot_lat_lon_profiles
 
@@ -23,6 +24,9 @@ def plot_seasonal_data(maps,
     if not isinstance(maps, list) or len(maps) != 4:
         raise ValueError("maps must be a list of 4 elements: [DJF, MAM, JJA, SON]")
     
+    std_maps = [clean_std(std_map) for std_map in std_maps]
+    ref_std_maps = [clean_std(ref_std_map) for ref_std_map in ref_std_maps if ref_std_map is not None] if ref_std_maps else None
+
     # Create the seasonal plot layout (only 4 subplots)
     if plot_type == 'seasonal':
         fig, axs = plt.subplots(2, 2, figsize=(12, 8), constrained_layout=True)
