@@ -28,10 +28,11 @@ A function called ``plot_single_map()`` is provided with many options to customi
 The function takes as input an xarray.DataArray, with a single timestep to be selected
 before calling the function. The function will then plot the map of the variable and,
 if no other option is provided, will adapt colorbar, title and labels to the attributes
-of the input DataArray.
+of the input DataArray. Not only longitude-latitude grids are supported, but also HEALPix
+data, which are automatically resampled to a regular lon-lat grid before plotting.
 
 The function is built on top of the ``cartopy`` and ``matplotlib`` libraries,
-and it is possible to customize the plot with many options, including a different projection.
+and it is possible to customize the plot with many options, including a different projections (see Single map with differences below).
 
 In the following example we plot an sst map from the first timestep of ERA5 reanalysis:
 
@@ -61,6 +62,8 @@ The function takes as input two xarray.DataArray, with a single timestep.
 
 The function will plot as colormap or contour filled map the difference between the two input DataArray (the first one minus the second one).
 Additionally a contour line map is plotted with the first input DataArray, to show the original data.
+Again, not only longitude-latitude grids are supported, but also HEALPix data,
+which are automatically resampled to a regular lon-lat grid.
 
 .. figure:: figures/single_map_diff_example.png
     :align: center
@@ -69,13 +72,54 @@ Additionally a contour line map is plotted with the first input DataArray, to sh
     Example of a ``plot_single_map_diff()`` output done with the :ref:`teleconnections`.
     The map shows the correlation for the ENSO teleconnection between ICON historical run and ERA5 reanalysis.
 
+Projections and custom maps
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+AQUA also supports a wide variety of map projections provided by the ``cartopy`` library. To simplify projection selection, 
+a utility function ``get_projection()`` is provided, which accepts a lowercase function names (e.g. ``"plate_carree"``) to select the 
+desired projection. A dictionary with the complete list of available projections can be found in the ``projections.py`` file.
+The function ``get_projection()`` also accepts additional keyword arguments depending on the selected projection and and user-defined plotting requirements. 
+The returned ``cartopy.crs`` objects can be used directly with ``plot_single_map()``.
+A minimal example using subplots with different projections is shown below:
+
+.. code-block:: python
+
+    import matplotlib.pyplot as plt
+    from aqua import plot_single_map, get_projection
+
+    # Define a dictionary with projection names and the wanted extra parameters from Cartopy
+    projections = {"plate_carree": {},
+        "nearside": {"central_longitude": 0, "central_latitude": 20, "satellite_height": 35785831},
+        "robinson": {"central_longitude": 70},
+        "aitoff": {"central_longitude": 85.3}
+        }
+
+    fig = plt.figure(figsize=(14, 10))
+
+    for i, name in enumerate(projections.keys()):
+        kwargs = projections.get(name, {})
+        proj = get_projection(name, **kwargs)
+
+        ax = fig.add_subplot(2, 2, i + 1, projection=proj)
+        plot_single_map(tos_plot, proj=proj, ax=ax, fig=fig, contour=False) # Note: tos_plot is the retrieved data as in example above
+
+This code will produce a single figure with four different map projections, all displaying the same data.
+
+.. figure:: figures/single_map_subplot_projections.png
+    :align: center
+    :width: 100%
+    :alt: Example subplot with different Cartopy map projections
+
 Time series
 ^^^^^^^^^^^
 
 A function called ``plot_timeseries()`` is provided with many options to customize the plot.
 The function is built to plot time series of a single variable,
-with the possibility to plot multiple lines for different models and a special line for a reference dataset.
-The reference dataset can have a representation of the uncertainty over time.
+with the possibility to plot multiple lines for different models and special lines for a reference dataset.
+The reference dataset can have a representation of the uncertainty over time using the standard deviation arguments.
+It is also possible to plot the ensemble mean of the models and its standard deviation.
+If the ensemble mean is provided, the monthly and annual time series of the models are plotted as grey lines, 
+considered as the ensemble spread, while the ensemble mean is plotted as a thick line.
 
 By default the function is built to be able to plot monthly and yearly time series, as required by the :ref:`timeseries` diagnostic.
 
@@ -83,10 +127,14 @@ The function takes as data input:
 
 - **monthly_data**: a (list of) xarray.DataArray, each one representing the monthly time series of a model.
 - **annual_data**: a (list of) xarray.DataArray, each one representing the annual time series of a model.
-- **ref_monthly_data**: a xarray.DataArray representing the monthly time series of the reference dataset.
-- **ref_annual_data**: a xarray.DataArray representing the annual time series of the reference dataset.
-- **std_monthly_data**: a xarray.DataArray representing the monthly values of the standard deviation of the reference dataset.
-- **std_annual_data**: a xarray.DataArray representing the annual values of the standard deviation of the reference dataset.
+- **ref_monthly_data**: a (list of) xarray.DataArray representing the monthly time series of the reference dataset.
+- **ref_annual_data**: a (list of) xarray.DataArray representing the annual time series of the reference dataset.
+- **std_monthly_data**: a (list of) xarray.DataArray representing the monthly values of the standard deviation of the reference dataset.
+- **std_annual_data**: a (list of) xarray.DataArray representing the annual values of the standard deviation of the reference dataset.
+- **ens_monthly_data**: a xarray.DataArray representing the ensemble mean of the monthly time series of the models.
+- **ens_annual_data**: a xarray.DataArray representing the ensemble mean of the annual time series of the models.
+- **std_ens_monthly_data**: a xarray.DataArray representing the monthly values of the standard deviation of the ensemble mean of the models.
+- **std_ens_annual_data**: a xarray.DataArray representing the annual values of the standard deviation of the ensemble mean of the models.
 
 The function will automatically plot what is available, so it is possible to plot only monthly or only yearly time series, with or without a reference dataset.
 

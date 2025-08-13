@@ -1,13 +1,13 @@
 import xarray as xr
 from aqua.graphics import plot_timeseries
-from aqua.logger import log_configure
 from aqua.util import to_list
 from .base import PlotBaseMixin
 
 
 class PlotTimeseries(PlotBaseMixin):
     """Class to plot time series data."""
-    def __init__(self, hourly_data=None, daily_data=None,
+    def __init__(self, diagnostic_name: str = 'timeseries',
+                 hourly_data=None, daily_data=None,
                  monthly_data=None, annual_data=None,
                  ref_hourly_data=None, ref_daily_data=None,
                  ref_monthly_data=None, ref_annual_data=None,
@@ -26,6 +26,7 @@ class PlotTimeseries(PlotBaseMixin):
         Additionally, only one reference data array is supported for each frequency.
 
         Args:
+            diagnostic_name (str): The name of the diagnostic. Used for logger and filenames. Default is 'timeseries'.
             hourly_data (list): List of hourly data arrays.
             daily_data (list): List of daily data arrays.
             monthly_data (list): List of monthly data arrays.
@@ -40,8 +41,7 @@ class PlotTimeseries(PlotBaseMixin):
             std_annual_data (xr.DataArray): Standard deviation annual data array.
             loglevel (str): Logging level. Default is 'WARNING'.
         """
-        super().__init__(loglevel=loglevel)
-        self.logger = log_configure(self.loglevel, 'PlotTimeseries')
+        super().__init__(loglevel=loglevel, diagnostic_name=diagnostic_name)
 
         # TODO: support hourly and daily data
         for data in [hourly_data, daily_data, ref_hourly_data, ref_daily_data,
@@ -51,26 +51,26 @@ class PlotTimeseries(PlotBaseMixin):
 
         # self.hourly_data = to_list(hourly_data)
         # self.daily_data = to_list(daily_data)
-        self.monthly_data = to_list(monthly_data)
-        self.annual_data = to_list(annual_data)
+        self.monthly_data = to_list(monthly_data) if monthly_data is not None else None
+        self.annual_data = to_list(annual_data) if annual_data is not None else None
 
         # TODO: support ref list
         # self.ref_hourly_data = to_list(ref_hourly_data)
         # self.ref_daily_data = to_list(ref_daily_data)
-        self.ref_monthly_data = ref_monthly_data if isinstance(ref_monthly_data, xr.DataArray) else ref_monthly_data[0]
-        self.ref_annual_data = ref_annual_data if isinstance(ref_annual_data, xr.DataArray) else ref_annual_data[0]
+        self.ref_monthly_data = to_list(ref_monthly_data)[0] if ref_monthly_data is not None else None
+        self.ref_annual_data = to_list(ref_annual_data)[0] if ref_annual_data is not None else None
 
         # self.std_hourly_data = to_list(std_hourly_data)
         # self.std_daily_data = to_list(std_daily_data)
-        self.std_monthly_data = std_monthly_data if isinstance(std_monthly_data, xr.DataArray) else std_monthly_data[0]
-        self.std_annual_data = std_annual_data if isinstance(std_annual_data, xr.DataArray) else std_annual_data[0]
+        self.std_monthly_data = to_list(std_monthly_data)[0] if std_monthly_data is not None else None
+        self.std_annual_data = to_list(std_annual_data)[0] if std_annual_data is not None else None
 
         self.len_data, self.len_ref = self._check_data_length()
 
         # Filling them
         self.get_data_info()
 
-    def run(self, var: str, units: str = None, region: str = None, outputdir: str = './',
+    def run(self, var: str, units: str = None, outputdir: str = './',
             rebuild: bool = True, dpi: int = 300, format: str = 'png'):
         """
         Run the PlotTimeseries class.
@@ -78,7 +78,6 @@ class PlotTimeseries(PlotBaseMixin):
         Args:
             var (str): Variable name to be used in the title and description.
             units (str): Units of the variable to be used in the title.
-            region (str): Region to be used in the title and description.
             outputdir (str): Output directory to save the plot.
             rebuild (bool): If True, rebuild the plot even if it already exists.
             dpi (int): Dots per inch for the plot.
@@ -88,10 +87,10 @@ class PlotTimeseries(PlotBaseMixin):
         self.logger.info('Running PlotTimeseries')
         data_label = self.set_data_labels()
         ref_label = self.set_ref_label()
-        description = self.set_description(region=region)
-        title = self.set_title(region=region, var=var, units=units)
+        description = self.set_description()
+        title = self.set_title(var=var, units=units)
         fig, _ = self.plot_timeseries(data_labels=data_label, ref_label=ref_label, title=title)
-        self.save_plot(fig, var=var, description=description, region=region, rebuild=rebuild,
+        self.save_plot(fig, var=var, description=description, region=self.region, rebuild=rebuild,
                        outputdir=outputdir, dpi=dpi, format=format)
         self.logger.info('PlotTimeseries completed successfully')
 
@@ -104,6 +103,7 @@ class PlotTimeseries(PlotBaseMixin):
         - AQUA_catalog
         - AQUA_model
         - AQUA_exp
+        - AQUA_region
         - std_startdate
         - std_enddate
         """
@@ -113,10 +113,13 @@ class PlotTimeseries(PlotBaseMixin):
                 self.catalogs = [d.AQUA_catalog for d in data]
                 self.models = [d.AQUA_model for d in data]
                 self.exps = [d.AQUA_exp for d in data]
+                # We expect all data arrays to have the same region
+                self.region = data[0].AQUA_region if hasattr(data[0], 'AQUA_region') else None
                 break
         self.logger.debug(f'Catalogs: {self.catalogs}')
         self.logger.debug(f'Models: {self.models}')
         self.logger.debug(f'Experiments: {self.exps}')
+        self.logger.debug(f'Region: {self.region}')
 
         # TODO: support ref list
         for ref in [self.ref_monthly_data, self.ref_annual_data]:
@@ -124,45 +127,41 @@ class PlotTimeseries(PlotBaseMixin):
                 self.ref_catalogs = ref.AQUA_catalog
                 self.ref_models = ref.AQUA_model
                 self.ref_exps = ref.AQUA_exp
+                self.logger.debug(f'Reference: {self.ref_catalogs} {self.ref_models} {self.ref_exps}')
                 break
-        self.logger.debug(f'Reference: {self.ref_catalogs} {self.ref_models} {self.ref_exps}')
 
         for std in [self.std_monthly_data, self.std_annual_data]:
             if std is not None:
                 self.std_startdate = std.std_startdate if std.std_startdate is not None else None
                 self.std_enddate = std.std_enddate if std.std_enddate is not None else None
+                self.logger.debug(f'Standard deviation dates: {self.std_startdate} - {self.std_enddate}')
                 break
-        self.logger.debug(f'Standard deviation dates: {self.std_startdate} - {self.std_enddate}')
 
-    def set_title(self, region: str = None, var: str = None, units: str = None):
+    def set_title(self, var: str = None, units: str = None):
         """
         Set the title for the plot.
 
         Args:
-            region (str): Region to be used in the title.
             var (str): Variable name to be used in the title.
             units (str): Units of the variable to be used in the title.
 
         Returns:
             title (str): Title for the plot.
         """
-        title = super().set_title(region=region, var=var, units=units, diagnostic='Time series')
+        title = super().set_title(region=self.region, var=var, units=units, diagnostic='Time series')
         return title
 
-    def set_description(self, region: str = None):
+    def set_description(self):
         """
         Set the caption for the plot.
         The caption is extracted from the data arrays attributes and the
         reference data arrays attributes.
         The caption is stored as 'Description' in the metadata dictionary.
 
-        Args:
-            region (str): Region to be used in the caption.
-
         Returns:
             description (str): Caption for the plot.
         """
-        description = super().set_description(region=region, diagnostic='Time series')
+        description = super().set_description(region=self.region, diagnostic='Time series')
         return description
 
     def plot_timeseries(self, data_labels=None, ref_label=None, title=None):
@@ -185,7 +184,7 @@ class PlotTimeseries(PlotBaseMixin):
                                   ref_annual_data=self.ref_annual_data,
                                   std_annual_data=self.std_annual_data,
                                   data_labels=data_labels, ref_label=ref_label,
-                                  title=title, return_fig=True, loglevel=self.loglevel)
+                                  title=title, loglevel=self.loglevel)
 
         return fig, ax
 
@@ -206,7 +205,7 @@ class PlotTimeseries(PlotBaseMixin):
         """
         super().save_plot(fig=fig, var=var, description=description,
                           region=region, rebuild=rebuild,
-                          outputdir=outputdir, dpi=dpi, format=format, diagnostic='timeseries')
+                          outputdir=outputdir, dpi=dpi, format=format, diagnostic_product='timeseries')
 
     def _check_data_length(self):
         """

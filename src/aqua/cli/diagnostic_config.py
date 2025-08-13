@@ -41,8 +41,8 @@ diagnostic_config = {
     'timeseries': [
         {
             'config_file': 'regions.yaml',
-            'source_path': 'config/diagnostics/timeseries/interface',
-            'target_path': 'diagnostics/timeseries/interface'
+            'source_path': 'config/diagnostics/timeseries/definitions',
+            'target_path': 'diagnostics/timeseries/definitions'
         },
         {
             'config_file': 'config_seasonalcycles_atm.yaml',
@@ -63,8 +63,13 @@ diagnostic_config = {
     'ocean3d': [
         {
             'config_file': 'regions.yaml',
-            'source_path': 'config/diagnostics/ocean3d/',
+            'source_path': 'diagnostics/ocean3d/config',
             'target_path': 'diagnostics/ocean3d/'
+        },
+        {
+            'config_file': 'regions.yaml',
+            'source_path': 'config/diagnostics/ocean3d/definitions',
+            'target_path': 'diagnostics/ocean3d/definitions'
         },
         {
             'config_file': 'config.circulation.yaml',
@@ -102,7 +107,17 @@ diagnostic_config = {
     'seaice': [
         {
             'config_file': 'regions_definition.yaml',
-            'source_path': 'diagnostics/seaice/config',
+            'source_path': 'config/diagnostics/seaice',
+            'target_path': 'diagnostics/seaice/config'
+        },
+        {
+            'config_file': 'regions.yaml',
+            'source_path': 'config/diagnostics/seaice/definitions',
+            'target_path': 'diagnostics/seaice/definitions'
+        },
+        {
+            'config_file': 'config_seaice.yaml',
+            'source_path': 'config/diagnostics/seaice',
             'target_path': 'diagnostics/seaice/config'
         },
         {
@@ -141,26 +156,21 @@ diagnostic_config = {
     'teleconnections': [
         {
             'config_file': 'teleconnections-ci.yaml',
-            'source_path': 'config/diagnostics/teleconnections/interface',
-            'target_path': 'diagnostics/teleconnections/config'
+            'source_path': 'config/diagnostics/teleconnections/definitions',
+            'target_path': 'diagnostics/teleconnections/definitions'
         },
         {
             'config_file': 'teleconnections-destine.yaml',
-            'source_path': 'config/diagnostics/teleconnections/interface',
-            'target_path': 'diagnostics/teleconnections/config'
+            'source_path': 'config/diagnostics/teleconnections/definitions',
+            'target_path': 'diagnostics/teleconnections/definitions'
         },
         {
-            'config_file': 'teleconnections-netgems3.yaml',
-            'source_path': 'config/diagnostics/teleconnections/interface',
-            'target_path': 'diagnostics/teleconnections/config'
-        },
-        {
-            'config_file': 'cli_config_atm.yaml',
+            'config_file': 'config_teleconnections_atm.yaml',
             'source_path': 'config/diagnostics/teleconnections',
             'target_path': 'diagnostics/teleconnections'
         },
         {
-            'config_file': 'cli_config_oce.yaml',
+            'config_file': 'config_teleconnections_oce.yaml',
             'source_path': 'config/diagnostics/teleconnections',
             'target_path': 'diagnostics/teleconnections'
         },

@@ -1,16 +1,18 @@
 import os
 import xarray as xr
-
+from aqua.fixer import EvaluateFormula
 from aqua.logger import log_configure
-from aqua.util import ConfigPath,  OutputSaver
+from aqua.util import ConfigPath
 from aqua.util import frequency_string_to_pandas, time_to_string
-from aqua.util import load_yaml, eval_formula, convert_units
-from aqua.diagnostics.core import Diagnostic, start_end_dates
+from aqua.diagnostics.core import Diagnostic, start_end_dates, OutputSaver
+
+xr.set_options(keep_attrs=True)
 
 
 class BaseMixin(Diagnostic):
     """The BaseMixin class is used for the Timeseries and the SeasonalCycles classes."""
-    def __init__(self, catalog: str = None, model: str = None,
+    def __init__(self, diagnostic_name: str = 'timeseries',
+                 catalog: str = None, model: str = None,
                  exp: str = None, source: str = None,
                  regrid: str = None,
                  startdate: str = None, enddate: str = None,
@@ -21,6 +23,8 @@ class BaseMixin(Diagnostic):
         Initialize the Base class.
 
         Args:
+            diagnostic_name (str): The name of the diagnostic. Default is 'timeseries'.
+                                   This will be used to configure the logger and the output files.
             catalog (str): The catalog to be used. If None, the catalog will be determined by the Reader.
             model (str): The model to be used.
             exp (str): The experiment to be used.
@@ -39,8 +43,10 @@ class BaseMixin(Diagnostic):
         """
         super().__init__(catalog=catalog, model=model, exp=exp, source=source, regrid=regrid,
                          loglevel=loglevel)
-
-        self.logger = log_configure(log_level=loglevel, log_name='BaseTimeseries')
+        
+        # Log name is the diagnostic name with the first letter capitalized
+        self.logger = log_configure(log_level=loglevel, log_name=diagnostic_name.capitalize())
+        self.diagnostic_name = diagnostic_name
 
         # We want to make sure we retrieve the required amount of data with a single Reader instance
         self.startdate, self.enddate = start_end_dates(startdate=startdate, enddate=enddate,
@@ -56,7 +62,9 @@ class BaseMixin(Diagnostic):
         self.logger.debug(f"Std start date: {self.std_startdate}, Std end date: {self.std_enddate}")
 
         # Set the region based on the region name or the lon and lat limits
-        self._set_region(region=region, lon_limits=lon_limits, lat_limits=lat_limits)
+        self.region, self.lon_limits, self.lat_limits = self._set_region(region=region, diagnostic='timeseries',
+                                                                         lon_limits=lon_limits, lat_limits=lat_limits)
+        self.logger.debug(f"Region: {self.region}, Lon limits: {self.lon_limits}, Lat limits: {self.lat_limits}")
 
         # Initialize the possible results
         self.hourly = None
@@ -69,7 +77,7 @@ class BaseMixin(Diagnostic):
         self.std_annual = None
 
     def retrieve(self, var: str, formula: bool = False, long_name: str = None,
-                 units: str = None, standard_name: str = None):
+                 units: str = None, standard_name: str = None, reader_kwargs: dict = {}):
         """
         Retrieve the data for the given variable.
 
@@ -79,21 +87,33 @@ class BaseMixin(Diagnostic):
             long_name (str): The long name of the variable, if different from the variable name.
             units (str): The units of the variable, if different from the original units.
             standard_name (str): The standard name of the variable, if different from the variable name.
+            reader_kwargs (dict): Additional keyword arguments for the Reader. Default is an empty dictionary.
         """
         # If the user requires a formula the evaluation requires the retrieval
         # of all the variables
         if formula:
-            super().retrieve()
+            super().retrieve(reader_kwargs=reader_kwargs)
             self.logger.debug("Evaluating formula %s", var)
-            self.data = eval_formula(mystring=var, xdataset=self.data)
+            self.data = EvaluateFormula(data=self.data, formula=var, long_name=long_name,
+                                        short_name=standard_name, units=units,
+                                        loglevel=self.loglevel).evaluate()
             if self.data is None:
-                self.logger.error('Error evaluating formula %s', var)
+                raise ValueError(f'Error evaluating formula {var}. '
+                                 'Check the variable names and the formula syntax.')
         else:
-            super().retrieve(var=var)
+            super().retrieve(var=var, reader_kwargs=reader_kwargs)
             if self.data is None:
-                self.logger.error('Error retrieving variable %s', var)
+                raise ValueError(f'Variable {var} not found in the data. '
+                                 'Check the variable name and the data source.')
             # Get the xr.DataArray to be aligned with the formula code
             self.data = self.data[var]
+
+        if self.plt_startdate is None:
+            self.plt_startdate = self.data.time.min().values
+            self.logger.debug('Plot start date set to %s', self.plt_startdate)
+        if self.plt_enddate is None:
+            self.plt_enddate = self.data.time.max().values
+            self.logger.debug('Plot end date set to %s', self.plt_enddate)
 
         # Customization of the data, expecially needed for formula
         if units is not None:
@@ -135,14 +155,17 @@ class BaseMixin(Diagnostic):
 
         data = self.data
         data = self.reader.fldmean(data, box_brd=box_brd,
-                                    lon_limits=self.lon_limits, lat_limits=self.lat_limits)
+                                   lon_limits=self.lon_limits, lat_limits=self.lat_limits)
         data = self.reader.timmean(data, freq=freq, exclude_incomplete=exclude_incomplete,
-                                    center_time=center_time)
+                                   center_time=center_time)
         data = data.sel(time=slice(self.std_startdate, self.std_enddate))
         if freq_dict[str_freq]['groupdby'] is not None:
             data = data.groupby(freq_dict[str_freq]['groupdby']).std('time')
         else:  # For annual data, we compute the std over all years
             data = data.std('time')
+
+        if self.region is not None:
+            data.attrs['AQUA_region'] = self.region
 
         # Store start and end dates for the standard deviation.
         # pd.Timestamp cannot be used as attribute, so we convert to a string
@@ -159,13 +182,13 @@ class BaseMixin(Diagnostic):
         elif str_freq == 'annual':
             self.std_annual = data
 
-    def save_netcdf(self, diagnostic: str, freq: str,
+    def save_netcdf(self, diagnostic_product: str, freq: str,
                     outputdir: str = './', rebuild: bool = True):
         """
         Save the data to a netcdf file.
 
         Args:
-            diagnostic (str): The diagnostic to be saved.
+            diagnostic_product (str): The product name to be used in the filename (e.g., 'timeseries or 'seasonalcycles').
             freq (str): The frequency of the data.
             outputdir (str): The directory to save the data.
             rebuild (bool): If True, rebuild the data from the original files.
@@ -185,49 +208,25 @@ class BaseMixin(Diagnostic):
             data = self.annual if self.annual is not None else self.logger.error('No annual data available')
             data_std = self.std_annual if self.std_annual is not None else None
 
-        diagnostic_product = getattr(data, 'standard_name', None)
-        diagnostic_product += f'.{str_freq}'
-        diagnostic_product += f'.{self.region}' if self.region is not None else ''
+        var = getattr(data, 'standard_name', None)
+        extra_keys = {'var': var, 'freq': str_freq}
+        
+        if data.name is None:
+            data.name = var
+
+        if self.region is not None:
+            region = self.region.replace(' ', '').lower()
+            extra_keys.update({'region': region})
+
         self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
-        super().save_netcdf(data=data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                            default_path=outputdir, rebuild=rebuild)
+
+        super().save_netcdf(data=data, diagnostic=self.diagnostic_name, diagnostic_product=diagnostic_product,
+                            outdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
         if data_std is not None:
-            diagnostic_product = f'{diagnostic_product}.std'
+            extra_keys.update({'std': 'std'})
             self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
-            super().save_netcdf(data=data_std, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                                default_path=outputdir, rebuild=rebuild)
-
-    def _set_region(self, region: str = None, lon_limits: list = None, lat_limits: list = None):
-        """
-        Set the region to be used.
-
-        Args:
-            region (str): The region to select. This will define the lon and lat limits.
-            lon_limits (list): The longitude limits to be used. Overridden by region.
-            lat_limits (list): The latitude limits to be used. Overridden by region.
-        """
-        if region is not None:
-            region_file = ConfigPath().get_config_dir()
-            region_file = os.path.join(region_file, 'diagnostics',
-                                       'timeseries', 'interface', 'regions.yaml')
-            if os.path.exists(region_file):
-                regions = load_yaml(region_file)
-                if region in regions['regions']:
-                    self.lon_limits = regions['regions'][region].get('lon_limits', None)
-                    self.lat_limits = regions['regions'][region].get('lat_limits', None)
-                    self.region = regions['regions'][region].get('logname', region)
-                    self.logger.info(f'Region {self.region} found, using lon: {self.lon_limits}, lat: {self.lat_limits}')
-                else:
-                    self.logger.error('Region %s not found', region)
-                    raise ValueError(f'Region {region} not found')
-            else:
-                self.logger.error('Region file not found')
-                raise FileNotFoundError('Region file not found')
-        else:
-            self.lon_limits = lon_limits
-            self.lat_limits = lat_limits
-            self.region = None
-            self.logger.debug('No region provided, using lon_limits: %s, lat_limits: %s', lon_limits, lat_limits)
+            super().save_netcdf(data=data_std, diagnostic=self.diagnostic_name, diagnostic_product=diagnostic_product,
+                                outdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
 
     def _check_data(self, var: str, units: str):
         """
@@ -237,21 +236,7 @@ class BaseMixin(Diagnostic):
             var (str): The variable to be checked.
             units (str): The units to be checked.
         """
-        final_units = units
-        initial_units = self.data.units
-        data = self.data
-
-        conversion = convert_units(initial_units, final_units)
-
-        factor = conversion.get('factor', 1)
-        offset = conversion.get('offset', 0)
-
-        if factor != 1 or offset != 0:
-            self.logger.debug('Converting %s from %s to %s',
-                              var, initial_units, final_units)
-            data = data * factor + offset
-            data.attrs['units'] = final_units
-            self.data = data
+        self.data = super()._check_data(data=self.data, var=var, units=units)
 
     def _str_freq(self, freq: str):
         """
@@ -277,15 +262,20 @@ class BaseMixin(Diagnostic):
 
 class PlotBaseMixin():
     """PlotBaseMixin class is used for the PlotTimeseries and the PlotSeasonalcycles classes."""
-    def __init__(self, loglevel: str = 'WARNING'):
+    def __init__(self, diagnostic_name: str = 'timeseries', loglevel: str = 'WARNING'):
         """
         Initialize the PlotBaseMixin class.
 
         Args:
+            diagnostic_name (str): The name of the diagnostic. Default is 'timeseries'.
+                                   This will be used to configure the logger and the output files.
             loglevel (str): The log level to be used. Default is 'WARNING'.
         """
         # Data info initalized as empty
         self.loglevel = loglevel
+        self.diagnostic_name = diagnostic_name
+        log_name = 'Plot' + diagnostic_name.capitalize()
+        self.logger = log_configure(log_level=loglevel, log_name=log_name)
         self.catalogs = None
         self.models = None
         self.exps = None
@@ -294,6 +284,7 @@ class PlotBaseMixin():
         self.ref_exps = None
         self.std_startdate = None
         self.std_enddate = None
+        self.region = None
 
     def set_data_labels(self):
         """
@@ -385,10 +376,12 @@ class PlotBaseMixin():
             description += f'for {self.catalogs[i]} {self.models[i]} {self.exps[i]} '
 
         for i in range(self.len_ref):
-            if self.ref_models[i] == 'ERA5':
-                description += f'with reference {self.ref_models[i]} '
-            else:
+            if self.ref_models[i] == 'ERA5' or self.ref_models == 'ERA5':
+                description += f'with reference ERA5 '
+            elif isinstance(self.ref_models, list):
                 description += f'with reference {self.ref_models[i]} {self.ref_exps[i]} '
+            else:
+                description += f'with reference {self.ref_models} {self.ref_exps} '
 
         if self.std_startdate is not None and self.std_enddate is not None:
             description += f'with standard deviation from {self.std_startdate} to {self.std_enddate} '
@@ -397,7 +390,7 @@ class PlotBaseMixin():
         return description
 
     def save_plot(self, fig, var: str = None, description: str = None, region: str = None, rebuild: bool = True,
-                  outputdir: str = './', dpi: int = 300, format: str = 'png', diagnostic: str = None):
+                  outputdir: str = './', dpi: int = 300, format: str = 'png', diagnostic_product: str = None):
         """
         Save the plot to a file.
 
@@ -410,28 +403,32 @@ class PlotBaseMixin():
             outputdir (str): Output directory to save the plot.
             dpi (int): Dots per inch for the plot.
             format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
-            diagnostic (str): Diagnostic name to be used in the filename as diagnostic_product.
+            diagnostic_product (str): Diagnostic product to be used in the filename as diagnostic_product.
         """
-        outputsaver = OutputSaver(diagnostic='timeseries',
-                                  catalog=self.catalogs[0],
-                                  model=self.models[0],
-                                  exp=self.exps[0],
-                                  default_path=outputdir,
-                                  rebuild=rebuild,
+        outputsaver = OutputSaver(diagnostic=self.diagnostic_name,
+                                  catalog=self.catalogs,
+                                  model=self.models,
+                                  exp=self.exps,
+                                  # This is needed for the Gregory diagnostic, which save the reference models and experiments
+                                  # as dictionaries to build correct labels and descriptions
+                                  catalog_ref=list(self.ref_catalogs.values()) if isinstance(self.ref_catalogs, dict) else self.ref_catalogs,
+                                  model_ref=list(self.ref_models.values()) if isinstance(self.ref_models, dict) else self.ref_models,
+                                  exp_ref=list(self.ref_exps.values()) if isinstance(self.ref_exps, dict) else self.ref_exps,
+                                  outdir=outputdir,
                                   loglevel=self.loglevel)
 
-        metadata = {"Description": description}
-        save_dict = {'metadata': metadata,
-                     'diagnostic_product': diagnostic,
-                     'dpi': dpi}
+        metadata = {"Description": description, "dpi": dpi }
+        extra_keys = {'diagnostic_product': diagnostic_product}
+
         if var is not None:
-            save_dict.update({'var': var})
+            extra_keys.update({'var': var})
         if region is not None:
-            save_dict.update({'region': region})
+            region = region.replace(' ', '').lower()
+            extra_keys.update({'region': region})
 
         if format == 'png':
-            outputsaver.save_png(fig, **save_dict)
+            outputsaver.save_png(fig, diagnostic_product=diagnostic_product, rebuild=rebuild, extra_keys=extra_keys, metadata=metadata)
         elif format == 'pdf':
-            outputsaver.save_pdf(fig, **save_dict)
+            outputsaver.save_pdf(fig, diagnostic_product=diagnostic_product, rebuild=rebuild, extra_keys=extra_keys, metadata=metadata)
         else:
             raise ValueError(f'Format {format} not supported. Use png or pdf.')

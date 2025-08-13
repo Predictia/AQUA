@@ -51,6 +51,16 @@ so that the script can be used in a batch job or in a workflow. These override c
 
     The config file to use.
 
+.. option:: --regrid <target_grid>
+
+    The target grid to use for regridding the data.
+    If not specified, the default is ``null``, which means no regridding will be applied.
+
+.. option:: --realization <realization>
+
+    The realization to use. If not specified or set to ``None``,
+    no realization argument will be passed to the diagnostics.
+
 .. option:: -d <dir>, --outputdir <dir>
 
     The output directory to use. 
@@ -94,6 +104,11 @@ The configuration file is divided in three main sections:
 - ``cluster``: contains the details of the dask cluster to use.
 - ``diagnostics``: contains the list of diagnostics to run.
 
+.. note::
+
+    The configuration file allows for the definition of a custom folder path where the individual diagnostics configuration files are stored.
+    This is done by setting an environment variable ``AQUA_CONFIG``.
+
 Job
 ^^^
 
@@ -107,6 +122,7 @@ The job section contains the following keys:
 - ``model``: the model to use. Default is ``IFS-NEMO``
 - ``exp``: the experiment to use. Default is ``historical-1990``
 - ``source``: the source to use. Default is ``lra-r100-monthly``
+- ``regrid``: the target grid to use for regridding the data. Default is ``null``, which means no regridding will be applied.
 - ``script_path_base``: the base path for the diagnostic scripts. Default is ``${AQUA}/diagnostics``, but it is going to be updated.
 
 .. note::

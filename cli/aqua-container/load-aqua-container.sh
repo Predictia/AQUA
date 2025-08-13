@@ -222,6 +222,9 @@ function setup_envs(){
           "PYTHONUSERBASE=1" #this is used to remove reference to .local
           "AQUA=$AQUA" #this is common to all machines
           "PYTHONPATH=$AQUA" #this is common to all machines
+          # NOTE: this is needed for having the cartopy data in the container
+          #       it is available since v0.16.0 or in the 0.13.6 or higher operational version
+          "CARTOPY_DATA_DIR=/opt/conda/share/cartopy" #this is internal to the container
           "ESMFMKFILE=$ESMFMKFILE")
 
     echo "${envs[@]}"
@@ -315,8 +318,8 @@ done
 
 echo "Perfect! Now it's time to ride with AQUA ⛵"
 
-echo "singularity $cmd --cleanenv $env_args $bind_args $AQUA_container $script"
-singularity $cmd --cleanenv $env_args $bind_args $AQUA_container $script
+#echo "singularity $cmd --cleanenv $env_args $bind_args $AQUA_container $script"
+singularity $cmd --cleanenv $env_args --no-mount /etc/localtime $bind_args $AQUA_container $script
 
 ##### To update any python package e.g. gsv interface, opa, aqua ######
 # Do "pip install /path/to/repo/package_name" inside the singularity container.
