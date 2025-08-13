@@ -162,6 +162,7 @@ The configuration file is a YAML file that contains the following information:
 
     * ``run``: enable/disable the diagnostic.
     * ``variables``: list of variables to analyse.
+    * ``formulae``: list of formulae to compute new variables from existing ones (e.g., ``tnlwrf+tnswrf``).
     * ``plev``: pressure levels to analyse for 3D variables.
     * ``seasons``: enable seasonal analysis.
     * ``seasons_stat``: statistic to use for seasonal climatology (e.g., "mean").
@@ -174,31 +175,41 @@ The configuration file is a YAML file that contains the following information:
     globalbiases:
         run: true
         variables: ['tprate', '2t', 'msl', 'tnlwrf', 't', 'u', 'v', 'q', 'tos']
+        formulae: ['tnlwrf+tnswrf']
         params:
-            plev: [85000, 20000]
-            seasons: true
-            seasons_stat: 'mean'
-            vertical: true
-            startdate_data: null
-            enddate_data: null
-            startdate_ref: "1990-01-01"
-            enddate_ref: "2020-12-31"
+            default:
+                plev: [85000, 20000]
+                seasons: true
+                seasons_stat: 'mean'
+                vertical: true
+                startdate_data: null
+                enddate_data: null
+                startdate_ref: "1990-01-01"
+                enddate_ref: "2020-12-31"
+            tnlwrf+tnswrf:
+                short_name: "tnr"
+                long_name: "Top net radiation"
 
-* ``plot_params``: defines colorbar limits for each variable.
+* ``plot_params``: defines colorbar limits and projection parameters for each variable.  
+  The default parameters are used if not specified for a specific variable.
+  Refer to 'src/aqua/util/projections.py' for available projections.
 
 .. code-block:: yaml
 
     plot_params:
-        limits:
-            2d_maps:
-                2t: {vmin: -15, vmax: 15}
-                msl: {vmin: -1000, vmax: 1000}
-                tnlwrf: {vmin: -40, vmax: 40}
-                tprate: {vmin: -8, vmax: 8}
-            vertical_maps:
-                t: {vmin: -20, vmax: 20}
-                u: {vmin: -50, vmax: 50}
-                q: {vmin: -0.002, vmax: 0.002}
+        default: 
+            projection: 'robinson'
+            projection_params: {}
+        2t:
+            vmin: -15
+            vmax: 15
+        msl:
+            vmin: -1000
+            vmax: 1000
+        u:
+            vmin_v: -50
+            vmax_v: 50
+
 
 Output
 ------
