@@ -16,6 +16,7 @@ AQUA core complete list:
 
 AQUA diagnostics complete list:
 - Boxplots: add tests and update docs (#2129)
+- Stratification: Stratification class to create density and mixed layer depth data, notebook and tests added. (#2093)
 - Radiation: complete refactor of the diagnostic, now based on the `Boxplots` diagnostic and the  `boxplot ` function in graphics (#2007)
 - SeasonalCycles: fix a bug which was preventing to plot when no reference data is provided (#2114)
 
