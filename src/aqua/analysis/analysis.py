@@ -152,12 +152,12 @@ def get_aqua_paths(*, args, logger):
         tuple: AQUA path and configuration path.
     """
     aqua_path = os.path.abspath(os.path.join(pypath[0], "..", ".."))
-    logger.info(f"AQUA path: {aqua_path}")
+    logger.debug(f"AQUA path: {aqua_path}")
 
     aqua_configdir = ConfigPath().configdir
-    logger.info(f"AQUA config dir: {aqua_configdir}")
+    logger.debug(f"AQUA config dir: {aqua_configdir}")
 
-    aqua_analysis_config_path = os.path.expandvars(args.config) if args.config and args.config.strip() else os.path.join(aqua_path, "config/analysis/config.aqua-analysis.yaml")
+    aqua_analysis_config_path = os.path.expandvars(args.config) if args.config and args.config.strip() else os.path.join(aqua_configdir, "analysis/config.aqua-analysis.yaml")
     if not os.path.exists(aqua_analysis_config_path):
         logger.error(f"Config file {aqua_analysis_config_path} not found.")
         sys.exit(1)

@@ -28,7 +28,7 @@ def analysis_parser(parser=None):
     parser.add_argument("-s", "--source", type=str, help="Source")
     parser.add_argument("--realization", type=str, default=None, help="Realization (default: None)")
     parser.add_argument("-d", "--outputdir", type=str, help="Output directory")
-    parser.add_argument("-f", "--config", type=str, default="$AQUA/config/analysis/config.aqua-analysis.yaml",
+    parser.add_argument("-f", "--config", type=str, required=False, default=None,
                         help="Configuration file")
     parser.add_argument("-c", "--catalog", type=str, help="Catalog")
     parser.add_argument("--regrid", type=str, default="False",
@@ -47,7 +47,8 @@ def analysis_execute(args):
     """
     Executing the AQUA analysis by parsing the arguments and configuring the machinery
     """
-    logger = log_configure('warning', 'AQUA Analysis')
+    loglevel = args.loglevel
+    logger = log_configure(loglevel, 'AQUA Analysis')
 
     aqua_path, aqua_configdir, aqua_config_path = get_aqua_paths(args=args, logger=logger)
 
