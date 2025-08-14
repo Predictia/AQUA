@@ -54,8 +54,8 @@ Some of the variables that are typically used in this diagnostic are:
 The diagnostic is designed to work with data from the Low Resolution Archive (LRA) of the AQUA project, which provides monthly data at a 1x1 degree resolution.  
 A higher resolution is not necessary for this diagnostic.
 
-CLI usage
----------
+Basic usage
+-----------
 
 The basic usage of this diagnostic is explained with a working example in the notebook provided in the ``notebooks/diagnostics/global_biases`` directory.  
 The basic structure of the analysis is the following:
