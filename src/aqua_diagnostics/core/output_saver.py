@@ -225,6 +225,7 @@ class OutputSaver:
             extra_keys (dict, optional): Dictionary of additional keys to include in the filename.
             metadata (dict, optional): Additional metadata to include in the NetCDF file.
             create_catalog_entry (bool, optional): Whether to create a catalog entry for the NetCDF file. Defaults to False.
+            dict_catalog_entry (dict, optional): List of jinja and wildcard variables. Default is none.
         """
 
         filepath = self._core_save(
