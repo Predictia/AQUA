@@ -213,43 +213,66 @@ class LatLonProfiles(Diagnostic):
                         seasons = ['DJF', 'MAM', 'JJA', 'SON']
                         for i, season_data in enumerate(data):
                                 diagnostic_product = getattr(season_data, 'standard_name', 'unknown')
-                                diagnostic_product += f'.{str_freq}.{seasons[i]}'
-                                region = self.region.replace(' ', '').lower() if self.region is not None else None
-                                diagnostic_product += f'.{region}' if region is not None else ''
+                                
+                                extra_keys = {'freq': str_freq, 'season': seasons[i]}
+                                if self.region is not None:
+                                        region = self.region.replace(' ', '').lower()
+                                        extra_keys['region'] = region
                                 
                                 self.logger.info('Saving %s data for %s to netcdf in %s', seasons[i], diagnostic_product, outdir)
                                 super().save_netcdf(data=season_data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                                                outdir=outdir, rebuild=rebuild)
+                                                outdir=outdir, rebuild=rebuild, extra_keys=extra_keys)
                 else:
                         # Handle annual data
                         diagnostic_product = getattr(data, 'standard_name', 'unknown')
-                        diagnostic_product += f'.{str_freq}'
-                        region = self.region.replace(' ', '').lower() if self.region is not None else None
-                        diagnostic_product += f'.{region}' if region is not None else ''
+                        
+                        extra_keys = {'freq': str_freq}
+                        if self.region is not None:
+                                region = self.region.replace(' ', '').lower()
+                                extra_keys['region'] = region
+                        
                         self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outdir)
                         super().save_netcdf(data=data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                                        outdir=outdir, rebuild=rebuild)
+                                        outdir=outdir, rebuild=rebuild, extra_keys=extra_keys)
 
                 # Save std data if available
                 if data_std is not None:
                         if str_freq == 'seasonal':
-                        # Seasonal std data handling (if it's also a list)
+                                # Seasonal std data handling
                                 if hasattr(data_std, '__iter__') and not isinstance(data_std, str):
                                         seasons = ['DJF', 'MAM', 'JJA', 'SON']
                                         for i, std_data in enumerate(data_std):
                                                 diagnostic_product = getattr(std_data, 'standard_name', 'unknown')
-                                                diagnostic_product += f'.{str_freq}.{seasons[i]}.std'
-                                                region = self.region.replace(' ', '').lower() if self.region is not None else None
-                                                diagnostic_product += f'.{region}' if region is not None else ''
+                                                
+                                                extra_keys = {'freq': str_freq, 'season': seasons[i], 'std': 'std'}
+                                                if self.region is not None:
+                                                        region = self.region.replace(' ', '').lower()
+                                                        extra_keys['region'] = region
+                                                
                                                 super().save_netcdf(data=std_data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                                                                outdir=outdir, rebuild=rebuild)
+                                                                outdir=outdir, rebuild=rebuild, extra_keys=extra_keys)
+                                else:
+                                        # Handle single seasonal std data
+                                        diagnostic_product = getattr(data_std, 'standard_name', 'unknown')
+                                        
+                                        extra_keys = {'freq': str_freq, 'std': 'std'}
+                                        if self.region is not None:
+                                                region = self.region.replace(' ', '').lower()
+                                                extra_keys['region'] = region
+                                        
+                                        super().save_netcdf(data=data_std, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
+                                                        outdir=outdir, rebuild=rebuild, extra_keys=extra_keys)
                         else:
+                                # Handle annual std data
                                 diagnostic_product = getattr(data_std, 'standard_name', 'unknown')
-                                diagnostic_product += f'.{str_freq}.std'
-                                region = self.region.replace(' ', '').lower() if self.region is not None else None
-                                diagnostic_product += f'.{region}' if region is not None else ''
+                                
+                                extra_keys = {'freq': str_freq, 'std': 'std'}
+                                if self.region is not None:
+                                        region = self.region.replace(' ', '').lower()
+                                        extra_keys['region'] = region
+                                
                                 super().save_netcdf(data=data_std, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                                                outdir=outdir, rebuild=rebuild)
+                                                outdir=outdir, rebuild=rebuild, extra_keys=extra_keys)
 
         def _check_data(self, var: str, units: str):
                 """
