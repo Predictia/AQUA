@@ -88,7 +88,6 @@ class LatLonProfiles(Diagnostic):
                 self.annual = None    # Annual mean
                 self.std_seasonal = None  # Seasonal std deviations
                 self.std_annual = None   # Annual std deviation
-                self.direct_profile = None  # Direct profile for specific timestep
 
                 self.mean_type = mean_type
 
@@ -129,30 +128,6 @@ class LatLonProfiles(Diagnostic):
                         self.data.name = standard_name
                 else:
                         self.data.attrs['standard_name'] = var
-        
-        def select_timestep(self, timestep: str, box_brd: bool = True):
-                """
-                Select and compute profile for a specific timestep from already loaded data.
-                This method preserves existing seasonal/annual data and returns the profile.
-                
-                Args:
-                        timestep (str): The specific timestep to select (e.g., '1995-07', '1995-07-15')
-                        box_brd (bool): Choose if coordinates are comprised or not in area selection
-                
-                Returns:
-                        xr.DataArray: The profile for the selected timestep
-                """
-                if self.data is None:
-                        self.logger.error('No data available. Run retrieve() or run() first.')
-                        return None
-                
-                self.logger.info(f'Selecting timestep: {timestep}')
-                
-                # Use the existing _compute_direct_profile method
-                self._compute_direct_profile(timestep=timestep, box_brd=box_brd)
-                
-                # Return the computed profile for easy variable assignment
-                return self.direct_profile
         
         def compute_std(self, freq: str, exclude_incomplete: bool = True, center_time: bool = True,
                         box_brd: bool = True):
@@ -204,49 +179,6 @@ class LatLonProfiles(Diagnostic):
                         annual_std.attrs['std_startdate'] = time_to_string(self.std_startdate)
                         annual_std.attrs['std_enddate'] = time_to_string(self.std_enddate)
                         self.std_annual = annual_std
-
-        def _compute_direct_profile(self, timestep: str, box_brd: bool = True):
-                """
-                Compute direct profile for a specific timestep.
-                
-                Args:
-                        timestep (str): The specific timestep to compute profile for (e.g., '1990-06-15')
-                        box_brd (bool): Choose if coordinates are comprised or not in area selection
-                """
-                self.logger.info(f'Computing direct profile for timestep: {timestep}')
-                
-                # Select data for the specific timestep
-                try:
-                        timestep_data = self.data.sel(time=timestep, method='nearest')
-                except KeyError:
-                        self.logger.error(f'Timestep {timestep} not found in data')
-                        return
-                
-                # Determine dimensions for averaging based on mean_type
-                if self.mean_type == 'zonal':
-                        dims = ['lon']
-                elif self.mean_type == 'meridional':
-                        dims = ['lat']
-                elif self.mean_type == 'global':
-                        dims = ['lon', 'lat']
-                else:
-                        self.logger.error('Mean type %s not recognized', self.mean_type)
-                        return
-                
-                # Apply spatial averaging for the direct profile
-                direct_data = self.reader.fldmean(timestep_data, 
-                                                box_brd=box_brd,
-                                                lon_limits=self.lon_limits, 
-                                                lat_limits=self.lat_limits,
-                                                dims=dims)
-                
-                # Add metadata
-                if self.region is not None:
-                        direct_data.attrs['region'] = self.region
-                direct_data.attrs['timestep'] = timestep
-                direct_data.attrs['mean_type'] = self.mean_type
-                
-                self.direct_profile = direct_data
                 
         def save_netcdf(self, diagnostic: str, freq: str,
                         outdir: str = './', rebuild: bool = True):
@@ -418,7 +350,7 @@ class LatLonProfiles(Diagnostic):
                 freq: list = ['seasonal', 'annual'],
                 exclude_incomplete: bool = True, center_time: bool = True,
                 box_brd: bool = True, outdir: str = './', rebuild: bool = True,
-                mean_type: str = None, timestep: str = None):
+                mean_type: str = None):
                 """
                 Run all the steps necessary for the computation of the LatLonProfiles.
 
@@ -436,8 +368,6 @@ class LatLonProfiles(Diagnostic):
                         outdir (str): The output directory to save the results.
                         rebuild (bool): Whether to rebuild existing files.
                         mean_type (str): The type of mean to compute ('zonal', 'meridional', 'global').
-                        timestep (str): Specific timestep to compute (e.g., '1995-07', '1995-07-15').
-                                If provided, only computes direct profile for this timestep.
                 """
                 self.logger.info('Running LatLonProfiles for %s', var)
                 
@@ -452,12 +382,6 @@ class LatLonProfiles(Diagnostic):
                 
                 # Check if data is valid
                 self._check_data(var=var, units=units)
-                
-                # If timestep is provided, compute only direct profile
-                if timestep is not None:
-                        self.logger.info(f'Computing direct profile for timestep: {timestep}')
-                        self._compute_direct_profile(timestep=timestep, box_brd=box_brd)
-                        return
                 
                 # Compute temporal means (seasonal/annual)
                 self.logger.info('Computing temporal means')
