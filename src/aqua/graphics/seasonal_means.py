@@ -24,6 +24,18 @@ def plot_seasonal_data(maps,
     if not isinstance(maps, list) or len(maps) != 4:
         raise ValueError("maps must be a list of 4 elements: [DJF, MAM, JJA, SON]")
     
+    # Validate std_maps if provided
+    if std_maps is not None:
+        std_maps = [clean_std(std_map) for std_map in std_maps]
+    else:
+        std_maps = [None] * 4
+
+    # Validate ref_std_maps if provided
+    if ref_std_maps is not None:
+        ref_std_maps = [clean_std(ref_std_map) for ref_std_map in ref_std_maps if ref_std_map is not None]
+    else:
+        ref_std_maps = [None]
+
     std_maps = [clean_std(std_map) for std_map in std_maps]
     ref_std_maps = [clean_std(ref_std_map) for ref_std_map in ref_std_maps if ref_std_map is not None] if ref_std_maps else None
 
