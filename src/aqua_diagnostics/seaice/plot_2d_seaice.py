@@ -4,7 +4,7 @@ import xarray as xr
 import cartopy.crs as ccrs
 import matplotlib.colors as mcolors
 from matplotlib import pyplot as plt
-from aqua.diagnostics.core import Diagnostic, OutputSaver
+from aqua.diagnostics.core import OutputSaver
 from aqua.graphics import plot_single_map, plot_single_map_diff, plot_maps
 from aqua.logger import log_configure, log_history
 from aqua.util import ConfigPath, get_projection, plot_box, to_list
@@ -23,7 +23,7 @@ class Plot2DSeaIce:
         models (list of xarray.DataArray or xarray.Dataset): List of models with sea ice data.
         regions_to_plot (list): List of strings with the region names to plot which must match 
                                 the 'AQUA_region' attribute in the data provided as input.
-        outdir (str): Output directory for saving plots.
+        outputdir (str): Output directory for saving plots.
         rebuild (bool): Whether to rebuild the plots if they already exist.
         dpi (int): Dots per inch for the saved figures.
         loglevel (str): Logging level for the logger. Default is 'WARNING'.
@@ -38,7 +38,7 @@ class Plot2DSeaIce:
     def __init__(self,
                  ref=None, models=None, 
                  regions_to_plot: list = ['Arctic', 'Antarctic'],
-                 outdir='./',
+                 outputdir='./',
                  rebuild=True,
                  dpi=300, 
                  loglevel='WARNING'):
@@ -54,7 +54,7 @@ class Plot2DSeaIce:
         if self.regions_to_plot is None:
             self._detect_common_regions([self.models, self.ref])
 
-        self.outdir  = outdir
+        self.outputdir = outputdir
         self.rebuild = rebuild
         self.dpi = dpi
 
@@ -578,7 +578,7 @@ class Plot2DSeaIce:
             exp=data.attrs.get('AQUA_exp',''),
             model_ref=data_ref.attrs.get('AQUA_model','') if data_ref is not None else None,
             exp_ref=data_ref.attrs.get('AQUA_exp','') if data_ref is not None else None,
-            outdir=self.outdir,
+            outdir=self.outputdir,
             loglevel=self.loglevel
         )
         metadata = {"Description": description}

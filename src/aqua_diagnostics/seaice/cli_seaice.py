@@ -110,6 +110,7 @@ if __name__ == '__main__':
                                         startdate=dataset.get('startdate', None), 
                                         enddate=dataset.get('enddate', None), 
                                         regrid=dataset.get('regrid', None),
+                                        outputdir=outputdir,
                                         loglevel=config_dict['setup']['loglevel'])
 
                         monthly_mod[i] = seaice.compute_seaice(method=method, var=mod_var)
@@ -179,6 +180,8 @@ if __name__ == '__main__':
                              exp=datasets[0]['exp'], 
                              source=datasets[0]['source'],
                              loglevel=config_dict['setup']['loglevel'],
+                             outputdir=outputdir,
+                             rebuild=rebuild,
                              **plot_ts_seaice)
 
             psi.plot_seaice(plot_type='timeseries', save_pdf=False, save_png=True)
@@ -297,6 +300,8 @@ if __name__ == '__main__':
                              exp=datasets[0]['exp'], 
                              source=datasets[0]['source'],
                              loglevel=config_dict['setup']['loglevel'],
+                             outputdir=outputdir,
+                             rebuild=rebuild,
                              **plot_ts_seaice)
 
             psi.plot_seaice(plot_type='seasonal_cycle', save_pdf=False, save_png=True)
@@ -398,7 +403,7 @@ if __name__ == '__main__':
             psi = Plot2DSeaIce(ref=plot_bias_seaice.get('ref'),
                                models=plot_bias_seaice.get('models'),
                                regions_to_plot=longregs_indomain,
-                               outdir=outputdir,
+                               outputdir=outputdir,
                                rebuild=rebuild,
                                loglevel=config_dict['setup']['loglevel'])
 

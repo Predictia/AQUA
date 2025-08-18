@@ -27,8 +27,9 @@ class SeaIce(Diagnostic):
         std_enddate   (str, optional): End date for standard deviation.
         regions     (list, optional): A list of regions to analyze. Default is ['arctic', 'antarctic'].
         regions_file (str, optional): The path to the regions definition file.
-        loglevel     (str, optional): The logging level. Default is 'WARNING'.
+        outputdir (str, optional): The output directory.
         regions_definition (dict): The loaded regions definition from the YAML file.
+        loglevel     (str, optional): The logging level. Default is 'WARNING'.
 
     Methods:
         load_regions(regions_file=None, regions=None):
@@ -53,9 +54,11 @@ class SeaIce(Diagnostic):
                  threshold=0.15,
                  regions=['arctic', 'antarctic'],
                  regions_file=None,
+                 outputdir: str = './',
                  loglevel: str = 'WARNING'
                  ):
 
+        self.outputdir = outputdir
         super().__init__(model=model, exp=exp, source=source,
                          regrid=regrid, catalog=catalog, 
                          startdate=startdate, enddate=enddate,
@@ -494,7 +497,7 @@ class SeaIce(Diagnostic):
 
     def save_netcdf(self, seaice_data, diagnostic: str, diagnostic_product: str = None,
                     rebuild: bool = True, output_file: str = None,
-                    output_dir: str = None, **kwargs):
+                    **kwargs):
         """ Save the computed sea ice data to a NetCDF file.
 
         Args:
@@ -503,9 +506,8 @@ class SeaIce(Diagnostic):
             diagnostic_product (str, optional): The diagnostic product. Can be used for namig the file more freely.
             rebuild (bool, optional): If True, rebuild (overwrite) the NetCDF file. Default is True.
             output_file (str, optional): The output file name.
-            output_dir (str, optional): The output directory.
             **kwargs: Additional keyword arguments for saving the data.
         """
         # Use parent method to handle saving, including metadata
         super().save_netcdf(seaice_data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                            rebuild=rebuild, **kwargs)
+                            outdir=self.outputdir, rebuild=rebuild, **kwargs)
