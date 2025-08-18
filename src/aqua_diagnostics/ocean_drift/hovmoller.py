@@ -92,7 +92,14 @@ class Hovmoller(Diagnostic):
         super().retrieve(var=var, reader_kwargs=reader_kwargs)
         self.logger.info("Data retrieved successfully")
         # If a region is specified, apply area selection to self.data
-        super().select_region(region=region, diagnostic="ocean3d")
+        if region:
+            self.logger.info(f"Selecting region: {region} for diagnostic 'ocean3d'.")
+            res_dict = super()._select_region(data=self.data,
+                region=region, diagnostic="ocean3d",
+                drop=True
+            )
+            self.data = res_dict['data']
+            self.region = res_dict['region']
         self.stacked_data = self.compute_hovmoller(
             dim_mean=dim_mean, anomaly_ref=anomaly_ref
         )
@@ -182,6 +189,7 @@ class Hovmoller(Diagnostic):
 
         type = f"{Std}{anom}{anom_ref}"
         data.attrs["AQUA_ocean_drift_type"] = type
+        data.attrs["region"] = self.region
         return data
 
     def compute_hovmoller(self, dim_mean: str = None, anomaly_ref: str|list = None):
