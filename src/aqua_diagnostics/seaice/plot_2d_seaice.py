@@ -357,7 +357,12 @@ class Plot2DSeaIce:
                           orientation=orientation, **cb_kwargs)
         cb.set_ticks(cbar_ticks)
         cb.ax.ticklabel_format(style='sci', axis='x', scilimits=(-3, 3))
-        cb.set_label(f"Sea ice {data.attrs.get('AQUA_method', '')} {data.attrs.get('units', '')}", fontsize=11)
+        units = data.attrs.get('units', '')
+        if units and not (units.startswith('[') and units.endswith(']')):
+            units = f'[{units}]'
+        if units:
+            units = ' ' + units
+        cb.set_label(f"Sea-ice {data.attrs.get('AQUA_method', '')}{units}", fontsize=11)
         return cb
 
     def _get_cmap(self, datarr):
