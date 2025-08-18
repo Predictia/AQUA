@@ -217,7 +217,7 @@ class Plot2DSeaIce:
             f"spanning from {monmod.attrs.get('AQUA_startdate', '')} to {monmod.attrs.get('AQUA_enddate', '')}. "
             f"The reference dataset is {monref.attrs.get('AQUA_model')} with experiment {monref.attrs.get('AQUA_exp')} "
             f"spanning from {monref.attrs.get('AQUA_startdate', '')} to {monref.attrs.get('AQUA_enddate', '')}. "
-            f"{'The red contour line represent the regional sea ice fraction equal to 0.2.' if self.method == 'fraction' else ''}"
+            f"{'The red contour line represents the regional sea ice fraction equal to 0.2.' if self.method == 'fraction' else ''}"
             )
         self._save_plots(fig=fig, data=monmod, data_ref=monref, diagnostic_product='bias', 
                          description=description, extra_keys={'method': self.method, 'region': region})
