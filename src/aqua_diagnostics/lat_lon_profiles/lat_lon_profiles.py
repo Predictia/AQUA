@@ -228,7 +228,7 @@ class LatLonProfiles(Diagnostic):
 				extra_keys = {'freq': str_freq, 'season': seasons[i]}
 				if self.region is not None:
 					region = self.region.replace(' ', '').lower()
-					extra_keys['region'] = region
+					extra_keys['AQUA_region'] = region
 				
 				self.logger.info('Saving %s data for %s to netcdf in %s', seasons[i], diagnostic_product, outdir)
 				super().save_netcdf(data=season_data, diagnostic=diagnostic, 
@@ -241,7 +241,7 @@ class LatLonProfiles(Diagnostic):
 			extra_keys = {'freq': str_freq}
 			if self.region is not None:
 				region = self.region.replace(' ', '').lower()
-				extra_keys['region'] = region
+				extra_keys['AQUA_region'] = region
 			
 			self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outdir)
 			super().save_netcdf(data=data, diagnostic=diagnostic, 
@@ -272,7 +272,7 @@ class LatLonProfiles(Diagnostic):
 					extra_keys = {'freq': str_freq, 'std': 'std'}
 					if self.region is not None:
 						region = self.region.replace(' ', '').lower()
-						extra_keys['region'] = region
+						extra_keys['AQUA_region'] = region
 					
 					super().save_netcdf(data=data_std, diagnostic=diagnostic, 
 										diagnostic_product=diagnostic_product,
@@ -284,21 +284,11 @@ class LatLonProfiles(Diagnostic):
 				extra_keys = {'freq': str_freq, 'std': 'std'}
 				if self.region is not None:
 					region = self.region.replace(' ', '').lower()
-					extra_keys['region'] = region
+					extra_keys['AQUA_region'] = region
 				
 				super().save_netcdf(data=data_std, diagnostic=diagnostic, 
 									diagnostic_product=diagnostic_product,
 									outdir=outdir, rebuild=rebuild, extra_keys=extra_keys)
-
-	def _check_data(self, var: str, units: str):
-		"""
-		Make sure that the data is in the correct units.
-
-		Args:
-		var (str): The variable to be checked.
-		units (str): The units to be checked.
-		"""
-		self.data = super()._check_data(data=self.data, var=var, units=units)
 
 	def _str_freq(self, freq: str):
 		"""
@@ -349,39 +339,39 @@ class LatLonProfiles(Diagnostic):
 			dims = ['lon', 'lat']
 		else:
 			self.logger.error('Mean type %s not recognized', self.mean_type)
-			return
+			raise ValueError('Mean type %s not recognized', self.mean_type)
 
 		self.logger.info('Computing %s mean', str_freq)
 		data = self.data.sel(time=slice(self.plt_startdate, self.plt_enddate))
 		if len(data.time) == 0:
-			self.logger.warning('No data available for the selected period %s - %s, using the standard period %s - %s',
-								self.plt_startdate, self.plt_enddate, self.std_startdate, self.std_enddate)
-			data = self.data.sel(time=slice(self.std_startdate, self.std_enddate))
+			self.logger.error('No data available for the selected period %s - %s',
+							  self.plt_startdate, self.plt_enddate)
+			raise ValueError(f'No data available for the selected period {self.plt_startdate} - {self.plt_enddate}')
 
 		# First compute monthly means, then seasonal/annual
 		monthly_data = self.reader.timmean(data, freq='monthly', 
-											exclude_incomplete=exclude_incomplete, 
-											center_time=center_time)
+										   exclude_incomplete=exclude_incomplete, 
+										   center_time=center_time)
 			
 		# Apply spatial averaging to monthly data
 		monthly_data = self.reader.fldmean(monthly_data, 
-											box_brd=box_brd, 
-											lon_limits=self.lon_limits, lat_limits=self.lat_limits,
-											dims=dims)
+										   box_brd=box_brd, 
+										   lon_limits=self.lon_limits, lat_limits=self.lat_limits,
+										   dims=dims)
 
 		if str_freq == 'seasonal':
 			# Compute seasonal means from monthly data
 			seasonal_data = self.reader.timmean(monthly_data, freq='seasonal')
 			if self.region is not None:
 				for season_data in seasonal_data:
-					season_data.attrs['region'] = self.region
+					season_data.attrs['AQUA_region'] = self.region
 			self.seasonal = seasonal_data
 				
 		elif str_freq == 'annual':
 			# Compute annual mean from monthly data
 			annual_data = self.reader.timmean(monthly_data, freq='annual')
 			if self.region is not None:
-				annual_data.attrs['region'] = self.region
+				annual_data.attrs['AQUA_region'] = self.region
 			self.annual = annual_data
 
 	def run(self, var: str, formula: bool = False, long_name: str = None,
