@@ -585,10 +585,10 @@ class Plot2DSeaIce:
 
         if format == 'pdf':
             outputsaver.save_pdf(fig, diagnostic_product=diagnostic_product,
-                                 extra_keys=extra_keys, metadata=metadata)
+                                 extra_keys=extra_keys, metadata=metadata, rebuild=self.rebuild)
         elif format == 'png':
             outputsaver.save_png(fig, diagnostic_product=diagnostic_product,
-                                 extra_keys=extra_keys, metadata=metadata)
+                                 extra_keys=extra_keys, metadata=metadata, rebuild=self.rebuild)
         else:
             raise ValueError(f'Format {format} not supported. Use png or pdf.')
 
