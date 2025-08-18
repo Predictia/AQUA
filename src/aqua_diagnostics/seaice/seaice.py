@@ -245,7 +245,7 @@ class SeaIce(Diagnostic):
             masked_data_region = self._select_region(masked_data, region=region, diagnostic='seaice').get('data')
 
             if self.method in ['fraction','thickness']:
-                seaice_2d_result = self._calc_time_stat(masked_data_region, stat, freq)
+                seaice_2d_result = self._calc_time_stat(masked_data_region, stat=stat, freq=freq)
             else:
                 raise ValueError(f"Method '{self.method}' is not supported for 2D computation.")
 
