@@ -230,6 +230,7 @@ if __name__ == '__main__':
                                         startdate=dataset.get('startdate', None), 
                                         enddate=dataset.get('enddate', None), 
                                         regrid=dataset.get('regrid', None),
+                                        outputdir=outputdir,
                                         loglevel=config_dict['setup']['loglevel'])
 
                         monthly_mod[i] = seaice.compute_seaice(method=method, var=mod_var, 
@@ -276,6 +277,7 @@ if __name__ == '__main__':
                                         startdate=reference.get('startdate', startdate), # Get specific start-end date for reference if provided in config
                                         enddate=reference.get('enddate', enddate), 
                                         regrid=reference.get('regrid', None),
+                                        outputdir=outputdir,
                                         loglevel=config_dict['setup']['loglevel'])
 
                     if conf_dict_ts['calc_ref_std']:
@@ -345,6 +347,7 @@ if __name__ == '__main__':
                                     startdate=dataset.get('startdate', None), 
                                     enddate=dataset.get('enddate', None), 
                                     regrid=dataset.get('regrid', None),
+                                    outputdir=outputdir,
                                     loglevel=config_dict['setup']['loglevel'])
                     
                     # Compute 2D data for each region
@@ -386,6 +389,7 @@ if __name__ == '__main__':
                                         startdate=reference.get('startdate', startdate),
                                         enddate=reference.get('enddate', enddate),
                                         regrid=reference.get('regrid', None),
+                                        outputdir=outputdir,
                                         loglevel=config_dict['setup']['loglevel'])
 
                     clims_ref[i] = seaice_ref.compute_seaice(method=method, var=reference.get('varname'), stat='mean', freq='monthly')
