@@ -213,7 +213,7 @@ class Hovmoller(Diagnostic):
             self.logger.debug(f"Computing mean over dimension: {dim_mean}")
             self.data = self.data.mean(dim=dim_mean)
 
-        for standardise, anomaly_ref in product([False, True], anomaly_ref):  #TODO Fix Standardise to skip Std Full data
+        for standardise, anomaly_ref in product([False, True], anomaly_ref):
             if not (standardise is True and anomaly_ref is None):
                 self.logger.info(
                     f"Processing data with standardise={standardise}, anomaly_ref={anomaly_ref}"
@@ -222,6 +222,17 @@ class Hovmoller(Diagnostic):
                     self.data, anomaly_ref, standardise, dim="time"
                 )
                 self.processed_data_list.append(processed_data)
+        self.processed_data_list = sorted(self.processed_data_list, key=self.sort_key)
+
+    def sort_key(self, data):
+        type = data.attrs["AQUA_ocean_drift_type"]
+        if type == "full":
+            return (0, type)
+        elif type.startswith("anom"):
+            return (1, type)
+        elif type.startswith("std"):
+            return (2, type)
+
 
     def save_netcdf(
         self,
