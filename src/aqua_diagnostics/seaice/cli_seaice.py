@@ -156,6 +156,7 @@ if __name__ == '__main__':
                                         startdate=reference.get('startdate', startdate), # Get specific start-end date for dataset if provided in config
                                         enddate=reference.get('enddate', enddate), 
                                         regrid=reference.get('regrid', None),
+                                        outputdir=outputdir,
                                         loglevel=config_dict['setup']['loglevel'])
 
                     if conf_dict_ts['calc_ref_std']:
