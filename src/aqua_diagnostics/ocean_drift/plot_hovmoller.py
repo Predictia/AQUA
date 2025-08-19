@@ -65,9 +65,9 @@ class PlotHovmoller:
             loglevel=self.loglevel,
             title=self.suptitle,
             titles=self.title_list,
+            vmax=self.vmax,
+            vmin=self.vmin,
             #TODO: vmin e vmax should have appropriate values for each variable
-            # vmax=self.vmax,
-            # vmin=self.vmin,
             cmap=self.cmap,
             text=self.texts
         )
@@ -108,17 +108,17 @@ class PlotHovmoller:
             'thetao' :
                 {
                     'full': {'vmax': 40, 'vmin': 10 },
-                    'anom_t0': {'vmax': 5, 'vmin': -5, 'cbar': 'coolwarm'},
-                    'std_anom_t0': {'vmax': 1, 'vmin': -1, 'cbar': 'coolwarm'},
+                    'anom_t0': {'vmax': 6, 'vmin': -6, 'cbar': 'coolwarm'},
+                    'std_anom_t0': {'vmax': 5, 'vmin': -5, 'cbar': 'coolwarm'},
                     
-                    'anom_tmean': {'vmax': 5, 'vmin': -5, 'cbar': 'coolwarm'},
-                    'std_anom_tmean': {'vmax': 1, 'vmin': -1, 'cbar': 'coolwarm'},
+                    'anom_tmean': {'vmax': 6, 'vmin': -6, 'cbar': 'coolwarm'},
+                    'std_anom_tmean': {'vmax': 5, 'vmin': -5, 'cbar': 'coolwarm'},
                 },
             'so' :
                 {
-                    'full': {'vmax': 400, 'vmin': 200, 'cbar': 'coolwarm'},
-                    'anom_t0': {'vmax': 100, 'vmin': -100, 'cbar': 'coolwarm'},
-                    'std_anom_t0': {'vmax': 1, 'vmin': -1, 'cbar': 'coolwarm'},
+                    'full': {'vmax': 38, 'vmin': 33, 'cbar': 'coolwarm'},
+                    'anom_t0': {'vmax': 0.9, 'vmin': -0.3, 'cbar': 'coolwarm'},
+                    'std_anom_t0': {'vmax': 5, 'vmin': -6, 'cbar': 'coolwarm'},
                     
                     'anom_tmean': {'vmax': 5, 'vmin': -5, 'cbar': 'coolwarm'},
                     'std_anom_tmean': {'vmax': 1, 'vmin': -1, 'cbar': 'coolwarm'},
@@ -127,8 +127,8 @@ class PlotHovmoller:
         self.vmax = []
         self.vmin = []
         self.cmap = []
-        for var in self.vars:
-            for type in self.data_type:
+        for type in self.data_type:
+            for var in self.vars:
                 self.vmax.append(hovmoller_plot_dic[var][type].get('vmax'))
                 self.vmin.append(hovmoller_plot_dic[var][type].get('vmin'))
                 self.cmap.append(hovmoller_plot_dic[var][type].get('cbar', 'jet'))
