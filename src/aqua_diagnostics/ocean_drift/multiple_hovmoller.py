@@ -116,10 +116,10 @@ def plot_multi_hovmoller(
             cax = divider.append_axes("right", size="5%", pad=0.15)
             cbar = fig.colorbar(mappable, cax=cax, orientation="vertical")
 
-            if cbar_label and j < len(cbar_label):
-                cbar.set_label(cbar_label[j])
-            else:
-                cbar.set_label(cbar_get_label(mappable, var))
+            # if cbar_label and j < len(cbar_label):
+            #     cbar.set_label(cbar_label[j])
+            # else:
+            #     cbar.set_label(cbar_get_label(mappable, var))
 
     # Adjust overall layout
     fig.subplots_adjust(bottom=0.1, top=0.9, left=0.05, right=0.95)
