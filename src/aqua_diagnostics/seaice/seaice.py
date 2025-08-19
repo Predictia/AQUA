@@ -137,7 +137,8 @@ class SeaIce(Diagnostic):
     def _compute_ts_bymethod(self, calc_std_freq: str = None, 
                              get_seasonal_cycle: bool = False,
                              ts_monthly: bool = False, ts_monthly_std: bool = False,
-                             ts_annual: bool = False,  ts_annual_std: bool = False):
+                             ts_annual: bool = False,  ts_annual_std: bool = False,
+                             reader_kwargs: dict = {}):
         """ Compute sea ice result by integrating data over specified regions.
         If a standard deviation calculation frequency (`calc_std_freq`) is provided, also 
         the std deviation of the result is computed.
@@ -150,6 +151,8 @@ class SeaIce(Diagnostic):
             get_seasonal_cycle (bool, optional):
                 If True, the output result (and standard deviation if computed) is converted into a 
                 seasonal cycle i.e. a monthly climatology. Defaults to False.
+            reader_kwargs (dict, optional):
+                Additional keyword arguments to pass to the Reader.
 
         Returns:
             xr.Dataset or Tuple[xr.Dataset, xr.Dataset]: 
@@ -161,7 +164,7 @@ class SeaIce(Diagnostic):
             - Standard deviation is computed across all years if `calc_std_freq` is provided.
         """
         # retrieve data with Diagnostic method
-        super().retrieve(var=self.var)
+        super().retrieve(var=self.var, reader_kwargs=reader_kwargs)
 
         # get the sea ice masked by method
         masked_data = self._mask_data_bymethod()
