@@ -10,6 +10,7 @@ from aqua.util import ConfigPath
 from aqua.graphics import plot_timeseries, plot_seasonalcycle
 from collections import defaultdict
 from .util import defaultdict_to_dict, extract_dates, _check_list_regions_type
+from aqua.graphics import ConfigStyle
 
 xr.set_options(keep_attrs=True)
 
@@ -64,6 +65,8 @@ class PlotSeaIce:
             loglevel (str, optional): 
                 Logging level for debugging and information messages. Defaults to 'WARNING'.
         """
+        ConfigStyle(style='aqua', loglevel=loglevel)
+
         # logging setup
         self.loglevel = loglevel
         self.logger = log_configure(log_level=self.loglevel, log_name='PlotSeaIce')
