@@ -11,6 +11,8 @@ Workflow modifications:
 - `aqua-analysis.py` is now an entry point `aqua analysis` in the AQUA console, with the same syntax as before.
 
 AQUA core complete list:
+
+- Update aqua-analysis config for refactored diagnostics (#2144)
 - Fixed incompatible coordinate transformatiosn (#2137)
 - Added Nord4 support in the `load-aqua-container.sh` script (#2130)
 - Add `aqua analysis` to replace the `aqua-analysis.py` script, with a more flexible CLI interface (#2065)
