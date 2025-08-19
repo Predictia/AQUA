@@ -12,6 +12,7 @@ Workflow modifications:
 
 AQUA core complete list:
 
+- Fix fldstat coordinate treatment (#2147)
 - Fixer applied when units name changes is required and no factor is found (#2128)
 - Update aqua-analysis config for refactored diagnostics (#2144)
 - Fixed incompatible coordinate transformatiosn (#2137)
