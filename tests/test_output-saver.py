@@ -14,7 +14,7 @@ def output_saver(tmp_path):
             'model': 'IFS-NEMO',
             'exp': 'historical',
             'catalog': 'lumi-phase2',
-            'outdir': tmp_path,
+            'outputdir': tmp_path,
             'loglevel': 'DEBUG',
         }
         default_args.update(overrides)
