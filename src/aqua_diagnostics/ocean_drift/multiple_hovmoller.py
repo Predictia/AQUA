@@ -99,7 +99,7 @@ def plot_multi_hovmoller(
                 fig=fig,
                 loglevel=loglevel,
             )
-
+            ax.set_xticks(ax.get_xticks())
             ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
 
             # Retrieve last plotted object for colorbar (QuadMesh or ContourSet)
@@ -113,7 +113,7 @@ def plot_multi_hovmoller(
 
             # Create colorbar axis next to plot
             divider = make_axes_locatable(ax)
-            cax = divider.append_axes("right", size="5%", pad=0.05)
+            cax = divider.append_axes("right", size="5%", pad=0.15)
             cbar = fig.colorbar(mappable, cax=cax, orientation="vertical")
 
             if cbar_label and j < len(cbar_label):
@@ -127,7 +127,7 @@ def plot_multi_hovmoller(
 
     if title:
         logger.debug("Setting super title to %s", title)
-        fig.suptitle(title, fontsize=16)
+        fig.suptitle(title, fontsize=nrows * 10, fontweight='bold')
 
     if return_fig:
         return fig
