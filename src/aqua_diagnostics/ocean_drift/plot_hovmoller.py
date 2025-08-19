@@ -96,8 +96,8 @@ class PlotHovmoller:
 
     def set_description(self):
         self.description = {}
-        self.description['description'] = {f'{self.region} {self.diagnostic} {self.catalog} {self.model} {self.exp}'}
-    
+        self.description['description'] = {f'Spatially averaged {self.region} region {self.diagnostic} of {self.catalog} {self.model} {self.exp}'}
+
     def set_vmax_vmin(self):
         """
         Set the vmax and vmin for the Hovmoller plot.
