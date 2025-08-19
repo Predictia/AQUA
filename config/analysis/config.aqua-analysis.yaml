@@ -24,7 +24,7 @@ job:
     run_checker: true
     
     # Default output directory for the analysis. Can be overridden by the command line arguments
-    outputdir: "${AQUA}/cli/aqua-analysis/output" 
+    outputdir: "./output"
 
     # Default values, overriden from command line arguments
     catalog: null  # The catalog to use for the analysis
@@ -33,7 +33,7 @@ job:
     source: "lra-r100-monthly"
     regrid: null
 
-    script_path_base: "${AQUA}/diagnostics"  # Base directory for the diagnostic scripts
+    script_path_base: "${AQUA_CONFIG}/diagnostics"  # Base directory for the diagnostic scripts
 
 cluster:  # options for dask cluster (this works well on lumi)
     workers: 32
