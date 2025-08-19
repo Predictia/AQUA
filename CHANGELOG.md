@@ -12,6 +12,7 @@ Workflow modifications:
 
 AQUA core complete list:
 
+- Fix fldstat coordinate treatment (#2147)
 - Update aqua-analysis config for refactored diagnostics (#2144)
 - Fixed incompatible coordinate transformatiosn (#2137)
 - Added Nord4 support in the `load-aqua-container.sh` script (#2130)
