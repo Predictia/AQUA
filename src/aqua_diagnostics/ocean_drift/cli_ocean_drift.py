@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
     # Load the configuration file and then merge itTimeseries with the command-line arguments,
     # overwriting the configuration file values with the command-line arguments.
-    config_dict = load_diagnostic_config(diagnostic='ocean3d', args=args,
+    config_dict = load_diagnostic_config(diagnostic='ocean3d',
                                          default_config='config_ocean_drift.yaml',
                                          loglevel=loglevel)
     config_dict = merge_config_args(config=config_dict, args=args, loglevel=loglevel)
