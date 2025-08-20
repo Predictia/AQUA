@@ -3,9 +3,8 @@
 '''
 AQUA ECmean4 Performance diagnostic CLI
 '''
-import sys
 import argparse
-import os
+import os, sys
 import xarray as xr
 from ecmean import __version__ as eceversion
 
@@ -100,7 +99,6 @@ def data_check(data_atm, data_oce, logger=None):
         data_atm (xarray.Dataset): atmospheric data
         data_oce (xarray.Dataset): oceanic data
     """
-
     # create a single dataset
     if data_oce is None:
         mydata = data_atm
@@ -133,7 +131,6 @@ def time_check(mydata, y1, y2, logger=None):
     Raises:
         NotEnoughDataError: if the data does not have enough time steps
     """
-
     # guessing years from the dataset
     if y1 is None:
         y1 = int(mydata.time[0].values.astype('datetime64[Y]').astype(str))
@@ -149,6 +146,24 @@ def time_check(mydata, y1, y2, logger=None):
         raise NotEnoughDataError("Not enough data, exiting...")
 
     return y1, y2
+
+def build_description(diagnostic, model, exp, year1, year2):
+    model_time = f"for {model} {exp} from {year1}-01-01 to {year2}-12-31. "
+    regions_seasons = ("ALL stands for yearly averages, DJF for boreal winter, JJA for boreal summer. Global stands for global averages, "
+                       "North Midlat for 30N-90N, Tropical for 30S-30N and South Midlat for 30S-90S.")
+
+    if diagnostic == 'performance_indices':
+        description = (f"Performance Indices normalized to the CMIP6 average "
+                       f"for different regions and seasons {model_time}"
+                       f"{regions_seasons} Numbers < 1 imply better results than CMIP6 mean.")
+    elif diagnostic == 'global_mean':
+        description = (f"Global mean biases normalized to observed interannual variability "
+                       f"with respect to references for different regions and seasons {model_time}"
+                       f"{regions_seasons}")
+    else:
+        description = f"Diagnostic {diagnostic} {model_time.strip()}"
+
+    return description
 
 
 if __name__ == '__main__':
@@ -247,7 +262,9 @@ if __name__ == '__main__':
 
             # store the data in the output saver and create the metadata
             filename_dict = {x: outputsaver.generate_path(extension=x, diagnostic_product=diagnostic) for x in ['yml', 'txt'] }
-            metadata = outputsaver.create_metadata(diagnostic_product=diagnostic)
+            description = build_description(diagnostic, model, exp, year1, year2)
+            metadata = outputsaver.create_metadata(diagnostic_product=diagnostic,
+                                                   metadata={'description': description})
             
             # performance indices
             if diagnostic == 'performance_indices':
