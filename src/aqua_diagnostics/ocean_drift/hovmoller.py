@@ -211,6 +211,7 @@ class Hovmoller(Diagnostic):
         
         if dim_mean is not None:
             self.logger.debug(f"Computing mean over dimension: {dim_mean}")
+            # self.data = self.weighted_area(self.data)
             self.data = self.data.mean(dim=dim_mean)
 
         for standardise, anomaly_ref in product([False, True], anomaly_ref):
@@ -232,7 +233,10 @@ class Hovmoller(Diagnostic):
             return (1, type)
         elif type.startswith("std"):
             return (2, type)
-
+    def weighted_area(self, data):
+        weights = xr.ufuncs.cos(xr.ufuncs.deg2rad(data.lat))
+        weighted_data = data.weighted(weights)
+        return weighted_data
 
     def save_netcdf(
         self,
