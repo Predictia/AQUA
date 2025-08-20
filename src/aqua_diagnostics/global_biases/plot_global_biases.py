@@ -10,7 +10,7 @@ from .util import handle_pressure_level
 
 class PlotGlobalBiases: 
     def __init__(self, 
-                 diagnostic='global_biases',
+                 diagnostic='globalbiases',
                  save_pdf=True, save_png=True, 
                  dpi=300, outputdir='./',
                  loglevel='WARNING'):
