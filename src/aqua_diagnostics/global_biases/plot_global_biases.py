@@ -221,10 +221,15 @@ class PlotGlobalBiases:
         season_list = ['DJF', 'MAM', 'JJA', 'SON']
         sym = vmin is None or vmax is None
 
+        title = (f"Seasonal bias of {data[var].attrs.get('long_name', var)} for {data.model} {data.exp}\n"
+                 f"relative to {data_ref.model} climatology"
+                 + (f" at {int(plev / 100)} hPa" if plev else ""))
+
         plot_kwargs = {
             'maps': [data[var].sel(season=season) - data_ref[var].sel(season=season) for season in season_list],
             'proj': get_projection(proj, **proj_params),
             'return_fig': True,
+            'title': title,
             'titles': season_list,
             'contour': True,
             'sym': sym,
