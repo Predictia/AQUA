@@ -103,12 +103,12 @@ class SeaIce(Diagnostic):
     def compute_seaice(self, method: str = 'extent', var: str = None, *args, **kwargs):
         """ Execute the seaice diagnostic based on the specified method.
         Args:
-            var (str): The variable to be used for computation.
+            var (str): The variable to be used for computation. Default is 'sithick' or 'siconc'.
             method (str): The method to compute sea ice metrics. Options are 'extent' or 'volume'.
 
         Kwargs:
             - threshold (float): The threshold value for which sea ice fraction is considered. Default is 0.15.
-            - var (str): The variable to be used for computation. Default is 'sithick' or 'siconc'.
+            - reader_kwargs (dict, optional): Additional keyword arguments to pass to the Reader.
 
         Returns:
             xr.DataArray or xr.Dataset: The computed sea ice metric. A Dataset is returned if multiple regions are requested.
@@ -151,8 +151,6 @@ class SeaIce(Diagnostic):
             get_seasonal_cycle (bool, optional):
                 If True, the output result (and standard deviation if computed) is converted into a 
                 seasonal cycle i.e. a monthly climatology. Defaults to False.
-            reader_kwargs (dict, optional):
-                Additional keyword arguments to pass to the Reader.
 
         Returns:
             xr.Dataset or Tuple[xr.Dataset, xr.Dataset]: 
@@ -233,7 +231,7 @@ class SeaIce(Diagnostic):
         stat = kwargs.get('stat', 'mean')
         freq = kwargs.get('freq', 'monthly')
 
-        super().retrieve(var=self.var)
+        super().retrieve(var=self.var, reader_kwargs=reader_kwargs)
         original_masked_data = self._mask_data_bymethod()
 
         regional_2d_results = []
