@@ -10,6 +10,7 @@ from .util import handle_pressure_level
 
 class PlotGlobalBiases: 
     def __init__(self, 
+                 diagnostic='global_biases',
                  save_pdf=True, save_png=True, 
                  dpi=300, outputdir='./',
                  loglevel='WARNING'):
@@ -17,12 +18,14 @@ class PlotGlobalBiases:
         Initialize the PlotGlobalBiases class.
 
         Args:
+            diagnostic (str): Name of the diagnostic.
             save_pdf (bool): Whether to save the figure as PDF.
             save_png (bool): Whether to save the figure as PNG.
             dpi (int): Resolution of saved figures.
             outputdir (str): Output directory for saved plots.
             loglevel (str): Logging level.
         """
+        self.diagnostic = diagnostic
         self.save_pdf = save_pdf
         self.save_png = save_png
         self.dpi = dpi
@@ -49,7 +52,7 @@ class PlotGlobalBiases:
             format (str): Format to save the figure ('png' or 'pdf').
         """
         outputsaver = OutputSaver(
-            diagnostic='globalbiases',
+            diagnostic=self.diagnostic,
             catalog=data.catalog,
             model=data.model,
             exp=data.exp,
