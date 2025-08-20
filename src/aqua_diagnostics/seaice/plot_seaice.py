@@ -487,7 +487,7 @@ class PlotSeaIce:
                                                                                              ('PDF', save_pdf)] 
                                                                                              if flag)}")
             output_saver = OutputSaver(diagnostic='PlotSeaIce', catalog=self.catalog, model=self.model, exp=self.exp,
-                                        loglevel=self.loglevel, outdir=self.outputdir)
+                                        loglevel=self.loglevel, outputdir=self.outputdir)
 
             product = f"seaice_{self.plot_type}_{self.method}_{'_'.join(region_dict.keys())}"
             if save_pdf: output_saver.save_pdf(fig=fig, diagnostic_product=product, metadata=metadata, rebuild=self.rebuild)

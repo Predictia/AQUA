@@ -509,4 +509,4 @@ class SeaIce(Diagnostic):
         """
         # Use parent method to handle saving, including metadata
         super().save_netcdf(seaice_data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                            outdir=self.outputdir, rebuild=rebuild, **kwargs)
+                            outputdir=self.outputdir, rebuild=rebuild, **kwargs)
