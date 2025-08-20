@@ -2,9 +2,9 @@
 import xarray as xr
 
 from aqua.diagnostics.core import Diagnostic
-from aqua.exceptions import NoDataError, NotEnoughDataError
+from aqua.exceptions import NoDataError
 from aqua.logger import log_configure, log_history
-from aqua.util import ConfigPath, OutputSaver, area_selection, to_list, merge_attrs
+from aqua.util import area_selection, to_list, merge_attrs
 from aqua.diagnostics.seaice.util import ensure_istype
 
 xr.set_options(keep_attrs=True)
