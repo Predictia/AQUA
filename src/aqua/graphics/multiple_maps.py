@@ -87,7 +87,7 @@ def plot_maps(maps: list,
 
     # Adjust the location of the subplots on the page to make room for the colorbar
     fig.subplots_adjust(bottom=0.25, top=0.9, left=0.05, right=0.95,
-                        wspace=0.1, hspace=0.5)
+                        wspace=0.1, hspace=0.2)
 
     # Add a colorbar axis at the bottom of the graph
     cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.03])
@@ -211,7 +211,7 @@ def plot_maps_diff(maps: list,
 
     # Adjust the location of the subplots on the page to make room for the colorbar
     fig.subplots_adjust(bottom=0.25, top=0.9, left=0.05, right=0.95,
-                        wspace=0.1, hspace=0.5)
+                        wspace=0.1, hspace=0.2)
 
     # Add a colorbar axis at the bottom of the graph
     cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.03])
