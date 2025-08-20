@@ -148,6 +148,18 @@ def time_check(mydata, y1, y2, logger=None):
     return y1, y2
 
 def build_description(diagnostic, model, exp, year1, year2):
+    """
+    Build the metadata description for figures.
+
+    Args:
+        diagnostic (str): The diagnostic type.
+        model (str): Model name.
+        exp (str): Experiment identifier.
+        year1, year2 (int): First and last year of the period covered by the data.
+    
+    Returns:
+        description (str)
+    """
     model_time = f"for {model} {exp} from {year1}-01-01 to {year2}-12-31. "
     regions_seasons = ("ALL stands for yearly averages, DJF for boreal winter, JJA for boreal summer. Global stands for global averages, "
                        "North Midlat for 30N-90N, Tropical for 30S-30N and South Midlat for 30S-90S.")
@@ -161,6 +173,7 @@ def build_description(diagnostic, model, exp, year1, year2):
                        f"with respect to references for different regions and seasons {model_time}"
                        f"{regions_seasons}")
     else:
+        # produce a generic description
         description = f"Diagnostic {diagnostic} {model_time.strip()}"
 
     return description
