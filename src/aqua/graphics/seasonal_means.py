@@ -16,22 +16,41 @@ def plot_seasonal_lat_lon_profiles(maps,
                                    title: str = None,
                                    **kwargs):
     """
-    Plot seasonal means (DJF, MAM, JJA, SON) for the lat-lon profiles.
+   Plot seasonal lat-lon profiles in a 2x2 subplot layout for the four meteorological seasons.
+
+    This function creates exactly 4 subplots arranged in a 2x2 grid, each showing lat-lon 
+    profiles for a specific season. The seasons are hardcoded and must be provided in the 
+    exact order: [DJF, MAM, JJA, SON].
 
     Args:
-        maps (list): List of xarray DataArrays or Datasets for each season.
-                        Should contain 4 elements: [DJF, MAM, JJA, SON].
-        ref_maps (list, optional): Reference maps for comparison. Defaults to None.
-        std_maps (list, optional): Standard deviation maps for each season. Defaults to None.
-        ref_std_maps (list, optional): Reference standard deviation maps. Defaults to None.
+        maps (list): List of exactly 4 elements, one for each season.
+                    Must be in order: [DJF, MAM, JJA, SON].
+                    Each element can be either:
+                    - A single xarray DataArray (for single model)
+                    - A list of xarray DataArrays (for multiple models)
+                    
+                    Examples:
+                    Single model: [djf_data, mam_data, jja_data, son_data]
+                    Multiple models: [[model1_djf, model2_djf], [model1_mam, model2_mam], ...]
+                    
+                    DJF = December-January-February (Winter)
+                    MAM = March-April-May (Spring) 
+                    JJA = June-July-August (Summer)
+                    SON = September-October-November (Autumn)
+        ref_maps (list, optional): Reference data for each season, same structure as maps.
+        std_maps (list, optional): Standard deviation data for each season, same structure as maps.
+        ref_std_maps (list, optional): Reference standard deviation data for each season.
         style (str, optional): Style configuration for the plot.
         loglevel (str): Logging level.
         data_labels (list, optional): Labels for the data series.
-        title (str, optional): Title for the plot.
+        title (str, optional): Overall title for the 2x2 subplot figure.
         **kwargs: Additional keyword arguments.
 
     Returns:
-        fig, axs: Matplotlib figure and axes objects.
+        fig, axs: Matplotlib figure and axes objects (2x2 subplot layout).
+        
+    Raises:
+        ValueError: If maps is not a list of exactly 4 elements.
     """
     logger = log_configure(loglevel, 'plot_lines')
     ConfigStyle(style=style, loglevel=loglevel)
@@ -52,8 +71,9 @@ def plot_seasonal_lat_lon_profiles(maps,
     else:
         ref_std_maps = [None]
 
-    std_maps = [clean_std(std_map) for std_map in std_maps]
-    ref_std_maps = [clean_std(ref_std_map) for ref_std_map in ref_std_maps if ref_std_map is not None] if ref_std_maps else None
+    fig, axs = plt.subplots(2, 2, figsize=(12, 8), constrained_layout=True)
+    axs = axs.flatten()
+    season_names = ["DJF", "MAM", "JJA", "SON"]
 
     # Plot the 4 seasonal subplots
     for i, ax in enumerate(axs):
