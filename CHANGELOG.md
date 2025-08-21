@@ -25,6 +25,7 @@ AQUA core complete list:
 - `apply_circular_window()` utility function to apply a circular window to cartopy maps (#2100)
 
 AQUA diagnostics complete list:
+- Gregory: refined the reference label generation (#2157)
 - Remove old seaice diagnostic scripts (#2152)
 - Timeseries: fix lazy calculation of seasonal cycles (#2143)
 - Boxplots: fix output dir (#2136) 
