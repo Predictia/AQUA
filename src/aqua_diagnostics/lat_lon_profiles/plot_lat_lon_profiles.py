@@ -1,5 +1,5 @@
 import xarray as xr
-from aqua.graphics import plot_seasonal_data
+from aqua.graphics import plot_seasonal_lat_lon_profiles
 from aqua.logger import log_configure
 from aqua.util import to_list
 from aqua.graphics import plot_lat_lon_profiles
@@ -462,7 +462,7 @@ class PlotLatLonProfiles():
                             std_maps=None, 
                             ref_std_maps=None):
         """
-        Plot seasonal means using plot_seasonal_data.
+        Plot seasonal means using plot_seasonal_lat_lon_profiles.
         Creates a 4-panel plot with DJF, MAM, JJA, SON only (no annual).
 
         Args:
@@ -481,7 +481,7 @@ class PlotLatLonProfiles():
         seasonal_ref_only = self.seasonal_annual_ref_data[:4] if self.seasonal_annual_ref_data else None
         seasonal_std_only = self.std_seasonal_annual_data[:4] if self.std_seasonal_annual_data else None
         
-        return plot_seasonal_data(
+        return plot_seasonal_lat_lon_profiles(
             maps=seasonal_data_only,
             ref_maps=seasonal_ref_only,
             std_maps=std_maps if std_maps else seasonal_std_only,

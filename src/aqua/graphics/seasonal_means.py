@@ -6,16 +6,16 @@ from aqua.util import clean_std
 from .styles import ConfigStyle
 from .lat_lon_profiles import plot_lat_lon_profiles
 
-def plot_seasonal_data(maps,
-                      ref_maps=None,
-                      std_maps=None,
-                      ref_std_maps=None,
-                      plot_type: str = 'seasonal',
-                      style: str = None,
-                      loglevel='WARNING',
-                      data_labels: list = None,
-                      title: str = None,
-                      **kwargs):
+def plot_seasonal_lat_lon_profiles(maps,
+                                   ref_maps=None,
+                                   std_maps=None,
+                                   ref_std_maps=None,
+                                   plot_type: str = 'seasonal',
+                                   style: str = None,
+                                   loglevel='WARNING',
+                                   data_labels: list = None,
+                                   title: str = None,
+                                   **kwargs):
     
     logger = log_configure(loglevel, 'plot_lines')
     ConfigStyle(style=style, loglevel=loglevel)
