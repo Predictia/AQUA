@@ -11,7 +11,7 @@ from ecmean import __version__ as eceversion
 
 from aqua import Reader
 from aqua import __version__ as aquaversion
-from aqua.util import get_arg
+from aqua.util import get_arg, strlist_to_phrase, lat_to_phrase
 from aqua.logger import log_configure
 from aqua.exceptions import NoDataError, NotEnoughDataError
 
@@ -150,7 +150,8 @@ def time_check(mydata, y1, y2, logger=None):
 
     return y1, y2
 
-def set_description(diagnostic, model, exp, year1, year2):
+
+def set_description(diagnostic, model, exp, year1, year2, config):
     """
     Build the metadata description for figures.
 
@@ -159,22 +160,49 @@ def set_description(diagnostic, model, exp, year1, year2):
         model (str): Model name.
         exp (str): Experiment identifier.
         year1, year2 (int): First and last year of the period covered by the data.
+        config (dict): configuration file.
     
     Returns:
         description (str)
     """
     model_time = f"for {model} {exp} from {year1}-01-01 to {year2}-12-31. "
-    regions_seasons = ("ALL stands for yearly averages, DJF for boreal winter, JJA for boreal summer. Global stands for global averages, "
-                       "North Midlat for 30N-90N, Tropical for 30S-30N and South Midlat for 30S-90S.")
+
+    region_bounds = {
+        'Global':       (-90.0,  90.0),
+        'NH':           ( 20.0,  90.0),
+        'SH':           (-90.0, -20.0),
+        'Equatorial':   (-20.0,  20.0),
+        'Tropical':     (-30.0,  30.0),
+        'North Midlat': ( 30.0,  90.0),
+        'South Midlat': (-90.0, -30.0),
+        'North Pole':   ( 60.0,  90.0),
+        'South Pole':   (-90.0, -60.0)
+    }
+    season_meanings = {
+        "ALL": "yearly averages",
+        "DJF": "boreal winter",
+        "MAM": "boreal spring",
+        "JJA": "boreal summer",
+        "SON": "boreal autumn" 
+    }
+    regions = config[diagnostic]["regions"]
+    seasons = config[diagnostic]["seasons"]
+
+    season_text = strlist_to_phrase([f"{s} stands for {season_meanings.get(s, 'unknown')}" for s in seasons])
+
+    region_text = strlist_to_phrase([f"{r} ({lat_to_phrase(int(lat1))}-{lat_to_phrase(int(lat2))})"
+                                       for r in regions for (lat1, lat2) in [region_bounds.get(r, (0, 0))]])
+
+    regions_seasons = f"Season {season_text}. Processed regions are {region_text}."
 
     if diagnostic == 'performance_indices':
         description = (f"Performance Indices normalized to the CMIP6 average "
                        f"for different regions and seasons {model_time}"
-                       f"{regions_seasons} Numbers < 1 imply better results than CMIP6 mean.")
+                       f"{regions_seasons}. Numbers < 1 imply better results than CMIP6 mean.")
     elif diagnostic == 'global_mean':
         description = (f"Global mean biases normalized to observed interannual variability "
                        f"with respect to references for different regions and seasons {model_time}"
-                       f"{regions_seasons}")
+                       f"{regions_seasons}.")
     else:
         # produce a generic description
         description = f"Diagnostic {diagnostic} {model_time.strip()}"
@@ -276,12 +304,13 @@ if __name__ == '__main__':
             data = data_check(data_atm, data_oce, logger=logger)
             year1, year2 = time_check(data, year1, year2, logger=logger)
 
+
             # store the data in the output saver and create the metadata
             filename_dict = {x: outputsaver.generate_path(extension=x, diagnostic_product=diagnostic) for x in ['yml', 'txt'] }
-            description = set_description(diagnostic, model, exp, year1, year2)
+            description = set_description(diagnostic, model, exp, year1, year2, config)
             metadata = outputsaver.create_metadata(diagnostic_product=diagnostic,
                                                    metadata={'Description': description})
-            
+
             # performance indices
             if diagnostic == 'performance_indices':
                 logger.info('Launching ECmean performance indices...')
@@ -314,4 +343,4 @@ if __name__ == '__main__':
                 outputsaver.save_png(fig=ecmean_fig, diagnostic_product=diagnostic,
                                      metadata=metadata, rebuild=rebuild)
 
-            logger.info('AQUA ECmean4 diagnostic completed.')
+            logger.info('ECmean4 diagnostic completed.')

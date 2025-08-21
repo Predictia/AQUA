@@ -13,7 +13,7 @@ from .realizations import format_realization
 from .sci_util import area_selection, check_coordinates, select_season, merge_attrs
 from .util import generate_random_string, get_arg, create_folder, to_list
 from .util import file_is_complete, find_vert_coord
-from .util import files_exist, strlist_to_phrase
+from .util import files_exist, strlist_to_phrase, lat_to_phrase
 from .util import extract_literal_and_numeric, extract_attrs, add_pdf_metadata, add_png_metadata
 from .util import open_image, username, update_metadata
 from .yaml import load_yaml, dump_yaml, load_multi_yaml
@@ -42,4 +42,4 @@ __all__ = ['ConfigPath',
            'check_chunk_completeness', 'frequency_string_to_pandas',
            'time_to_string',
            'create_zarr_reference',
-           'int_month_name', 'strlist_to_phrase', 'merge_attrs']
+           'int_month_name', 'strlist_to_phrase', 'lat_to_phrase', 'merge_attrs']
