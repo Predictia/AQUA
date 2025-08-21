@@ -364,19 +364,19 @@ class PlotSeaIce:
                                                                                self.region_str, self.model_labels_str,
                                                                                self.ref_label_str, self.std_label_str)
 
-    def regions_type_plotter(self, region_dict, **kwargs):
+    def regions_type_plotter(self, region_dict, style, **kwargs):
         """
         Loops over each region in region_dict and plots data either as a timeseries or a seasonal cycle
         depending on plot_type attribute.
         
         Args:
             region_dict (dict): Dictionary of regions and their associated data.
+            style (str): Graphic style of the plot.
             **kwargs (dict): Additional keyword arguments passed on to the underlying plotting function.
         
         Returns:
             (fig, axes) : tuple. The figure and axes objects.
         """
-        style=kwargs.get("style", None)
         ConfigStyle(style=style, loglevel=self.loglevel)
         
         self.num_regions = len(region_dict)
@@ -442,7 +442,7 @@ class PlotSeaIce:
 
         return fig, axes
 
-    def plot_seaice(self, plot_type='timeseries', save_pdf=True, save_png=True, **kwargs):
+    def plot_seaice(self, plot_type='timeseries', save_pdf=True, save_png=True, style=None, **kwargs):
         """
         Plot sea ice data for each region, either as timeseries or seasonal cycle.
         
@@ -451,8 +451,8 @@ class PlotSeaIce:
                 `'timeseries'` or `'seasonal_cycle'`. Defaults to `'timeseries'`.
             save_pdf (bool, optional): Whether to save the figure as a PDF. Defaults to True.
             save_png (bool, optional): Whether to save the figure as a PNG. Defaults to True.
+            style (str, optional): Override the plotting style. Default to None (which will get the style from config file or fallback to'aqua').
             **kwargs: Additional keyword arguments passed to the region-specific plotting function.
-                style (str): Override the plotting style. Default to None (which will get the style from config file or fallback to'aqua').
         """
         self.plot_type = plot_type
 
@@ -471,7 +471,7 @@ class PlotSeaIce:
             self.logger.info(f"Processing method: {self.method}")
 
             # plot per-region using loop on the same fig
-            fig, axes = self.regions_type_plotter(region_dict, **kwargs)
+            fig, axes = self.regions_type_plotter(region_dict, style, **kwargs)
             
             plt.tight_layout()
             self.logger.info(f"Plotting of all regions for method '{self.method}' completed")
