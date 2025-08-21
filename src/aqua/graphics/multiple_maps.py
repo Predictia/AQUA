@@ -17,7 +17,8 @@ def plot_maps(maps: list,
               proj: ccrs.Projection = ccrs.Robinson(), extent: list = None,
               style=None, figsize: tuple = None,
               vmin: float = None, vmax: float = None, nlevels: int = 11,
-              title: str = None, titles: list = None, cmap='RdBu_r', cbar_label: str = None,
+              title: str = None, titles: list = None, titles_size: int = None, 
+              cmap='RdBu_r', cbar_label: str = None,
               transform_first=False, cyclic_lon=True,
               return_fig=False, loglevel='WARNING', **kwargs):
     """
@@ -39,6 +40,7 @@ def plot_maps(maps: list,
         nlevels (int,opt):    number of levels for the colorbar, default is 11
         title (str,opt):      super title for the figure
         titles (list,opt):    list of titles for the maps
+        titles_size (int,opt): size of the titles, default is None
         cmap (str,opt):       colormap, default is 'RdBu_r'
         cbar_label (str,opt): colorbar label
         transform_first (bool, optional): If True, transform the data before plotting. Defaults to False.
@@ -80,6 +82,7 @@ def plot_maps(maps: list,
                                   proj=proj, extent=extent,
                                   vmin=vmin, vmax=vmax, nlevels=nlevels,
                                   title=titles[i] if titles is not None else None,
+                                  title_size=titles_size,
                                   cmap=cmap, cbar=False,
                                   transform_first=transform_first, return_fig=True,
                                   cyclic_lon=cyclic_lon, fig=fig, loglevel=loglevel,
@@ -128,6 +131,7 @@ def plot_maps_diff(maps: list,
                    vmin_fill: float = None, vmax_fill: float = None,
                    vmin_contour: float = None, vmax_contour: float = None,
                    nlevels: int = 11, title: str = None, titles: list = None,
+                   titles_size: int = None,
                    cmap='RdBu_r', cbar_label: str = None,
                    transform_first=False, cyclic_lon=True,
                    return_fig=False, loglevel='WARNING', **kwargs):
@@ -153,6 +157,7 @@ def plot_maps_diff(maps: list,
         nlevels (int,opt):    number of levels for the colorbar, default is 11
         title (str,opt):      super title for the figure
         titles (list,opt):    list of titles for the maps
+        titles_size (int,opt): size of the titles, default is None
         cmap (str,opt):       colormap, default is 'RdBu_r'
         cbar_label (str,opt): colorbar label
         transform_first (bool, optional): If True, transform the data before plotting. Defaults to False.
@@ -203,6 +208,7 @@ def plot_maps_diff(maps: list,
                                        proj=proj, extent=extent, style=style,
                                        vmin_fill=vmin_fill, vmax_fill=vmax_fill, nlevels=nlevels,
                                        title=titles[i] if titles is not None else None,
+                                       title_size=titles_size,
                                        cmap=cmap, cbar=False,
                                        sym=False, sym_contour=False,
                                        transform_first=transform_first, return_fig=True,
