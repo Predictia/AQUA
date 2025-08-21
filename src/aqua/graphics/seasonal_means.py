@@ -10,13 +10,29 @@ def plot_seasonal_lat_lon_profiles(maps,
                                    ref_maps=None,
                                    std_maps=None,
                                    ref_std_maps=None,
-                                   plot_type: str = 'seasonal',
                                    style: str = None,
                                    loglevel='WARNING',
                                    data_labels: list = None,
                                    title: str = None,
                                    **kwargs):
-    
+    """
+    Plot seasonal means (DJF, MAM, JJA, SON) for the lat-lon profiles.
+
+    Args:
+        maps (list): List of xarray DataArrays or Datasets for each season.
+                        Should contain 4 elements: [DJF, MAM, JJA, SON].
+        ref_maps (list, optional): Reference maps for comparison. Defaults to None.
+        std_maps (list, optional): Standard deviation maps for each season. Defaults to None.
+        ref_std_maps (list, optional): Reference standard deviation maps. Defaults to None.
+        style (str, optional): Style configuration for the plot.
+        loglevel (str): Logging level.
+        data_labels (list, optional): Labels for the data series.
+        title (str, optional): Title for the plot.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        fig, axs: Matplotlib figure and axes objects.
+    """
     logger = log_configure(loglevel, 'plot_lines')
     ConfigStyle(style=style, loglevel=loglevel)
     
@@ -38,14 +54,6 @@ def plot_seasonal_lat_lon_profiles(maps,
 
     std_maps = [clean_std(std_map) for std_map in std_maps]
     ref_std_maps = [clean_std(ref_std_map) for ref_std_map in ref_std_maps if ref_std_map is not None] if ref_std_maps else None
-
-    # Create the seasonal plot layout (only 4 subplots)
-    if plot_type == 'seasonal':
-        fig, axs = plt.subplots(2, 2, figsize=(12, 8), constrained_layout=True)
-        axs = axs.flatten()  # Make it easier to iterate
-        season_names = ["DJF", "MAM", "JJA", "SON"]
-    else:
-        raise NotImplementedError("only 'seasonal' plot type is implemented.")
 
     # Plot the 4 seasonal subplots
     for i, ax in enumerate(axs):
