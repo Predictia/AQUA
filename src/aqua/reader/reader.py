@@ -996,12 +996,15 @@ class Reader():
                 - If freq='seasonal': list of seasonal means [DJF, MAM, JJA, SON]
                 - If freq='annual' or other values: single dataset with computed mean
         """
-        
-        # Handle special cases for seasonal and annual means using TimStat
         if freq == 'seasonal':
-            return self.timemodule.compute_seasonal_means(data)
+            # Use Q-NOV for meteorological seasons and convert to list for backward compatibility
+            seasonal_data = self.timstat(data, stat='mean', freq='Q-NOV', **kwargs)
+            # Convert to list for backward compatibility with existing plotting code
+            return [seasonal_data.isel(time=i) for i in range(4)]
         elif freq == 'annual':
-            return self.timemodule.compute_annual_mean(data)
+            # For annual, compute climatological mean over entire time period
+            # This gives us a single mean value without time dimension
+            return self.timstat(data, stat='mean', freq=None, **kwargs)
         else:
             # Use the standard timstat method for other frequencies
             return self.timstat(data, stat='mean', freq=freq, **kwargs)
