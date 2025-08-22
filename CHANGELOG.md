@@ -6,12 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 ## [Unreleased]
 
 Unreleased in the current development version (target v0.18.0):
+Removed:
+-  removed old OutputSaver (#2146) 
 
 Workflow modifications:
 - `aqua-analysis.py` is now an entry point `aqua analysis` in the AQUA console, with the same syntax as before.
 
 AQUA core complete list:
-
+- Fix fldstat coordinate treatment (#2147)
+- Fixer applied when units name changes is required and no factor is found (#2128)
 - Update aqua-analysis config for refactored diagnostics (#2144)
 - Fixed incompatible coordinate transformatiosn (#2137)
 - Added Nord4 support in the `load-aqua-container.sh` script (#2130)
@@ -23,6 +26,8 @@ AQUA core complete list:
 
 AQUA diagnostics complete list:
 - Boxplots: add support for reader_kwargs (#2149)
+- Gregory: refined the reference label generation (#2157)
+- Remove old seaice diagnostic scripts (#2152)
 - Timeseries: fix lazy calculation of seasonal cycles (#2143)
 - Boxplots: fix output dir (#2136) 
 - Boxplots: add tests and update docs (#2129)

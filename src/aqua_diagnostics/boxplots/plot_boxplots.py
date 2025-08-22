@@ -63,7 +63,7 @@ class PlotBoxplots:
             exp=exp,
             model_ref=model_ref,
             exp_ref=exp_ref,
-            outdir=self.outputdir,
+            outputdir=self.outputdir,
             loglevel=self.loglevel
         )
 
