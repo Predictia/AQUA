@@ -11,12 +11,12 @@ from ecmean import __version__ as eceversion
 
 from aqua import Reader
 from aqua import __version__ as aquaversion
-from aqua.util import get_arg, strlist_to_phrase, lat_to_phrase
+from aqua.util import get_arg
 from aqua.logger import log_configure
 from aqua.exceptions import NoDataError, NotEnoughDataError
 
 from aqua.diagnostics import PerformanceIndices, GlobalMean
-from aqua.diagnostics.core import template_parse_arguments
+from aqua.diagnostics.core import template_parse_arguments, strlist_to_phrase, lat_to_phrase
 from aqua.diagnostics.core import load_diagnostic_config, merge_config_args, get_diagnostic_configpath
 from aqua.diagnostics.core import OutputSaver
 
@@ -178,31 +178,19 @@ def set_description(diagnostic, model, exp, year1, year2, config):
         'North Pole':   ( 60.0,  90.0),
         'South Pole':   (-90.0, -60.0)
     }
-    season_meanings = {
-        "ALL": "yearly averages",
-        "DJF": "boreal winter",
-        "MAM": "boreal spring",
-        "JJA": "boreal summer",
-        "SON": "boreal autumn" 
-    }
-    regions = config[diagnostic]["regions"]
-    seasons = config[diagnostic]["seasons"]
-
-    season_text = strlist_to_phrase([f"{s} stands for {season_meanings.get(s, 'unknown')}" for s in seasons])
-
     region_text = strlist_to_phrase([f"{r} ({lat_to_phrase(int(lat1))}-{lat_to_phrase(int(lat2))})"
-                                       for r in regions for (lat1, lat2) in [region_bounds.get(r, (0, 0))]])
+                                       for r in config[diagnostic]["regions"] for (lat1, lat2) in [region_bounds.get(r, (0, 0))]])
 
-    regions_seasons = f"Season {season_text}. Processed regions are {region_text}."
+    regions_phrase = f"Processed regions are {region_text}."
 
     if diagnostic == 'performance_indices':
         description = (f"Performance Indices normalized to the CMIP6 average "
                        f"for different regions and seasons {model_time}"
-                       f"{regions_seasons}. Numbers < 1 imply better results than CMIP6 mean.")
+                       f"{regions_phrase}. Numbers < 1 imply better results than CMIP6 mean.")
     elif diagnostic == 'global_mean':
         description = (f"Global mean biases normalized to observed interannual variability "
                        f"with respect to references for different regions and seasons {model_time}"
-                       f"{regions_seasons}.")
+                       f"{regions_phrase}.")
     else:
         # produce a generic description
         description = f"Diagnostic {diagnostic} {model_time.strip()}"
