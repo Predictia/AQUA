@@ -89,7 +89,7 @@ def plot_maps(maps: list,
                                   ax_pos=(nrows, ncols, i+1), **kwargs)
 
     # Adjust the location of the subplots on the page to make room for the colorbar
-    fig.subplots_adjust(bottom=0.25, top=0.9, left=0.05, right=0.95,
+    fig.subplots_adjust(bottom=0.25, top=0.87, left=0.05, right=0.95,
                         wspace=0.1, hspace=0.2)
 
     # Add a colorbar axis at the bottom of the graph
