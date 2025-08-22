@@ -115,7 +115,7 @@ class Boxplots(Diagnostic):
                 data=self.fldmeans,
                 diagnostic='boxplots',
                 diagnostic_product='boxplot',
-                outdir=self.outputdir,
+                outputdir=self.outputdir,
                 extra_keys=extra_keys
                 )
             self.logger.info(f"Field means saved to {self.outputdir}.")

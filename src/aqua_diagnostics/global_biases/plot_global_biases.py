@@ -55,7 +55,7 @@ class PlotGlobalBiases:
             exp=data.exp,
             model_ref=data_ref.model if data_ref else None,
             exp_ref=data_ref.exp if data_ref else None,
-            outdir=self.outputdir,
+            outputdir=self.outputdir,
             loglevel=self.loglevel
         )
 
