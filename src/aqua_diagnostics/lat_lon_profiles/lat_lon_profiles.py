@@ -128,7 +128,7 @@ class LatLonProfiles(Diagnostic):
 
 		# Customization of the data, expecially needed for formula
 		if units is not None:
-			self._check_data(var, units)
+			self.data = self._check_data(data=self.data, var=var, units=units)
 		if long_name is not None:
 			self.data.attrs['long_name'] = long_name
 		# We use the standard_name as the name of the variable
@@ -409,8 +409,9 @@ class LatLonProfiles(Diagnostic):
 				self.mean_type = mean_type
 			self.logger.info('Mean type set to %s', self.mean_type)
 			
-			# Check if data is valid
-			self._check_data(var=var, units=units)
+            # Check if data is valid
+			if units is not None:
+				self.data = self._check_data(data=self.data, var=var, units=units)
 			
 			# Compute temporal means (seasonal/annual)
 			self.logger.info('Computing temporal means')
