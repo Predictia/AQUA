@@ -231,7 +231,7 @@ class PlotGlobalBiases:
             'return_fig': True,
             'title': title,
             'titles': season_list,
-            'titles_size': 18,
+            'titles_size': 16,
             'figsize':(10, 8),
             'contour': True,
             'sym': sym,
