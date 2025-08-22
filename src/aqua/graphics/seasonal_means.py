@@ -97,7 +97,7 @@ def plot_seasonal_lat_lon_profiles(maps,
                         label = f"{model} {exp}".strip()
                     model_labels.append(label)
                 
-                plot_lat_lon_profiles(data=season_data,
+                _, _ = plot_lat_lon_profiles(data=season_data,
                                     ref_data=ref_data,
                                     std_data=std_data,
                                     ref_std_data=ref_std_data,
@@ -109,7 +109,7 @@ def plot_seasonal_lat_lon_profiles(maps,
                 # Single model data
                 model_label = data_labels[0] if data_labels and len(data_labels) > 0 else f"{season_data.attrs.get('AQUA_model', 'Model')} {season_data.attrs.get('AQUA_exp', 'Exp')}"
                 
-                plot_lat_lon_profiles(data=[season_data],
+                _, _ = plot_lat_lon_profiles(data=[season_data],
                                     ref_data=ref_data,
                                     std_data=std_data,
                                     ref_std_data=ref_std_data,
@@ -119,7 +119,7 @@ def plot_seasonal_lat_lon_profiles(maps,
                                     loglevel=loglevel)
         else:
             # No reference data, just plot model data
-            plot_lat_lon_profiles(data=season_data,
+            _, _ = plot_lat_lon_profiles(data=season_data,
                                 std_data=std_data,
                                 ref_std_data=ref_std_data,
                                 data_labels=data_labels,
