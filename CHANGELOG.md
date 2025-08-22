@@ -13,6 +13,7 @@ Workflow modifications:
 - `aqua-analysis.py` is now an entry point `aqua analysis` in the AQUA console, with the same syntax as before.
 
 AQUA core complete list:
+- Few graphical adjustments in multiple_maps (#2159)
 - Fix fldstat coordinate treatment (#2147)
 - Fixer applied when units name changes is required and no factor is found (#2128)
 - Update aqua-analysis config for refactored diagnostics (#2144)
@@ -25,6 +26,7 @@ AQUA core complete list:
 - `apply_circular_window()` utility function to apply a circular window to cartopy maps (#2100)
 
 AQUA diagnostics complete list:
+- Global Biases: add the `diagnostic_name` option in config file (#2159)
 - Remove old seaice diagnostic scripts (#2152)
 - Timeseries: fix lazy calculation of seasonal cycles (#2143)
 - Boxplots: fix output dir (#2136) 
