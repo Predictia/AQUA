@@ -224,23 +224,36 @@ class PlotLatLonProfiles():
         if not self.data or len(self.data) == 0:
             raise ValueError("No data available for plotting")
         
-        # Log data information for debugging
-        self.logger.debug(f"Data to plot: {len(self.data)} arrays")
+        # Clean data by removing any remaining time dimension if it has only one timestep
+        cleaned_data = []
         for i, d in enumerate(self.data):
             if d is not None:
-                self.logger.debug(f"  Data {i}: shape={d.shape}, dims={d.dims}")
+                # If data has a time dimension with only one timestep, remove it
+                if 'time' in d.dims and d.sizes.get('time', 0) == 1:
+                    d_cleaned = d.isel(time=0, drop=True)
+                    self.logger.debug(f"Removed single time dimension from data {i}")
+                else:
+                    d_cleaned = d
+                cleaned_data.append(d_cleaned)
+                self.logger.debug(f"Data {i}: shape={d_cleaned.shape}, dims={d_cleaned.dims}")
             else:
-                self.logger.debug(f"  Data {i}: None")
+                cleaned_data.append(None)
+                self.logger.debug(f"Data {i}: None")
         
+        # Clean reference data in the same way
+        cleaned_ref_data = self.ref_data
         if self.ref_data is not None:
-            self.logger.debug(f"Ref data: shape={self.ref_data.shape}, dims={self.ref_data.dims}")
+            if 'time' in self.ref_data.dims and self.ref_data.sizes.get('time', 0) == 1:
+                cleaned_ref_data = self.ref_data.isel(time=0, drop=True)
+                self.logger.debug("Removed single time dimension from reference data")
+            self.logger.debug(f"Ref data: shape={cleaned_ref_data.shape}, dims={cleaned_ref_data.dims}")
         else:
             self.logger.debug("Ref data: None")
         
-        # Call the graphics function with reference data
+        # Call the graphics function with cleaned data
         return plot_lat_lon_profiles(
-            data=self.data,
-            ref_data=self.ref_data,
+            data=cleaned_data,
+            ref_data=cleaned_ref_data,
             std_data=self.std_data,
             ref_std_data=self.ref_std_data,
             data_labels=data_labels,
