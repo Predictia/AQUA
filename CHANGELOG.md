@@ -22,6 +22,7 @@ AQUA core complete list:
 - `apply_circular_window()` utility function to apply a circular window to cartopy maps (#2100)
 
 AQUA diagnostics complete list:
+- Boxplots: add support for reader_kwargs (#2149)
 - Timeseries: fix lazy calculation of seasonal cycles (#2143)
 - Boxplots: fix output dir (#2136) 
 - Boxplots: add tests and update docs (#2129)
