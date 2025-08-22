@@ -27,6 +27,7 @@ AQUA core complete list:
 
 AQUA diagnostics complete list:
 - Global Biases: add the `diagnostic_name` option in config file (#2159)
+- Gregory: refined the reference label generation (#2157)
 - Remove old seaice diagnostic scripts (#2152)
 - Timeseries: fix lazy calculation of seasonal cycles (#2143)
 - Boxplots: fix output dir (#2136) 
