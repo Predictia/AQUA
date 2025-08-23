@@ -13,41 +13,52 @@ class PlotLatLonProfiles():
     temporal frequency, as temporal averaging is handled upstream.
     """
     def __init__(self, data=None, ref_data=None,
-                seasonal_annual_data=None,
-                seasonal_annual_ref_data=None,
-                std_data=None,
-                ref_std_data=None,
-                std_seasonal_annual_data=None, 
-                loglevel: str = 'WARNING'):
+                 data_type='standard',
+                 std_data=None,
+                 ref_std_data=None,
+                 loglevel: str = 'WARNING'):
         """
         Initialise the PlotLatLonProfiles class.
         This class is used to plot lat lon profiles data previously processed
         by the LatLonProfiles class.
 
         Args:
-            data (list): List of data arrays (any temporal frequency).
-            ref_data (xr.DataArray): Reference data array.
-            seasonal_annual_data (list): List of seasonal and annual means [DJF, MAM, JJA, SON, Annual].
-            seasonal_annual_ref_data (list): Reference seasonal and annual data.
-            std_data (xr.DataArray): Standard deviation data array.
+            data: Can be either:
+                - List of temporally-averaged data arrays for standard plots
+                - List of seasonal data [DJF, MAM, JJA, SON] for seasonal plots
+            ref_data: Reference data (structure matches data based on data_type)
+            data_type (str): 'standard' for single/multi-line plots, 'seasonal' for 4-panel seasonal plots
+            std_data: Standard deviation data (structure matches data based on data_type)
+            ref_std_data: Reference standard deviation data
             loglevel (str): Logging level. Default is 'WARNING'.
+            
+        Note:
+            data_type determines how 'data' is interpreted:
+            - 'standard': data should be list of DataArrays for single plot
+            - 'seasonal': data should be [DJF, MAM, JJA, SON] for 4-panel seasonal plots
         """
         self.loglevel = loglevel
         self.logger = log_configure(loglevel, 'PlotLatLonProfiles')
 
-        # Store the simplified data structure
-        self.data = to_list(data) if data is not None else []
-        self.ref_data = ref_data
-        self.seasonal_annual_data = seasonal_annual_data  
-        self.seasonal_annual_ref_data = seasonal_annual_ref_data 
+        self.data_type = data_type
+
+        # Store data based on type
+        if data_type == 'standard':
+            self.data = to_list(data) if data is not None else []
+            self.ref_data = ref_data
+
+        elif data_type == 'seasonal':
+            self.data = data if data is not None else []  # Store seasonal data directly in unified interface
+            self.ref_data = ref_data  # Store seasonal ref data directly
+        else:
+            raise ValueError(f"data_type must be 'standard' or 'seasonal', got '{data_type}'")
+        
         self.std_data = std_data
         self.ref_std_data = ref_std_data
-        self.std_seasonal_annual_data = std_seasonal_annual_data
-
+        
         self.len_data, self.len_ref = self._check_data_length()
         self.get_data_info()
 
-    # [Copia qui tutti i metodi da PlotBaseMixin:]
     def set_data_labels(self):
         """
         Set the data labels for the plot.
@@ -89,17 +100,17 @@ class PlotLatLonProfiles():
     
     def set_seasonal_data_labels(self):
         """
-        Set the data labels for seasonal plots that may include reference data.
-        This method handles the case where seasonal_annual_data contains both model and reference data.
+        Set the data labels for seasonal plots.
+        This method works with the unified data interface.
 
         Returns:
             data_labels (list): List of data labels for the seasonal plot.
         """
         data_labels = []
         
-        if self.seasonal_annual_data and len(self.seasonal_annual_data) > 0:
+        if self.data_type == 'seasonal' and self.data and len(self.data) > 0:
             # Check the first season to understand the data structure
-            first_season = self.seasonal_annual_data[0]
+            first_season = self.data[0]
             
             if isinstance(first_season, list) and len(first_season) >= 1:
                 # Extract labels from the first DataArray of the first season
@@ -118,20 +129,14 @@ class PlotLatLonProfiles():
                         data_labels.append(ref_label)
                     else:
                         data_labels.append('Reference Data')
-                
-                # If there are more than 2 DataArrays, add labels for them
-                for i in range(2, len(first_season)):
-                    extra_data = first_season[i]
-                    if hasattr(extra_data, 'AQUA_model') and hasattr(extra_data, 'AQUA_exp'):
-                        extra_label = f'{extra_data.AQUA_model} {extra_data.AQUA_exp}'
-                        data_labels.append(extra_label)
-                    else:
-                        data_labels.append(f'Data {i+1}')
             else:
-                # Fallback
-                data_labels = ['Unknown Data']
+                # Simple case: single DataArray per season
+                if hasattr(first_season, 'AQUA_model') and hasattr(first_season, 'AQUA_exp'):
+                    data_labels.append(f'{first_season.AQUA_model} {first_season.AQUA_exp}')
+                else:
+                    data_labels.append('Unknown Data')
         else:
-            # No seasonal data, fall back to regular method
+            # Fallback to standard data labels
             data_labels = self.set_data_labels()
         
         self.logger.debug('Seasonal data labels: %s', data_labels)
@@ -139,58 +144,66 @@ class PlotLatLonProfiles():
     
     def get_data_info(self):
         """
-        We extract the data needed for labels, description etc
-        from the data arrays attributes.
-
-        The attributes are:
-        - AQUA_catalog
-        - AQUA_model
-        - AQUA_exp
-        - std_startdate
-        - std_enddate
+        Extract metadata from data arrays based on data_type.
         """
-        # Check main data first
         if self.data and len(self.data) > 0:
-            if len(self.data) == 1:
-                if hasattr(self.data[0], 'AQUA_catalog'):
-                    self.catalogs = [self.data[0].AQUA_catalog]
-                    self.models = [self.data[0].AQUA_model]
-                    self.exps = [self.data[0].AQUA_exp]
+            if self.data_type == 'standard':
+                # Standard mode: extract from self.data
+                if len(self.data) == 1:
+                    if hasattr(self.data[0], 'AQUA_catalog'):
+                        self.catalogs = [self.data[0].AQUA_catalog]
+                        self.models = [self.data[0].AQUA_model] 
+                        self.exps = [self.data[0].AQUA_exp]
+                        self.logger.debug(f'Data item metadata extracted: {self.models[0]} {self.exps[0]}')
+                    else:
+                        self.catalogs = []
+                        self.models = []
+                        self.exps = []
+                        self.logger.warning('Data item has no metadata attributes')
+                else:
+                    self.catalogs = [d.AQUA_catalog for d in self.data]
+                    self.models = [d.AQUA_model for d in self.data]
+                    self.exps = [d.AQUA_exp for d in self.data]
+                    self.logger.debug(f'Multiple data items metadata extracted: {len(self.data)} items')
+                    
+            elif self.data_type == 'seasonal':
+                # Seasonal mode: extract from first season in self.data
+                if len(self.data) > 0:
+                    first_season = self.data[0]
+                    
+                    if isinstance(first_season, list) and len(first_season) > 0:
+                        # Multi-variable case: each season contains a list of DataArrays
+                        first_data = first_season[0]
+                        if hasattr(first_data, 'AQUA_catalog'):
+                            self.catalogs = [first_data.AQUA_catalog]
+                            self.models = [first_data.AQUA_model]
+                            self.exps = [first_data.AQUA_exp]
+                            self.logger.debug(f'Seasonal data metadata extracted from first season: {self.models[0]} {self.exps[0]}')
+                        else:
+                            self.catalogs = []
+                            self.models = []
+                            self.exps = []
+                            self.logger.warning('Seasonal data (first season, first item) has no metadata attributes')
+                    else:
+                        # Simple case: each season is a single DataArray (most common)
+                        if hasattr(first_season, 'AQUA_catalog'):
+                            self.catalogs = [first_season.AQUA_catalog]
+                            self.models = [first_season.AQUA_model]
+                            self.exps = [first_season.AQUA_exp]
+                            self.logger.debug(f'Seasonal data metadata extracted: {self.models[0]} {self.exps[0]}')
+                        else:
+                            self.catalogs = []
+                            self.models = []
+                            self.exps = []
+                            self.logger.warning('Seasonal data (first season) has no metadata attributes')
                 else:
                     self.catalogs = []
                     self.models = []
                     self.exps = []
-            else:
-                self.catalogs = [d.AQUA_catalog for d in self.data]
-                self.models = [d.AQUA_model for d in self.data]
-                self.exps = [d.AQUA_exp for d in self.data]
-        elif self.seasonal_annual_data is not None and len(self.seasonal_annual_data) > 0:
-            # If no main data, check seasonal_annual_data
-            first_item = self.seasonal_annual_data[0]
-            
-            if isinstance(first_item, list):
-                # Multi-variable case: [[DJF_data1, DJF_data2, ...], [MAM_data1, ...], ...]
-                if len(first_item) > 0 and hasattr(first_item[0], 'AQUA_catalog'):
-                    self.catalogs = [first_item[0].AQUA_catalog]
-                    self.models = [first_item[0].AQUA_model]
-                    self.exps = [first_item[0].AQUA_exp]
-                else:
-                    self.catalogs = []
-                    self.models = []
-                    self.exps = []
-            else:
-                # Simple case: [DJF_data, MAM_data, JJA_data, SON_data, Annual_data]
-                if hasattr(first_item, 'AQUA_catalog'):
-                    self.catalogs = [first_item.AQUA_catalog]
-                    self.models = [first_item.AQUA_model]
-                    self.exps = [first_item.AQUA_exp]
-                else:
-                    self.catalogs = []
-                    self.models = []
-                    self.exps = []
+                    self.logger.warning('No seasonal data available')
         else:
-            # Fallback if no data is available
-            self.logger.warning('No data available for metadata extraction, using empty lists')
+            # Fallback
+            self.logger.warning('No data available for metadata extraction')
             self.catalogs = []
             self.models = []
             self.exps = []
@@ -347,14 +360,20 @@ class PlotLatLonProfiles():
 
     def _check_data_length(self):
         """
-        Check the length of the data arrays and reference data.
+        Check the length of the data arrays and reference data based on data_type.
         Returns:
             tuple: (length of data arrays, length of reference data)
         """
         len_data = len(self.data) if self.data else 0
-        len_ref = 1 if self.ref_data is not None else 0
         
-        self.logger.debug(f'Data length: {len_data}, Reference length: {len_ref}')
+        if self.data_type == 'standard':
+            len_ref = 1 if self.ref_data is not None else 0
+        elif self.data_type == 'seasonal':
+            len_ref = len(self.ref_data) if self.ref_data else 0
+        else:
+            len_ref = 0
+        
+        self.logger.debug(f'Data type: {self.data_type}, Data length: {len_data}, Reference length: {len_ref}')
         return len_data, len_ref
 
     def set_title(self, region: str = None, var: str = None, units: str = None):
@@ -395,10 +414,18 @@ class PlotLatLonProfiles():
         if region is not None:
             description += f'for region {region} '
 
-        for i in range(self.len_data):
+        # Check if we have enough metadata for all data items
+        num_items = min(len(self.catalogs), len(self.models), len(self.exps)) if hasattr(self, 'catalogs') else 0
+        
+        for i in range(min(self.len_data, num_items)):
             description += f'for {self.catalogs[i]} {self.models[i]} {self.exps[i]} '
+        
+        # If we don't have enough metadata, add a generic description
+        if num_items < self.len_data:
+            remaining = self.len_data - num_items
+            description += f'and {remaining} additional dataset(s) '
 
-        if self.std_startdate is not None and self.std_enddate is not None:
+        if hasattr(self, 'std_startdate') and self.std_startdate is not None and hasattr(self, 'std_enddate') and self.std_enddate is not None:
             description += f'with standard deviation from {self.std_startdate} to {self.std_enddate} '
 
         self.logger.debug('Description: %s', description)
@@ -482,23 +509,41 @@ class PlotLatLonProfiles():
             data_labels (list): List of data labels.
             title (str): Title of the plot.
             style (str): Plotting style.
+            std_maps (list): Standard deviation data for each season.
+            ref_std_maps (list): Reference standard deviation data for each season.
 
         Returns:
             fig (matplotlib.figure.Figure): Figure object.
             axs (list): List of axes objects.
         """
-        if not self.seasonal_annual_data or len(self.seasonal_annual_data) < 4:
-            raise ValueError("seasonal_annual_data must contain at least 4 elements: [DJF, MAM, JJA, SON]")
+        if self.data_type != 'seasonal':
+            raise ValueError("plot_seasonal_lines() can only be used with data_type='seasonal'")
         
-        seasonal_data_only = self.seasonal_annual_data[:4]
-        seasonal_ref_only = self.seasonal_annual_ref_data[:4] if self.seasonal_annual_ref_data else None
-        seasonal_std_only = self.std_seasonal_annual_data[:4] if self.std_seasonal_annual_data else None
+        if not self.data or len(self.data) < 4:
+            raise ValueError("Seasonal data must contain at least 4 elements: [DJF, MAM, JJA, SON]")
+        
+        # Use first 4 seasons only (DJF, MAM, JJA, SON)
+        seasonal_data_only = self.data[:4]
+        seasonal_ref_only = self.ref_data[:4] if self.ref_data and len(self.ref_data) >= 4 else None
+        
+        # Handle std data - use first 4 seasons if available
+        seasonal_std_only = None
+        if std_maps:
+            seasonal_std_only = std_maps[:4] if len(std_maps) >= 4 else std_maps
+        elif hasattr(self, 'std_seasonal_annual_data') and self.std_seasonal_annual_data:
+            seasonal_std_only = self.std_seasonal_annual_data[:4]
+        
+        seasonal_ref_std_only = None
+        if ref_std_maps:
+            seasonal_ref_std_only = ref_std_maps[:4] if len(ref_std_maps) >= 4 else ref_std_maps
+        
+        self.logger.debug(f'Plotting {len(seasonal_data_only)} seasons')
         
         return plot_seasonal_lat_lon_profiles(
             maps=seasonal_data_only,
             ref_maps=seasonal_ref_only,
-            std_maps=std_maps if std_maps else seasonal_std_only,
-            ref_std_maps=ref_std_maps,
+            std_maps=seasonal_std_only,
+            ref_std_maps=seasonal_ref_std_only,
             data_labels=data_labels,
             title=title,
             style=style,
@@ -517,12 +562,15 @@ class PlotLatLonProfiles():
         Returns:
             tuple: Matplotlib figure and axes objects.
         """
-        if not self.seasonal_annual_data or len(self.seasonal_annual_data) < 5:
-            raise ValueError("seasonal_annual_data must contain at least 5 elements to access annual data")
+        if self.data_type != 'seasonal':
+            raise ValueError("plot_annual_mean() can only be used with seasonal data containing annual means")
         
-        # Get annual data (index 4)
-        annual_data = self.seasonal_annual_data[4]
-        annual_ref = self.seasonal_annual_ref_data[4] if self.seasonal_annual_ref_data and len(self.seasonal_annual_ref_data) > 4 else None
+        if not self.data or len(self.data) < 5:
+            raise ValueError("Seasonal data must contain at least 5 elements to access annual data (index 4)")
+        
+        # Get annual data (index 4: [DJF, MAM, JJA, SON, Annual])
+        annual_data = self.data[4]
+        annual_ref = self.ref_data[4] if self.ref_data and len(self.ref_data) > 4 else None
         
         # Call the basic lat_lon_profiles plotting function
         return plot_lat_lon_profiles(
@@ -535,7 +583,7 @@ class PlotLatLonProfiles():
         )
 
     def run_multi_seasonal(self, var_names: list, units_list: list = None, 
-                           plot_type: str = 'seasonal_multi'):
+                        plot_type: str = 'seasonal_multi'):
         """
         Run multi-variable seasonal plotting.
 
@@ -548,8 +596,11 @@ class PlotLatLonProfiles():
             fig (matplotlib.figure.Figure): Figure object containing the multi-variable seasonal plot.
             axs (list): List of axes objects for the multi-variable seasonal plot.
         """
-        if self.seasonal_annual_data is None:
-            raise ValueError("No seasonal data available. Run compute_seasonal_and_annual_means first.")
+        if self.data_type != 'seasonal':
+            raise ValueError("run_multi_seasonal() can only be used with data_type='seasonal'")
+        
+        if not self.data:
+            raise ValueError("No seasonal data available.")
         
         # Create combined labels
         data_labels = []
@@ -558,10 +609,10 @@ class PlotLatLonProfiles():
             label = f"{var_name} ({unit})" if unit else var_name
             data_labels.append(label)
         
-        # Use the enhanced plot_seasonal_and_annual_data for seasonal multi-variable plotting
+        # Use the unified data interface
         fig, axs = plot_seasonal_and_annual_data(
-            maps=self.seasonal_annual_data,
-            ref_maps=self.seasonal_annual_ref_data,
+            maps=self.data,  # Use unified self.data
+            ref_maps=self.ref_data,  # Use unified self.ref_data
             plot_type='seasonal',
             data_labels=data_labels,
             loglevel=self.loglevel
