@@ -60,34 +60,40 @@ class PlotLatLonProfiles():
         self.get_data_info()
 
     def set_data_labels(self):
-        """
-        Set the data labels for the plot based on data_type.
-        
-        Returns:
-            data_labels (list): List of labels for the data.
-        """
+        """Set the data labels for the plot based on data_type."""
         if not self.data or len(self.data) == 0:
-            return ['Unknown Model/Experiment']
+            self.logger.warning('No data available for label generation')
+            return []
+        
+        data_labels = []
         
         if self.data_type == 'standard':
-            # For standard plots, extract labels from each data item
-            data_labels = []
+            # For standard plots, try to extract from each data item
             for i, data_item in enumerate(self.data):
                 if data_item is not None and hasattr(data_item, 'AQUA_model') and hasattr(data_item, 'AQUA_exp'):
                     label = f'{data_item.AQUA_model} {data_item.AQUA_exp}'
-                    data_labels.append(label)
+                elif i < len(self.models) and i < len(self.exps):
+                    # Fallback to metadata from get_data_info()
+                    label = f'{self.models[i]} {self.exps[i]}'
                 else:
-                    data_labels.append(f'Unknown Model/Experiment {i+1}')
-            return data_labels
+                    # Last resort: generic label
+                    label = f'Dataset {i+1}'
+                data_labels.append(label)
         
         elif self.data_type == 'seasonal':
-            # Seasonal: single model (use existing logic)
+            # For seasonal plots, use metadata from get_data_info()
             if len(self.models) > 0 and len(self.exps) > 0:
-                return [f'{self.models[0]} {self.exps[0]}']
+                data_labels.append(f'{self.models[0]} {self.exps[0]}')
             else:
-                return ['Unknown Model/Experiment']
+                # Try to extract from first season first data item
+                first_data = self._get_first_data_item()
+                if first_data is not None and hasattr(first_data, 'AQUA_model') and hasattr(first_data, 'AQUA_exp'):
+                    data_labels.append(f'{first_data.AQUA_model} {first_data.AQUA_exp}')
+                else:
+                    data_labels.append('Dataset 1')
         
-        return ['Unknown Model/Experiment']
+        self.logger.debug('Data labels: %s', data_labels)
+        return data_labels
     
     def set_ref_label(self):
         """
