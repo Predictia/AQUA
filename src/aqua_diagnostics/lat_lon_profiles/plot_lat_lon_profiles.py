@@ -192,9 +192,32 @@ class PlotLatLonProfiles():
         )
 
     def _clean_temporal_dims(self, data_list):
-        """Clean single-timestep temporal dimensions from data."""
-        return [d.isel(time=0, drop=True) if d is not None and 'time' in d.dims and d.sizes.get('time', 0) == 1 else d 
-                for d in data_list]
+        """
+        Clean single-timestep temporal dimensions from data.
+        
+        Args:
+            data_list (list): List of DataArrays to clean
+            
+        Returns:
+            list: List of cleaned DataArrays
+        """
+        cleaned_data = []
+        for i, data_item in enumerate(data_list):
+            if data_item is None:
+                cleaned_data.append(None)
+                continue
+            
+            # Check if has single time dimension that should be removed
+            if 'time' in data_item.dims and data_item.sizes.get('time', 0) == 1:
+                cleaned_item = data_item.isel(time=0, drop=True)
+                self.logger.debug(f"Removed single time dimension from data {i}")
+            else:
+                cleaned_item = data_item
+            
+            cleaned_data.append(cleaned_item)
+            self.logger.debug(f"Data {i}: shape={cleaned_item.shape}, dims={cleaned_item.dims}")
+        
+        return cleaned_data
 
     def _plot_seasonal(self, data_labels=None, title=None):
         """
