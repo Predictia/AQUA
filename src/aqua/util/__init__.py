@@ -11,6 +11,7 @@ from .graphics import get_nside, get_npix, healpix_resample
 from .projections import get_projection
 from .realizations import format_realization
 from .sci_util import area_selection, check_coordinates, select_season, merge_attrs
+from .string import strlist_to_phrase, lat_to_phrase
 from .util import generate_random_string, get_arg, create_folder, to_list
 from .util import file_is_complete, find_vert_coord, files_exist
 from .util import extract_literal_and_numeric, extract_attrs, add_pdf_metadata, add_png_metadata
@@ -41,4 +42,5 @@ __all__ = ['ConfigPath',
            'check_chunk_completeness', 'frequency_string_to_pandas',
            'time_to_string',
            'create_zarr_reference',
-           'int_month_name', 'merge_attrs']
+           'int_month_name', 'merge_attrs',
+           'strlist_to_phrase', 'lat_to_phrase']
