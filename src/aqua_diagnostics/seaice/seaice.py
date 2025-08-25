@@ -1,11 +1,10 @@
 """ Seaice doc """
-import os
 import xarray as xr
 
 from aqua.diagnostics.core import Diagnostic
-from aqua.exceptions import NoDataError, NotEnoughDataError
+from aqua.exceptions import NoDataError
 from aqua.logger import log_configure, log_history
-from aqua.util import ConfigPath, OutputSaver, load_yaml, area_selection, to_list, merge_attrs
+from aqua.util import area_selection, to_list, merge_attrs
 from aqua.diagnostics.seaice.util import ensure_istype
 
 xr.set_options(keep_attrs=True)
@@ -27,8 +26,9 @@ class SeaIce(Diagnostic):
         std_enddate   (str, optional): End date for standard deviation.
         regions     (list, optional): A list of regions to analyze. Default is ['arctic', 'antarctic'].
         regions_file (str, optional): The path to the regions definition file.
-        loglevel     (str, optional): The logging level. Default is 'WARNING'.
+        outputdir (str, optional): The output directory.
         regions_definition (dict): The loaded regions definition from the YAML file.
+        loglevel     (str, optional): The logging level. Default is 'WARNING'.
 
     Methods:
         load_regions(regions_file=None, regions=None):
@@ -53,9 +53,11 @@ class SeaIce(Diagnostic):
                  threshold=0.15,
                  regions=['arctic', 'antarctic'],
                  regions_file=None,
+                 outputdir: str = './',
                  loglevel: str = 'WARNING'
                  ):
 
+        self.outputdir = outputdir
         super().__init__(model=model, exp=exp, source=source,
                          regrid=regrid, catalog=catalog, 
                          startdate=startdate, enddate=enddate,
@@ -242,7 +244,7 @@ class SeaIce(Diagnostic):
             masked_data_region = self._select_region(masked_data, region=region, diagnostic='seaice').get('data')
 
             if self.method in ['fraction','thickness']:
-                seaice_2d_result = self._calc_time_stat(masked_data_region, stat, freq)
+                seaice_2d_result = self._calc_time_stat(masked_data_region, stat=stat, freq=freq)
             else:
                 raise ValueError(f"Method '{self.method}' is not supported for 2D computation.")
 
@@ -494,7 +496,7 @@ class SeaIce(Diagnostic):
 
     def save_netcdf(self, seaice_data, diagnostic: str, diagnostic_product: str = None,
                     rebuild: bool = True, output_file: str = None,
-                    output_dir: str = None, **kwargs):
+                    **kwargs):
         """ Save the computed sea ice data to a NetCDF file.
 
         Args:
@@ -503,9 +505,8 @@ class SeaIce(Diagnostic):
             diagnostic_product (str, optional): The diagnostic product. Can be used for namig the file more freely.
             rebuild (bool, optional): If True, rebuild (overwrite) the NetCDF file. Default is True.
             output_file (str, optional): The output file name.
-            output_dir (str, optional): The output directory.
             **kwargs: Additional keyword arguments for saving the data.
         """
         # Use parent method to handle saving, including metadata
         super().save_netcdf(seaice_data, diagnostic=diagnostic, diagnostic_product=diagnostic_product,
-                            rebuild=rebuild, **kwargs)
+                            outputdir=self.outputdir, rebuild=rebuild, **kwargs)
