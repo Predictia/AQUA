@@ -43,21 +43,21 @@ class LatLonProfiles(Diagnostic):
 		Initialize the LatLonProfiles class.
 
 		Args:
-		catalog (str): The catalog to be used for the retrieval of the data.
-		model (str): The model to be used for the retrieval of the data.
-		exp (str): The experiment to be used for the retrieval of the data.
-		source (str): The source to be used for the retrieval of the data.
-		regrid (str): The regridding method to be used for the retrieval of the data.
-		startdate (str): The start date of the data to be retrieved.
-		enddate (str): The end date of the data to be retrieved.
-		std_startdate (str): The start date of the standard deviation period.
-		std_enddate (str): The end date of the standard deviation period.
-		region (str): The region to be used for the retrieval of the data.
-		lon_limits (list): The longitude limits of the region.
-		lat_limits (list): The latitude limits of the region.
-		regions_file_path (str): The path to the regions file. Default is the AQUA config path.
-		mean_type (str): The type of mean to compute ('zonal', 'meridional', 'global').
-		loglevel (str): The log level to be used for the logging.
+			catalog (str): The catalog to be used for the retrieval of the data.
+			model (str): The model to be used for the retrieval of the data.
+			exp (str): The experiment to be used for the retrieval of the data.
+			source (str): The source to be used for the retrieval of the data.
+			regrid (str): The regridding method to be used for the retrieval of the data.
+			startdate (str): The start date of the data to be retrieved.
+			enddate (str): The end date of the data to be retrieved.
+			std_startdate (str): The start date of the standard deviation period.
+			std_enddate (str): The end date of the standard deviation period.
+			region (str): The region to be used for the retrieval of the data.
+			lon_limits (list): The longitude limits of the region.
+			lat_limits (list): The latitude limits of the region.
+			regions_file_path (str): The path to the regions file. Default is the AQUA config path.
+			mean_type (str): The type of mean to compute ('zonal', 'meridional', 'global').
+			loglevel (str): The log level to be used for the logging.
 		
 		"""
 		# Initialize the Diagnostic class with the provided parameters
@@ -100,11 +100,11 @@ class LatLonProfiles(Diagnostic):
 		Retrieve the data for the specified variable and apply any formula if required.
 
 		Args:
-		var (str): The variable to be retrieved.
-		formula (bool): Whether to use a formula for the variable.
-		long_name (str): The long name of the variable.
-		units (str): The units of the variable.
-		standard_name (str): The standard name of the variable.
+			var (str): The variable to be retrieved.
+			formula (bool): Whether to use a formula for the variable.
+			long_name (str): The long name of the variable.
+			units (str): The units of the variable.
+			standard_name (str): The standard name of the variable.
 		"""
 		self.logger.info('Retrieving data for variable %s', var)
 		# If the user requires a formula the evaluation requires the retrieval
@@ -148,10 +148,10 @@ class LatLonProfiles(Diagnostic):
 		Compute the standard deviation of the data. Support for seasonal and annual frequencies.
 
 		Args:
-		freq (str): The frequency to be used ('seasonal' or 'annual').
-		exclude_incomplete (bool): If True, exclude incomplete periods.
-		center_time (bool): If True, the time will be centered.
-		box_brd (bool,opt): choose if coordinates are comprised or not in area selection. Default is True
+			freq (str): The frequency to be used ('seasonal' or 'annual').
+			exclude_incomplete (bool): If True, exclude incomplete periods.
+			center_time (bool): If True, the time will be centered.
+			box_brd (bool,opt): choose if coordinates are comprised or not in area selection. Default is True
 		"""
 		str_freq = self._str_freq(freq)
 		if str_freq is None:
@@ -200,10 +200,10 @@ class LatLonProfiles(Diagnostic):
 		Save the data to a netcdf file.
 
 		Args:
-		diagnostic (str): The diagnostic to be saved.
-		freq (str): The frequency of the data ('seasonal' or 'annual').
-		outputdir (str): The directory to save the data.
-		rebuild (bool): If True, rebuild the data from the original files.
+			diagnostic (str): The diagnostic to be saved.
+			freq (str): The frequency of the data ('seasonal' or 'annual').
+			outputdir (str): The directory to save the data.
+			rebuild (bool): If True, rebuild the data from the original files.
 		"""
 		str_freq = self._str_freq(freq)
 		if str_freq is None:
@@ -298,10 +298,10 @@ class LatLonProfiles(Diagnostic):
 		Convert the frequency to a string representation.
 
 		Args:
-		freq (str): The frequency to be used.
+			freq (str): The frequency to be used.
 
 		Returns:
-		str_freq (str): The frequency as a string.
+			str_freq (str): The frequency as a string.
 		"""
 		if freq in ['seasonal', 'season']:
 			str_freq = 'seasonal'
@@ -319,12 +319,12 @@ class LatLonProfiles(Diagnostic):
 		Compute the mean of the data. Support for seasonal and annual means.
 
 		Args:
-		freq (str): The frequency to be used ('seasonal' or 'annual').
-		exclude_incomplete (bool): If True, exclude incomplete periods.
-		center_time (bool): If True, the time will be centered.
-		box_brd (bool,opt): choose if coordinates are comprised or not in area selection.
-								Default is True
-		var (str): The variable to be used if not in metadata.
+			freq (str): The frequency to be used ('seasonal' or 'annual').
+			exclude_incomplete (bool): If True, exclude incomplete periods.
+			center_time (bool): If True, the time will be centered.
+			box_brd (bool,opt): choose if coordinates are comprised or not in area selection.
+									Default is True
+			var (str): The variable to be used if not in metadata.
 		"""
 		if freq is None:
 			self.logger.error('Frequency not provided, cannot compute mean')
@@ -387,19 +387,19 @@ class LatLonProfiles(Diagnostic):
 			Run all the steps necessary for the computation of the LatLonProfiles.
 
 			Args:
-			var (str): The variable to be retrieved and computed.
-			formula (bool): Whether to use a formula for the variable.
-			long_name (str): The long name of the variable.
-			units (str): The units of the variable.
-			standard_name (str): The standard name of the variable.
-			std (bool): Whether to compute the standard deviation.
-			freq (list): The frequencies to compute ('seasonal', 'annual').
-			exclude_incomplete (bool): Whether to exclude incomplete time periods.
-			center_time (bool): Whether to center the time coordinate.
-			box_brd (bool): Whether to include the box boundaries.
-			outputdir (str): The output directory to save the results.
-			rebuild (bool): Whether to rebuild existing files.
-			mean_type (str): The type of mean to compute ('zonal', 'meridional', 'global').
+				var (str): The variable to be retrieved and computed.
+				formula (bool): Whether to use a formula for the variable.
+				long_name (str): The long name of the variable.
+				units (str): The units of the variable.
+				standard_name (str): The standard name of the variable.
+				std (bool): Whether to compute the standard deviation.
+				freq (list): The frequencies to compute ('seasonal', 'annual').
+				exclude_incomplete (bool): Whether to exclude incomplete time periods.
+				center_time (bool): Whether to center the time coordinate.
+				box_brd (bool): Whether to include the box boundaries.
+				outputdir (str): The output directory to save the results.
+				rebuild (bool): Whether to rebuild existing files.
+				mean_type (str): The type of mean to compute ('zonal', 'meridional', 'global').
 			"""
 			self.logger.info('Running LatLonProfiles for %s', var)
 			
