@@ -247,7 +247,7 @@ class PlotLatLonProfiles():
             'exp': getattr(self, 'exps', ['unknown_exp'])[0]
         }
 
-        outputsaver = OutputSaver(diagnostic='lat_lon_profiles', outdir=outputdir,
+        outputsaver = OutputSaver(diagnostic='lat_lon_profiles', outputdir=outputdir,
                                 loglevel=self.loglevel, **metadata)
         
         # Build extra_keys
