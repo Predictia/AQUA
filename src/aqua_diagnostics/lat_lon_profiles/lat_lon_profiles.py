@@ -36,6 +36,7 @@ class LatLonProfiles(Diagnostic):
 				 startdate: str = None, enddate: str = None,
 				 std_startdate: str = None, std_enddate: str = None,
 				 region: str = None, lon_limits: list = None, lat_limits: list = None,
+				 regions_file_path: str = None,
 				 mean_type: str = 'zonal',
 				 loglevel: str = 'WARNING'):
 		"""
@@ -54,6 +55,7 @@ class LatLonProfiles(Diagnostic):
 		region (str): The region to be used for the retrieval of the data.
 		lon_limits (list): The longitude limits of the region.
 		lat_limits (list): The latitude limits of the region.
+		regions_file_path (str): The path to the regions file. Default is the AQUA config path.
 		mean_type (str): The type of mean to compute ('zonal', 'meridional', 'global').
 		loglevel (str): The log level to be used for the logging.
 		
@@ -80,6 +82,7 @@ class LatLonProfiles(Diagnostic):
 		# Set the region based on the region name or the lon and lat limits
 		self.region, self.lon_limits, self.lat_limits = self._set_region(region=region,
 																			diagnostic='lat_lon_profiles',
+																			regions_file_path=regions_file_path,
 																			lon_limits=lon_limits,
 																			lat_limits=lat_limits)
 
@@ -192,14 +195,14 @@ class LatLonProfiles(Diagnostic):
 			self.std_annual = annual_std
                 
 	def save_netcdf(self, diagnostic: str, freq: str,
-					outdir: str = './', rebuild: bool = True):
+					outputdir: str = './', rebuild: bool = True):
 		"""
 		Save the data to a netcdf file.
 
 		Args:
 		diagnostic (str): The diagnostic to be saved.
 		freq (str): The frequency of the data ('seasonal' or 'annual').
-		outdir (str): The directory to save the data.
+		outputdir (str): The directory to save the data.
 		rebuild (bool): If True, rebuild the data from the original files.
 		"""
 		str_freq = self._str_freq(freq)
@@ -230,10 +233,10 @@ class LatLonProfiles(Diagnostic):
 					region = self.region.replace(' ', '').lower()
 					extra_keys['AQUA_region'] = region
 				
-				self.logger.info('Saving %s data for %s to netcdf in %s', seasons[i], diagnostic_product, outdir)
+				self.logger.info('Saving %s data for %s to netcdf in %s', seasons[i], diagnostic_product, outputdir)
 				super().save_netcdf(data=season_data, diagnostic=diagnostic, 
 									diagnostic_product=diagnostic_product,
-									outdir=outdir, rebuild=rebuild, extra_keys=extra_keys)
+									outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
 		else:
 			# Handle annual data
 			diagnostic_product = getattr(data, 'standard_name', 'unknown')
@@ -243,10 +246,10 @@ class LatLonProfiles(Diagnostic):
 				region = self.region.replace(' ', '').lower()
 				extra_keys['AQUA_region'] = region
 			
-			self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outdir)
+			self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
 			super().save_netcdf(data=data, diagnostic=diagnostic, 
 							    diagnostic_product=diagnostic_product,
-								outdir=outdir, rebuild=rebuild, extra_keys=extra_keys)
+								outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
 
 		# Save std data if available
 		if data_std is not None:
@@ -264,7 +267,7 @@ class LatLonProfiles(Diagnostic):
 						
 						super().save_netcdf(data=std_data, diagnostic=diagnostic, 
 											diagnostic_product=diagnostic_product,
-											outdir=outdir, rebuild=rebuild, extra_keys=extra_keys)
+											outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
 				else:
 					# Handle single seasonal std data
 					diagnostic_product = getattr(data_std, 'standard_name', 'unknown')
@@ -276,7 +279,7 @@ class LatLonProfiles(Diagnostic):
 					
 					super().save_netcdf(data=data_std, diagnostic=diagnostic, 
 										diagnostic_product=diagnostic_product,
-										outdir=outdir, rebuild=rebuild, extra_keys=extra_keys)
+										outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
 			else:
 				# Handle annual std data
 				diagnostic_product = getattr(data_std, 'standard_name', 'unknown')
@@ -288,7 +291,7 @@ class LatLonProfiles(Diagnostic):
 				
 				super().save_netcdf(data=data_std, diagnostic=diagnostic, 
 									diagnostic_product=diagnostic_product,
-									outdir=outdir, rebuild=rebuild, extra_keys=extra_keys)
+									outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
 
 	def _str_freq(self, freq: str):
 		"""
@@ -378,7 +381,7 @@ class LatLonProfiles(Diagnostic):
 			units: str = None, standard_name: str = None, std: bool = False,
 			freq: list = ['seasonal', 'annual'],
 			exclude_incomplete: bool = True, center_time: bool = True,
-			box_brd: bool = True, outdir: str = './', rebuild: bool = True,
+			box_brd: bool = True, outputdir: str = './', rebuild: bool = True,
 			mean_type: str = None):
 			"""
 			Run all the steps necessary for the computation of the LatLonProfiles.
@@ -394,7 +397,7 @@ class LatLonProfiles(Diagnostic):
 			exclude_incomplete (bool): Whether to exclude incomplete time periods.
 			center_time (bool): Whether to center the time coordinate.
 			box_brd (bool): Whether to include the box boundaries.
-			outdir (str): The output directory to save the results.
+			outputdir (str): The output directory to save the results.
 			rebuild (bool): Whether to rebuild existing files.
 			mean_type (str): The type of mean to compute ('zonal', 'meridional', 'global').
 			"""
@@ -428,6 +431,6 @@ class LatLonProfiles(Diagnostic):
 				
 				self.logger.info(f'Saving {f} netcdf file')
 				self.save_netcdf(diagnostic='lat_lon_profiles', freq=f, 
-								 outdir=outdir, rebuild=rebuild)
+								 outputdir=outputdir, rebuild=rebuild)
 			
 			self.logger.info('LatLonProfiles computation completed')
