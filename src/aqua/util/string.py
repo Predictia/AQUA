@@ -26,7 +26,7 @@ def lat_to_phrase(lat: int) -> str:
     Returns:
         str: formatted as "<deg>N" for northern latitudes or "<deg>S" for southern latitudes.
     """
-    if lat > 0:
+    if lat >= 0:
         return f"{lat}°N"
     if lat < 0:
         return f"{abs(lat)}°S"
