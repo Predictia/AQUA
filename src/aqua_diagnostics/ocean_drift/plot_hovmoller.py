@@ -41,7 +41,7 @@ class PlotHovmoller:
             catalog=self.catalog,
             model=self.model,
             exp=self.exp, 
-            outdir=outputdir, 
+            outputdir=outputdir, 
             loglevel=self.loglevel)
             
     
