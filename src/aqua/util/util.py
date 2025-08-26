@@ -447,7 +447,7 @@ def username():
         raise EnvironmentError("The 'USER' environment variable is not set.")
     return user
 
-
+  
 def strlist_to_phrase(items: list[str]) -> str:
     """ Convert a list of str to a english-consistent list.
        ['A'] will return "A"
