@@ -171,7 +171,3 @@ class TestSeaIce:
         meanres = result_data.mean(skipna=True).values
 
         assert meanres == pytest.approx(value, rel=approx_rel, abs=abs_rel)
-
-
-
-
