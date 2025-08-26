@@ -13,6 +13,7 @@ Workflow modifications:
 - `aqua-analysis.py` is now an entry point `aqua analysis` in the AQUA console, with the same syntax as before.
 
 AQUA core complete list:
+- Add `string.py` with tests (#2158)
 - Fix fldstat coordinate treatment (#2147)
 - Fixer applied when units name changes is required and no factor is found (#2128)
 - Update aqua-analysis config for refactored diagnostics (#2144)
