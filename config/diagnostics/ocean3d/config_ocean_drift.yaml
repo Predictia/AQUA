@@ -1,5 +1,5 @@
 datasets:
-  - catalog: ci
+  - catalog: null
     model: FESOM
     exp: hpz3
     source: monthly-3d
