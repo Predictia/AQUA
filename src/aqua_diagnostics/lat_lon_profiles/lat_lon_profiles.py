@@ -153,11 +153,7 @@ class LatLonProfiles(Diagnostic):
 			center_time (bool): If True, the time will be centered.
 			box_brd (bool,opt): choose if coordinates are comprised or not in area selection. Default is True
 		"""
-		str_freq = self._str_freq(freq)
-		if str_freq is None:
-			return
-				
-		self.logger.info('Computing %s standard deviation', str_freq)
+		self.logger.info('Computing %s standard deviation', freq)
 
 		# Determine dimensions for averaging based on mean_type
 		if self.mean_type == 'zonal':
@@ -179,14 +175,14 @@ class LatLonProfiles(Diagnostic):
 										   center_time=center_time)
 		monthly_data = monthly_data.sel(time=slice(self.std_startdate, self.std_enddate))
 
-		if str_freq == 'seasonal':
+		if freq == 'seasonal':
 			# Group by season and compute std
 			seasonal_std = monthly_data.groupby('time.season').std('time')
 			seasonal_std.attrs['std_startdate'] = time_to_string(self.std_startdate)
 			seasonal_std.attrs['std_enddate'] = time_to_string(self.std_enddate)
 			self.std_seasonal = seasonal_std
                         
-		elif str_freq == 'annual':
+		elif freq == 'annual':
 			# Group by year and compute std across years
 			annual_data = monthly_data.groupby('time.year').mean('time')
 			annual_std = annual_data.std('year')
@@ -205,17 +201,13 @@ class LatLonProfiles(Diagnostic):
 			outputdir (str): The directory to save the data.
 			rebuild (bool): If True, rebuild the data from the original files.
 		"""
-		str_freq = self._str_freq(freq)
-		if str_freq is None:
-			return
-
-		if str_freq == 'seasonal':
+		if freq == 'seasonal':
 			data = self.seasonal if self.seasonal is not None else None
 			data_std = self.std_seasonal if self.std_seasonal is not None else None
 			if data is None:
 				self.logger.error('No seasonal data available')
 				return
-		elif str_freq == 'annual':
+		elif freq == 'annual':
 			data = self.annual if self.annual is not None else None
 			data_std = self.std_annual if self.std_annual is not None else None
 			if data is None:
@@ -223,12 +215,12 @@ class LatLonProfiles(Diagnostic):
 				return
 
 		# Handle seasonal data (list of seasons)
-		if str_freq == 'seasonal':
+		if freq == 'seasonal':
 			seasons = ['DJF', 'MAM', 'JJA', 'SON']
 			for i, season_data in enumerate(data):
 				diagnostic_product = getattr(season_data, 'standard_name', 'unknown')
 				
-				extra_keys = {'freq': str_freq, 'season': seasons[i]}
+				extra_keys = {'freq': freq, 'season': seasons[i]}
 				if self.region is not None:
 					region = self.region.replace(' ', '').lower()
 					extra_keys['AQUA_region'] = region
@@ -241,26 +233,26 @@ class LatLonProfiles(Diagnostic):
 			# Handle annual data
 			diagnostic_product = getattr(data, 'standard_name', 'unknown')
 			
-			extra_keys = {'freq': str_freq}
+			extra_keys = {'freq': freq}
 			if self.region is not None:
 				region = self.region.replace(' ', '').lower()
 				extra_keys['AQUA_region'] = region
 			
-			self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
+			self.logger.info('Saving %s data for %s to netcdf in %s', freq, diagnostic_product, outputdir)
 			super().save_netcdf(data=data, diagnostic=diagnostic, 
 							    diagnostic_product=diagnostic_product,
 								outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
 
 		# Save std data if available
 		if data_std is not None:
-			if str_freq == 'seasonal':
+			if freq == 'seasonal':
 				# Seasonal std data handling
 				if hasattr(data_std, '__iter__') and not isinstance(data_std, str):
 					seasons = ['DJF', 'MAM', 'JJA', 'SON']
 					for i, std_data in enumerate(data_std):
 						diagnostic_product = getattr(std_data, 'standard_name', 'unknown')
 						
-						extra_keys = {'freq': str_freq, 'season': seasons[i], 'std': 'std'}
+						extra_keys = {'freq': freq, 'season': seasons[i], 'std': 'std'}
 						if self.region is not None:
 								region = self.region.replace(' ', '').lower()
 								extra_keys['region'] = region
@@ -272,7 +264,7 @@ class LatLonProfiles(Diagnostic):
 					# Handle single seasonal std data
 					diagnostic_product = getattr(data_std, 'standard_name', 'unknown')
 					
-					extra_keys = {'freq': str_freq, 'std': 'std'}
+					extra_keys = {'freq': freq, 'std': 'std'}
 					if self.region is not None:
 						region = self.region.replace(' ', '').lower()
 						extra_keys['AQUA_region'] = region
@@ -284,7 +276,7 @@ class LatLonProfiles(Diagnostic):
 				# Handle annual std data
 				diagnostic_product = getattr(data_std, 'standard_name', 'unknown')
 				
-				extra_keys = {'freq': str_freq, 'std': 'std'}
+				extra_keys = {'freq': freq, 'std': 'std'}
 				if self.region is not None:
 					region = self.region.replace(' ', '').lower()
 					extra_keys['AQUA_region'] = region
@@ -293,26 +285,6 @@ class LatLonProfiles(Diagnostic):
 									diagnostic_product=diagnostic_product,
 									outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
 
-	def _str_freq(self, freq: str):
-		"""
-		Convert the frequency to a string representation.
-
-		Args:
-			freq (str): The frequency to be used.
-
-		Returns:
-			str_freq (str): The frequency as a string.
-		"""
-		if freq in ['seasonal', 'season']:
-			str_freq = 'seasonal'
-		elif freq in ['YS', 'YE', 'Y', 'annual']:
-			str_freq = 'annual'
-		else:
-			self.logger.error('Frequency %s not recognized. Only "seasonal" and "annual" are supported', freq)
-			return None
-
-		return str_freq
-	
 	def compute_dim_mean(self, freq: str, exclude_incomplete: bool = True,
 		center_time: bool = True, box_brd: bool = True, var: str = None):
 		"""
@@ -326,10 +298,6 @@ class LatLonProfiles(Diagnostic):
 									Default is True
 			var (str): The variable to be used if not in metadata.
 		"""
-		str_freq = self._str_freq(freq)
-		if str_freq is None:
-			return
-
 		if self.mean_type == 'zonal':
 			dims = ['lon']
 		elif self.mean_type == 'meridional':
@@ -340,7 +308,7 @@ class LatLonProfiles(Diagnostic):
 			self.logger.error('Mean type %s not recognized', self.mean_type)
 			raise ValueError('Mean type %s not recognized', self.mean_type)
 
-		self.logger.info('Computing %s mean', str_freq)
+		self.logger.info('Computing %s mean', freq)
 		data = self.data.sel(time=slice(self.plt_startdate, self.plt_enddate))
 		if len(data.time) == 0:
 			self.logger.error('No data available for the selected period %s - %s',
@@ -358,7 +326,7 @@ class LatLonProfiles(Diagnostic):
 										   lon_limits=self.lon_limits, lat_limits=self.lat_limits,
 										   dims=dims)
 
-		if str_freq == 'seasonal':
+		if freq == 'seasonal':
 			# Compute seasonal means from monthly data
 			seasonal_data = self.reader.timmean(monthly_data, freq='seasonal')
 			if self.region is not None:
@@ -366,7 +334,7 @@ class LatLonProfiles(Diagnostic):
 					season_data.attrs['AQUA_region'] = self.region
 			self.seasonal = seasonal_data
 				
-		elif str_freq == 'annual':
+		elif freq == 'annual':
 			# Compute annual mean from monthly data
 			annual_data = self.reader.timmean(monthly_data, freq='annual')
 			if self.region is not None:
