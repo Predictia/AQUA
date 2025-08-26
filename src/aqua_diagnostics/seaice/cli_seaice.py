@@ -50,7 +50,7 @@ if __name__ == '__main__':
     # Load the configuration file and then merge it with the command-line arguments,
     # overwriting the configuration file values with the command-line arguments.
     config_dict = load_diagnostic_config(diagnostic='seaice', config=args.config,
-                                         default_config='config/config_seaice.yaml',
+                                         default_config='config_seaice.yaml',
                                          loglevel=loglevel)
     config_dict = merge_config_args(config=config_dict, args=args, loglevel=loglevel)
     logger.info("Loaded config_dict")
