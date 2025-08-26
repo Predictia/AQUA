@@ -377,7 +377,7 @@ class Reader():
                 self.logger.error(f"Retrieved empty dataset for {var=}. First, check its existence in the data catalog.")
 
             if startdate and enddate and not ffdb:  # do not select if data come from FDB (already done)
-                    data = data.sel(time=slice(startdate, enddate))
+                data = data.sel(time=slice(startdate, enddate))
 
         if isinstance(data, xr.Dataset):
             data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
