@@ -90,10 +90,10 @@ class TestAqua:
 
     def test_empty_dataset_error(self, reader_instance):
         """
-        Test that NoDataError is raised when empty dataset is retrieved
+        Test that None is returned when empty dataset is retrieved
         """
-        with pytest.raises(Exception):
-            reader_instance.retrieve(var="nonexistent_variable")
+        result = reader_instance.retrieve(var="nonexistent_variable")
+        assert result is None
 
     def test_time_selection_with_dates(self, reader_instance):
         """
