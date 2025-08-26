@@ -19,7 +19,7 @@ from aqua.diagnostics import PerformanceIndices, GlobalMean
 from aqua.diagnostics.core import template_parse_arguments
 from aqua.diagnostics.core import load_diagnostic_config, merge_config_args, get_diagnostic_configpath
 from aqua.diagnostics.core import OutputSaver
-from aqua.util import strlist_to_phrase, lat_to_phrase
+from aqua.util import strlist_to_phrase, lat_to_phrase, ConfigPath
 
 
 def parse_arguments(arguments):
@@ -191,7 +191,7 @@ def set_description(diagnostic, model, exp, year1, year2, config):
     elif diagnostic == 'global_mean':
         description = (f"Global mean biases normalized to observed interannual variability "
                        f"with respect to references for different regions and seasons {model_time}"
-                       f"{regions_phrase}.")
+                       f"{regions_phrase}")
     else:
         # produce a generic description
         description = f"Diagnostic {diagnostic} {model_time.strip()}"
@@ -251,12 +251,16 @@ if __name__ == '__main__':
 
     # loop on datasets
     for dataset in configfile['datasets']:
-        catalog = get_arg(args, 'catalog', dataset.get('catalog'))
         model = get_arg(args, 'model', dataset.get('model'))
         exp = get_arg(args, 'exp', dataset.get('exp'))
         source_atm = get_arg(args, 'source', dataset.get('source', 'lra-r100-monthly'))
         source_oce = get_arg(args, 'source_oce', dataset.get('source_oce', source_atm))
         regrid = get_arg(args, 'regrid', dataset.get('regrid', 'r100'))
+        catalog = get_arg(args, 'catalog', dataset.get('catalog'))
+        if catalog is None:
+            configurer = ConfigPath(loglevel=loglevel)
+            cat, _, _ = configurer.deliver_intake_catalog(model=model, exp=exp, source=source_atm)
+            catalog = cat.name
 
         # activate override from command line
         realization = get_arg(args, 'realization', None)
