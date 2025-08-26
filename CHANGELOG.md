@@ -13,6 +13,7 @@ Workflow modifications:
 - `aqua-analysis.py` is now an entry point `aqua analysis` in the AQUA console, with the same syntax as before.
 
 AQUA core complete list:
+- Hotfix in catgen for monthly chunking (#2184)
 - Fix loaded areas as dataset (#2174)
 - Few graphical adjustments in multiple_maps (#2159)
 - Fix fldstat coordinate treatment (#2147)
