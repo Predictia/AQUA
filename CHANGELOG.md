@@ -16,6 +16,7 @@ AQUA core complete list:
 - Hotfix in catgen for monthly chunking (#2184)
 - Fix loaded areas as dataset (#2174)
 - Few graphical adjustments in multiple_maps (#2159)
+- Add description for ECmean diagnostic (#2158)
 - Fix fldstat coordinate treatment (#2147)
 - Fixer applied when units name changes is required and no factor is found (#2128)
 - Update aqua-analysis config for refactored diagnostics (#2144)
