@@ -1,8 +1,8 @@
 import xarray as xr
 
 from aqua.logger import log_configure
-from aqua.util import to_list, frequency_string_to_pandas, time_to_string
-
+from aqua.util import to_list, time_to_string
+from aqua.fixer import EvaluateFormula
 from aqua.diagnostics.core import Diagnostic, start_end_dates, OutputSaver              
 
 class LatLonProfiles(Diagnostic):
@@ -108,17 +108,21 @@ class LatLonProfiles(Diagnostic):
 		"""
 		self.logger.info('Retrieving data for variable %s', var)
 		# If the user requires a formula the evaluation requires the retrieval
-		# of all the variables
-		if formula:
-			super().retrieve()
-			self.logger.debug("Evaluating formula %s", var)
-			self.data = eval_formula(mystring=var, xdataset=self.data)
-			if self.data is None:
-				self.logger.error('Error evaluating formula %s', var)
-		else:
-			super().retrieve(var=var)
-			if self.data is None:
-				self.logger.error('Error retrieving variable %s', var)
+        # of all the variables
+        if formula:
+            super().retrieve()
+            self.logger.debug("Evaluating formula %s", var)
+            self.data = EvaluateFormula(data=self.data, formula=var, long_name=long_name,
+                                        short_name=standard_name, units=units,
+                                        loglevel=self.loglevel).evaluate()
+            if self.data is None:
+                raise ValueError(f'Error evaluating formula {var}. '
+                                 'Check the variable names and the formula syntax.')
+        else:
+            super().retrieve(var=var)
+            if self.data is None:
+                raise ValueError(f'Variable {var} not found in the data. '
+                                 'Check the variable name and the data source.')
 			# Get the xr.DataArray to be aligned with the formula code
 			self.data = self.data[var]
 
