@@ -326,10 +326,6 @@ class LatLonProfiles(Diagnostic):
 									Default is True
 			var (str): The variable to be used if not in metadata.
 		"""
-		if freq is None:
-			self.logger.error('Frequency not provided, cannot compute mean')
-			return
-
 		str_freq = self._str_freq(freq)
 		if str_freq is None:
 			return
