@@ -14,7 +14,7 @@ Workflow modifications:
 
 AQUA core complete list:
 - Few graphical adjustments in multiple_maps (#2159)
-- Add `string.py` with tests (#2158)
+- Add description for ECmean diagnostic (#2158)
 - Fix fldstat coordinate treatment (#2147)
 - Fixer applied when units name changes is required and no factor is found (#2128)
 - Update aqua-analysis config for refactored diagnostics (#2144)
