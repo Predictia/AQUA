@@ -100,6 +100,8 @@ class Hovmoller(Diagnostic):
             )
             self.data = res_dict['data']
             self.region = res_dict['region']
+            self.lat_limits = res_dict['lat_limits']
+            self.lon_limits = res_dict['lon_limits']
         self.stacked_data = self.compute_hovmoller(
             dim_mean=dim_mean, anomaly_ref=anomaly_ref
         )
@@ -189,7 +191,7 @@ class Hovmoller(Diagnostic):
 
         type = f"{Std}{anom}{anom_ref}"
         data.attrs["AQUA_ocean_drift_type"] = type
-        data.attrs["region"] = self.region
+        data.attrs["AQUA_region"] = self.region
         return data
 
     def compute_hovmoller(self, dim_mean: str = None, anomaly_ref: str|list = None):
@@ -210,8 +212,14 @@ class Hovmoller(Diagnostic):
         anomaly_ref.append(None)
         
         if dim_mean is not None:
-            self.logger.debug(f"Computing mean over dimension: {dim_mean}")
-            # self.data = self.weighted_area(self.data)
+            # self.logger.debug(f"Computing mean over dimension: {dim_mean}")
+            # self.reader.tgt_fldstat.area = self.reader.tgt_fldstat.area.sel(
+            #     lon=self.data.lon,
+            #     lat=self.data.lat
+            # )
+
+            # self.data = self.reader.fldmean(self.data)
+            self.data = self.weighted_area(self.data)
             self.data = self.data.mean(dim=dim_mean)
 
         for standardise, anomaly_ref in product([False, True], anomaly_ref):
