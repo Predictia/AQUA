@@ -110,7 +110,7 @@ class LatLonProfiles(Diagnostic):
 		# If the user requires a formula the evaluation requires the retrieval
         # of all the variables
 		if formula:
-			super().retrieve(reader_kwargs=reader_kwargs)
+			super().retrieve()
 			self.logger.debug("Evaluating formula %s", var)
 			self.data = EvaluateFormula(data=self.data, formula=var, long_name=long_name,
 										short_name=standard_name, units=units,
