@@ -375,10 +375,12 @@ class Reader():
         else:
             if data is None or len(data.data_vars) == 0:
                 self.logger.error(f"Retrieved empty dataset for {var=}. First, check its existence in the data catalog.")
-                return None
 
-            if startdate and enddate and not ffdb:  # do not select if data come from FDB (already done)
-                data = data.sel(time=slice(startdate, enddate))
+            if 'time' in data.coords:
+                if startdate and enddate and not ffdb:  # do not select if data come from FDB (already done)
+                    data = data.sel(time=slice(startdate, enddate))
+            else:
+                self.logger.debug(f"Variable {var} has no time coordinate, skipping time selection.")
 
         if isinstance(data, xr.Dataset):
             data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class

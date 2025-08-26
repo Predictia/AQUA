@@ -130,6 +130,10 @@ class Diagnostic():
 
         data = reader.retrieve(var=var)
 
+        if hasattr(data, 'data_vars') and len(data.data_vars) == 0:
+            logger = log_configure(log_name='Diagnostic_reader', log_level=loglevel)
+            logger.error(f"Variable '{var}' contains no data for {model} {exp} {source}.")
+
         # If the data is empty, raise an error
         if not data:
             raise ValueError(f"No data found for {model} {exp} {source} with variable {var}")
