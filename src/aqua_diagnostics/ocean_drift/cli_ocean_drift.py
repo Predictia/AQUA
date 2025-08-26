@@ -92,7 +92,8 @@ if __name__ == '__main__':
                 rebuild=rebuild,
             )
             hov_plot = PlotHovmoller(
-                data = data_hovmoller.processed_data_list,
+                data=data_hovmoller.processed_data_list,
+                outputdir=outputdir,
                 loglevel=loglevel
             )
             hov_plot.plot_hovmoller()
