@@ -122,7 +122,8 @@ if __name__ == '__main__':
 
                         monthly_mod[i] = seaice.compute_seaice(method=method, var=mod_var, reader_kwargs=reader_kwargs)
 
-                    seaice.save_netcdf(monthly_mod[i], 'SeaIce', diagnostic_product=f"{dataset['source']}_{method}_timeseries")
+                    seaice.save_netcdf(monthly_mod[i], 'seaice', diagnostic_product='timeseries', 
+                                       extra_keys={'method': method, 'source': dataset['source'], 'regions_domain': "_".join(regions)})
                 
                 # Update the dict
                 plot_ts_seaice['monthly_models'] = monthly_mod
@@ -170,11 +171,13 @@ if __name__ == '__main__':
                         monthly_ref[i], monthly_std_ref[i] = seaice_ref.compute_seaice(method=method, var=reference.get('varname'), 
                                                                                        calc_std_freq=calc_std_freq, reader_kwargs=reader_kwargs)
 
-                        seaice_ref.save_netcdf(monthly_std_ref[i], 'SeaIce', diagnostic_product=f"{reference['source']}_{method}_timeseries_std")
+                        seaice_ref.save_netcdf(monthly_std_ref[i], 'seaice', diagnostic_product='timeseries_std',
+                                               extra_keys={'method': method, 'source': reference['source'], 'regions_domain': "_".join(regs_indomain)})
                     else:
                         monthly_ref[i] = seaice_ref.compute_seaice(method=method, var=reference.get('varname'), reader_kwargs=reader_kwargs)
                     
-                    seaice_ref.save_netcdf(monthly_ref[i], 'SeaIce', diagnostic_product=f"{reference['source']}_{method}_timeseries")
+                    seaice_ref.save_netcdf(monthly_ref[i], 'seaice', diagnostic_product='timeseries',
+                                           extra_keys={'method': method, 'source': reference['source'], 'regions_domain': "_".join(regs_indomain)})
                 
                 # Update the dict
                 plot_ts_seaice['monthly_ref'] = monthly_ref
@@ -243,7 +246,8 @@ if __name__ == '__main__':
                         monthly_mod[i] = seaice.compute_seaice(method=method, var=mod_var, 
                                                                get_seasonal_cycle=True, reader_kwargs=reader_kwargs)
 
-                    seaice.save_netcdf(monthly_mod[i], 'SeaIce', diagnostic_product=f"{dataset['source']}_{method}_SeasCycle")
+                    seaice.save_netcdf(monthly_mod[i], 'seaice', diagnostic_product='seasonal_cycle', 
+                                       extra_keys={'method': method, 'source': dataset['source'], 'regions_domain': "_".join(regions)})
                 
                 # Update the dict
                 plot_ts_seaice['monthly_models'] = monthly_mod
@@ -291,13 +295,15 @@ if __name__ == '__main__':
                         monthly_ref[i], monthly_std_ref[i] = seaice_ref.compute_seaice(method=method, var=reference.get('varname'), 
                                                                                        calc_std_freq=calc_std_freq, 
                                                                                        get_seasonal_cycle=True, reader_kwargs=reader_kwargs)
-                        seaice_ref.save_netcdf(monthly_std_ref[i], 'SeaIce', diagnostic_product=f"{reference['source']}_{method}_SeasCycle_std")
+                        seaice_ref.save_netcdf(monthly_std_ref[i], 'seaice', diagnostic_product='seasonal_cycle_std',
+                                               extra_keys={'method': method, 'source': reference['source'], 'regions_domain': "_".join(regs_indomain)})
                     else:
                         monthly_ref[i] = seaice_ref.compute_seaice(method=method, var=reference.get('varname'), 
                                                                    get_seasonal_cycle=True, 
                                                                    reader_kwargs=reader_kwargs)
-                    
-                    seaice_ref.save_netcdf(monthly_ref[i], 'SeaIce', diagnostic_product=f"{reference['source']}_{method}_SeasCycle")
+                                                                   
+                    seaice_ref.save_netcdf(monthly_ref[i], 'seaice', diagnostic_product='seasonal_cycle',
+                                           extra_keys={'method': method, 'source': reference['source'], 'regions_domain': "_".join(regs_indomain)})
 
                 # Update the dict
                 plot_ts_seaice['monthly_ref'] = monthly_ref
@@ -361,7 +367,8 @@ if __name__ == '__main__':
                     # Compute 2D data for each region
                     clims_mod[i] = seaice.compute_seaice(method=method, var=mod_var, stat='mean', freq='monthly', reader_kwargs=reader_kwargs)
                     
-                    seaice.save_netcdf(clims_mod[i], 'SeaIce', diagnostic_product=f"{dataset['exp']}_{dataset['source']}_{method}_2d")
+                    seaice.save_netcdf(clims_mod[i], 'seaice', diagnostic_product='bias_2d',
+                                       extra_keys={'method': method, 'source':dataset['source'], 'exp':dataset['exp'], 'regions_domain': "_".join(regions)})
 
                 plot_bias_seaice['models'] = clims_mod
             
@@ -403,7 +410,9 @@ if __name__ == '__main__':
                     clims_ref[i] = seaice_ref.compute_seaice(method=method, var=reference.get('varname'), 
                                                              stat='mean', freq='monthly', reader_kwargs=reader_kwargs)
                     
-                    seaice.save_netcdf(clims_ref[i], 'SeaIce', diagnostic_product=f"{reference['exp']}_{reference['source']}_{method}_2d")
+                    seaice_ref.save_netcdf(clims_ref[i], 'seaice', diagnostic_product='bias_2d',
+                                           extra_keys={'method': method, 'source':reference['source'], 
+                                           'exp':reference['exp'], 'regions_domain': "_".join(regs_indomain)})
 
                 plot_bias_seaice['ref'] = clims_ref
 
