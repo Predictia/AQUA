@@ -58,6 +58,9 @@ if __name__ == '__main__':
     # Set the loglevel to the config_file
     config_dict['setup']['loglevel'] = loglevel
 
+    # Load region dict through dummy method access
+    regions_dict = SeaIce(model='', exp='', source='')._load_regions_from_file(diagnostic='seaice')    
+
     regrid = get_arg(args, 'regrid', None)
 
     realization = get_arg(args, 'realization', None)
@@ -146,9 +149,6 @@ if __name__ == '__main__':
                         logger.info(f"Skipping ref data {reference['model']}, {reference['exp']}, "
                                     f"{reference['source']} as it is not meant to operate for method: '{method}'")
                         continue
-                    
-                    # create dummy class to access its method 
-                    regions_dict = SeaIce(model='', exp='', source='')._load_regions_from_file(diagnostic='seaice')
 
                     domain_ref = reference.get('domain', None)
 
@@ -270,9 +270,6 @@ if __name__ == '__main__':
                         logger.info(f"Skipping ref data {reference['model']}, {reference['exp']}, "
                                     f"{reference['source']} as it is not meant to operate for method: '{method}'")
                         continue
-                    
-                    # create dummy class to access its method 
-                    regions_dict = SeaIce(model='', exp='', source='')._load_regions_from_file(diagnostic='seaice')
 
                     domain_ref = reference.get('domain', None)
 
@@ -386,9 +383,6 @@ if __name__ == '__main__':
                         logger.info(f"Skipping ref data {reference['model']}, {reference['exp']}, "
                                     f"{reference['source']} as it is not meant to operate for method: '{method}'")
                         continue
-
-                    # create dummy class to access its method 
-                    regions_dict = SeaIce(model='', exp='', source='')._load_regions_from_file(diagnostic='seaice')
 
                     domain_ref = reference.get('domain', None)
 
