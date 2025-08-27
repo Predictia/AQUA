@@ -15,6 +15,7 @@ Workflow modifications:
 AQUA core complete list:
 - Hotfix in catgen for monthly chunking (#2184)
 - Fix loaded areas as dataset (#2174)
+- Show error message if empty data are retrieved by in `reader` (#2170)
 - Few graphical adjustments in multiple_maps (#2159)
 - Add description for ECmean diagnostic (#2158)
 - Fix fldstat coordinate treatment (#2147)
