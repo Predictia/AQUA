@@ -120,6 +120,9 @@ class BaseMixin(Diagnostic):
             self._check_data(var, units)
         if long_name is not None:
             self.data.attrs['long_name'] = long_name
+        # We want to be sure that a long_name is always defined for description setup
+        elif self.data.attrs.get('long_name') is None:
+            self.data.attrs['long_name'] = var
         # We use the standard_name as the name of the variable
         # to be always used in plots
         if standard_name is not None:
