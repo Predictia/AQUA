@@ -372,7 +372,7 @@ class PlotBaseMixin():
 
         description = f'{diagnostic} '
 
-        description += f'of {self.standard_name} '
+        description += f'of {self.long_name} '
         if self.units is not None:
             description += f'[{self.units}] '
 
@@ -381,6 +381,7 @@ class PlotBaseMixin():
 
         description += 'for '
         description += strlist_to_phrase(items=[f'{self.catalogs[i]} {self.models[i]} {self.exps[i]}' for i in range(self.len_data)])
+        description += ' '
 
         for i in range(self.len_ref):
             if self.ref_models[i] == 'ERA5' or self.ref_models == 'ERA5':
@@ -392,7 +393,7 @@ class PlotBaseMixin():
 
         if self.std_startdate is not None and self.std_enddate is not None:
             description += f'with standard deviation from {self.std_startdate} to {self.std_enddate}.'
-            description += 'The shaded area represents 2 standard deviations.'
+            description += ' The shaded area represents 2 standard deviations.'
 
         self.logger.debug('Description: %s', description)
         return description
