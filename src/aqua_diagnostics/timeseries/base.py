@@ -331,28 +331,25 @@ class PlotBaseMixin():
         self.logger.debug('Reference label: %s', ref_label)
         return ref_label
 
-    def set_title(self, region: str = None, var: str = None, units: str = None, diagnostic: str = None):
+    def set_title(self, diagnostic: str = None):
         """
-        Set the title for the plot.
+        Set the title for the plot. Uses standard_name, long_name, and units attributes.
 
         Args:
-            region (str): Region to be used in the title.
-            var (str): Variable name to be used in the title.
-            units (str): Units of the variable to be used in the title.
             diagnostic (str): Diagnostic name to be used in the title.
 
         Returns:
             title (str): Title for the plot.
         """
         title = f'{diagnostic} '
-        if var is not None:
-            title += f'for {var} '
+        if self.standard_name is not None:
+            title += f'for {self.standard_name} '
 
-        if units is not None:
-            title += f'[{units}] '
+        if self.units is not None:
+            title += f'[{self.units}] '
 
-        if region is not None:
-            title += f'[{region}] '
+        if self.region is not None:
+            title += f'[{self.region}] '
 
         if self.len_data == 1:
             title += f'for {self.catalogs[0]} {self.models[0]} {self.exps[0]} '
