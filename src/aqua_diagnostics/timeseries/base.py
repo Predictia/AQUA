@@ -2,8 +2,7 @@ import os
 import xarray as xr
 from aqua.fixer import EvaluateFormula
 from aqua.logger import log_configure
-from aqua.util import ConfigPath
-from aqua.util import frequency_string_to_pandas, time_to_string
+from aqua.util import frequency_string_to_pandas, time_to_string, strlist_to_phrase
 from aqua.diagnostics.core import Diagnostic, start_end_dates, OutputSaver
 
 xr.set_options(keep_attrs=True)
@@ -357,7 +356,7 @@ class PlotBaseMixin():
         self.logger.debug('Title: %s', title)
         return title
 
-    def set_description(self, region: str = None, diagnostic: str = None):
+    def set_description(self, diagnostic: str = None):
         """
         Set the caption for the plot.
         The caption is extracted from the data arrays attributes and the
@@ -365,7 +364,6 @@ class PlotBaseMixin():
         The caption is stored as 'Description' in the metadata dictionary.
 
         Args:
-            region (str): Region to be used in the caption.
             diagnostic (str): Diagnostic name to be used in the caption.
 
         Returns:
@@ -373,11 +371,16 @@ class PlotBaseMixin():
         """
 
         description = f'{diagnostic} '
-        if region is not None:
-            description += f'for region {region} '
 
-        for i in range(self.len_data):
-            description += f'for {self.catalogs[i]} {self.models[i]} {self.exps[i]} '
+        description += f'of {self.standard_name} '
+        if self.units is not None:
+            description += f'[{self.units}] '
+
+        if self.region is not None:
+            description += f'for region {self.region} '
+
+        description += 'for '
+        description += strlist_to_phrase(items=[f'{self.catalogs[i]} {self.models[i]} {self.exps[i]}' for i in range(self.len_data)])
 
         for i in range(self.len_ref):
             if self.ref_models[i] == 'ERA5' or self.ref_models == 'ERA5':
@@ -388,7 +391,8 @@ class PlotBaseMixin():
                 description += f'with reference {self.ref_models} {self.ref_exps} '
 
         if self.std_startdate is not None and self.std_enddate is not None:
-            description += f'with standard deviation from {self.std_startdate} to {self.std_enddate} '
+            description += f'with standard deviation from {self.std_startdate} to {self.std_enddate}.'
+            description += 'The shaded area represents 2 standard deviations.'
 
         self.logger.debug('Description: %s', description)
         return description
