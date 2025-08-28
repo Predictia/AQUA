@@ -11,7 +11,7 @@ import argparse
 import sys
 
 from aqua.logger import log_configure
-from aqua.util import get_arg, ConfigPath
+from aqua.util import get_arg
 from aqua.version import __version__ as aqua_version
 from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_cluster
 from aqua.diagnostics.core import load_diagnostic_config, merge_config_args
