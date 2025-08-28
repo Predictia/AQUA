@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from aqua.logger import log_configure
 from aqua.diagnostics.core import OutputSaver
-from aqua.graphics import plot_single_map, plot_single_map_diff, plot_maps, plot_vertical_profile
+from aqua.graphics import plot_single_map, plot_single_map_diff, plot_maps, plot_vertical_profile_diff
 from aqua.util import get_projection
 from .util import handle_pressure_level
 
@@ -288,13 +288,16 @@ class PlotGlobalBiases:
             f"for the {data.model} model, experiment {data.exp}, with {data_ref.model} used as reference data."
         )
 
-        fig, ax = plot_vertical_profile(
-            data=data[var] - data_ref[var],
+        fig, ax = plot_vertical_profile_diff(
+            data=data[var],
+            data_ref=data_ref[var],
             var=var,
             plev_min=plev_min,
             plev_max=plev_max,
             vmin=vmin,
             vmax=vmax,
+            add_contour=True, 
+            sym_contour=True,
             nlevels=nlevels,
             title=title,
             return_fig=True,
