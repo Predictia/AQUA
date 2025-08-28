@@ -290,7 +290,7 @@ class LatLonProfiles(Diagnostic):
 									outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
 
 	def compute_dim_mean(self, freq: str, exclude_incomplete: bool = True,
-		center_time: bool = True, box_brd: bool = True, var: str = None):
+	    center_time: bool = True, box_brd: bool = True, var: str = None):
 		"""
 		Compute the mean of the data. Support for seasonal and annual means.
 
@@ -331,8 +331,13 @@ class LatLonProfiles(Diagnostic):
 										   dims=dims)
 
 		if freq == 'seasonal':
-			# Compute seasonal means from monthly data
-			seasonal_data = self.reader.timmean(monthly_data, freq='seasonal')
+			# Compute seasonal means from monthly data - returns dataset with 4 seasons
+			seasonal_dataset = self.reader.timmean(monthly_data, freq='seasonal')
+			
+			# Convert to list manually here in LatLonProfiles 
+			# (to prevent problems with aqua attribute in timstat)
+			seasonal_data = [seasonal_dataset.isel(time=i) for i in range(4)]
+			
 			if self.region is not None:
 				for season_data in seasonal_data:
 					season_data.attrs['AQUA_region'] = self.region

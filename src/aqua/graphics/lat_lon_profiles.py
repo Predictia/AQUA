@@ -2,7 +2,7 @@ import xarray as xr
 import matplotlib.pyplot as plt
 
 from aqua.logger import log_configure
-from aqua.util import to_list, coord_names, clean_std
+from aqua.util import to_list, coord_names
 from .styles import ConfigStyle
 
 def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
