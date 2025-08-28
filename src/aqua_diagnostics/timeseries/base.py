@@ -397,16 +397,14 @@ class PlotBaseMixin():
         self.logger.debug('Description: %s', description)
         return description
 
-    def save_plot(self, fig, var: str = None, description: str = None, region: str = None, rebuild: bool = True,
+    def save_plot(self, fig, description: str = None, rebuild: bool = True,
                   outputdir: str = './', dpi: int = 300, format: str = 'png', diagnostic_product: str = None):
         """
         Save the plot to a file.
 
         Args:
             fig (matplotlib.figure.Figure): Figure object.
-            var (str): Variable name to be used in the title and description.
             description (str): Description of the plot.
-            region (str): Region to be used in the title and description.
             rebuild (bool): If True, rebuild the plot even if it already exists.
             outputdir (str): Output directory to save the plot.
             dpi (int): Dots per inch for the plot.
@@ -428,10 +426,10 @@ class PlotBaseMixin():
         metadata = {"Description": description, "dpi": dpi }
         extra_keys = {'diagnostic_product': diagnostic_product}
 
-        if var is not None:
-            extra_keys.update({'var': var})
-        if region is not None:
-            region = region.replace(' ', '').lower()
+        if self.standard_name is not None:
+            extra_keys.update({'var': self.standard_name})
+        if self.region is not None:
+            region = self.region.replace(' ', '').lower()
             extra_keys.update({'region': region})
 
         if format == 'png':
