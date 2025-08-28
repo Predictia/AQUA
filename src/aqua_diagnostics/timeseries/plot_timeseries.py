@@ -71,14 +71,11 @@ class PlotTimeseries(PlotBaseMixin):
         self.get_data_info()
 
 
-    def run(self, var: str, units: str = None, outputdir: str = './',
-            rebuild: bool = True, dpi: int = 300, format: str = 'png'):
+    def run(self, outputdir: str = './', rebuild: bool = True, dpi: int = 300, format: str = 'png'):
         """
         Run the PlotTimeseries class.
 
         Args:
-            var (str): Variable name to be used in the title and description.
-            units (str): Units of the variable to be used in the title.
             outputdir (str): Output directory to save the plot.
             rebuild (bool): If True, rebuild the plot even if it already exists.
             dpi (int): Dots per inch for the plot.
@@ -89,9 +86,9 @@ class PlotTimeseries(PlotBaseMixin):
         data_label = self.set_data_labels()
         ref_label = self.set_ref_label()
         description = self.set_description()
-        title = self.set_title(var=var, units=units)
+        title = self.set_title()
         fig, _ = self.plot_timeseries(data_labels=data_label, ref_label=ref_label, title=title)
-        self.save_plot(fig, var=var, description=description, region=self.region, rebuild=rebuild,
+        self.save_plot(fig, description=description, rebuild=rebuild,
                        outputdir=outputdir, dpi=dpi, format=format)
         self.logger.info('PlotTimeseries completed successfully')
 
@@ -144,18 +141,14 @@ class PlotTimeseries(PlotBaseMixin):
                 self.logger.debug(f'Standard deviation dates: {self.std_startdate} - {self.std_enddate}')
                 break
 
-    def set_title(self, var: str = None, units: str = None):
+    def set_title(self):
         """
         Set the title for the plot.
-
-        Args:
-            var (str): Variable name to be used in the title.
-            units (str): Units of the variable to be used in the title.
 
         Returns:
             title (str): Title for the plot.
         """
-        title = super().set_title(region=self.region, var=var, units=units, diagnostic='Time series')
+        title = super().set_title(diagnostic='Time series')
         return title
 
     def set_description(self):
@@ -168,7 +161,7 @@ class PlotTimeseries(PlotBaseMixin):
         Returns:
             description (str): Caption for the plot.
         """
-        description = super().set_description(region=self.region, diagnostic='Time series')
+        description = super().set_description(diagnostic='Time series')
         return description
 
     def plot_timeseries(self, data_labels=None, ref_label=None, title=None):
@@ -194,7 +187,7 @@ class PlotTimeseries(PlotBaseMixin):
                                   title=title, loglevel=self.loglevel)
         return fig, ax
 
-    def save_plot(self, fig, var: str, description: str = None, region: str = None, rebuild: bool = True,
+    def save_plot(self, fig, description: str = None, rebuild: bool = True,
                   outputdir: str = './', dpi: int = 300, format: str = 'png'):
         """
         Save the plot to a file.
@@ -209,8 +202,7 @@ class PlotTimeseries(PlotBaseMixin):
             dpi (int): Dots per inch for the plot.
             format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
         """
-        super().save_plot(fig=fig, var=var, description=description,
-                          region=region, rebuild=rebuild,
+        super().save_plot(fig=fig, description=description, rebuild=rebuild,
                           outputdir=outputdir, dpi=dpi, format=format, diagnostic_product='timeseries')
 
     def _check_data_length(self):
