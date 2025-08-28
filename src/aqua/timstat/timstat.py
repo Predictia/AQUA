@@ -49,20 +49,10 @@ class TimStat():
             raise KeyError(f'{stat} is not a statistic supported by AQUA')
 
         # Handle special case for seasonal mean
-        if stat == 'mean' and freq == 'seasonal':
-            # Use Q-NOV for meteorological seasons and return the full dataset
-            return self.timstat(data, stat='mean', freq='Q-NOV', 
+        if freq == 'seasonal':
+            return self.timstat(data, stat=stat, freq='Q-NOV', 
                             exclude_incomplete=exclude_incomplete,
                             time_bounds=time_bounds, 
-                            center_time=center_time)
-        
-        # Handle special case for annual mean (climatological mean over entire time period)
-        if stat == 'mean' and freq == 'annual':
-            # For annual, compute climatological mean over entire time period
-            # This gives us a single mean value without time dimension
-            return self.timstat(data, stat='mean', freq=None,
-                            exclude_incomplete=exclude_incomplete,
-                            time_bounds=time_bounds,
                             center_time=center_time)
 
         # Continue with the existing logic for all other cases

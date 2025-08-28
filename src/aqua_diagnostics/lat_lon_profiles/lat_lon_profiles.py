@@ -316,36 +316,32 @@ class LatLonProfiles(Diagnostic):
 		data = self.data.sel(time=slice(self.plt_startdate, self.plt_enddate))
 		if len(data.time) == 0:
 			self.logger.error('No data available for the selected period %s - %s',
-							  self.plt_startdate, self.plt_enddate)
+							self.plt_startdate, self.plt_enddate)
 			raise ValueError(f'No data available for the selected period {self.plt_startdate} - {self.plt_enddate}')
 
-		# First compute monthly means, then seasonal/annual
-		monthly_data = self.reader.timmean(data, freq='monthly', 
-										   exclude_incomplete=exclude_incomplete, 
-										   center_time=center_time)
-			
-		# Apply spatial averaging to monthly data
-		monthly_data = self.reader.fldmean(monthly_data, 
-										   box_brd=box_brd, 
-										   lon_limits=self.lon_limits, lat_limits=self.lat_limits,
-										   dims=dims)
-
 		if freq == 'seasonal':
-			# Compute seasonal means from monthly data - returns dataset with 4 seasons
+			monthly_data = self.reader.timmean(data, freq='monthly', 
+											exclude_incomplete=exclude_incomplete, 
+											center_time=center_time)
+			monthly_data = self.reader.fldmean(monthly_data, 
+											box_brd=box_brd, 
+											lon_limits=self.lon_limits, 
+											lat_limits=self.lat_limits,
+											dims=dims)
 			seasonal_dataset = self.reader.timmean(monthly_data, freq='seasonal')
-			
-			# Convert to list manually here in LatLonProfiles 
-			# (to prevent problems with aqua attribute in timstat)
 			seasonal_data = [seasonal_dataset.isel(time=i) for i in range(4)]
-			
 			if self.region is not None:
 				for season_data in seasonal_data:
 					season_data.attrs['AQUA_region'] = self.region
 			self.seasonal = seasonal_data
 				
 		elif freq == 'annual':
-			# Compute annual mean from monthly data
-			annual_data = self.reader.timmean(monthly_data, freq='annual')
+			annual_data = self.reader.timmean(data, freq=None)  # freq=None for total mean
+			annual_data = self.reader.fldmean(annual_data, 
+											box_brd=box_brd, 
+											lon_limits=self.lon_limits, 
+											lat_limits=self.lat_limits,
+											dims=dims)
 			if self.region is not None:
 				annual_data.attrs['AQUA_region'] = self.region
 			self.annual = annual_data
