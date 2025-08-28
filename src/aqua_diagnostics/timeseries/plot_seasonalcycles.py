@@ -67,6 +67,9 @@ class PlotSeasonalCycles(PlotBaseMixin):
         - AQUA_exp
         - std_startdate
         - std_enddate
+        - standard_name
+        - long_name
+        - units
         """
         if self.monthly_data is not None:
             # Make a list from the data array attributes
@@ -74,6 +77,9 @@ class PlotSeasonalCycles(PlotBaseMixin):
             self.models = [d.AQUA_model for d in self.monthly_data]
             self.exps = [d.AQUA_exp for d in self.monthly_data]
             self.region = self.monthly_data[0].AQUA_region if hasattr(self.monthly_data[0], 'AQUA_region') else None
+            self.standard_name = self.monthly_data[0].standard_name if hasattr(self.monthly_data[0], 'standard_name') else None
+            self.long_name = self.monthly_data[0].long_name if hasattr(self.monthly_data[0], 'long_name') else None
+            self.units = self.monthly_data[0].units if hasattr(self.monthly_data[0], 'units') else Nones
         self.logger.debug(f'Catalogs: {self.catalogs}')
         self.logger.debug(f'Models: {self.models}')
         self.logger.debug(f'Experiments: {self.exps}')
