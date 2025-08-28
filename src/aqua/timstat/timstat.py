@@ -24,9 +24,8 @@ class TimStat():
         return ['mean', 'std', 'max', 'min', 'sum']
 
     def timstat(self, data, stat='mean', freq=None, exclude_incomplete=False,
-                time_bounds=False, center_time=False):
-        
-        """"
+        time_bounds=False, center_time=False):
+        """
         Compute a time statistic on the input data. The statistic is computed over a time window defined by the frequency
         parameter. The frequency can be a string (e.g. '1D', '1M', '1Y') or a pandas frequency object. The statistic can be
         'mean', 'std', 'max', 'min'. The output is a new xarray dataset with the time dimension resampled to the desired
@@ -36,17 +35,37 @@ class TimStat():
             data (xarray.Dataset): Input data to compute the statistic on.
             stat (str): Statistic to compute. Can be 'mean', 'std', 'max', 'min'.
             freq (str): Frequency to resample the data to. Can be a string (e.g. '1D', '1M', '1Y') or a pandas frequency object.
+                Special values: 'seasonal' (for seasonal means), 'annual' (for annual climatological mean).
             exclude_incomplete (bool): If True, exclude incomplete chunks from the output.
             time_bounds (bool): If True, add time bounds to the output data.
             center_time (bool): If True, center the time axis of the output data.
 
         Returns:
-            xarray.Dataset: Output data the required statistic computed at the desired frequency.
+            xarray.Dataset: Output data with the required statistic computed at the desired frequency.
+                For freq='seasonal', returns dataset with 4 time steps (one per season).
+                For freq='annual', returns dataset with climatological mean.
         """
-
         if stat not in self.AVAILABLE_STATS:
             raise KeyError(f'{stat} is not a statistic supported by AQUA')
 
+        # Handle special case for seasonal mean
+        if stat == 'mean' and freq == 'seasonal':
+            # Use Q-NOV for meteorological seasons and return the full dataset
+            return self.timstat(data, stat='mean', freq='Q-NOV', 
+                            exclude_incomplete=exclude_incomplete,
+                            time_bounds=time_bounds, 
+                            center_time=center_time)
+        
+        # Handle special case for annual mean (climatological mean over entire time period)
+        if stat == 'mean' and freq == 'annual':
+            # For annual, compute climatological mean over entire time period
+            # This gives us a single mean value without time dimension
+            return self.timstat(data, stat='mean', freq=None,
+                            exclude_incomplete=exclude_incomplete,
+                            time_bounds=time_bounds,
+                            center_time=center_time)
+
+        # Continue with the existing logic for all other cases
         resample_freq = frequency_string_to_pandas(freq)
 
         # disabling all options if total averaging is selected
