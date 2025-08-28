@@ -73,7 +73,7 @@ class TestTimeseries:
                              std_monthly_data = ts.std_monthly, std_annual_data = ts.std_annual,
                              loglevel=loglevel)
         
-        plt.run(var=self.var, outputdir=tmp_path)
+        plt.run(outputdir=tmp_path)
 
         filename = f'{self.diagnostic_name}.timeseries.{self.catalog}.{self.model}.{self.exp}.r1.{self.catalog}.{self.model}.{self.exp}.{self.var}.{self.region}.png'
         file = os.path.join(tmp_path, 'png', filename)
