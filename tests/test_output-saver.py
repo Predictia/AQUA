@@ -3,6 +3,7 @@ import pytest
 from pathlib import Path
 import xarray as xr
 import matplotlib.pyplot as plt
+from unittest.mock import patch, MagicMock
 from aqua.diagnostics.core import OutputSaver
 
 # Fixture for OutputSaver instance
@@ -155,7 +156,6 @@ def test_save_pdf(base_saver, tmp_path):
 @pytest.mark.aqua
 def test_create_catalog_entry_new_entry(base_saver, tmp_path, monkeypatch):
     """Test creating a new catalog entry when none exists."""
-    from unittest.mock import patch, MagicMock
     
     mock_config_path = MagicMock()
     mock_config_path.configdir = str(tmp_path)
@@ -178,8 +178,7 @@ def test_create_catalog_entry_new_entry(base_saver, tmp_path, monkeypatch):
 @pytest.mark.aqua
 def test_create_catalog_entry_existing_entry(base_saver, tmp_path, monkeypatch):
     """Test updating an existing catalog entry."""
-    from unittest.mock import patch, MagicMock
-    
+
     mock_config_path = MagicMock()
     mock_config_path.configdir = str(tmp_path)
     existing_catblock = {
@@ -205,7 +204,6 @@ def test_create_catalog_entry_existing_entry(base_saver, tmp_path, monkeypatch):
 @pytest.mark.aqua
 def test_create_catalog_entry_with_variables(base_saver, tmp_path, monkeypatch):
     """Test creating catalog entry with jinja and wildcard variable replacements."""
-    from unittest.mock import patch, MagicMock
     
     mock_config_path = MagicMock()
     mock_config_path.configdir = str(tmp_path)
@@ -231,7 +229,6 @@ def test_create_catalog_entry_with_variables(base_saver, tmp_path, monkeypatch):
         
         result = base_saver._create_catalog_entry(filepath, metadata, 
                                                 jinjalist=['region'], wildcardlist=['realization'])
-        
         # Verify replacements were called
         assert mock_replace_jinja.call_count == 1
         assert mock_replace_wildcard.call_count == 1
@@ -240,7 +237,6 @@ def test_create_catalog_entry_with_variables(base_saver, tmp_path, monkeypatch):
 @pytest.mark.aqua
 def test_create_catalog_entry_edge_cases(base_saver, tmp_path, monkeypatch):
     """Test edge cases: None metadata values, file operations, and entry naming."""
-    from unittest.mock import patch, MagicMock
     
     mock_config_path = MagicMock()
     mock_config_path.configdir = str(tmp_path)
@@ -274,7 +270,6 @@ def test_create_catalog_entry_edge_cases(base_saver, tmp_path, monkeypatch):
 @pytest.mark.aqua
 def test_replace_urlpath_wildcard():
     """Test wildcard replacement in URL paths."""
-    from aqua.diagnostics.core.output_saver import OutputSaver
     
     # Test that replacement only happens when surrounded by same character
     block = {'args': {'urlpath': 'data_r1_data.nc'}}
@@ -293,7 +288,6 @@ def test_replace_urlpath_wildcard():
 @pytest.mark.aqua
 def test_replace_urlpath_jinja():
     """Test Jinja template replacement and parameter management."""
-    from aqua.diagnostics.core.output_saver import OutputSaver
     
     # Test URL replacement when surrounded by same character
     block = {'args': {'urlpath': 'data_global_data.nc'}}
@@ -316,7 +310,6 @@ def test_replace_urlpath_jinja():
 @pytest.mark.aqua
 def test_get_urlpath():
     """Test simple URL path getter."""
-    from aqua.diagnostics.core.output_saver import OutputSaver
     block = {'args': {'urlpath': '/test/path.nc'}}
     assert OutputSaver.get_urlpath(block) == '/test/path.nc'
 
@@ -380,8 +373,7 @@ def test_save_netcdf_with_catalog(base_saver, tmp_path, monkeypatch):
     with patch.object(base_saver, '_create_catalog_entry') as mock_create_catalog:
         result = base_saver.save_netcdf(
             dataset=data, diagnostic_product='mean', create_catalog_entry=True,
-            dict_catalog_entry={'jinjalist': ['region'], 'wildcardlist': ['var']}
-        )
+            dict_catalog_entry={'jinjalist': ['region'], 'wildcardlist': ['var']})
         
         mock_create_catalog.assert_called_once()
         call_args = mock_create_catalog.call_args[1]
