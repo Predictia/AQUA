@@ -30,7 +30,9 @@ def template_parse_arguments(parser: argparse.ArgumentParser):
                         required=False, help="experiment name")
     parser.add_argument("--source", type=str,
                         required=False, help="source name")
-    parser.add_argument("--config", "-c", type=str,
+    parser.add_argument("--realization", type=str, default=None,
+                        help="realization name (default: None)")
+    parser.add_argument("--config", "-c", type=str, default=None,
                         help='yaml configuration file')
     parser.add_argument("--nworkers", "-n", type=int,
                         required=False, help="number of workers")
@@ -96,8 +98,22 @@ def close_cluster(client, cluster, private_cluster, loglevel: str = 'WARNING'):
         cluster.close()
         logger.debug("Dask cluster closed.")
 
+def get_diagnostic_configpath(diagnostic: str, loglevel='WARNING') -> str:
+    """
+    Get the path to the diagnostic configuration directory.
 
-def load_diagnostic_config(diagnostic: str, args: argparse.Namespace,
+    Args:
+        diagnostic (str): diagnostic name
+        loglevel (str): logging level. Default is 'WARNING'.
+
+    Returns:
+        str: path to the diagnostic configuration directory
+    """
+    configdir = ConfigPath(loglevel=loglevel).configdir
+    return os.path.join(configdir, "diagnostics", diagnostic)
+
+
+def load_diagnostic_config(diagnostic: str, config: str = None,
                            default_config: str = "config.yaml",
                            loglevel: str = 'WARNING'):
     """
@@ -105,18 +121,20 @@ def load_diagnostic_config(diagnostic: str, args: argparse.Namespace,
 
     Args:
         diagnostic (str): diagnostic name
-        args (argparse.Namespace): arguments of the CLI. "config" argument can modify the default configuration file.
+        config (str): config argument can modify the default configuration file.
         default_config (str): default name configuration file (yaml format)
         loglevel (str): logging level. Default is 'WARNING'.
 
     Returns:
         dict: configuration dictionary
     """
-    if args.config:
-        filename = args.config
+    if config:
+        filename = config
     else:
-        configdir = ConfigPath(loglevel=loglevel).configdir
-        filename = os.path.join(configdir, "diagnostics", diagnostic, default_config)
+        filename = os.path.join(
+            get_diagnostic_configpath(diagnostic, loglevel), 
+            default_config
+        )
 
     return load_yaml(filename)
 
@@ -155,42 +173,3 @@ def merge_config_args(config: dict, args: argparse.Namespace,
             logger.debug(f"  - {ref['catalog']} {ref['model']} {ref['exp']} {ref['source']}")
 
     return config
-
-
-def convert_data_units(data, var: str, units: str, loglevel: str = 'WARNING'):
-    """
-    Make sure that the data is in the correct units.
-
-    Args:
-        data (xarray Dataset or DataArray): The data to be checked.
-        var (str): The variable to be checked.
-        units (str): The units to be checked.
-    """
-    logger = log_configure(log_name='check_data', log_level=loglevel)
-
-    data_to_fix = data[var] if isinstance(data, xr.Dataset) else data
-    final_units = units
-    initial_units = data_to_fix.units
-
-    conversion = convert_units(initial_units, final_units)
-
-    factor = conversion.get('factor', 1)
-    offset = conversion.get('offset', 0)
-
-    if factor != 1 or offset != 0:
-        logger.debug('Converting %s from %s to %s',
-                     var, initial_units, final_units)
-        data_to_fix = data_to_fix * factor + offset
-        data_to_fix.attrs['units'] = final_units
-        log_history(data_to_fix, f"Converting units of {var}: from {initial_units} to {final_units}")
-    else:
-        logger.debug('Units of %s are already in %s', var, final_units)
-        return data
-
-    if isinstance(data, xr.Dataset):
-        data_fixed = data.copy()
-        data_fixed[var] = data_to_fix
-    else:
-        data_fixed = data_to_fix
-
-    return data_fixed

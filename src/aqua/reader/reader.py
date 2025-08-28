@@ -9,23 +9,27 @@ from metpy.units import units
 from smmregrid import GridInspector
 
 from aqua.util import load_multi_yaml, files_exist, to_list
-from aqua.util import ConfigPath, area_selection, find_vert_coord
+from aqua.util import ConfigPath, find_vert_coord
 from aqua.logger import log_configure, log_history
 from aqua.exceptions import NoDataError, NoRegridError
 from aqua.version import __version__ as aqua_version
 from aqua.regridder import Regridder
+from aqua.fldstat import FldStat
 from aqua.timstat import TimStat
+from aqua.fixer import Fixer
 from aqua.data_model import counter_reverse_coordinate
+from aqua.histogram import histogram
 import aqua.gsv
 
 from .streaming import Streaming
-from .fixer import FixerMixin
+from .trender import Trender
+
 from .reader_utils import set_attrs
 
 # set default options for xarray
 xr.set_options(keep_attrs=True)
 
-class Reader(FixerMixin):
+class Reader():
     """General reader for climate data."""
 
     instance = None  # Used to store the latest instance of the class
@@ -33,12 +37,13 @@ class Reader(FixerMixin):
     def __init__(self, model=None, exp=None, source=None, catalog=None,
                  fix=True,
                  regrid=None, regrid_method=None,
-                 areas=True, datamodel=None,
+                 areas=True, 
                  streaming=False,
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4,
                  aggregation=None, chunks=None,
                  preproc=None, convention='eccodes',
+                 engine='fdb',
                  **kwargs):
         """
         Initializes the Reader class, which uses the catalog
@@ -55,15 +60,13 @@ class Reader(FixerMixin):
                                            If not specified anywhere, using "ycon".
             fix (bool, optional): Activate data fixing
             areas (bool, optional): Compute pixel areas if needed. Defaults to True.
-            datamodel (str, optional): Destination data model for coordinates, overrides the one in fixes.yaml.
-                                       Defaults to None.
             streaming (bool, optional): If to retrieve data in a streaming mode. Defaults to False.
             startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
             enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None.
             rebuild (bool, optional): Force rebuilding of area and weight files. Defaults to False.
             loglevel (str, optional): Level of logging according to logging module.
                                       Defaults to log_level_default of loglevel().
-            nproc (int,optional): Number of processes to use for weights generation. Defaults to 4.
+            nproc (int, optional): Number of processes to use for weights generation. Defaults to 4.
             aggregation (str, optional): the streaming frequency in pandas style (1M, 7D etc. or 'monthly', 'daily' etc.)
                                          Defaults to None (using default from catalog, recommended).
             chunks (str or dict, optional): chunking to be used for GSV access.
@@ -75,8 +78,12 @@ class Reader(FixerMixin):
             preproc (function, optional): a function to be applied to the dataset when retrieved. Defaults to None.
             convention (str, optional): convention to be used for reading data. Defaults to 'eccodes'.
                                         (Only one supported so far)
-            **kwargs: Arbitrary keyword arguments to be passed as parameters to the catalog entry.
-                      'zoom', meant for HEALPix grid, is a predefined one which will allow for multiple gridname definitions.
+            engine (str, optional): Engine to be used for GSV retrieval: 'polytope' or 'fdb'. Defaults to 'fdb'.
+
+        Keyword Args: 
+            zoom (int, optional): HEALPix grid zoom level (e.g. zoom=10 is h1024). Allows for multiple gridname definitions.
+            realization (int, optional): The ensemble realization number, included in the output filename.
+            **kwargs: Additional arbitrary keyword arguments to be passed as additional parameters to the intake catalog entry.
 
         Returns:
             Reader: A `Reader` class object.
@@ -96,7 +103,6 @@ class Reader(FixerMixin):
         self.regrid_method = regrid_method
         self.nproc = nproc
         self.vert_coord = None
-        self.deltat = 1  # time in seconds to be used for cumulated variables unit convrersion
         self.time_correction = False  # extra flag for correction data with cumulation time on monthly timescale
         self.aggregation = aggregation
         self.chunks = chunks
@@ -104,9 +110,13 @@ class Reader(FixerMixin):
         # Preprocessing function
         self.preproc = preproc
 
+        # init the areas and dimensions
         self.grid_area = None
         self.src_grid_area = None
         self.tgt_grid_area = None
+        self.src_space_coord = None
+        self.tgt_space_coord = None
+        self.vert_coord = None
 
         if streaming:
             self.streamer = Streaming(startdate=startdate,
@@ -139,16 +149,17 @@ class Reader(FixerMixin):
         machine_paths, intake_vars = configurer.get_machine_info()
 
         # load the catalog
-        self.esmcat = self.cat(**intake_vars)[self.model][self.exp][self.source](**kwargs)
+        aqua.gsv.GSVSource.first_run = True  # Hack needed to avoid double checking of paths (which would not work if on another machine using polytope)
         self.expcat = self.cat(**intake_vars)[self.model][self.exp]  # the top-level experiment entry
+        # We open before without kwargs to filter kwargs which are not in the parameters allowed by the intake catalog entry
+        self.esmcat = self.expcat[self.source]()
+        self.kwargs = self._filter_kwargs(intake_vars, kwargs, engine=engine)
+        self.esmcat = self.expcat[self.source](**self.kwargs)
 
         # Manual safety check for netcdf sources (see #943), we output a more meaningful error message
         if isinstance(self.esmcat, intake_xarray.netcdf.NetCDFSource):
             if not files_exist(self.esmcat.urlpath):
                 raise NoDataError(f"No NetCDF files available for {self.model} {self.exp} {self.source}, please check the urlpath: {self.esmcat.urlpath}")  # noqa E501
-
-        # store the kwargs for further usage
-        self.kwargs = self._check_kwargs_parameters(kwargs, intake_vars)
 
         # extend the unit registry
         units_extra_definition()
@@ -166,13 +177,13 @@ class Reader(FixerMixin):
 
         if self.fix:
             self.fixes_dictionary = load_multi_yaml(self.fixer_folder, loglevel=self.loglevel)
-            self.fixes = self.find_fixes()  # find fixes for this model/exp/source
-            self.tgt_datamodel = datamodel
-            # Default destination datamodel
-            # (unless specified in instantiating the Reader)
-            if not self.tgt_datamodel:
-                self.tgt_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
-
+            self.fixer = Fixer(fixer_name=self.fixer_name,
+                               convention=self.convention,
+                               fixes_dictionary=self.fixes_dictionary,
+                               metadata=self.esmcat.metadata,
+                               loglevel=self.loglevel)
+            
+    
         # define grid names
         self.src_grid_name = self.esmcat.metadata.get('source_grid_name')
         self.tgt_grid_name = regrid
@@ -180,6 +191,21 @@ class Reader(FixerMixin):
         # init the regridder and the areas
         self._configure_regridder(machine_paths, regrid=regrid, areas=areas,
                                   rebuild=rebuild, reader_kwargs=reader_kwargs)
+        
+        # init the fldstat modules. if areas are not available, will issue a warning
+        cell_area = self.src_grid_area.cell_area if areas else None
+        self.src_fldstat = FldStat(
+            cell_area, grid_name=self.src_grid_name,
+            horizontal_dims=self.src_space_coord, loglevel=self.loglevel
+            )
+        self.tgt_fldstat = None
+        if regrid:
+            self.tgt_fldstat = FldStat(
+                self.tgt_grid_area.cell_area, grid_name=self.tgt_grid_name,
+                horizontal_dims=self.tgt_space_coord, loglevel=self.loglevel
+                )
+            
+        self.trender = Trender(loglevel=self.loglevel)
 
     def _configure_regridder(self, machine_paths, regrid=False, areas=False,
                              rebuild=False, reader_kwargs=None):
@@ -227,6 +253,7 @@ class Reader(FixerMixin):
                 areas = False
                 regrid = False
 
+
         # generate source areas
         if areas:
             # generate source areas and expose them in the reader
@@ -234,7 +261,7 @@ class Reader(FixerMixin):
             if self.fix:
                 # TODO: this should include the latitudes flipping fix.
                 # TODO: No check is done on the areas coords vs data coords
-                self.src_grid_area = self._fix_area(self.src_grid_area)
+                self.src_grid_area = self.fixer.datamodel.fix_area(self.src_grid_area)
 
         # configure regridder and generate weights
         if regrid:
@@ -250,7 +277,7 @@ class Reader(FixerMixin):
             self.tgt_grid_area = self.regridder.areas(tgt_grid_name=self.tgt_grid_name, rebuild=rebuild)
             if self.fix:
                 # TODO: this should include the latitudes flipping fix
-                self.tgt_grid_area = self._fix_area(self.tgt_grid_area)
+                self.tgt_grid_area = self.fixer.datamodel.fix_area(self.tgt_grid_area)
             self.tgt_space_coord = self.regridder.tgt_horizontal_dims
 
         # activste time statistics
@@ -284,7 +311,8 @@ class Reader(FixerMixin):
             if isinstance(var, str) or isinstance(var, int):
                 var = str(var).split()  # conversion to list guarantees that a Dataset is produced
             self.logger.info("Retrieving variables: %s", var)
-            loadvar = self.get_fixer_varname(var) if self.fix else var
+            # HACK: to be checked if can be done in a better way
+            loadvar = self.fixer.get_fixer_varname(var) if self.fix else var
         else:
             # If we are retrieving from fdb we have to specify the var
             if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
@@ -334,7 +362,7 @@ class Reader(FixerMixin):
             data = self._select_level(data, level=level)  # select levels (optional)
 
         if self.fix:
-            data = self.fixer(data, var)
+            data = self.fixer.fixer(data, var)
 
         # log an error if some variables have no units
         if isinstance(data, xr.Dataset) and self.fix:
@@ -344,8 +372,12 @@ class Reader(FixerMixin):
 
         if self.streaming:
             data = self.streamer.stream(data)
-        elif startdate and enddate and not ffdb:  # do not select if data come from FDB (already done)
-            data = data.sel(time=slice(startdate, enddate))
+        else:
+            if data is None or len(data.data_vars) == 0:
+                self.logger.error(f"Retrieved empty dataset for {var=}. First, check its existence in the data catalog.")
+
+            if startdate and enddate and not ffdb:  # do not select if data come from FDB (already done)
+                data = data.sel(time=slice(startdate, enddate))
 
         if isinstance(data, xr.Dataset):
             data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
@@ -359,7 +391,7 @@ class Reader(FixerMixin):
                          'AQUA_source': self.source, 'AQUA_catalog': self.catalog,
                          'AQUA_version': aqua_version}
         data = set_attrs(data, info_metadata)
-
+        
         return data
 
     def _add_index(self, data):
@@ -418,6 +450,13 @@ class Reader(FixerMixin):
         data = data.sel(**{full_vert_coord[0]: level})
         data = log_history(data, f"Selecting levels {level} from vertical coordinate {full_vert_coord[0]}")
         return data
+    
+    def fldmean(self, data, lon_limits=None, lat_limits=None, **kwargs):
+        """Fldmean average on the data. If regridded, it will use the target grid areas."""
+
+        if self._check_if_regridded(data):
+            return self.tgt_fldstat.fldmean(data, lon_limits=lon_limits, lat_limits=lat_limits, **kwargs)
+        return self.src_fldstat.fldmean(data, lon_limits=lon_limits, lat_limits=lat_limits, **kwargs)
 
     def set_default(self):
         """Sets this reader as the default for the accessor."""
@@ -437,6 +476,40 @@ class Reader(FixerMixin):
         # set regridded attribute to 1 for all vars
         out = set_attrs(out, {"AQUA_regridded": 1})
         return out
+    
+    # def trend(self, data, dim='time', degree=1, skipna=False):
+    #     """
+    #     Estimate the trend of an xarray object using polynomial fitting.
+
+    #     Args:
+    #         data (DataArray or Dataset): The input data.
+    #         dim (str): Dimension to apply trend along. Defaults to 'time'.
+    #         degree (int): Degree of the polynomial. Defaults to 1.
+    #         skipna (bool): Whether to skip NaNs. Defaults to False.
+
+    #     Returns:
+    #         DataArray or Dataset: The trend component.
+    #     """
+    #     final = self.trender.trend(data, dim=dim, degree=degree, skipna=skipna)
+    #     final.aqua.set_default(self)
+    #     return final
+
+    def detrend(self, data, dim='time', degree=1, skipna=False):    
+        """
+        Remove the trend from an xarray object using polynomial fitting.
+
+        Args:
+            data (DataArray or Dataset): The input data.
+            dim (str): Dimension to apply detrend along. Defaults to 'time'.
+            degree (int): Degree of the polynomial. Defaults to 1.
+            skipna (bool): Whether to skip NaNs. Defaults to False.
+
+        Returns:
+            DataArray or Dataset: The detrended data.
+        """
+        final = self.trender.detrend(data, dim=dim, degree=degree, skipna=skipna)
+        final.aqua.set_default(self)
+        return final
 
     def _check_if_regridded(self, data):
         """
@@ -488,104 +561,54 @@ class Reader(FixerMixin):
     #                             name, list(drop_coords))
     #     return data.drop_vars(drop_coords)
 
-    def fldmean(self, data, lon_limits=None, lat_limits=None, **kwargs):
+    def _filter_kwargs(self, intake_vars: dict={}, kwargs: dict={}, engine: str = 'fdb'):
         """
-        Perform a weighted global average.
-        If a subset of the data is provided, the average is performed only on the subset.
-
-        Arguments:
-            data (xr.DataArray or xarray.DataDataset):  the input data
-            lon_limits (list, optional):  the longitude limits of the subset
-            lat_limits (list, optional):  the latitude limits of the subset
-
-        Kwargs:
-            - box_brd (bool,opt): choose if coordinates are comprised or not in area selection.
-                                  Default is True
-
-        Returns:
-            the value of the averaged field
-        """
-
-        # If these data have been regridded we should use
-        # the destination grid info
-        if self._check_if_regridded(data):
-            space_coord = self.tgt_space_coord
-            grid_area = self.tgt_grid_area.cell_area
-        else:
-            space_coord = self.src_space_coord
-            grid_area = self.src_grid_area.cell_area
-
-        if lon_limits is not None or lat_limits is not None:
-            data = area_selection(data, lon=lon_limits, lat=lat_limits,
-                                  loglevel=self.loglevel, **kwargs)
-        self.logger.debug('Space coordinates are %s', space_coord)
-        # cleaning coordinates which have "multiple" coordinates in their own definition
-        # grid_area = self._clean_spourious_coords(grid_area, name = "area")
-        # data = self._clean_spourious_coords(data, name = "data")
-
-        # HAVE TO ADD AN ERROR IF AREAS HAVE NOT THE SAME AREAS AS DATA
-
-        # check if coordinates are aligned
-        try:
-            xr.align(grid_area, data, join='exact')
-        except ValueError as err:
-            # check in the dimensions what is wrong
-            for coord in grid_area.coords:
-                if coord in space_coord:
-                    xcoord = data.coords[coord]
-
-                    # first case: shape different
-                    if len(grid_area[coord]) != len(xcoord):
-                        raise ValueError(f'{coord} has different shape between area files and your dataset.'
-                                         'If using the LRA, try setting the regrid=r100 option') from err
-                    # shape are ok, but coords are different
-                    if not grid_area[coord].equals(xcoord):
-                        # if they are fine when sorted, there is a sorting mismatch
-                        if grid_area[coord].sortby(coord).equals(xcoord.sortby(coord)):
-                            self.logger.warning('%s is sorted in different way between area files and your dataset. Flipping it!', # noqa E501
-                                                coord)
-                            grid_area = grid_area.reindex({coord: list(reversed(grid_area[coord]))})
-                        else:
-                            raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
-
-        out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
-
-        out.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
-
-        log_history(data, f"Spatially averaged from {self.src_grid_name} grid")
-
-        return out
-
-    def _check_kwargs_parameters(self, main_parameters, intake_parameters):
-        """
-        Function to check if which parameters are included in the metadata of
-        the source and performs a few safety checks.
+        Uses the esmcat.describe() to remove the intake_vars, then check in the parameters if the kwargs are present.
+        Kwargs which are not present in the intake_vars will be removed.
 
         Args:
-            main_parameters: get them from kwargs
-            intake_parameters: get them from catalog machine specific file
+            intake_vars (dict): The intake variables from the catalog machine specific file.
+            kwargs (dict): The keyword arguments passed to the reader, which are intake parameters in the source.
+            engine (str): The engine used for the GSV retrieval, default is 'fdb'.
 
         Returns:
-            kwargs after check has been processed
+            A dictionary of kwargs filtered to only include parameters that are present in the intake_vars.
         """
-        # join the kwargs
-        parameters = {**main_parameters, **intake_parameters}
+        esm_dict = self.esmcat.describe().get('user_parameters', {})
+        len_esmcat = len(esm_dict)
 
-        # remove null kwargs
-        parameters = {key: value for key, value in parameters.items() if value is not None}
+        # This contains both the intake_vars and the esmcat parameters
+        params = [esm_dict[i]['name'] for i in range(len_esmcat)]
 
-        user_parameters = self.esmcat.describe().get('user_parameters')
-        if user_parameters is not None:
-            if parameters is None:
-                parameters = {}
+        # List comprehension to filter out kwargs that are not in the params
+        filtered_kwargs = {k: v for k, v in kwargs.items() if k in params}
+        unfiltered_kwargs = {k: v for k, v in kwargs.items() if k not in params}
 
-            for param in user_parameters:
-                if param['name'] not in parameters:
-                    self.logger.warning('%s parameter is required but is missing, setting to default %s',
-                                        param['name'], param['default'])
-                    parameters[param['name']] = param['default']
+        # Log warnings for unfiltered kwargs
+        for key, _ in unfiltered_kwargs.items():
+            self.logger.warning('kwarg %s is not in the intake parameteres of the source, removing it', key)
 
-        return parameters
+        # Check if all required parameters are present in the filtered kwargs and set defaults if not
+        filtered_list = list(filtered_kwargs.keys())
+        intake_vars_list = list(intake_vars.keys())
+        for param in params:
+            if param not in filtered_list and param not in intake_vars_list:
+                self.logger.warning('%s parameter is required but is missing, setting to default %s',
+                                    param, esm_dict[params.index(param)]['default'])
+                allowed = esm_dict[params.index(param)].get('allowed', None)
+                # It is possible to have intake_vars which are not specified for the machine,
+                # so that we still need to check whether there is an allowed list
+                if allowed is not None:
+                    self.logger.warning('Available values for %s are: %s', param, allowed)
+                filtered_kwargs[param] = esm_dict[params.index(param)]['default']
+
+        if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
+            # If the engine is fdb, we need to add the engine parameter
+            if 'engine' not in filtered_kwargs:
+                filtered_kwargs['engine'] = engine
+                self.logger.debug('Adding engine=%s to the filtered kwargs', engine)
+
+        return filtered_kwargs
 
     def vertinterp(self, data, levels=None, vert_coord='plev', units=None,
                    method='linear'):
@@ -654,54 +677,6 @@ class Reader(FixerMixin):
 
         return final
 
-    def detrend(self, data, dim="time", degree=1, skipna=True):
-        """
-        A basic detrending routine based on polyfit and polyval xarray functions
-        within AQUA. Given an xarray object, will provide the detrended timeseries,
-        by default working along time coordinate
-        If it is a Dataset, only variables with the required
-        coordinate will be detrended.
-
-        Args:
-            data (DataArray, Dataset): your dataset
-            dim (str): The dimension along which apply detrending
-            degree (str, optional): The degree of the polinominal fit. Default is 1, i.e. linear detrend
-            skinpna (bool, optional): skip or not the NaN
-
-        Return
-            A detrended DataArray or a Dataset
-        """
-
-        if isinstance(data, xr.DataArray):
-            final = self._detrend(data=data, dim=dim, degree=degree, skipna=skipna)
-
-        elif isinstance(data, xr.Dataset):
-            selected_vars = [da for da in data.data_vars if dim in data[da].coords]
-            final = data[selected_vars].map(self._detrend, keep_attrs=True,
-                                            dim=dim, degree=degree, skipna=skipna)
-        else:
-            raise ValueError('This is not an xarray object!')
-
-        final = log_history(final, f"Detrended with polynominal of order {degree} along {dim} dimension")
-
-        # This links the dataset accessor to this instance of the Reader class
-        final.aqua.set_default(self)
-
-        return final
-
-    def _detrend(self, data, dim="time", degree=1, skipna=True):
-        """
-        Detrend a DataArray along a single dimension.
-        Taken from https://ncar.github.io/esds/posts/2022/dask-debug-detrend/
-        According to the post, current implementation is not the most efficient one.
-        """
-
-        # calculate polynomial coefficients
-        p = data.polyfit(dim=dim, deg=degree, skipna=skipna)
-        # evaluate trend
-        fit = xr.polyval(data[dim], p.polyfit_coefficients)
-        # remove the trend
-        return data - fit
 
     def reader_esm(self, esmcat, var):
         """Reads intake-esm entry. Returns a dataset."""
@@ -768,7 +743,7 @@ class Reader(FixerMixin):
         # We're trying to set the if/else by int vs str and then eventually by the fix option
         # We store the fixer_dict once for all for semplicity of the if case.
         if self.fix is True:
-            fixer_dict = self.fixes.get('vars', {})
+            fixer_dict = self.fixer.fixes.get('vars', {})
             if fixer_dict == {}:
                 self.logger.debug("No 'vars' block in the fixer, guessing variable names base on ecCodes")
         if var != fdb_var:
@@ -969,27 +944,13 @@ class Reader(FixerMixin):
             A xarray.Dataset containing the required miminal sample data.
         """
 
-        # this could be a method of the GridInspector class
-        def get_gridtype_attr(gridtypes, attr):
-            """Helper compact tool to extra gridtypes information"""
-            out = []
-            for gridtype in gridtypes:
-                value = getattr(gridtype, attr, None)
-                if isinstance(value, (list, tuple)):
-                    out.extend(value)
-                elif isinstance(value, dict):
-                    out.extend(value.keys())
-                elif isinstance(value, str):
-                    out.append(value)
-
-            return list(dict.fromkeys(out))
-
         # get gridtypes from smrregird
-        gridtypes = GridInspector(data).get_grid_info()
+        gridinspect = GridInspector(data, loglevel=self.loglevel)
+        gridtypes = gridinspect.get_gridtype()
 
         # get info on time dimensions and variables
-        minimal_variables = get_gridtype_attr(gridtypes, 'variables')
-        minimal_time = get_gridtype_attr(gridtypes, 'time_dims')
+        minimal_variables = gridinspect.get_gridtype_attr(gridtypes, 'variables')
+        minimal_time = gridinspect.get_gridtype_attr(gridtypes, 'time_dims')
 
         if minimal_variables:
             self.logger.debug('Variables found: %s', minimal_variables)
@@ -998,38 +959,6 @@ class Reader(FixerMixin):
             self.logger.debug('Time dimensions found: %s', minimal_time)
             data = data.isel({t: 0 for t in minimal_time})
         return data
-
-    def info(self):
-        """Prints info about the reader"""
-        print(f"Reader for model {self.model}, experiment {self.exp}, source {self.source}")
-
-        if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
-            if "expver" in self.esmcat._request.keys():
-                print(f"  This experiment has expID {self.esmcat._request['expver']}")
-
-        metadata = self.esmcat.metadata
-
-        if self.fix:
-            print("Data fixing is active:")
-            if "fixer_name" in metadata.keys():
-                print(f"  Fixer name is {metadata['fixer_name']}")
-            else:
-                # TODO: to be removed when all the catalogs are updated
-                print(f"  Fixes: {self.fixes}")
-
-        if self.tgt_grid_name:
-            print("Regridding is active:")
-            print(f"  Target grid is {self.tgt_grid_name}")
-
-        print("Metadata:")
-        for k, v in metadata.items():
-            print(f"  {k}: {v}")
-
-        if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
-            print("GSV request for this source:")
-            for k, v in self.esmcat._request.items():
-                if k not in ["time", "param", "step", "expver"]:
-                    print("  %s: %s" % (k, v))
 
     def timstat(self, data, stat, freq=None, exclude_incomplete=False,
              time_bounds=False, center_time=False):
@@ -1064,6 +993,15 @@ class Reader(FixerMixin):
     
     def timstd(self, data, **kwargs):
        return self.timstat(data, stat='std', **kwargs)
+    
+    def timsum(self, data, **kwargs):
+       return self.timstat(data, stat='sum', **kwargs)
+
+    def histogram(self, data, **kwargs):
+        """ Wrapper for the histogram function. """
+
+        return histogram(data, **kwargs)
+
 
 def units_extra_definition():
     """Add units to the pint registry"""

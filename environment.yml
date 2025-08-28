@@ -10,8 +10,8 @@ channels:
 # please note that some of these dependencies are made explicit on purpose, but are not directly required by conda/mamba
 dependencies:
   - python>=3.10,<3.13
-  - cdo>=2.2.0 #for healpix support
-  - eccodes==2.40.0
+  - cdo>=2.5.0 #for smmregrid compatibility
+  - eccodes==2.41.0
   # for eccodes see issues #252, #634, #870, #1282
   # PR #36 catalog repo
   - pandas      
@@ -23,7 +23,6 @@ dependencies:
   - imagemagick
   - pip:
     - -e ./diagnostics/ocean3d/ # pip install -e of ocean3d
-    - -e ./diagnostics/seaice/ # pip install -e of seaice
     - -e ./diagnostics/tropical_cyclones/ # pip install -e of tropical cyclones
     - -e ./diagnostics/tropical_rainfall/ # pip install -e of tropical_rainfall
     # pip install -e of AQUA itself

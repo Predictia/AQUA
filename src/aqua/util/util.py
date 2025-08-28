@@ -52,7 +52,6 @@ def to_list(arg):
     return [arg]
 
 
-
 def files_exist(path):
     """
     Verify that a list or path includes files
@@ -422,6 +421,21 @@ def update_metadata(metadata: dict = None, additional_metadata: dict = None) -> 
         metadata.update(additional_metadata)
 
     return metadata
+
+
+def extract_attrs(data, attr):
+    """Extract attribute(s) from dataset or list of datasets.
+    Args:
+        data (xarray.Dataset or list of xarray.Dataset): Dataset(s) to extract
+        attr (str): Attribute name to extract.
+        Returns:
+            list: List of attribute values from the dataset(s).
+    """
+    if data is None:
+        return None
+    if isinstance(data, list):
+        return [getattr(ds, attr, None) for ds in data]
+    return getattr(data, attr, None)
 
 
 def username():

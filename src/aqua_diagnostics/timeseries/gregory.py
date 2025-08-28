@@ -1,14 +1,17 @@
 """Gregory module."""
 import xarray as xr
-from aqua.util import eval_formula
-from aqua.diagnostics.core import Diagnostic, convert_data_units
+from aqua.fixer import EvaluateFormula
+from aqua.logger import log_configure
+from aqua.util import convert_data_units
+from aqua.diagnostics.core import Diagnostic
 
 xr.set_options(keep_attrs=True)
 
 
 class Gregory(Diagnostic):
 
-    def __init__(self, catalog: str = None, model: str = None,
+    def __init__(self, diagnostic_name: str = 'gregory',
+                 catalog: str = None, model: str = None,
                  exp: str = None, source: str = None, regrid: str = None,
                  startdate: str = None, enddate: str = None, loglevel: str = 'WARNING'):
         """
@@ -29,6 +32,9 @@ class Gregory(Diagnostic):
         """
         super().__init__(catalog=catalog, model=model, exp=exp, source=source, regrid=regrid,
                          startdate=startdate, enddate=enddate, loglevel=loglevel)
+        self.diagnostic_name = diagnostic_name
+        self.logger = log_configure(log_level=self.loglevel, log_name=self.diagnostic_name.capitalize())
+
         # Initialize the variables
         self.t2m = None
         self.net_toa = None
@@ -46,9 +52,25 @@ class Gregory(Diagnostic):
             t2m_name: str = '2t', net_toa_name: str = 'tnlwrf+tnswrf',
             t2m_units: str = 'degC',
             exclude_incomplete: bool = True, outputdir: str = './',
-            rebuild: bool = True):
-        """Run the Gregory Plot."""
-        self.retrieve(t2m=t2m, net_toa=net_toa, t2m_name=t2m_name, net_toa_name=net_toa_name)
+            rebuild: bool = True, reader_kwargs: dict = {}):
+        """
+        Run the Gregory Plot.
+
+            Args:
+                freq (list): The frequency of the data to be computed. Default is ['monthly', 'annual'].
+                t2m (bool): Whether to compute the 2m temperature data. Default is True.
+                net_toa (bool): Whether to compute the net TOA radiation data. Default is True.
+                std (bool): Whether to compute the standard deviation. Default is False.
+                t2m_name (str): The name of the 2m temperature variable. Default is '2t'.
+                net_toa_name (str): The name of the net TOA radiation formula. Default is 'tnlwrf+tnswrf'.
+                t2m_units (str): The units of the 2m temperature data. Default is 'degC'.
+                exclude_incomplete (bool): Whether to exclude incomplete timespans. Default is True.
+                outputdir (str): The output directory to save the netcdf file. Default is './'.
+                rebuild (bool): Whether to rebuild the netcdf file. Default is True.
+                reader_kwargs (dict): Additional keyword arguments for the Reader. Default is an empty dictionary.
+        """
+        self.retrieve(t2m=t2m, net_toa=net_toa, t2m_name=t2m_name, net_toa_name=net_toa_name,
+                      reader_kwargs=reader_kwargs)
 
         self.logger.info(f'Computing the Gregory Plot for the {freq} frequency.')
         if t2m:
@@ -63,7 +85,8 @@ class Gregory(Diagnostic):
                          outputdir=outputdir, rebuild=rebuild)
 
     def retrieve(self, t2m: bool = True, net_toa: bool = True,
-                 t2m_name: str = '2t', net_toa_name: str = 'tnlwrf+tnswrf'):
+                 t2m_name: str = '2t', net_toa_name: str = 'tnlwrf+tnswrf',
+                 reader_kwargs: dict = {}):
         """
         Retrieve the necessary data for the Gregory Plot.
 
@@ -72,16 +95,18 @@ class Gregory(Diagnostic):
             net_toa (bool): Whether to retrieve the net TOA radiation data. Default is True.
             t2m_name (str): The name of the 2m temperature data.
             net_toa_name (str): The name of the net TOA radiation data.
+            reader_kwargs (dict): Additional keyword arguments for the Reader. Default is an empty dictionary.
         """
         data, self.reader, self.catalog = super()._retrieve(catalog=self.catalog, model=self.model,
                                                             exp=self.exp, source=self.source,
                                                             regrid=self.regrid, startdate=self.startdate,
-                                                            enddate=self.enddate)
+                                                            enddate=self.enddate, reader_kwargs=reader_kwargs)
 
         if t2m:
             self.t2m = data[t2m_name]
         if net_toa:
-            self.net_toa = eval_formula(mystring=net_toa_name, xdataset=data)
+            self.net_toa = EvaluateFormula(data=data, formula=net_toa_name,
+                                           short_name='net_toa', loglevel=self.loglevel).evaluate()
 
     def compute_t2m(self, freq: list = ['monthly', 'annual'], std: bool = False,
                     var: str = '2t', units: str = 'degC', exclude_incomplete=True):
@@ -94,6 +119,7 @@ class Gregory(Diagnostic):
             units (str): The units of the data. Default is 'degC'.
             exclude_incomplete (bool): Whether to exclude incomplete timespans. Default is True.
         """
+        self.logger.info(f'Computing the {var} data.')
         t2m = self.reader.fldmean(self.t2m)
         if units:
             t2m = convert_data_units(data=t2m, var=var, units=units, loglevel=self.loglevel)
@@ -115,6 +141,7 @@ class Gregory(Diagnostic):
             std (bool): Whether to compute the standard deviation. Default is False.
             exclude_incomplete (bool): Whether to exclude incomplete timespans. Default is True.
         """
+        self.logger.info('Computing the net TOA radiation data.')
         net_toa = self.reader.fldmean(self.net_toa)
 
         if 'monthly' in freq:
@@ -138,37 +165,31 @@ class Gregory(Diagnostic):
             outputdir (str): The output directory to save the netcdf file. Default is './'.
             rebuild (bool): Whether to rebuild the netcdf file. Default is True.
         """
-        diagnostic = 'gregory'
+        diagnostic_product = 'gregory'
 
         if t2m:
-            if std:
-                diagnostic_product = '2t.annual.std'
-                super().save_netcdf(data=self.t2m_std, diagnostic=diagnostic,
+            if std: 
+                super().save_netcdf(data=self.t2m_std, diagnostic=self.diagnostic_name,
                                     diagnostic_product=diagnostic_product,
-                                    default_path=outputdir, rebuild=rebuild)
+                                    outputdir=outputdir, rebuild=rebuild, extra_keys={'var':'2t', 'freq':'annual', 'std':'std'})
             if 'monthly' in freq:
-                diagnostic_product = '2t.monthly'
-                super().save_netcdf(data=self.t2m_monthly, diagnostic=diagnostic,
+                super().save_netcdf(data=self.t2m_monthly, diagnostic=self.diagnostic_name,
                                     diagnostic_product=diagnostic_product,
-                                    default_path=outputdir, rebuild=rebuild)
+                                    outputdir=outputdir, rebuild=rebuild, extra_keys={'var':'2t', 'freq':'monthly'})
             if 'annual' in freq:
-                diagnostic_product = '2t.annual'
-                super().save_netcdf(data=self.t2m_annual, diagnostic=diagnostic,
+                super().save_netcdf(data=self.t2m_annual, diagnostic=self.diagnostic_name,
                                     diagnostic_product=diagnostic_product,
-                                    default_path=outputdir, rebuild=rebuild)
+                                    outputdir=outputdir, rebuild=rebuild, extra_keys={'var':'2t', 'freq':'annual'})
         if net_toa:
             if std:
-                diagnostic_product = 'net_toa.annual.std'
-                super().save_netcdf(data=self.net_toa_std, diagnostic=diagnostic,
+                super().save_netcdf(data=self.net_toa_std, diagnostic=self.diagnostic_name,
                                     diagnostic_product=diagnostic_product,
-                                    default_path=outputdir, rebuild=rebuild)
+                                    outputdir=outputdir, rebuild=rebuild, extra_keys={'var':'net_toa', 'freq':'annual', 'std':'std'})
             if 'monthly' in freq:
-                diagnostic_product = 'net_toa.monthly'
-                super().save_netcdf(data=self.net_toa_monthly, diagnostic=diagnostic,
+                super().save_netcdf(data=self.net_toa_monthly, diagnostic=self.diagnostic_name,
                                     diagnostic_product=diagnostic_product,
-                                    default_path=outputdir, rebuild=rebuild)
+                                    outputdir=outputdir, rebuild=rebuild, extra_keys={'var':'net_toa', 'freq':'monthly'})
             if 'annual' in freq:
-                diagnostic_product = 'net_toa.annual'
-                super().save_netcdf(data=self.net_toa_annual, diagnostic=diagnostic,
+                super().save_netcdf(data=self.net_toa_annual, diagnostic=self.diagnostic_name,
                                     diagnostic_product=diagnostic_product,
-                                    default_path=outputdir, rebuild=rebuild)
+                                    outputdir=outputdir, rebuild=rebuild, extra_keys={'var':'net_toa', 'freq':'annual'})
