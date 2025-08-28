@@ -117,7 +117,7 @@ if __name__ == '__main__':
                                                 'std_startdate': var_config.get('std_startdate'),
                                                 'std_enddate': var_config.get('std_enddate'),
                                                 'regrid': regrid if regrid is not None else reference.get('regrid', None)}
-                                logger.warning(f"Reference args: {reference_args}")
+                                logger.info(f"Reference args: {reference_args}")
                                 ts_ref[i] = Timeseries(**init_args, **reference_args)
                                 ts_ref[i].run(**run_args, std=True)
 
