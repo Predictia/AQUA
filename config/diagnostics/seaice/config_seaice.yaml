@@ -12,7 +12,6 @@ datasets:
     exp: 'historical-1990'     # mandatory
     source: 'lra-r100-monthly' # mandatory
     regrid: null               # if the diagnostic supports it
-    freq: null                 # time frequency (monthly, annual, etc.)
     varname:
       extent: 'siconc'
       volume: 'sithick'
@@ -23,19 +22,21 @@ datasets:
 references:
   # ---- Extent in NH ----
   - &ref_osi_nh
-    catalog: 'obs'       # mandatory
-    model: 'OSI-SAF'     # mandatory
-    exp: 'osi-450'       # mandatory
-    source: 'nh-monthly' # mandatory
+    catalog: 'obs'             # mandatory
+    model: 'OSI-SAF'           # mandatory
+    exp: 'osi-450'             # mandatory
+    source: 'nh-monthly'       # mandatory
     regrid: 'r100'
+    domain: "nh"
 
   # ---- Extent in SH ----
   - &ref_osi_sh
-    catalog: 'obs'       # mandatory
-    model: 'OSI-SAF'     # mandatory
-    exp: 'osi-450'       # mandatory
-    source: 'sh-monthly' # mandatory
-    regrid: 'r100' 
+    catalog: 'obs'             # mandatory
+    model: 'OSI-SAF'           # mandatory
+    exp: 'osi-450'             # mandatory
+    source: 'sh-monthly'       # mandatory
+    regrid: 'r100'
+    domain: "sh"
 
   # ---- Volume in NH ----
   - &ref_psc_nh
@@ -44,6 +45,7 @@ references:
     exp: 'PIOMAS'
     source: 'monthly'
     regrid: 'r100'
+    domain: "nh"
 
   # ---- Volume in SH ----
   - &ref_psc_sh
@@ -52,6 +54,7 @@ references:
     exp: 'GIOMAS'
     source: 'monthly'
     regrid: 'r100'
+    domain: "sh"
 
 # =======  Setup Configuration  =======
 setup:
@@ -86,26 +89,22 @@ diagnostics:
     references:
     # -- OSI-SAF for "extent" in NH --
     - <<: *ref_osi_nh
-      domain: "nh"
       # might be useful to add a key that allow to use a certain dataset only for a specific method
       use_for_method: "extent"
       varname: "siconc"
   
     # -- OSI-SAF for "extent" in SH --
     - <<: *ref_osi_sh
-      domain: "sh"
       use_for_method: "extent"
       varname: "siconc"
   
     # -- PSC for "volume" in NH --
     - <<: *ref_psc_nh
-      domain: "nh"
       use_for_method: "volume"
       varname: "sivol"
   
     # -- PSC for "volume" in SH --
     - <<: *ref_psc_sh
-      domain: "sh"
       use_for_method: "volume"
       varname: "sivol"
 
@@ -115,9 +114,7 @@ diagnostics:
   # If you need specific options, you can add it here.
   seaice_seasonal_cycle:
     run: true
-    # List of methods to plot.
     methods: ["extent", "volume"]
-    # List of regions to plot. The default regions are defined in config/diagnostics/seaice
     regions: ['arctic','antarctic']
     startdate: '1991-01-01'
     enddate: '2000-01-01'
@@ -128,7 +125,6 @@ diagnostics:
     references:
     # -- OSI-SAF for "extent" in NH --
     - <<: *ref_osi_nh
-      domain: "nh"
       # might be useful to add a key that allow to use a 
       # certain dataset only for a specific method
       use_for_method: "extent"
@@ -136,19 +132,16 @@ diagnostics:
       
     # -- OSI-SAF for "extent" in SH --
     - <<: *ref_osi_sh
-      domain: "sh"
       use_for_method: "extent"
       varname: "siconc"
   
     # -- PSC for "volume" in NH --
     - <<: *ref_psc_nh
-      domain: "nh"
       use_for_method: "volume"
       varname: "sivol"
   
     # -- PSC for "volume" in SH --
     - <<: *ref_psc_sh
-      domain: "sh"
       use_for_method: "volume"
       varname: "sivol"
   
@@ -158,9 +151,7 @@ diagnostics:
   # If you need specific options, you can add it here.
   seaice_2d_bias:
     run: true
-    # List of methods to plot.
     methods: ["fraction", "thickness"]
-    # List of regions to plot. The default regions are defined in config/diagnostics/seaice
     regions: ['arctic','antarctic']
     startdate: '1991-01-01'
     enddate: '1999-12-31'
@@ -186,25 +177,21 @@ diagnostics:
     references:
     # -- OSI-SAF for fraction in NH --
     - <<: *ref_osi_nh
-      domain: "nh"
       # key that allow to use a certain dataset only for a specific method
       use_for_method: "fraction"
       varname: "siconc"
   
     # -- OSI-SAF for fraction in SH --
     - <<: *ref_osi_sh
-      domain: "sh"
       use_for_method: "fraction"
       varname: "siconc"
   
     # -- PSC for thickness in NH --
     - <<: *ref_psc_nh
-      domain: "nh"
       use_for_method: "thickness"
       varname: "sivol"
   
     # -- PSC for thickness in SH --
     - <<: *ref_psc_sh
-      domain: "sh"
       use_for_method: "thickness"
       varname: "sivol"
