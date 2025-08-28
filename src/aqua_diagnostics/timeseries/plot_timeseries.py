@@ -148,8 +148,7 @@ class PlotTimeseries(PlotBaseMixin):
         Returns:
             title (str): Title for the plot.
         """
-        title = super().set_title(diagnostic='Time series')
-        return title
+        return super().set_title(diagnostic='Time series')
 
     def set_description(self):
         """
@@ -161,8 +160,7 @@ class PlotTimeseries(PlotBaseMixin):
         Returns:
             description (str): Caption for the plot.
         """
-        description = super().set_description(diagnostic='Time series')
-        return description
+        return super().set_description(diagnostic='Time series')
 
     def plot_timeseries(self, data_labels=None, ref_label=None, title=None):
         """
