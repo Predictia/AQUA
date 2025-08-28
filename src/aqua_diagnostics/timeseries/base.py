@@ -279,6 +279,7 @@ class PlotBaseMixin():
         self.diagnostic_name = diagnostic_name
         log_name = 'Plot' + diagnostic_name.capitalize()
         self.logger = log_configure(log_level=loglevel, log_name=log_name)
+        # All these will be filled by the get_data_info() methods
         self.catalogs = None
         self.models = None
         self.exps = None
@@ -288,6 +289,9 @@ class PlotBaseMixin():
         self.std_startdate = None
         self.std_enddate = None
         self.region = None
+        self.standard_name = None
+        self.long_name = None
+        self.units = None
 
     def set_data_labels(self):
         """
