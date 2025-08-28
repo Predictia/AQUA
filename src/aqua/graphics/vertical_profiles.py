@@ -11,7 +11,7 @@ def plot_vertical_profile(data: xr.DataArray, var: str,
                          vmin: Optional[float] = None, vmax: Optional[float] = None, 
                          nlevels: Optional[int] = 18,  
                          title: Optional[str] = None, style: Optional[str] = None,
-                         return_fig: bool = False, 
+                         return_fig: bool = False, figsize: Optional[tuple] = (10, 8),
                          loglevel='WARNING',  **kwargs):
     """
     Plots a zonal mean vertical profile 
@@ -26,6 +26,7 @@ def plot_vertical_profile(data: xr.DataArray, var: str,
         nlevels (int, optional): Number of contour levels for the plot.
         title (str, optional): Title of the plot.
         return_fig (bool, optional): If True, returns the figure and axis objects. Defaults to False.
+        figsize (tuple, optional): Figure size. Defaults to (10, 8).
         style (str, optional): Style to use. Defaults to None (aqua style).
     """
 
@@ -52,7 +53,7 @@ def plot_vertical_profile(data: xr.DataArray, var: str,
 
     levels = np.linspace(vmin, vmax, nlevels)
 
-    fig, ax = plt.subplots(figsize=(10, 8))
+    fig, ax = plt.subplots(figsize=figsize)
     cax = ax.contourf(
         zonal_mean['lat'], zonal_mean['plev'], zonal_mean,
         cmap='RdBu_r', levels=levels, extend='both'
@@ -102,6 +103,7 @@ def plot_vertical_profile_diff(data: xr.DataArray, data_ref: xr.DataArray,
     """
 
     logger = log_configure(loglevel, 'plot_vertical_profile')
+    ConfigStyle(style=style, loglevel=loglevel)
 
     # Evaluate the difference
     diff = data - data_ref
@@ -126,7 +128,7 @@ def plot_vertical_profile_diff(data: xr.DataArray, data_ref: xr.DataArray,
 
     levels = np.linspace(vmin, vmax, nlevels)
 
-    fig, ax = plt.subplots(figsize=(10, 8))
+    fig, ax = plt.subplots(figsize=kwargs.get('figsize', (10, 8)))
     cax = ax.contourf(
         zonal_mean['lat'], zonal_mean['plev'], zonal_mean,
         cmap='RdBu_r', levels=levels, extend='both'
