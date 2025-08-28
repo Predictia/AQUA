@@ -2,7 +2,6 @@ import xarray as xr
 import matplotlib.pyplot as plt
 
 from aqua.logger import log_configure
-from aqua.util import clean_std
 from .styles import ConfigStyle
 from .lat_lon_profiles import plot_lat_lon_profiles
 
@@ -61,13 +60,25 @@ def plot_seasonal_lat_lon_profiles(maps,
     
     # Validate std_maps if provided
     if std_maps is not None:
-        std_maps = [clean_std(std_map) for std_map in std_maps]
+        computed_std_maps = []
+        for s in std_maps:
+            if s is not None and hasattr(s, 'compute'):
+                computed_std_maps.append(s.compute())
+            else:
+                computed_std_maps.append(s)
+        std_maps = computed_std_maps
     else:
         std_maps = [None] * 4
 
     # Validate ref_std_maps if provided
     if ref_std_maps is not None:
-        ref_std_maps = [clean_std(ref_std_map) for ref_std_map in ref_std_maps if ref_std_map is not None]
+        computed_ref_std_maps = []
+        for s in ref_std_maps:
+            if s is not None and hasattr(s, 'compute'):
+                computed_ref_std_maps.append(s.compute())
+            else:
+                computed_ref_std_maps.append(s)
+        ref_std_maps = computed_ref_std_maps
     else:
         ref_std_maps = [None]
 

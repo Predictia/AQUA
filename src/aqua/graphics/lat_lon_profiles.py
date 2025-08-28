@@ -86,9 +86,16 @@ def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
 
     # Plot standard deviation for main data
     if std_data is not None:
-        if not isinstance(std_data, list) or any(hasattr(s, 'compute') for s in std_data if s is not None):
-            std_data = clean_std(std_data)
         std_data_list = to_list(std_data)
+        
+        computed_std_data = []
+        for s in std_data_list:
+            if s is not None and hasattr(s, 'compute'):
+                computed_std_data.append(s.compute())
+            else:
+                computed_std_data.append(s)
+        std_data_list = computed_std_data
+
         for i, (d, std_d) in enumerate(zip(data_list, std_data_list)):
             if std_d is not None:
                 coord_name = coord_names(d, return_single=True, prefer_lat=True)
@@ -126,7 +133,7 @@ def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
             # Plot reference std if available
             if ref_std_data is not None:
                 if hasattr(ref_std_data, 'compute'):
-                    ref_std_data = clean_std(ref_std_data)
+                    ref_std_data = ref_std_data.compute()
                 ax.fill_between(ref_x_coord,
                             ref_data.values - 2.*ref_std_data.values,
                             ref_data.values + 2.*ref_std_data.values,
