@@ -135,14 +135,14 @@ if __name__ == '__main__':
                             data_label = plot_ts.set_data_labels()
                             ref_label = plot_ts.set_ref_label()
                             description = plot_ts.set_description()
-                            title = plot_ts.set_title(var=var, units=var_config.get('units'))
+                            title = plot_ts.set_title()
                             fig, _ = plot_ts.plot_timeseries(data_labels=data_label, ref_label=ref_label, title=title)
 
                             if save_pdf:
-                                plot_ts.save_plot(fig, var=var, description=description, region=region, outputdir=outputdir,
+                                plot_ts.save_plot(fig, description=description, outputdir=outputdir,
                                                 dpi=dpi, rebuild=rebuild, format='pdf')
                             if save_png:
-                                plot_ts.save_plot(fig, var=var, description=description, region=region, outputdir=outputdir,
+                                plot_ts.save_plot(fig, description=description, outputdir=outputdir,
                                                 dpi=dpi, rebuild=rebuild, format='png')
                     except Exception as e:
                         logger.error(f"Error running Timeseries diagnostic for variable {var} in region {region if region else 'global'}: {e}")
@@ -208,14 +208,14 @@ if __name__ == '__main__':
                             data_label = plot_ts.set_data_labels()
                             ref_label = plot_ts.set_ref_label()
                             description = plot_ts.set_description()
-                            title = plot_ts.set_title(var=var, units=var_config.get('units'))
+                            title = plot_ts.set_title()
                             fig, _ = plot_ts.plot_timeseries(data_labels=data_label, ref_label=ref_label, title=title)
 
                             if save_pdf:
-                                plot_ts.save_plot(fig, var=var, description=description, region=region, outputdir=outputdir,
+                                plot_ts.save_plot(fig, description=description, outputdir=outputdir,
                                                 dpi=dpi, rebuild=rebuild, format='pdf')
                             if save_png:
-                                plot_ts.save_plot(fig, var=var, description=description, region=region, outputdir=outputdir,
+                                plot_ts.save_plot(fig, description=description, outputdir=outputdir,
                                                 dpi=dpi, rebuild=rebuild, format='png')
                     except Exception as e:
                         logger.error(f"Error running Timeseries diagnostic for variable {var} in region {region if region else 'global'}: {e}")
@@ -281,14 +281,14 @@ if __name__ == '__main__':
                             data_label = plot_sc.set_data_labels()
                             ref_label = plot_sc.set_ref_label()
                             description = plot_sc.set_description()
-                            title = plot_sc.set_title(var=var, units=var_config.get('units'))
+                            title = plot_sc.set_title()
                             fig, _ = plot_sc.plot_seasonalcycles(data_labels=data_label, ref_label=ref_label, title=title)
 
                             if save_pdf:
-                                plot_sc.save_plot(fig, var=var, description=description, region=region, outputdir=outputdir,
+                                plot_sc.save_plot(fig, description=description, outputdir=outputdir,
                                                 dpi=dpi, rebuild=rebuild, format='pdf')
                             if save_png:
-                                plot_sc.save_plot(fig, var=var, description=description, region=region, outputdir=outputdir,
+                                plot_sc.save_plot(fig, description=description, outputdir=outputdir,
                                                 dpi=dpi, rebuild=rebuild, format='png')
                 except Exception as e:
                     logger.error(f"Error running SeasonalCycles diagnostic for variable {var} in region {region if region else 'global'}: {e}")
