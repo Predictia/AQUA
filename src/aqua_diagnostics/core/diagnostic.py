@@ -95,7 +95,7 @@ class Diagnostic():
                                   catalog=self.catalog, model=self.model, exp=self.exp,
                                   outputdir=outputdir, loglevel=self.logger.level)
 
-        outputsaver.save_netcdf(dataset=data, diagnostic_product=diagnostic_product, **kwargs)
+        outputsaver.save_netcdf(dataset=data, diagnostic_product=diagnostic_product, rebuild=rebuild,**kwargs)
 
     @staticmethod
     def _retrieve(model: str, exp: str, source: str, var: str = None, catalog: str = None,
