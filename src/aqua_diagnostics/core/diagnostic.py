@@ -5,28 +5,29 @@ from aqua.logger import log_configure
 from aqua.util import ConfigPath
 from aqua.util import load_yaml, convert_units
 from aqua.util import area_selection
+from aqua import DEFAULT_REALIZATION
 from .output_saver import OutputSaver
 
 
 class Diagnostic():
 
-    def __init__(self, catalog: str = None, model: str = None,
-                 exp: str = None, source: str = None, regrid: str = None,
-                 startdate: str = None, enddate: str = None, loglevel: str = 'WARNING'):
+    def __init__(self, model: str, exp: str, source: str,
+                 catalog: str | None = None, regrid: str | None = None,
+                 startdate: str | None = None, enddate: str | None = None, loglevel: str = 'WARNING'):
         """
         Initialize the diagnostic class. This is a general purpose class that can be used
         by the diagnostic classes to retrieve data from a single model and to save the data
         to a netcdf file. It is not a working diagnostic class by itself.
 
         Args:
-            catalog (str): The catalog to be used. If None, the catalog will be determined by the Reader.
             model (str): The model to be used.
             exp (str): The experiment to be used.
             source (str): The source to be used.
-            regrid (str): The target grid to be used for regridding. If None, no regridding will be done.
-            startdate (str): The start date of the data to be retrieved.
-                             If None, all available data will be retrieved.
-            enddate (str): The end date of the data to be retrieved.
+            catalog (str): The catalog to be used. If None, the catalog will be determined by the Reader.
+            regrid (str | None): The target grid to be used for regridding. If None, no regridding will be done.
+            startdate (str | None): The start date of the data to be retrieved.
+                        If None, all available data will be retrieved.
+            enddate (str | None): The end date of the data to be retrieved.
                            If None, all available data will be retrieved.
             loglevel (str): The log level to be used. Default is 'WARNING'.
         """
@@ -37,9 +38,6 @@ class Diagnostic():
         self.model = model
         self.exp = exp
         self.source = source
-
-        if self.model is None or self.exp is None or self.source is None:
-            raise ValueError('Model, experiment and source must be provided')
 
         self.regrid = regrid
         self.startdate = startdate
