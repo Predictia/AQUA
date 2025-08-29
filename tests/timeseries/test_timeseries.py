@@ -99,7 +99,7 @@ class TestTimeseries:
                         region=self.region, loglevel=loglevel, startdate='19940101', enddate='19941231',
                         regrid=self.regrid)
 
-        ts.retrieve(var='2*tcc', formula=True, standard_name='2tcc', long_name='2*Total Cloud Cover', units='%')
+        ts.retrieve(var='2*tcc', formula=True, short_name='2tcc', long_name='2*Total Cloud Cover', units='%')
 
         ts.compute(freq='monthly')
         assert ts.monthly.values[0] ==  pytest.approx(117.40372092960037, rel=approx_rel)
