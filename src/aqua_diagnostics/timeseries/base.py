@@ -183,7 +183,8 @@ class BaseMixin(Diagnostic):
             self.std_annual = data
 
     def save_netcdf(self, diagnostic_product: str, freq: str,
-                    outputdir: str = './', rebuild: bool = True):
+                    outputdir: str = './', rebuild: bool = True,
+                    create_catalog_entry: bool = False, dict_catalog_entry: dict = None):
         """
         Save the data to a netcdf file.
 
@@ -221,12 +222,14 @@ class BaseMixin(Diagnostic):
         self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
 
         super().save_netcdf(data=data, diagnostic=self.diagnostic_name, diagnostic_product=diagnostic_product,
-                            outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
+                            outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys,
+                            create_catalog_entry=create_catalog_entry, dict_catalog_entry=dict_catalog_entry)
         if data_std is not None:
             extra_keys.update({'std': 'std'})
             self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
             super().save_netcdf(data=data_std, diagnostic=self.diagnostic_name, diagnostic_product=diagnostic_product,
-                                outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
+                                outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys,
+                                create_catalog_entry=create_catalog_entry, dict_catalog_entry=dict_catalog_entry)
 
     def _check_data(self, var: str, units: str):
         """
