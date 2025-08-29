@@ -42,8 +42,6 @@ class TimStat():
 
         Returns:
             xarray.Dataset: Output data with the required statistic computed at the desired frequency.
-                For freq='seasonal', returns dataset with 4 time steps (one per season).
-                For freq='annual', returns dataset with climatological mean.
         """
         if stat not in self.AVAILABLE_STATS:
             raise KeyError(f'{stat} is not a statistic supported by AQUA')
