@@ -140,10 +140,3 @@ class CatalogEntryBuilder():
                 block['parameters'][name]['allowed'].append(value)
 
         return block
-
-    @staticmethod
-    def get_urlpath(block):
-        """
-        Get the urlpath for the catalog entry
-        """
-        return block['args']['urlpath']

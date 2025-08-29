@@ -10,7 +10,8 @@ import xarray as xr
 from matplotlib.figure import Figure
 from aqua.logger import log_configure, log_history
 from aqua.util import create_folder, add_pdf_metadata, add_png_metadata, update_metadata
-from aqua.util import dump_yaml, load_yaml, replace_intake_vars
+from aqua.util import dump_yaml, load_yaml
+from aqua.util import replace_intake_vars
 from aqua.util import ConfigPath
 
 DEFAULT_REALIZATION = 'r1'  # Default realization if not specified
@@ -526,10 +527,3 @@ class OutputSaver:
                 block['parameters'][name]['allowed'].append(value)
 
         return block
-
-    @staticmethod
-    def get_urlpath(block):
-        """
-        Get the urlpath for the catalog entry
-        """
-        return block['args']['urlpath']

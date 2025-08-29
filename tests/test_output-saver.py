@@ -164,7 +164,7 @@ def test_create_catalog_entry_new_entry(base_saver, tmp_path, monkeypatch):
     with patch('aqua.diagnostics.core.output_saver.ConfigPath', return_value=mock_config_path), \
          patch('aqua.diagnostics.core.output_saver.load_yaml', return_value=mock_catalog_file), \
          patch('aqua.diagnostics.core.output_saver.dump_yaml') as mock_dump_yaml, \
-         patch.object(base_saver, 'replace_intake_vars', return_value='/mocked/path/data.nc'):
+         patch('aqua.util.catalog_entry.replace_intake_vars', return_value='/mocked/path/data.nc'):
         
         (tmp_path / 'catalogs' / 'lumi-phase2' / 'catalog' / 'IFS-NEMO').mkdir(parents=True, exist_ok=True)
         
@@ -190,7 +190,7 @@ def test_create_catalog_entry_existing_entry(base_saver, tmp_path, monkeypatch):
     with patch('aqua.diagnostics.core.output_saver.ConfigPath', return_value=mock_config_path), \
          patch('aqua.diagnostics.core.output_saver.load_yaml', return_value=mock_catalog_file), \
          patch('aqua.diagnostics.core.output_saver.dump_yaml') as mock_dump_yaml, \
-         patch.object(base_saver, 'replace_intake_vars', return_value='/new/path/data.nc'):
+         patch('aqua.util.catalog_entry.replace_intake_vars', return_value='/new/path/data.nc'):
         
         (tmp_path / 'catalogs' / 'lumi-phase2' / 'catalog' / 'IFS-NEMO').mkdir(parents=True, exist_ok=True)
         
@@ -212,10 +212,10 @@ def test_create_catalog_entry_with_variables(base_saver, tmp_path, monkeypatch):
     with patch('aqua.diagnostics.core.output_saver.ConfigPath', return_value=mock_config_path), \
          patch('aqua.diagnostics.core.output_saver.load_yaml', return_value=mock_catalog_file), \
          patch('aqua.diagnostics.core.output_saver.dump_yaml') as mock_dump_yaml, \
-         patch.object(base_saver, 'replace_intake_vars', return_value='/mocked/path/data.nc'), \
          patch.object(base_saver, 'replace_urlpath_jinja') as mock_replace_jinja, \
-         patch.object(base_saver, 'replace_urlpath_wildcard') as mock_replace_wildcard:
-        
+         patch.object(base_saver, 'replace_urlpath_wildcard') as mock_replace_wildcard, \
+         patch('aqua.util.catalog_entry.replace_intake_vars', return_value='/mocked/path/data.nc'):
+
         (tmp_path / 'catalogs' / 'lumi-phase2' / 'catalog' / 'IFS-NEMO').mkdir(parents=True, exist_ok=True)
         
         metadata = {'diagnostic_product': 'mean', 'region': 'global', 'realization': 'r1'}
@@ -227,7 +227,7 @@ def test_create_catalog_entry_with_variables(base_saver, tmp_path, monkeypatch):
                                           'metadata': {'source_grid_name': False}}
         mock_replace_wildcard.return_value = mock_replace_jinja.return_value
         
-        result = base_saver._create_catalog_entry(filepath, metadata, 
+        _ = base_saver._create_catalog_entry(filepath, metadata, 
                                                 jinjalist=['region'], wildcardlist=['realization'])
         # Verify replacements were called
         assert mock_replace_jinja.call_count == 1
@@ -245,8 +245,8 @@ def test_create_catalog_entry_edge_cases(base_saver, tmp_path, monkeypatch):
     with patch('aqua.diagnostics.core.output_saver.ConfigPath', return_value=mock_config_path), \
          patch('aqua.diagnostics.core.output_saver.load_yaml', return_value=mock_catalog_file), \
          patch('aqua.diagnostics.core.output_saver.dump_yaml') as mock_dump_yaml, \
-         patch.object(base_saver, 'replace_intake_vars', return_value='/mocked/path/data.nc'):
-        
+         patch('aqua.util.catalog_entry.replace_intake_vars', return_value='/mocked/path/data.nc'):
+
         (tmp_path / 'catalogs' / 'lumi-phase2' / 'catalog' / 'IFS-NEMO').mkdir(parents=True, exist_ok=True)
         
         # Test None metadata values
@@ -306,12 +306,6 @@ def test_replace_urlpath_jinja():
     block = {'args': {'urlpath': 'dummy.nc'}}
     result = OutputSaver.replace_urlpath_jinja(block, 'dummy', 'diagnostic', 'dummy')
     assert result['args']['urlpath'] == '{{diagnostic}}.nc'
-
-@pytest.mark.aqua
-def test_get_urlpath():
-    """Test simple URL path getter."""
-    block = {'args': {'urlpath': '/test/path.nc'}}
-    assert OutputSaver.get_urlpath(block) == '/test/path.nc'
 
 @pytest.mark.aqua
 def test_core_save(base_saver, tmp_path):
