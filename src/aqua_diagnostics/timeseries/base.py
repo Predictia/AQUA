@@ -187,7 +187,7 @@ class BaseMixin(Diagnostic):
     def save_netcdf(self, diagnostic_product: str, freq: str,
                     outputdir: str = './', rebuild: bool = True,
                     create_catalog_entry: bool = False,
-                    dict_catalog_entry: dict = {'jinjalist': ['freq', 'realization'],
+                    dict_catalog_entry: dict = {'jinjalist': ['freq', 'realization', 'region'],
                                                 'wildcardlist': ['var']}):
         """
         Save the data to a netcdf file.
