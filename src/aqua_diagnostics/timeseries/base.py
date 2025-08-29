@@ -76,7 +76,7 @@ class BaseMixin(Diagnostic):
         self.std_annual = None
 
     def retrieve(self, var: str, formula: bool = False, long_name: str = None,
-                 units: str = None, standard_name: str = None, reader_kwargs: dict = {}):
+                 units: str = None, short_name: str = None, reader_kwargs: dict = {}):
         """
         Retrieve the data for the given variable.
 
@@ -85,7 +85,7 @@ class BaseMixin(Diagnostic):
             formula (bool): If True, the variable is a formula.
             long_name (str): The long name of the variable, if different from the variable name.
             units (str): The units of the variable, if different from the original units.
-            standard_name (str): The standard name of the variable, if different from the variable name.
+            short_name (str): The short name of the variable, if different from the variable name.
             reader_kwargs (dict): Additional keyword arguments for the Reader. Default is an empty dictionary.
         """
         # If the user requires a formula the evaluation requires the retrieval
@@ -94,7 +94,7 @@ class BaseMixin(Diagnostic):
             super().retrieve(reader_kwargs=reader_kwargs)
             self.logger.debug("Evaluating formula %s", var)
             self.data = EvaluateFormula(data=self.data, formula=var, long_name=long_name,
-                                        short_name=standard_name, units=units,
+                                        short_name=short_name, units=units,
                                         loglevel=self.loglevel).evaluate()
             if self.data is None:
                 raise ValueError(f'Error evaluating formula {var}. '
@@ -122,13 +122,13 @@ class BaseMixin(Diagnostic):
         # We want to be sure that a long_name is always defined for description setup
         elif self.data.attrs.get('long_name') is None:
             self.data.attrs['long_name'] = var
-        # We use the standard_name as the name of the variable
+        # We use the short_name as the name of the variable
         # to be always used in plots
-        if standard_name is not None:
-            self.data.attrs['standard_name'] = standard_name
-            self.data.name = standard_name
+        if short_name is not None:
+            self.data.attrs['short_name'] = short_name
+            self.data.name = short_name
         else:
-            self.data.attrs['standard_name'] = var
+            self.data.attrs['short_name'] = var
 
     def compute_std(self, freq: str, exclude_incomplete: bool = True, center_time: bool = True,
                     box_brd: bool = True):
@@ -210,7 +210,7 @@ class BaseMixin(Diagnostic):
             data = self.annual if self.annual is not None else self.logger.error('No annual data available')
             data_std = self.std_annual if self.std_annual is not None else None
 
-        var = getattr(data, 'standard_name', None)
+        var = getattr(data, 'short_name', None)
         extra_keys = {'var': var, 'freq': str_freq}
         
         if data.name is None:
@@ -288,7 +288,7 @@ class PlotBaseMixin():
         self.std_startdate = None
         self.std_enddate = None
         self.region = None
-        self.standard_name = None
+        self.short_name = None
         self.long_name = None
         self.units = None
 
@@ -332,7 +332,7 @@ class PlotBaseMixin():
 
     def set_title(self, diagnostic: str = None):
         """
-        Set the title for the plot. Uses standard_name, long_name, and units attributes.
+        Set the title for the plot. Uses short_name, long_name, and units attributes.
 
         Args:
             diagnostic (str): Diagnostic name to be used in the title.
@@ -341,8 +341,8 @@ class PlotBaseMixin():
             title (str): Title for the plot.
         """
         title = f'{diagnostic} '
-        if self.standard_name is not None:
-            title += f'for {self.standard_name} '
+        if self.short_name is not None:
+            title += f'for {self.short_name} '
 
         if self.units is not None:
             title += f'[{self.units}] '
@@ -427,8 +427,8 @@ class PlotBaseMixin():
         metadata = {"Description": description, "dpi": dpi }
         extra_keys = {'diagnostic_product': diagnostic_product}
 
-        if self.standard_name is not None:
-            extra_keys.update({'var': self.standard_name})
+        if self.short_name is not None:
+            extra_keys.update({'var': self.short_name})
         if self.region is not None:
             region = self.region.replace(' ', '').lower()
             extra_keys.update({'region': region})

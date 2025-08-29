@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
                         init_args = {'region': region, 'loglevel': loglevel, 'diagnostic_name': diagnostic_name}
                         run_args = {'var': var, 'formula': False, 'long_name': var_config.get('long_name'),
-                                    'units': var_config.get('units'), 'standard_name': var_config.get('standard_name'),
+                                    'units': var_config.get('units'), 'short_name': var_config.get('short_name'),
                                     'freq': var_config.get('freq'), 'outputdir': outputdir, 'rebuild': rebuild,
                                     'center_time': center_time, 'reader_kwargs': reader_kwargs}
 
@@ -160,7 +160,7 @@ if __name__ == '__main__':
 
                         init_args = {'region': region, 'loglevel': loglevel, 'diagnostic_name': diagnostic_name}
                         run_args = {'var': var, 'formula': True, 'long_name': var_config.get('long_name'),
-                                    'units': var_config.get('units'), 'standard_name': var_config.get('standard_name'),
+                                    'units': var_config.get('units'), 'short_name': var_config.get('short_name'),
                                     'freq': var_config.get('freq'), 'outputdir': outputdir, 'rebuild': rebuild,
                                     'center_time': center_time, 'reader_kwargs': reader_kwargs}
 
@@ -237,7 +237,7 @@ if __name__ == '__main__':
 
                         init_args = {'region': region, 'loglevel': loglevel, 'diagnostic_name': diagnostic_name}
                         run_args = {'var': var, 'formula': False, 'long_name': var_config.get('long_name'),
-                                    'units': var_config.get('units'), 'standard_name': var_config.get('standard_name'),
+                                    'units': var_config.get('units'), 'short_name': var_config.get('short_name'),
                                     'outputdir': outputdir, 'rebuild': rebuild, 'reader_kwargs': reader_kwargs}
 
                         # Initialize a list of len from the number of datasets

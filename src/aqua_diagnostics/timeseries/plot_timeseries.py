@@ -104,7 +104,7 @@ class PlotTimeseries(PlotBaseMixin):
         - AQUA_region
         - std_startdate
         - std_enddate
-        - standard_name
+        - short_name
         - long_name
         - units
         """
@@ -116,7 +116,7 @@ class PlotTimeseries(PlotBaseMixin):
                 self.exps = [d.AQUA_exp for d in data]
                 # We expect all data arrays to have the same region
                 self.region = data[0].AQUA_region if hasattr(data[0], 'AQUA_region') else None
-                self.standard_name = data[0].standard_name if hasattr(data[0], 'standard_name') else None
+                self.short_name = data[0].short_name if hasattr(data[0], 'short_name') else None
                 self.long_name = data[0].long_name if hasattr(data[0], 'long_name') else None
                 self.units = data[0].units if hasattr(data[0], 'units') else None
                 break
