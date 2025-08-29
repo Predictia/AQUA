@@ -259,22 +259,7 @@ def coord_names(data: xr.DataArray, return_single: bool = False, prefer_lat: boo
             lat_name = lat_candidate
             break
     
-    if return_single:
-        if prefer_lat and lat_name is not None:
-            return lat_name
-        elif lon_name is not None:
-            return lon_name
-        elif lat_name is not None:
-            return lat_name
-        else:
-            return None
-    else:
-        # Backward compatibility: raise error if coordinates not found
-        if lon_name is None:
-            raise AttributeError("No longitude coordinate found")
-        if lat_name is None:
-            raise AttributeError("No latitude coordinate found")
-        return lon_name, lat_name
+    return lon_name, lat_name
 
 
 def ticks_round(ticks: list, round_to: int = None):

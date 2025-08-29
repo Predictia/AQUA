@@ -24,7 +24,7 @@ class TimStat():
         return ['mean', 'std', 'max', 'min', 'sum']
 
     def timstat(self, data, stat='mean', freq=None, exclude_incomplete=False,
-        time_bounds=False, center_time=False):
+                time_bounds=False, center_time=False):
         """
         Compute a time statistic on the input data. The statistic is computed over a time window defined by the frequency
         parameter. The frequency can be a string (e.g. '1D', '1M', '1Y') or a pandas frequency object. The statistic can be

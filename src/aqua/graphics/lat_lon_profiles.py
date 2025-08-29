@@ -74,8 +74,10 @@ def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
 
     # Plot
     for i, d in enumerate(data_list):
-        # Determine coordinate name based on 'lat' or 'lon' - FIX: add None default
-        coord_name = coord_names(d, return_single=True, prefer_lat=True)
+        # Determine coordinate name based on 'lat' or 'lon'
+        lon_name, lat_name = coord_names(d)
+        coord_name = lat_name if lat_name is not None else lon_name
+
         if coord_name is None:
             logger.warning(f"Data {i} has no spatial coordinates, skipping")
             continue
@@ -98,7 +100,8 @@ def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
 
         for i, (d, std_d) in enumerate(zip(data_list, std_data_list)):
             if std_d is not None:
-                coord_name = coord_names(d, return_single=True, prefer_lat=True)
+                lon_name, lat_name = coord_names(d)
+                coord_name = lat_name if lat_name is not None else lon_name
                 if coord_name is None:
                     continue
 
@@ -120,7 +123,8 @@ def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
             ref_label_final = ref_label or ref_data.attrs.get("long_name", "Reference")
         
         # Find coordinate for ref_data
-        coord_name = coord_names(ref_data, return_single=True, prefer_lat=True)
+        lon_name, lat_name = coord_names(d)
+        coord_name = lat_name if lat_name is not None else lon_name
         
         if coord_name is not None:
             ref_x_coord = ref_data[coord_name].values
@@ -145,7 +149,8 @@ def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
 
     # Set x-label based on the first valid coordinate found
     first_data = data_list[0]
-    coord_name = coord_names(first_data, return_single=True, prefer_lat=True)
+    lon_name, lat_name = coord_names(d)
+    coord_name = lat_name if lat_name is not None else lon_name
 
     if coord_name and 'lat' in coord_name:
         ax.set_xlabel('Latitude')
