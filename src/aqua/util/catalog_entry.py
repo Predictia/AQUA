@@ -26,7 +26,7 @@ def replace_intake_vars(path: str, catalog: str | None = None) -> str:
     return path
 
 
-def replace_urlpath_jinja(block: dict, value: str, name: str, diagnostic: str | None = None) -> dict:
+def replace_urlpath_jinja(block: dict, value: str, name: str) -> dict:
     """
     Replace the urlpath in the catalog entry with the given jinja parameter and
     add the parameter to the parameters block
@@ -36,19 +36,12 @@ def replace_urlpath_jinja(block: dict, value: str, name: str, diagnostic: str | 
         value (str): The value to replace in the urlpath (e.g., 'r1', 'global', 'mean')
         name (str): The name of the parameter to add to the parameters block
                     and to be used in the urlpath (e.g., 'realization', 'region', 'stat')
-        diagnostic (str | None): The diagnostic name (e.g., 'timeseries', etc.)
-                                 to be used in the description if provided
 
     Returns:
         dict: The updated catalog entry block
     """
     if not value:
         return block
-
-    # this conditional is a bit tricky but is made to ensure that the right value is replaced
-    # if name == 'diagnostic':
-    #         block['args']['urlpath'] = block['args']['urlpath'].replace(
-    #             value + '.',  "{{" + name + "}}" + '.')
 
     # this loop is a bit tricky but is made to ensure that the right value is replaced
     for character in ['_', '/', '.']:
@@ -58,7 +51,7 @@ def replace_urlpath_jinja(block: dict, value: str, name: str, diagnostic: str | 
         block['parameters'] = {}
     if name not in block['parameters']:
         block['parameters'][name] = {}
-        block['parameters'][name]['description'] = f"Parameter {name} for the {diagnostic}" if diagnostic else f"Parameter {name}"
+        block['parameters'][name]['description'] = f"Parameter {name}"
         block['parameters'][name]['default'] = value
         block['parameters'][name]['type'] = 'str'
         block['parameters'][name]['allowed'] = [value]
