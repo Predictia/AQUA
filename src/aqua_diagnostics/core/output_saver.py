@@ -10,7 +10,7 @@ import xarray as xr
 from matplotlib.figure import Figure
 from aqua.logger import log_configure, log_history
 from aqua.util import create_folder, add_pdf_metadata, add_png_metadata, update_metadata
-from aqua.util import dump_yaml, load_yaml
+from aqua.util import dump_yaml, load_yaml, replace_intake_vars
 from aqua.util import ConfigPath
 
 DEFAULT_REALIZATION = 'r1'  # Default realization if not specified
@@ -407,7 +407,7 @@ class OutputSaver:
         catalogfile = os.path.join(configdir, 'catalogs', self.catalog, 'catalog', self.model, self.exp + '.yaml')
         cat_file = load_yaml(catalogfile)
         # Remove None values
-        urlpath = self.replace_intake_vars(catalog=self.catalog, path=filepath)
+        urlpath = replace_intake_vars(catalog=self.catalog, path=filepath)
         
         entry_name = f'aqua-{self.diagnostic}-{metadata.get("diagnostic_product")}'
         if entry_name in cat_file['sources']:
@@ -533,26 +533,3 @@ class OutputSaver:
         Get the urlpath for the catalog entry
         """
         return block['args']['urlpath']
-
-    @staticmethod
-    def replace_intake_vars(path, catalog=None):
-        """
-        Replace the intake jinja vars into a string for a predefined catalog
-
-        Args:
-            catalog:  the catalog name where the intake vars must be read
-            path: the original path that you want to update with the intake variables
-        """
-
-        # We exploit of configurerto get info on intake_vars so that we can replace them in the urlpath
-        Configurer = ConfigPath(catalog=catalog)
-        _, intake_vars = Configurer.get_machine_info()
-        
-        # loop on available intake_vars, replace them in the urlpath
-        for name in intake_vars.keys():
-            replacepath = intake_vars[name]
-            if replacepath is not None and replacepath in path:
-                # quotes used to ensure that then you can read the source
-                path = path.replace(replacepath, "{{ " + name + " }}")
-
-        return path
