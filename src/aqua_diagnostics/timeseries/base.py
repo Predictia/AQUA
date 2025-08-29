@@ -186,7 +186,9 @@ class BaseMixin(Diagnostic):
 
     def save_netcdf(self, diagnostic_product: str, freq: str,
                     outputdir: str = './', rebuild: bool = True,
-                    create_catalog_entry: bool = False, dict_catalog_entry: dict = None):
+                    create_catalog_entry: bool = False,
+                    dict_catalog_entry: dict = {'jinjalist': ['freq', 'region', 'realization'],
+                                                'wildcardlist': ['var']}):
         """
         Save the data to a netcdf file.
 
@@ -195,6 +197,8 @@ class BaseMixin(Diagnostic):
             freq (str): The frequency of the data.
             outputdir (str): The directory to save the data.
             rebuild (bool): If True, rebuild the data from the original files.
+            create_catalog_entry (bool): If True, create a catalog entry for the data. Default is False.
+            dict_catalog_entry (dict): A dictionary with catalog entry information. Default is {'jinjalist': ['freq', 'region', 'realization'], 'wildcardlist': ['var']}.
         """
         str_freq = self._str_freq(freq)
 
