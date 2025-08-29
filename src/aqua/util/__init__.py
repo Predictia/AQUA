@@ -1,6 +1,6 @@
 """Utilities module"""
 
-from .catalog_entry import replace_intake_vars
+from .catalog_entry import replace_intake_vars, replace_urlpath_jinja
 from .config import ConfigPath
 from .eccodes import get_eccodes_attr
 from .units import normalize_units, convert_units, convert_data_units
@@ -22,7 +22,7 @@ from .time import check_chunk_completeness, frequency_string_to_pandas
 from .time import time_to_string, int_month_name
 from .zarr import create_zarr_reference
 
-__all__ = ['replace_intake_vars',
+__all__ = ['replace_intake_vars', 'replace_urlpath_jinja',
            'ConfigPath',
            'get_eccodes_attr',
            'normalize_units', 'convert_units', 'convert_data_units',
