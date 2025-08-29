@@ -397,7 +397,7 @@ class OutputSaver:
             # if the entry is not there, define the block to be uploaded into the catalog
             catblock = {
                 'driver': 'netcdf',
-                'description': f'AQUA {self.diagnostic} data for {metadata.get("diagnostic_product")}',
+                'description': f'AQUA diagnostic {self.diagnostic} data for product {metadata.get("diagnostic_product")}',
                 'args': {
                     'urlpath': urlpath,
                     'chunks': {},
