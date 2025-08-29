@@ -35,7 +35,6 @@ class TimStat():
             data (xarray.Dataset): Input data to compute the statistic on.
             stat (str): Statistic to compute. Can be 'mean', 'std', 'max', 'min'.
             freq (str): Frequency to resample the data to. Can be a string (e.g. '1D', '1M', '1Y') or a pandas frequency object.
-                Special values: 'seasonal' (for seasonal means), 'annual' (for annual climatological mean).
             exclude_incomplete (bool): If True, exclude incomplete chunks from the output.
             time_bounds (bool): If True, add time bounds to the output data.
             center_time (bool): If True, center the time axis of the output data.
@@ -46,14 +45,6 @@ class TimStat():
         if stat not in self.AVAILABLE_STATS:
             raise KeyError(f'{stat} is not a statistic supported by AQUA')
 
-        # Handle special case for seasonal mean
-        if freq == 'seasonal':
-            return self.timstat(data, stat=stat, freq='Q-NOV', 
-                            exclude_incomplete=exclude_incomplete,
-                            time_bounds=time_bounds, 
-                            center_time=center_time)
-
-        # Continue with the existing logic for all other cases
         resample_freq = frequency_string_to_pandas(freq)
 
         # disabling all options if total averaging is selected
@@ -161,4 +152,3 @@ class TimStat():
                               pd.to_datetime(avg_data['time']) + offset)
         
         return avg_data
-
