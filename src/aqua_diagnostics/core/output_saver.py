@@ -376,8 +376,9 @@ class OutputSaver:
             jinjalist (list, optional): List of Jinja variables to replace in the URL path.
             wildcardlist (list, optional): List of wildcard variables to replace in the URL path.
 
+        Returns:
+            dict: The updated catalog entry block.
         """
-
         self.logger.info("Creating catalog entry for %s", filepath)
         configpath = ConfigPath(catalog=self.catalog)
         configdir = configpath.configdir
