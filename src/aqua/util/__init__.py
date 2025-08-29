@@ -1,5 +1,6 @@
 """Utilities module"""
 
+from .catalog_entry import replace_intake_vars
 from .config import ConfigPath
 from .eccodes import get_eccodes_attr
 from .units import normalize_units, convert_units, convert_data_units
@@ -21,7 +22,8 @@ from .time import check_chunk_completeness, frequency_string_to_pandas
 from .time import time_to_string, int_month_name
 from .zarr import create_zarr_reference
 
-__all__ = ['ConfigPath',
+__all__ = ['replace_intake_vars',
+           'ConfigPath',
            'get_eccodes_attr',
            'normalize_units', 'convert_units', 'convert_data_units',
            'add_cyclic_lon', 'plot_box', 'minmax_maps',
