@@ -228,8 +228,7 @@ class BaseMixin(Diagnostic):
             extra_keys.update({'std': 'std'})
             self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
             super().save_netcdf(data=data_std, diagnostic=self.diagnostic_name, diagnostic_product=diagnostic_product,
-                                outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys,
-                                create_catalog_entry=create_catalog_entry, dict_catalog_entry=dict_catalog_entry)
+                                outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
 
     def _check_data(self, var: str, units: str):
         """
