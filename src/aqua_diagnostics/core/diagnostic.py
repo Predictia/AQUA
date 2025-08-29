@@ -5,7 +5,7 @@ from aqua.logger import log_configure
 from aqua.util import ConfigPath
 from aqua.util import load_yaml, convert_units
 from aqua.util import area_selection
-from aqua import DEFAULT_REALIZATION
+from aqua.util import DEFAULT_REALIZATION
 from .output_saver import OutputSaver
 
 

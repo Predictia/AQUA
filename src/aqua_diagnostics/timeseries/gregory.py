@@ -4,7 +4,7 @@ from aqua.fixer import EvaluateFormula
 from aqua.logger import log_configure
 from aqua.util import convert_data_units
 from aqua.diagnostics.core import Diagnostic
-from aqua import DEFAULT_REALIZATION
+from aqua.util import DEFAULT_REALIZATION
 
 xr.set_options(keep_attrs=True)
 
