@@ -3,7 +3,7 @@
 from aqua.logger import log_configure
 from aqua.util import format_realization
 from .output_path_builder import OutputPathBuilder
-from .lra_util import replace_intake_vars
+from aqua.util import replace_intake_vars
 
 
 class CatalogEntryBuilder():
