@@ -11,6 +11,8 @@ from .fixer import Fixer
 from .accessor import AquaAccessor
 from .histogram import histogram
 
+DEFAULT_REALIZATION = 'r1'  # Default realization if not specified
+
 __all__ = ["plot_single_map", "plot_maps", "plot_single_map_diff", "plot_timeseries",
            "plot_hovmoller", "histogram",
            "LRAgenerator",

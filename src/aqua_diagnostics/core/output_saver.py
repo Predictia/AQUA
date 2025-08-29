@@ -13,8 +13,7 @@ from aqua.util import create_folder, add_pdf_metadata, add_png_metadata, update_
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import replace_intake_vars, replace_urlpath_jinja, replace_urlpath_wildcard
 from aqua.util import ConfigPath
-
-DEFAULT_REALIZATION = 'r1'  # Default realization if not specified
+from aqua import DEFAULT_REALIZATION
 
 
 class OutputSaver:
