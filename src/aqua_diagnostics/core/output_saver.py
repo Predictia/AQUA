@@ -403,7 +403,7 @@ class OutputSaver:
                     'chunks': {},
                 },
                 'metadata': {
-                    'source_grid_name': False,
+                    'source_grid_name': None,
                 }
             }
         else:
@@ -419,7 +419,7 @@ class OutputSaver:
                 value = metadata.get(key)
                 if value is not None:
                     self.logger.debug("Replacing jinja variable %s with value %s in urlpath", key, value)
-                    catblock = replace_urlpath_jinja(catblock, value, key, self.diagnostic)
+                    catblock = replace_urlpath_jinja(catblock, value, key)
         
         if wildcardlist:
            for key in wildcardlist:
