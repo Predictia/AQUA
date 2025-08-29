@@ -4,6 +4,7 @@ from pathlib import Path
 import xarray as xr
 import matplotlib.pyplot as plt
 from unittest.mock import patch, MagicMock
+from aqua.util import replace_urlpath_jinja
 from aqua.diagnostics.core import OutputSaver
 
 # Fixture for OutputSaver instance
@@ -212,7 +213,7 @@ def test_create_catalog_entry_with_variables(base_saver, tmp_path, monkeypatch):
     with patch('aqua.diagnostics.core.output_saver.ConfigPath', return_value=mock_config_path), \
          patch('aqua.diagnostics.core.output_saver.load_yaml', return_value=mock_catalog_file), \
          patch('aqua.diagnostics.core.output_saver.dump_yaml') as mock_dump_yaml, \
-         patch.object(base_saver, 'replace_urlpath_jinja') as mock_replace_jinja, \
+         patch('aqua.util.catalog_entry.replace_urlpath_jinja') as mock_replace_jinja, \
          patch.object(base_saver, 'replace_urlpath_wildcard') as mock_replace_wildcard, \
          patch('aqua.util.catalog_entry.replace_intake_vars', return_value='/mocked/path/data.nc'):
 
@@ -291,7 +292,7 @@ def test_replace_urlpath_jinja():
     
     # Test URL replacement when surrounded by same character
     block = {'args': {'urlpath': 'data_global_data.nc'}}
-    result = OutputSaver.replace_urlpath_jinja(block, 'global', 'region', 'dummy')
+    result = replace_urlpath_jinja(block, 'global', 'region', 'dummy')
     assert result['args']['urlpath'] == 'data_{{region}}_data.nc'
     
     # Test parameters block creation
@@ -299,12 +300,12 @@ def test_replace_urlpath_jinja():
     assert result['parameters']['region']['allowed'] == ['global']
     
     # Test adding second value
-    result = OutputSaver.replace_urlpath_jinja(result, 'europe', 'region', 'dummy')
+    result = replace_urlpath_jinja(result, 'europe', 'region', 'dummy')
     assert 'europe' in result['parameters']['region']['allowed']
     
     # Test diagnostic special case
     block = {'args': {'urlpath': 'dummy.nc'}}
-    result = OutputSaver.replace_urlpath_jinja(block, 'dummy', 'diagnostic', 'dummy')
+    result = replace_urlpath_jinja(block, 'dummy', 'diagnostic', 'dummy')
     assert result['args']['urlpath'] == '{{diagnostic}}.nc'
 
 @pytest.mark.aqua
