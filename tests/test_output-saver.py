@@ -15,7 +15,7 @@ def output_saver(tmp_path):
             'diagnostic': 'dummy',
             'model': 'IFS-NEMO',
             'exp': 'historical',
-            'catalog': 'lumi-phase2',
+            'catalog': 'ci',
             'outputdir': tmp_path,
             'loglevel': 'DEBUG',
         }
@@ -33,7 +33,7 @@ def test_generate_name(base_saver, output_saver):
     # Test filename generation without additional parameters
     
     filename = base_saver.generate_name(diagnostic_product='mean')
-    assert filename == 'dummy.mean.lumi-phase2.IFS-NEMO.historical.r1'
+    assert filename == 'dummy.mean.ci.IFS-NEMO.historical.r1'
 
     # Test with generic multimodel keyword
     extra_keys = {'var': 'tprate'}
@@ -47,12 +47,12 @@ def test_generate_name(base_saver, output_saver):
     filename = saver.generate_name(
             diagnostic_product='mean', extra_keys=extra_keys
     )
-    assert filename == 'dummy.mean.lumi-phase2.IFS-NEMO.historical.r2.multiref.tprate.indian_ocean'
+    assert filename == 'dummy.mean.ci.IFS-NEMO.historical.r2.multiref.tprate.indian_ocean'
 
     # Test with multiple models
     extra_keys = {'var': 'tprate', 'region': 'indian_ocean'}
     saver = output_saver(
-        catalog=['lumi-phase2', 'lumi-phase2'], model=['IFS-NEMO', 'ICON'],
+        catalog=['ci', 'ci'], model=['IFS-NEMO', 'ICON'],
         exp=['hist-1990', 'hist-1990'], model_ref='ERA5')
     filename = saver.generate_name(
         diagnostic_product='mean', extra_keys=extra_keys
@@ -62,12 +62,12 @@ def test_generate_name(base_saver, output_saver):
     # Test with multiple models
     extra_keys = {'var': 'tprate', 'region': 'indian_ocean'}
     saver = output_saver(
-        catalog=['lumi-phase2'], model=['IFS-NEMO'],
+        catalog=['ci'], model=['IFS-NEMO'],
         exp=['historical'], model_ref=['ERA5'])
     filename = saver.generate_name(
         diagnostic_product='mean', extra_keys=extra_keys
     )
-    assert filename == 'dummy.mean.lumi-phase2.IFS-NEMO.historical.r1.ERA5.tprate.indian_ocean'
+    assert filename == 'dummy.mean.ci.IFS-NEMO.historical.r1.ERA5.tprate.indian_ocean'
 
     with pytest.raises(ValueError):
         # Test with invalid model type
@@ -76,7 +76,7 @@ def test_generate_name(base_saver, output_saver):
 
     with pytest.raises(ValueError):
         # Test with invalid model type
-        saver = output_saver(model=['IFS-NEMO', 'ICON'], catalog=['lumi-phase2', 'lumi-phase2'], exp=['hist-1990'])
+        saver = output_saver(model=['IFS-NEMO', 'ICON'], catalog=['ci', 'ci'], exp=['hist-1990'])
         saver.generate_name(diagnostic_product='mean')
 
 @pytest.mark.aqua
@@ -105,7 +105,7 @@ def test_save_netcdf(base_saver, tmp_path):
 
     extra_keys = {'var': 'tprate'}
     base_saver.save_netcdf(dataset=data, diagnostic_product='mean', extra_keys=extra_keys)
-    nc = os.path.join(tmp_path, 'netcdf', 'dummy.mean.lumi-phase2.IFS-NEMO.historical.r1.tprate.nc')
+    nc = os.path.join(tmp_path, 'netcdf', 'dummy.mean.ci.IFS-NEMO.historical.r1.tprate.nc')
     assert os.path.exists(nc)
 
     old_mtime = Path(nc).stat().st_mtime
@@ -125,7 +125,7 @@ def test_save_png(base_saver, tmp_path):
     path = base_saver.save_png(fig=fig, diagnostic_product='mean', extra_keys=extra_keys, dpi=300)
 
     # Check if the file was created
-    png = os.path.join(tmp_path, 'png', 'dummy.mean.lumi-phase2.IFS-NEMO.historical.r1.tprate.png')
+    png = os.path.join(tmp_path, 'png', 'dummy.mean.ci.IFS-NEMO.historical.r1.tprate.png')
     assert os.path.exists(png)
     assert path == png
 
@@ -146,7 +146,7 @@ def test_save_pdf(base_saver, tmp_path):
     base_saver.save_pdf(fig=fig, diagnostic_product='mean', extra_keys=extra_keys)
 
     # Check if the file was created
-    pdf = os.path.join(tmp_path, 'pdf', 'dummy.mean.lumi-phase2.IFS-NEMO.historical.r1.tprate.pdf')
+    pdf = os.path.join(tmp_path, 'pdf', 'dummy.mean.ci.IFS-NEMO.historical.r1.tprate.pdf')
     assert os.path.exists(pdf)
 
     old_mtime = Path(pdf).stat().st_mtime
@@ -167,7 +167,7 @@ def test_create_catalog_entry_new_entry(base_saver, tmp_path, monkeypatch):
          patch('aqua.diagnostics.core.output_saver.dump_yaml') as mock_dump_yaml, \
          patch('aqua.util.catalog_entry.replace_intake_vars', return_value='/mocked/path/data.nc'):
         
-        (tmp_path / 'catalogs' / 'lumi-phase2' / 'catalog' / 'IFS-NEMO').mkdir(parents=True, exist_ok=True)
+        (tmp_path / 'catalogs' / 'ci' / 'catalog' / 'IFS-NEMO').mkdir(parents=True, exist_ok=True)
         
         result = base_saver._create_catalog_entry('/test/path/data.nc', {'diagnostic_product': 'mean'})
         
@@ -193,7 +193,7 @@ def test_create_catalog_entry_existing_entry(base_saver, tmp_path, monkeypatch):
          patch('aqua.diagnostics.core.output_saver.dump_yaml') as mock_dump_yaml, \
          patch('aqua.util.catalog_entry.replace_intake_vars', return_value='/new/path/data.nc'):
         
-        (tmp_path / 'catalogs' / 'lumi-phase2' / 'catalog' / 'IFS-NEMO').mkdir(parents=True, exist_ok=True)
+        (tmp_path / 'catalogs' / 'ci' / 'catalog' / 'IFS-NEMO').mkdir(parents=True, exist_ok=True)
         
         result = base_saver._create_catalog_entry('/test/path/data.nc', {'diagnostic_product': 'mean'})
         
@@ -217,7 +217,7 @@ def test_create_catalog_entry_with_variables(base_saver, tmp_path, monkeypatch):
          patch('aqua.util.catalog_entry.replace_urlpath_wildcard') as mock_replace_wildcard, \
          patch('aqua.util.catalog_entry.replace_intake_vars', return_value='/mocked/path/data.nc'):
 
-        (tmp_path / 'catalogs' / 'lumi-phase2' / 'catalog' / 'IFS-NEMO').mkdir(parents=True, exist_ok=True)
+        (tmp_path / 'catalogs' / 'ci' / 'catalog' / 'IFS-NEMO').mkdir(parents=True, exist_ok=True)
         
         metadata = {'diagnostic_product': 'mean', 'region': 'global', 'realization': 'r1'}
         filepath = '/test/path/data.nc'
@@ -248,7 +248,7 @@ def test_create_catalog_entry_edge_cases(base_saver, tmp_path, monkeypatch):
          patch('aqua.diagnostics.core.output_saver.dump_yaml') as mock_dump_yaml, \
          patch('aqua.util.catalog_entry.replace_intake_vars', return_value='/mocked/path/data.nc'):
 
-        (tmp_path / 'catalogs' / 'lumi-phase2' / 'catalog' / 'IFS-NEMO').mkdir(parents=True, exist_ok=True)
+        (tmp_path / 'catalogs' / 'ci' / 'catalog' / 'IFS-NEMO').mkdir(parents=True, exist_ok=True)
         
         # Test None metadata values
         metadata = {'diagnostic_product': 'mean', 'region': None, 'stat': None}
@@ -328,7 +328,7 @@ def test_generate_folder(base_saver, tmp_path):
 def test_generate_path(base_saver, tmp_path):
     """Test full path generation."""
     result = base_saver.generate_path('pdf', 'mean')
-    expected = os.path.join(str(tmp_path / 'pdf'), 'dummy.mean.lumi-phase2.IFS-NEMO.historical.r1.pdf')
+    expected = os.path.join(str(tmp_path / 'pdf'), 'dummy.mean.ci.IFS-NEMO.historical.r1.pdf')
     assert result == expected
 
 @pytest.mark.aqua
@@ -336,7 +336,7 @@ def test_create_metadata(base_saver):
     """Test metadata creation and merging."""
     result = base_saver.create_metadata('mean')
     assert result['diagnostic'] == 'dummy'
-    assert result['catalog'] == 'lumi-phase2'
+    assert result['catalog'] == 'ci'
     
     # Test with extra keys and list handling
     extra_keys = {'var': ['tprate', 'temp'], 'region': 'global'}
