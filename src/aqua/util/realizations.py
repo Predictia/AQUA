@@ -1,5 +1,6 @@
 from typing import Optional, Union
-from aqua import DEFAULT_REALIZATION
+
+DEFAULT_REALIZATION = 'r1'  # Default realization if not specified
 
 def format_realization(realization: Optional[str | int | list | None] = None) -> Union[str, list]:
     """
