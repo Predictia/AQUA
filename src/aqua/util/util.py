@@ -447,7 +447,6 @@ def username():
         raise EnvironmentError("The 'USER' environment variable is not set.")
     return user
 
-
 class HiddenPrints:
     # from stackoverflow https://stackoverflow.com/questions/8391411/how-to-block-calls-to-print#:~:text=If%20you%20don't%20want,the%20top%20of%20the%20file. # noqa
     def __enter__(self):
