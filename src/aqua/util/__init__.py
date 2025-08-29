@@ -14,7 +14,7 @@ from .realizations import format_realization
 from .sci_util import area_selection, check_coordinates, select_season, merge_attrs
 from .string import strlist_to_phrase, lat_to_phrase
 from .util import generate_random_string, get_arg, create_folder, to_list
-from .util import file_is_complete, find_vert_coord, files_exist
+from .util import file_is_complete, files_exist, find_vert_coord
 from .util import extract_literal_and_numeric, extract_attrs, add_pdf_metadata, add_png_metadata
 from .util import open_image, username, update_metadata
 from .yaml import load_yaml, dump_yaml, load_multi_yaml
