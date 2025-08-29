@@ -374,7 +374,7 @@ class Reader():
             data = self.streamer.stream(data)
         else:
             if data is None or len(data.data_vars) == 0:
-                raise NoDataError("Retrieved empty dataset. Check varname used as first step.")
+                self.logger.error(f"Retrieved empty dataset for {var=}. First, check its existence in the data catalog.")
 
             if startdate and enddate and not ffdb:  # do not select if data come from FDB (already done)
                 data = data.sel(time=slice(startdate, enddate))
