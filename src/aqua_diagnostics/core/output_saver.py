@@ -404,7 +404,7 @@ class OutputSaver:
                     'chunks': {},
                 },
                 'metadata': {
-                    'source_grid_name': None,
+                    'source_grid_name': False,
                 }
             }
         else:
