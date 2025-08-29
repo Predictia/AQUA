@@ -48,12 +48,12 @@ class Diagnostic():
         # Data to be retrieved
         self.data = None
 
-    def retrieve(self, var: str = None, reader_kwargs: dict = {}):
+    def retrieve(self, var: str | None = None, reader_kwargs: dict = {}):
         """
         Retrieve the data from the model.
 
         Args:
-            var (str): The variable to be retrieved. If None, all variables will be retrieved.
+            var (str | None): The variable to be retrieved. If None, all variables will be retrieved.
             reader_kwargs (dict): Additional keyword arguments to be passed to the Reader.
 
         Attributes:
@@ -63,7 +63,7 @@ class Diagnostic():
         self.data, self.reader, self.catalog = self._retrieve(model=self.model, exp=self.exp, source=self.source,
                                                               var=var, catalog=self.catalog, startdate=self.startdate,
                                                               enddate=self.enddate, regrid=self.regrid,
-                                                              loglevel=self.logger.level, reader_kwargs=reader_kwargs)
+                                                              loglevel=self.loglevel, reader_kwargs=reader_kwargs)
         if self.regrid is not None:
             self.logger.info(f'Regridded data to {self.regrid} grid')
         if self.startdate is None:
@@ -93,9 +93,9 @@ class Diagnostic():
 
         outputsaver = OutputSaver(diagnostic=diagnostic, 
                                   catalog=self.catalog, model=self.model, exp=self.exp,
-                                  outputdir=outputdir, loglevel=self.logger.level)
+                                  outputdir=outputdir, loglevel=self.loglevel)
 
-        outputsaver.save_netcdf(dataset=data, diagnostic_product=diagnostic_product, rebuild=rebuild,**kwargs)
+        outputsaver.save_netcdf(dataset=data, diagnostic_product=diagnostic_product, rebuild=rebuild, **kwargs)
 
     @staticmethod
     def _retrieve(model: str, exp: str, source: str, var: str = None, catalog: str = None,
@@ -167,7 +167,7 @@ class Diagnostic():
 
         return data
 
-    def _get_default_regions_file(self, diagnostic: str = None):
+    def _get_default_regions_file(self, diagnostic):
         """
         Get the default path to the regions file for the given diagnostic.
 
@@ -177,9 +177,6 @@ class Diagnostic():
         Returns:
             str: The path to the regions file.
         """
-        if not diagnostic:
-            raise ValueError("A diagnostic name must be provided when regions_file_path is not specified.")
-
         regions_file = ConfigPath().get_config_dir()
         regions_file = os.path.join(regions_file, 'diagnostics', diagnostic, 'definitions', 'regions.yaml')
         if os.path.exists(regions_file):
