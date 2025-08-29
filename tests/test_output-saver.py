@@ -4,7 +4,7 @@ from pathlib import Path
 import xarray as xr
 import matplotlib.pyplot as plt
 from unittest.mock import patch, MagicMock
-from aqua.util import replace_urlpath_jinja
+from aqua.util import replace_urlpath_jinja, replace_urlpath_wildcard
 from aqua.diagnostics.core import OutputSaver
 
 # Fixture for OutputSaver instance
@@ -214,7 +214,7 @@ def test_create_catalog_entry_with_variables(base_saver, tmp_path, monkeypatch):
          patch('aqua.diagnostics.core.output_saver.load_yaml', return_value=mock_catalog_file), \
          patch('aqua.diagnostics.core.output_saver.dump_yaml') as mock_dump_yaml, \
          patch('aqua.util.catalog_entry.replace_urlpath_jinja') as mock_replace_jinja, \
-         patch.object(base_saver, 'replace_urlpath_wildcard') as mock_replace_wildcard, \
+         patch('aqua.util.catalog_entry.replace_urlpath_wildcard') as mock_replace_wildcard, \
          patch('aqua.util.catalog_entry.replace_intake_vars', return_value='/mocked/path/data.nc'):
 
         (tmp_path / 'catalogs' / 'lumi-phase2' / 'catalog' / 'IFS-NEMO').mkdir(parents=True, exist_ok=True)
@@ -274,17 +274,17 @@ def test_replace_urlpath_wildcard():
     
     # Test that replacement only happens when surrounded by same character
     block = {'args': {'urlpath': 'data_r1_data.nc'}}
-    result = OutputSaver.replace_urlpath_wildcard(block, 'r1')
+    result = replace_urlpath_wildcard(block, 'r1')
     assert result['args']['urlpath'] == 'data_*_data.nc'
     
     # Test no replacement when not surrounded by same character
     block = {'args': {'urlpath': '/path/to/r1_data.nc'}}
-    result = OutputSaver.replace_urlpath_wildcard(block, 'r1')
+    result = replace_urlpath_wildcard(block, 'r1')
     assert result['args']['urlpath'] == '/path/to/r1_data.nc'
     
     # Test edge cases
-    assert OutputSaver.replace_urlpath_wildcard(block, None) == block
-    assert OutputSaver.replace_urlpath_wildcard(block, '') == block
+    assert replace_urlpath_wildcard(block, None) == block
+    assert replace_urlpath_wildcard(block, '') == block
 
 @pytest.mark.aqua
 def test_replace_urlpath_jinja():
