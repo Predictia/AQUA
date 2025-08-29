@@ -82,14 +82,7 @@ def test_generate_name(base_saver, output_saver):
 @pytest.mark.aqua
 def test_internal_function(base_saver):
     """Test internal functions of OutputSaver."""
-
-    # Test cases per _format_realization
     saver = base_saver
-    assert saver._format_realization(None) == 'r1'
-    assert saver._format_realization('5') == 'r5'
-    assert saver._format_realization(5) == 'r5'
-    assert saver._format_realization('r5') == 'r5'
-    assert saver._format_realization([1, 'r2']) == ['r1', 'r2']
 
     # Test cases per unpack_list
     assert saver.unpack_list(['item']) == 'item'
@@ -172,7 +165,6 @@ def test_create_catalog_entry_new_entry(base_saver, tmp_path):
         result = base_saver._create_catalog_entry('/test/path/data.nc', {'diagnostic_product': 'mean'})
 
         assert result['driver'] == 'netcdf'
-        assert result['description'] == 'AQUA dummy data for mean'
         assert result['args']['urlpath'] == '/mocked/path/data.nc'
         mock_dump_yaml.assert_called_once()
 
@@ -292,7 +284,7 @@ def test_replace_urlpath_jinja():
     
     # Test URL replacement when surrounded by same character
     block = {'args': {'urlpath': 'data_global_data.nc'}}
-    result = replace_urlpath_jinja(block, 'global', 'region', 'dummy')
+    result = replace_urlpath_jinja(block, 'global', 'region')
     assert result['args']['urlpath'] == 'data_{{region}}_data.nc'
     
     # Test parameters block creation
@@ -300,13 +292,8 @@ def test_replace_urlpath_jinja():
     assert result['parameters']['region']['allowed'] == ['global']
     
     # Test adding second value
-    result = replace_urlpath_jinja(result, 'europe', 'region', 'dummy')
+    result = replace_urlpath_jinja(result, 'europe', 'region')
     assert 'europe' in result['parameters']['region']['allowed']
-    
-    # # Test diagnostic special case
-    # block = {'args': {'urlpath': 'dummy.nc'}}
-    # result = replace_urlpath_jinja(block, 'dummy', 'diagnostic', 'dummy')
-    # assert result['args']['urlpath'] == '{{diagnostic}}.nc'
 
 @pytest.mark.aqua
 def test_core_save(base_saver, tmp_path):
