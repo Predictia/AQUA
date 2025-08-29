@@ -231,18 +231,16 @@ def set_map_title(data: xr.DataArray, title: str = None,
     return title
 
 
-def coord_names(data: xr.DataArray, return_single: bool = False, prefer_lat: bool = True):
+def coord_names(data: xr.DataArray):
     """
     Get the names of the longitude and latitude coordinates.
 
     Args:
         data (xarray.DataArray): Input data array.
-        return_single (bool): If True, return only one coordinate name (the first found).
-        prefer_lat (bool): If return_single=True, prefer latitude over longitude.
 
     Returns:
-        If return_single=False: tuple (lon_name, lat_name)
-        If return_single=True: str or None (single coordinate name)
+        tuple: (lon_name, lat_name) - Names of longitude and latitude coordinates, 
+               or (None, None) if not found.
     """
     lon_name = None
     lat_name = None
