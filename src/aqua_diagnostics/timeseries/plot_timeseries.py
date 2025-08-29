@@ -192,9 +192,7 @@ class PlotTimeseries(PlotBaseMixin):
 
         Args:
             fig (matplotlib.figure.Figure): Figure object.
-            var (str): Variable name to be used in the title and description.
             description (str): Description of the plot.
-            region (str): Region to be used in the title and description.
             rebuild (bool): If True, rebuild the plot even if it already exists.
             outputdir (str): Output directory to save the plot.
             dpi (int): Dots per inch for the plot.
