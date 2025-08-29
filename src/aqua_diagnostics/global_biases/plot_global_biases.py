@@ -289,8 +289,8 @@ class PlotGlobalBiases:
         )
 
         fig, ax = plot_vertical_profile_diff(
-            data=data[var],
-            data_ref=data_ref[var],
+            data=data[var].mean(dim='lon'),
+            data_ref=data_ref[var].mean(dim='lon'),
             var=var,
             plev_min=plev_min,
             plev_max=plev_max,
