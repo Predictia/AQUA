@@ -12,8 +12,7 @@ from aqua.logger import log_configure, log_history
 from aqua.util import create_folder, add_pdf_metadata, add_png_metadata, update_metadata
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import replace_intake_vars, replace_urlpath_jinja, replace_urlpath_wildcard
-from aqua.util import ConfigPath
-from aqua import DEFAULT_REALIZATION
+from aqua.util import ConfigPath, format_realization
 
 
 class OutputSaver:
@@ -59,7 +58,7 @@ class OutputSaver:
         self.exp_ref = self.unpack_list(exp_ref)
 
         # Format realization to ensure it is a string or list of strings
-        self.realization = self._format_realization(realization)
+        self.realization = format_realization(realization)
 
         # Verify that catalog, model, and exp are either all strings or all lists of the same length
         self._verify_arguments(['catalog', 'model', 'exp'])
@@ -77,27 +76,6 @@ class OutputSaver:
         })
 
         self.outputdir = outputdir
-
-    @staticmethod
-    def _format_realization(realization: Optional[Union[str, int, list]]) -> Union[str, list]:
-        """
-        Format the realization string by prepending 'r' if it is a digit.
-
-        Args:
-            realization (str | int | list | None): The realization value. Can be:
-                - str/int: Single realization value
-                - list: List of realization values
-                - None: Returns default realization
-
-        Returns:
-            str | list: Formatted realization string or list of formatted strings.
-        """
-        if realization is None:
-            return DEFAULT_REALIZATION
-        if isinstance(realization, list):
-            return [f'r{r}' if str(r).isdigit() else str(r) for r in realization]
-        if isinstance(realization, (int, str)):
-            return f'r{realization}' if str(realization).isdigit() else str(realization)
 
     @staticmethod
     def unpack_list(value: Optional[Union[str, list]]) -> Optional[Union[str, list]]:
