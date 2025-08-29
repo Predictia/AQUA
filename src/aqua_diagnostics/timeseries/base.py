@@ -187,7 +187,7 @@ class BaseMixin(Diagnostic):
     def save_netcdf(self, diagnostic_product: str, freq: str,
                     outputdir: str = './', rebuild: bool = True,
                     create_catalog_entry: bool = False,
-                    dict_catalog_entry: dict = {'jinjalist': ['freq', 'region', 'realization'],
+                    dict_catalog_entry: dict = {'jinjalist': ['freq', 'realization'],
                                                 'wildcardlist': ['var']}):
         """
         Save the data to a netcdf file.
@@ -221,9 +221,9 @@ class BaseMixin(Diagnostic):
         if data.name is None:
             data.name = var
 
-        if self.region is not None:
-            region = self.region.replace(' ', '').lower()
-            extra_keys.update({'region': region})
+        # In order to have a catalog entry we want to have a key region even in the global case
+        region = self.region.replace(' ', '').lower() if self.region is not None else 'global'
+        extra_keys.update({'region': region})
 
         self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
 
@@ -233,6 +233,7 @@ class BaseMixin(Diagnostic):
         if data_std is not None:
             extra_keys.update({'std': 'std'})
             self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
+            #TODO: Check if the catalog entry generation is required for the std values
             super().save_netcdf(data=data_std, diagnostic=self.diagnostic_name, diagnostic_product=diagnostic_product,
                                 outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
 
