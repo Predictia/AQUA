@@ -38,6 +38,7 @@ class Diagnostic():
         self.model = model
         self.exp = exp
         self.source = source
+        self.realization = None
 
         self.regrid = regrid
         self.startdate = startdate
@@ -62,6 +63,8 @@ class Diagnostic():
                                                               var=var, catalog=self.catalog, startdate=self.startdate,
                                                               enddate=self.enddate, regrid=self.regrid,
                                                               loglevel=self.loglevel, reader_kwargs=reader_kwargs)
+
+        self.realization = self.reader.kwargs['realization'] if 'realization' in reader_kwargs else DEFAULT_REALIZATION
         if self.regrid is not None:
             self.logger.info(f'Regridded data to {self.regrid} grid')
         if self.startdate is None:
@@ -72,7 +75,8 @@ class Diagnostic():
             self.logger.debug(f'End date: {self.enddate}')
 
     def save_netcdf(self, data, diagnostic: str, diagnostic_product: str = None,
-                    outputdir: str = '.', rebuild: bool = True, **kwargs):
+                    outputdir: str = '.', rebuild: bool = True,
+                    create_catalog_entry: bool = False, dict_catalog_entry: dict = None, **kwargs):
         """
         Save the data to a netcdf file.
 
@@ -82,6 +86,9 @@ class Diagnostic():
             diagnostic_product (str): The diagnostic product.
             outputdir(str): The path to save the data. Default is '.'.
             rebuild (bool): If True, the netcdf file will be rebuilt. Default is True.
+            create_catalog_entry (bool): If True, a catalog entry will be created. Default is False.
+            dict_catalog_entry (dict, optional): List of jinja and wildcard variables. Default is None.
+                                                 Keys are 'jinjalist' and 'wildcardlist'.
 
         Keyword Args:
             **kwargs: Additional keyword arguments to be passed to the OutputSaver.save_netcdf method.
@@ -91,9 +98,12 @@ class Diagnostic():
 
         outputsaver = OutputSaver(diagnostic=diagnostic, 
                                   catalog=self.catalog, model=self.model, exp=self.exp,
+                                  realization=self.realization,
                                   outputdir=outputdir, loglevel=self.loglevel)
 
-        outputsaver.save_netcdf(dataset=data, diagnostic_product=diagnostic_product, rebuild=rebuild, **kwargs)
+        outputsaver.save_netcdf(dataset=data, diagnostic_product=diagnostic_product, rebuild=rebuild,
+                                create_catalog_entry=create_catalog_entry, dict_catalog_entry=dict_catalog_entry,
+                                **kwargs)
 
     @staticmethod
     def _retrieve(model: str, exp: str, source: str, var: str = None, catalog: str = None,
