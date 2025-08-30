@@ -1,36 +1,36 @@
 # experiment
 dataset:
-  model: "IFS-NEMO"
-  exp: "historical-1990"
-  source2d: "hourly-hpz10-atm2d" #"2D_1h_native"
-  source3d: "hourly-hpz10-atm3d" #"3D_1h_native"
+  model: "ERA5"
+  exp: "era5"
+  source2d: "6hrs" #"2D_1h_native"
+  source3d: "6hrs" #"3D_1h_native"
 
 # folders for regridded data, temprorary and stored high res data
 paths: 
-  tmpdir: "/pfs/lustrep3/projappl/project_465000454/pghinassi/tc_analysis/tmpdir"
-  fulldir: "/pfs/lustrep3/projappl/project_465000454/pghinassi/tc_analysis/fulldir"
-  plotdir: "/pfs/lustrep3/projappl/project_465000454/pghinassi/tc_analysis/Figures/"
+  tmpdir: "/work/users/jost/aqua/tc/tc_analysis/tmpdir"
+  fulldir: "/work/users/jost/aqua/tc/tc_analysis/fulldir"
+  plotdir: "/work/users/jost/aqua/tc/tc_analysis/Figures/"
 
 # log level
 setup:
-  loglevel: 'WARNING'
+  loglevel: 'warning'
 
 # grid on which operate
 grids:
   lowgrid: 'r100'
-  highgrid: 'r010'
+  highgrid: 'r025'
 
 # variables to stored 
 varlist: ['msl', '10u', '10v', 'tprate']
 
 # temporal definition (date format: YYYYMMDD)
 time: 
-  startdate: '19900701'
-  enddate: '19911231'
+  startdate: '20150801'
+  enddate: '20150805'
   frequency: '6h'
 
 stream:
-  streamstep: "10D" # n of days for streaming (check reader args options, IMPORTANT: must be specified in days, "D")
+  streamstep: "2D" # n of days for streaming (check reader args options, IMPORTANT: must be specified in days, "D")
 
 # detect nodes options
 detect:
@@ -38,10 +38,10 @@ detect:
 
 # stich nodes options
 stitch:
-  n_days_freq: 30 # run stitch nodes (tracks computation) and save tracks every n days
-  n_days_ext: 2  # n of days to extend time boundaries not to miss tracks which may start/end before/after the chosen n of days
+  n_days_freq: 2 # run stitch nodes (tracks computation) and save tracks every n days
+  n_days_ext: 0  # n of days to extend time boundaries not to miss tracks which may start/end before/after the chosen n of days
 
 # path to orography in case file (in case var is not found in the catalog)
 orography:
-  file_path: "/users/pghinass/orography/IFS-NEMO/historical-1990/"
-  file_name: "orography_r100.nc"
+  file_path: "/home/mccorda/work/data/"
+  file_name: "orog_ERA5.nc"

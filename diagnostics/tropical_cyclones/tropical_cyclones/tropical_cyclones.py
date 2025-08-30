@@ -187,7 +187,25 @@ class TCs(DetectNodes, StitchNodes):
         if self.streaming:
             self.logger.warning(
                 'Initialised streaming for %s %s starting on %s', self.stream_step, self.stream_units, pd.to_datetime(self.stream_startdate))
-        if self.model in 'IFS':
+        
+        if self.model == 'ERA5':
+            self.varlist2d = ['msl', '10u', '10v']
+
+            self.reader2d = Reader(model=self.model, exp=self.exp, source=self.source2d,
+                                         regrid=self.lowgrid,
+                                         streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
+                                         startdate=self.startdate, enddate=self.enddate)
+            self.varlist3d = ['z']
+            self.reader3d = Reader(model=self.model, exp=self.exp, source=self.source3d,
+                                         regrid=self.lowgrid,
+                                         streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
+                                         startdate=self.startdate, enddate=self.enddate)
+            self.reader_fullres = Reader(model=self.model, exp=self.exp, source=self.source2d,
+                                         regrid=self.highgrid,
+                                         streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
+                                         startdate=self.startdate, enddate=self.enddate)
+            
+        elif self.model == 'IFS':
             self.varlist2d = ['msl', '10u', '10v', 'z']
             self.reader2d = Reader(model=self.model, exp=self.exp, source=self.source2d,
                                          regrid=self.lowgrid,
@@ -219,7 +237,7 @@ class TCs(DetectNodes, StitchNodes):
                                          streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
                                          startdate=self.startdate, enddate=self.enddate)
 
-        elif self.model in 'ICON':
+        elif self.model == 'ICON':
             self.varlist2d = ['msl', '10u', '10v']
             self.reader2d = Reader(model=self.model, exp=self.exp, source=self.source2d,
                                          regrid=self.lowgrid,
@@ -252,10 +270,13 @@ class TCs(DetectNodes, StitchNodes):
         # now retrieve 2d and 3d data needed
 
         self.data2d = self.reader2d.retrieve(var=self.varlist2d)
-        if self.model == "IFS-FESOM": # plev are in Pa
-            self.data3d = self.reader3d.retrieve(var=self.varlist3d, level=[30000, 50000])
+        if self.model in ["ERA5", "IFS-FESOM"]: # plev are in Pa
+            self.data3d = self.reader3d.retrieve(var=self.varlist3d)
+            self.data3d = self.data3d.sel(plev=[30000, 50000], method="nearest")
         else: # plev are in hPa
-            self.data3d = self.reader3d.retrieve(var=self.varlist3d, level=[300, 500])
+            self.data3d = self.reader3d.retrieve(var=self.varlist3d)
+            self.data3d = self.data3d.sel(plev=[300, 500], method="nearest")
+
         self.fullres = self.reader_fullres.retrieve(var=self.var2store)
         
         # in case data2d is empty, we reached the end of the data
@@ -280,6 +301,10 @@ class TCs(DetectNodes, StitchNodes):
             elif self.model == "ICON":
                 self.logger.info(f"orography file for {self.model} is {self.orography_file}")
                 self.orog = self.orog.rename({'oromea': 'zs'})
+            elif self.model == "ERA5":
+                self.logger.info(f"orography file for {self.model} is {self.orography_file}")
+                self.orog = self.orog.rename({'z': 'zs'})
+                self.orog = self.orog.rename({'longitude': 'lon', 'latitude': 'lat'})
             else:
                 raise ValueError(f'Orography variable of {self.model} not recognised!')
 
