@@ -30,16 +30,17 @@ time:
   frequency: '6h'
 
 stream:
-  streamstep: "2D" # n of days for streaming (check reader args options, IMPORTANT: must be specified in days, "D")
+  streamstep: "10D" # n of days for streaming (check reader args options, IMPORTANT: must be specified in days, "D")
 
 # detect nodes options
 detect:
-  boxdim: 10    # dimension of lat/lon box to save data in the vicinity of the TCs centres (in degrees)
+  boxdim: 10  # dimension of lat/lon box to save data in the vicinity of the TCs centres (in degrees)
+  write_fullres: false  # Option to write zoom-in full resolution data
 
 # stich nodes options
 stitch:
-  n_days_freq: 2 # run stitch nodes (tracks computation) and save tracks every n days
-  n_days_ext: 0  # n of days to extend time boundaries not to miss tracks which may start/end before/after the chosen n of days
+  n_days_freq: 30 # run stitch nodes (tracks computation) and save tracks every n days
+  n_days_ext: 2  # n of days to extend time boundaries not to miss tracks which may start/end before/after the chosen n of days
 
 # path to orography in case file (in case var is not found in the catalog)
 orography:
