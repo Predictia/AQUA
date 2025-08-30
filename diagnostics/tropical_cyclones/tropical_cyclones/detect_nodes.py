@@ -240,8 +240,11 @@ class DetectNodes():
                 f'--outputcmd {tempest_dictionary["psl"]},min,0;_VECMAG({tempest_dictionary["uas"]},{tempest_dictionary["vas"]}),max,2 --latname {tempest_dictionary["lat"]} --lonname {tempest_dictionary["lon"]}'
 
         self.logger.debug(f'Running DetectNodes command: {detect_string}')
-        #subprocess.run(detect_string.split(), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-        subprocess.run(detect_string.split())
+        if loglevel == 'DEBUG':
+            subprocess.run(detect_string.split())
+        else:
+            subprocess.run(detect_string.split(), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+
         self.logger.debug(f'DetectNodes output saved to {tempest_fileout}')
 
     def store_detect_nodes(self, timestep, write_fullres=False):
