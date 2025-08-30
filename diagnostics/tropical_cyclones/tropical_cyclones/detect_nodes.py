@@ -39,7 +39,7 @@ class DetectNodes():
             self.run_detect_nodes(tstep)
             # clean_files([self.tempest_filein])
             self.read_lonlat_nodes()
-            self.store_detect_nodes(tstep)
+            self.store_detect_nodes(tstep, write_fullres=self.write_fullres)
             toc = time()
             self.logger.info(
                 'DetectNodes done in {:.4f} seconds'.format(toc - tic))

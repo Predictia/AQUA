@@ -28,7 +28,7 @@ class TCs(DetectNodes, StitchNodes):
                  stream_step=1, stream_unit='days', stream_startdate=None,
                  loglevel='INFO',
                  orography=False,
-                 nproc=1):
+                 nproc=1, write_fullres=False):
         """
         Constructor method that initializes the class attributes based on the
         input arguments or tdict dictionary.
@@ -50,6 +50,7 @@ class TCs(DetectNodes, StitchNodes):
             stream_unit (str): The unit of stream_step in streaming mode. Default is 'days'.
             stream_startdate (str): The start date for processing the TCs diagnostic in streaming mode.
             loglevel (str): The logging level for the TCs diagnostic. Default is 'INFO'.
+            write_fullres (bool): A flag indicating whether to write full-resolution output files. Default is False.
 
         Returns:
             A TCs object
@@ -75,6 +76,7 @@ class TCs(DetectNodes, StitchNodes):
             self.startdate = tdict['time']['startdate']
             self.enddate = tdict['time']['enddate']
             self.orography = orography
+            self.write_fullres = tdict["detect"].get("write_fullres", False)
             if self.orography:
                 self.orography_file = os.path.join(tdict['orography']['file_path'], tdict['orography']['file_name'])
         else:
@@ -95,6 +97,7 @@ class TCs(DetectNodes, StitchNodes):
             self.frequency = frequency
             self.startdate = startdate
             self.enddate = enddate
+            self.write_fullres = write_fullres
 
         self.streaming = streaming
         if self.streaming:
@@ -288,7 +291,7 @@ class TCs(DetectNodes, StitchNodes):
             self.stream_enddate = self.data2d.time[-1].values
             self.stream_startdate = self.data2d.time[0].values
 
-            
+
         #if orography is provided in a file access it without reader
             
         if self.orography:
