@@ -450,7 +450,7 @@ class PlotLatLonProfiles():
             ref_data=self.ref_data,
             std_data=None,                     # Could be added later if needed
             ref_std_data=None,
-            data_labels=data_labels,
+            titles=data_labels,
             title=f"Multi-variable Seasonal Comparison: {', '.join(variables)}",
             loglevel=self.loglevel
         )
@@ -511,7 +511,7 @@ class PlotLatLonProfiles():
             ref_data=seasonal_ref_only,
             std_data=seasonal_std_only,
             ref_std_data=seasonal_ref_std_only,
-            data_labels=data_labels,
+            titles=data_labels,
             title=title,
             style=style,
             loglevel=self.loglevel
