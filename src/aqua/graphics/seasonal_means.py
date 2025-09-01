@@ -1,7 +1,6 @@
 import xarray as xr
 import matplotlib.pyplot as plt
 
-from aqua.logger import log_configure
 from .styles import ConfigStyle
 from .lat_lon_profiles import plot_lat_lon_profiles
 
@@ -13,7 +12,7 @@ def plot_seasonal_lat_lon_profiles(maps,
                                    loglevel='WARNING',
                                    data_labels: list = None,
                                    title: str = None,
-                                   **kwargs):
+                                   ):
     """
    Plot seasonal lat-lon profiles in a 2x2 subplot layout for the four meteorological seasons.
 
@@ -43,7 +42,6 @@ def plot_seasonal_lat_lon_profiles(maps,
         loglevel (str): Logging level.
         data_labels (list, optional): Labels for the data series.
         title (str, optional): Overall title for the 2x2 subplot figure.
-        **kwargs: Additional keyword arguments.
 
     Returns:
         fig, axs: Matplotlib figure and axes objects (2x2 subplot layout).
@@ -51,7 +49,6 @@ def plot_seasonal_lat_lon_profiles(maps,
     Raises:
         ValueError: If maps is not a list of exactly 4 elements.
     """
-    logger = log_configure(loglevel, 'plot_lines')
     ConfigStyle(style=style, loglevel=loglevel)
     
     # Validate input data structure - now only 4 seasons
