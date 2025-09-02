@@ -39,9 +39,11 @@ to the ``AQUA_CONFIG`` folder during installation (see :ref:`aqua-install`, by d
 Each diagnostic has its own configuration file, with a block devoted to the individual diagnostic settings.
 However, general settings common to all the diagnostics have a common structure here described.
 Please refer to the individual diagnostic documentation for the specific settings.
+See :ref:`configuration-file-guidelines` for an example of diagnostic specific block.
 
 * ``datasets``: a list of models to analyse (defined by the catalog, model, exp, source arguments).
   If the diagnostic can handle multiple datasets, all the models in the list will be processed, otherwise only the first one will be used.
+  For simplicity the default in the repository should refer to only one model.
 
 .. code-block:: yaml
 
@@ -58,6 +60,7 @@ Please refer to the individual diagnostic documentation for the specific setting
         regrid: null
 
 * ``references``: a list of reference datasets to use for the analysis.
+  Some diagnostics may not work with multiple references, it is better to specify it in the documentation and in the configuration file.
 
 .. code-block:: yaml
 
