@@ -12,6 +12,7 @@ def plot_seasonal_lat_lon_profiles(seasonal_data,
                                    loglevel='WARNING',
                                    titles: list = None,
                                    title: str = None,
+                                   ref_label: str = None
                                    ):
     """
    Plot seasonal lat-lon profiles in a 2x2 subplot layout for the four meteorological seasons.
@@ -42,6 +43,7 @@ def plot_seasonal_lat_lon_profiles(seasonal_data,
         loglevel (str): Logging level.
         titles (list, optional): List of titles for each subplot. If provided, must have 4 elements.
         title (str, optional): Overall title for the 2x2 subplot figure.
+        ref_label (str, optional): Label for the reference data in the legend.
 
     Returns:
         fig, axs: Matplotlib figure and axes objects (2x2 subplot layout).
@@ -99,17 +101,21 @@ def plot_seasonal_lat_lon_profiles(seasonal_data,
         season_std_data = std_data[i] if std_data is not None and i < len(std_data) else None
         season_ref_std_data = ref_std_data[i] if ref_std_data is not None and i < len(ref_std_data) else None
         
-        # Simplified plotting logic
+        #ref_label handling
+        season_ref_label = None
         if season_ref_data is not None:
-            ref_label = f"{season_ref_data.attrs.get('AQUA_model', 'Reference')} {season_ref_data.attrs.get('AQUA_exp', 'Data')}"
-        else:
-            ref_label = None
+            if ref_label is not None:
+                season_ref_label = ref_label
+            else:
+                # automatically generate label from attributes if available
+                season_ref_label = (f"{season_ref_data.attrs.get('AQUA_model', 'Reference')} "
+                                    f"{season_ref_data.attrs.get('AQUA_exp', 'Data')}")
             
         _, _ = plot_lat_lon_profiles(data=season_data,
                             ref_data=season_ref_data,
                             std_data=season_std_data,
                             ref_std_data=season_ref_std_data,
-                            ref_label=ref_label,
+                            ref_label=season_ref_label,
                             fig=fig, ax=ax,
                             loglevel=loglevel)
         
