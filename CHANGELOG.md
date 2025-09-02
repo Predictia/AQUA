@@ -14,6 +14,7 @@ Workflow modifications:
 
 AQUA core complete list:
 - Split out plotting function for vertical profile and add contour option (#2190)
+- Minor EC-Earth4 adjustments (#2196)
 - Hotfix in catgen for monthly chunking (#2184)
 - Fix loaded areas as dataset (#2174)
 - Show error message if empty data are retrieved by in `reader` (#2170)
@@ -31,6 +32,8 @@ AQUA core complete list:
 - `apply_circular_window()` utility function to apply a circular window to cartopy maps (#2100)
 
 AQUA diagnostics complete list:
+- Timeseries: refined title and description, more attributes used (#2193)
+- New Lat-Lon Profiles diagnostic tool (#1934)
 - Boxplots: add support for reader_kwargs (#2149)
 - Global Biases: add the `diagnostic_name` option in config file (#2159)
 - Gregory: refined the reference label generation (#2157)

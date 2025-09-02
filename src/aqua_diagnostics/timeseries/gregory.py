@@ -104,9 +104,11 @@ class Gregory(Diagnostic):
 
         if t2m:
             self.t2m = data[t2m_name]
+            self.t2m.attrs['short_name'] = t2m_name
         if net_toa:
             self.net_toa = EvaluateFormula(data=data, formula=net_toa_name,
                                            short_name='net_toa', loglevel=self.loglevel).evaluate()
+            self.net_toa.attrs['short_name'] = 'net_toa'
 
     def compute_t2m(self, freq: list = ['monthly', 'annual'], std: bool = False,
                     var: str = '2t', units: str = 'degC', exclude_incomplete=True):
