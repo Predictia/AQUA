@@ -19,28 +19,30 @@ Currently implemented diagnostics are:
 .. toctree::
    :maxdepth: 1
 
+   boxplots
    global_biases
    ecmean
    timeseries
    ocean3d
-   radiation
    seaice
    teleconnections
 
 Running the monitoring diagnostics
-----------------------------------
+++++++++++++++++++++++++++++++++++
 
 Each state-of-the-art diagnostic is implemented as a Python class and can be run independently.
 All the diagnostic have a command line interface that can be used to run them.
 A YAML configuration file is provided to set the options for the diagnostics.
 
-Together with the individual diagnostics command line interfaces, AQUA provides a python script to run all the diagnostics
+Together with the individual diagnostics command line interfaces, AQUA provides an entry point to run all the diagnostics
 in a single command, with a shared Dask cluster, shared output directory and with parallelization.
-The tool is called `aqua-analysis.py` and all the details can be found in :ref:`aqua_analysis`.
+The entry point is called `aqua analysis` and all the details can be found in :ref:`aqua_analysis`.
 
 .. warning::
    The analysis has to be performed preferrably on LRA data, meaning that data should be aggregated
    to a resolution of 1 degree in both latitude and longitude and to a monthly frequency.
+   It is available the option to regrid the data on the fly, but the memory usage may be highly
+   increased and it may be preferrable to run the diagnostics individually.
 
 Minimum Data Requirements
 -------------------------
