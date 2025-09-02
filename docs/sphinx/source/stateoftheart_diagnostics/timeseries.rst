@@ -67,17 +67,7 @@ The diagnostic can be run from the command line interface (CLI) by running the f
 Three configuration files are provided and run when executing the aqua-analysis (see :ref:`aqua_analysis`).
 Two configuration files are for atmospheric and oceanic timeseries and gregory plots, and the third one is for the seasonal cycles.
 
-Additionally the CLI can be run with the following optional arguments:
-
-- ``--config``, ``-c``: Path to the configuration file.
-- ``--nworkers``, ``-n``: Number of workers to use for parallel processing.
-- ``--cluster``: Cluster to use for parallel processing. By default a local cluster is used.
-- ``--loglevel``, ``-l``: Logging level. Default is ``WARNING``.
-- ``--catalog``: Catalog to use for the analysis. It can be defined in the config file.
-- ``--model``: Model to analyse. It can be defined in the config file.
-- ``--exp``: Experiment to analyse. It can be defined in the config file.
-- ``--source``: Source to analyse. It can be defined in the config file.
-- ``--outputdir``: Output directory for the plots.
+Additionally CLI arguments are described in the :ref:`diagnostics-cli-arguments` section.
 
 Config file structure
 ---------------------
@@ -94,6 +84,7 @@ Here we describe only the specific settings for the time series diagnostic.
     diagnostics:
       timeseries:
         run: true # to enable the time series
+        diagnostic_name: 'atmosphere'
         variables: ['2t', 'tprate']
         formulae: ['tnlwrf+tnswrf']
         params:
@@ -122,6 +113,7 @@ Here we describe only the specific settings for the time series diagnostic.
     diagnostics:
       seasonalcycle:
         run: true # to enable the seasonal cycle
+        diagnostic_name: 'atmosphere'
         variables: ['2t', 'tprate']
         params:
           default:
