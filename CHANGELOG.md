@@ -13,6 +13,7 @@ Workflow modifications:
 - `aqua-analysis.py` is now an entry point `aqua analysis` in the AQUA console, with the same syntax as before.
 
 AQUA core complete list:
+- LatLonProfiles: refinement of the graphical functions (#2201)
 - Minor EC-Earth4 adjustments (#2196)
 - Hotfix in catgen for monthly chunking (#2184)
 - Fix loaded areas as dataset (#2174)
@@ -31,7 +32,6 @@ AQUA core complete list:
 - `apply_circular_window()` utility function to apply a circular window to cartopy maps (#2100)
 
 AQUA diagnostics complete list:
-- LatLonProfiles: refinement of the graphical functions (#2201)
 - Timeseries: refined title and description, more attributes used (#2193)
 - New LatLonProfiles diagnostic tool (#1934)
 - Boxplots: add support for reader_kwargs (#2149)
