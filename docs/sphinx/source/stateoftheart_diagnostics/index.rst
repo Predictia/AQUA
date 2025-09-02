@@ -27,6 +27,70 @@ Currently implemented diagnostics are:
    seaice
    teleconnections
 
+.. _diagnostics-configuration-files:
+
+Diagnostics configuration files
++++++++++++++++++++++++++++++++
+
+Each diagnostic has a corresponding YAML configuration file that specifies the options and parameters for the diagnostic.
+These configuration files are located in the ``config/diagnostics/<diagnostic-name>`` directory of the AQUA package and copied
+to the ``AQUA_CONFIG`` folder during installation (see :ref:`aqua-install`, by default ``$HOME/.aqua/``).
+
+Each diagnostic has its own configuration file, with a block devoted to the individual diagnostic settings.
+However, general settings common to all the diagnostics have a common structure here described.
+Please refer to the individual diagnostic documentation for the specific settings.
+
+* ``datasets``: a list of models to analyse (defined by the catalog, model, exp, source arguments).
+  If the diagnostic can handle multiple datasets, all the models in the list will be processed, otherwise only the first one will be used.
+
+.. code-block:: yaml
+
+    datasets:
+      - catalog: climatedt-phase1
+        model: IFS-NEMO
+        exp: historical-1990
+        source: lra-r100-monthly
+        regrid: null
+      - catalog: climatedt-phase1
+        model: ICON
+        exp: historical-1990
+        source: lra-r100-monthly
+        regrid: null
+
+* ``references``: a list of reference datasets to use for the analysis.
+
+.. code-block:: yaml
+
+    references:
+      - catalog: obs
+        model: ERA5
+        exp: era5
+        source: monthly
+        regrid: null
+
+* ``output``: a block describing the details of the output. Is contains:
+
+    * ``outputdir``: the output directory for the plots.
+    * ``rebuild``: a boolean that enables the rebuilding of the plots.
+    * ``save_pdf``: a boolean that enables the saving of the plots in pdf format.
+    * ``save_png``: a boolean that enables the saving of the plots in png format.
+    * ``dpi``: the resolution of the plots.
+    * ``create_catalog_entry``: a boolean that enables the creation of a catalog entry.
+
+.. code-block:: yaml
+
+    output:
+      outputdir: "/path/to/output"
+      rebuild: true
+      save_pdf: true
+      save_png: true
+      dpi: 300
+      create_catalog_entry: true
+
+.. note::
+
+  Not all the diagnostics support yet the ``create_catalog_entry`` keyword.
+
 Running the monitoring diagnostics
 ++++++++++++++++++++++++++++++++++
 
