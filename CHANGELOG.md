@@ -31,6 +31,7 @@ AQUA core complete list:
 - `apply_circular_window()` utility function to apply a circular window to cartopy maps (#2100)
 
 AQUA diagnostics complete list:
+- Ensemble: Updating the ensemble module according the the issue #1925 (#2004)
 - Timeseries: refined title and description, more attributes used (#2193)
 - New Lat-Lon Profiles diagnostic tool (#1934)
 - Boxplots: add support for reader_kwargs (#2149)
