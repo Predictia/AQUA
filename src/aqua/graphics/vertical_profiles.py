@@ -7,12 +7,14 @@ from aqua.util import evaluate_colorbar_limits
 from .styles import ConfigStyle
 
 def plot_vertical_profile(data: xr.DataArray, var: str,
-                         plev_min: Optional[float] = None, plev_max: Optional[float] = None, 
+                         lev_min: Optional[float] = None, lev_max: Optional[float] = None, 
                          vmin: Optional[float] = None, vmax: Optional[float] = None, 
-                         nlevels: Optional[int] = 18,  
+                         nlevels: Optional[int] = 18, lev_name: Optional[str] = 'plev',
                          title: Optional[str] = None, style: Optional[str] = None,
+                         logscale: bool = False,
                          return_fig: bool = False, figsize: Optional[tuple] = (10, 8),
                          fig: Optional[plt.Figure] = None, ax: Optional[plt.Axes] = None,
+                         ax_pos: tuple = (1, 1, 1),
                          loglevel='WARNING',  **kwargs):
     """
     Plots a zonal mean vertical profile 
@@ -22,27 +24,31 @@ def plot_vertical_profile(data: xr.DataArray, var: str,
         var (str): Variable name to plot (for labeling purposes).
         vmin (float, optional): Minimum colorbar value.
         vmax (float, optional): Maximum colorbar value.
-        plev_min (float, optional): Minimum pressure level to plot.
-        plev_max (float, optional): Maximum pressure level to plot.
+        lev_min (float, optional): Minimum vertical level to plot.
+        lev_max (float, optional): Maximum vertical level to plot.
         nlevels (int, optional): Number of contour levels for the plot.
+        lev_name (str, optional): Name of the vertical levels. Defaults to 'plev'.
         title (str, optional): Title of the plot.
+        style (str, optional): Style to use. Defaults to None (aqua style)
+        logscale (bool, optional): If True, use logarithmic scale for the y-axis. Defaults to False.
         return_fig (bool, optional): If True, returns the figure and axis objects. Defaults to False.
         figsize (tuple, optional): Figure size. Defaults to (10, 8).
         fig (plt.Figure, optional):  Figure to plot on. By default a new figure is created.
         ax (plt.Axes, optional):     Axes to plot on. By default a new axes is created.
-        style (str, optional): Style to use. Defaults to None (aqua style).
+        ax_pos (tuple, optional):    Axes position in the figure (nrows, ncols, index).
+        loglevel (str, optional): Logging level. Defaults to 'WARNING'.
     """
 
     logger = log_configure(loglevel, 'plot_vertical_profile')
     ConfigStyle(style=style, loglevel=loglevel)
 
-    if plev_min is None:
-        plev_min = data['plev'].min().item()
-    if plev_max is None:
-        plev_max = data['plev'].max().item()
-    # Slice pressure levels 
-    mask = (data['plev'] >= plev_min) & (data['plev'] <= plev_max)
-    data = data.sel(plev=data['plev'].where(mask, drop=True))
+    if lev_min is None:
+        lev_min = data[lev_name].min().item()
+    if lev_max is None:
+        lev_max = data[lev_name].max().item()
+    # Slice vertical levels 
+    mask = (data[lev_name] >= lev_min) & (data[lev_name] <= lev_max)
+    data = data.sel({lev_name: data[lev_name].where(mask, drop=True)})
     # Ensure reasonable number of levels
     nlevels = max(2, int(nlevels))
     
@@ -61,12 +67,14 @@ def plot_vertical_profile(data: xr.DataArray, var: str,
         ax = fig.add_subplot(ax_pos[0], ax_pos[1], ax_pos[2])
 
     cax = ax.contourf(
-        data['lat'], data['plev'], data,
+        data['lat'], data[lev_name], data,
         cmap='RdBu_r', levels=levels, extend='both'
     )
-    ax.set_yscale('log')
-    ax.set_ylabel('Pressure Level (Pa)')
+    if logscale:
+        ax.set_yscale('log')
     ax.set_xlabel('Latitude')
+    ax.set_ylabel("Pressure Level (Pa)" if lev_name == "plev" else lev_name)
+
     ax.invert_yaxis()
     fig.colorbar(cax, ax=ax, label=f'{var} [{data.attrs.get("units", "")}]')
     ax.grid(True)
@@ -82,11 +90,11 @@ def plot_vertical_profile(data: xr.DataArray, var: str,
 
 def plot_vertical_profile_diff(data: xr.DataArray, data_ref: xr.DataArray,
                                 var: str,
-                                plev_min: Optional[float] = None, plev_max: Optional[float] = None, 
+                                lev_min: Optional[float] = None, lev_max: Optional[float] = None, 
                                 vmin: Optional[float] = None, vmax: Optional[float] = None, 
                                 vmin_contour: Optional[float] = None, vmax_contour: Optional[float] = None,
                                 sym_contour: bool = False, add_contour: bool = False,
-                                nlevels: Optional[int] = 18,  
+                                nlevels: Optional[int] = 18, lev_name: Optional[str] = 'plev',
                                 title: Optional[str] = None, style: Optional[str] = None,
                                 return_fig: bool = False,
                                 fig: Optional[plt.Figure] = None, ax: Optional[plt.Axes] = None,
@@ -102,9 +110,15 @@ def plot_vertical_profile_diff(data: xr.DataArray, data_ref: xr.DataArray,
         var (str): Variable name to plot (for labeling purposes).
         vmin (float, optional): Minimum colorbar value.
         vmax (float, optional): Maximum colorbar value.
-        plev_min (float, optional): Minimum pressure level to plot.
-        plev_max (float, optional): Maximum pressure level to plot.
+        vmin_contour (float, optional): Minimum colorbar value for the contour plot.
+        vmax_contour (float, optional): Maximum colorbar value for the contour plot.
+        sym_contour (bool, optional): If True, the contour colorbar limits are symmetric
+            around zero. Defaults to False.
+        add_contour (bool, optional): Whether to add contour lines of the data.
+        lev_min (float, optional): Minimum vertical level to plot.
+        lev_max (float, optional): Maximum vertical level to plot.
         nlevels (int, optional): Number of contour levels for the plot.
+        lev_name (str, optional): Name of the vertical levels. Defaults to 'plev'.
         title (str, optional): Title of the plot.
         return_fig (bool, optional): If True, returns the figure and axis objects. Defaults to False.
         fig: Optional[plt.Figure] = None, ax: Optional[plt.Axes] = None,
@@ -117,9 +131,9 @@ def plot_vertical_profile_diff(data: xr.DataArray, data_ref: xr.DataArray,
     diff = data - data_ref
 
     fig, ax = plot_vertical_profile(
-        diff, var=var, plev_min=plev_min, plev_max=plev_max,
+        diff, var=var, lev_min=lev_min, lev_max=lev_max,
         vmin=vmin, vmax=vmax, nlevels=nlevels, title=title,
-        style=style, return_fig=True, fig=fig, ax=ax,
+        style=style, return_fig=True, fig=fig, ax=ax, ax_pos=ax_pos,
         loglevel=loglevel, **kwargs
     )
 
@@ -144,11 +158,11 @@ def plot_vertical_profile_diff(data: xr.DataArray, data_ref: xr.DataArray,
         nlevels = max(2, int(nlevels))
         levels = np.linspace(vmin, vmax, nlevels)
 
-        # Use common plevs for contour 
-        data_common = data.sel(plev=diff['plev'])
+        # Use common levels for contour 
+        data_common = data.sel({lev_name: diff[lev_name]})
 
         ds = ax.contour(
-            data_common['lat'], data_common['plev'], data_common,
+            data_common['lat'], data_common[lev_name], data_common,
             levels=levels, colors='k', linewidths=0.5
         )
         fmt = {level: f"{level:.1e}" if (abs(level) < 0.1 or abs(level) > 1000)
