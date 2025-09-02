@@ -1,12 +1,12 @@
 import os
 import xarray as xr
 from aqua import Reader
+from aqua.exceptions import NotEnoughDataError
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
 from aqua.util import load_yaml, convert_units
 from aqua.util import area_selection
-from .output_saver import OutputSaver
-
+from aqua.util.time import _xarray_timedelta_string
 
 class Diagnostic():
 
@@ -48,13 +48,15 @@ class Diagnostic():
         # Data to be retrieved
         self.data = None
 
-    def retrieve(self, var: str = None, reader_kwargs: dict = {}):
+    def retrieve(self, var: str = None, reader_kwargs: dict = {},
+                 months_required: int | None = None):
         """
         Retrieve the data from the model.
 
         Args:
             var (str): The variable to be retrieved. If None, all variables will be retrieved.
             reader_kwargs (dict): Additional keyword arguments to be passed to the Reader.
+            months_required (int | None): The number of months of data required. If None, no check will be performed.
 
         Attributes:
             self.data: The data retrieved from the model. If return_data is True, the data will be returned.
@@ -63,7 +65,8 @@ class Diagnostic():
         self.data, self.reader, self.catalog = self._retrieve(model=self.model, exp=self.exp, source=self.source,
                                                               var=var, catalog=self.catalog, startdate=self.startdate,
                                                               enddate=self.enddate, regrid=self.regrid,
-                                                              loglevel=self.logger.level, reader_kwargs=reader_kwargs)
+                                                              reader_kwargs=reader_kwargs, months_required=months_required,
+                                                              loglevel=self.logger.level)
         if self.regrid is not None:
             self.logger.info(f'Regridded data to {self.regrid} grid')
         if self.startdate is None:
@@ -95,11 +98,13 @@ class Diagnostic():
                                   catalog=self.catalog, model=self.model, exp=self.exp,
                                   outputdir=outputdir, loglevel=self.logger.level)
 
-        outputsaver.save_netcdf(dataset=data, diagnostic_product=diagnostic_product, **kwargs)
+        outputsaver.save_netcdf(dataset=data, diagnostic_product=diagnostic_product, 
+                                rebuild=rebuild, **kwargs)
 
     @staticmethod
     def _retrieve(model: str, exp: str, source: str, var: str = None, catalog: str = None,
                   startdate: str = None, enddate: str = None, regrid: str = None,
+                  months_required: int | None = None,
                   reader_kwargs: dict = {}, loglevel: str = 'WARNING'):
         """
         Static method to retrieve data and return everything instead of updating class
@@ -116,6 +121,7 @@ class Diagnostic():
             enddate (str): The end date of the data to be retrieved.
                            If None, all available data will be retrieved.
             regrid (str): The target grid to be used for regridding. If None, no regridding will be done.
+            months_required (int or None): The minimal amount of months to have results. If they are not met, a NotEnoughDataError will be raised.
             reader_kwargs (dict): Additional keyword arguments to be passed to the Reader.
             loglevel (str): The log level to be used. Default is 'WARNING'.
 
@@ -133,6 +139,17 @@ class Diagnostic():
         # If the data is empty, raise an error
         if not data:
             raise ValueError(f"No data found for {model} {exp} {source} with variable {var}")
+
+        if months_required is not None:
+            timedelta = _xarray_timedelta_string(data)
+            months = 0
+            if 'Y' in timedelta:
+                months = len(data['time']*12)
+            elif 'MS' in timedelta:
+                months = len(data['time'])
+
+            if months < months_required:
+                raise NotEnoughDataError(f"Not enough months of data found for {model} {exp} {source}, at least {months_required} months required, only {months} found.")
 
         if catalog is None:
             catalog = reader.catalog
