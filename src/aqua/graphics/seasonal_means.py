@@ -10,12 +10,12 @@ def plot_seasonal_lat_lon_profiles(seasonal_data,
                                    ref_std_data=None,
                                    style: str = None,
                                    loglevel='WARNING',
-                                   titles: list = None,
+                                   data_labels: list = None,
                                    title: str = None,
                                    ref_label: str = None
                                    ):
     """
-   Plot seasonal lat-lon profiles in a 2x2 subplot layout for the four meteorological seasons.
+    Plot seasonal lat-lon profiles in a 2x2 subplot layout for the four meteorological seasons.
 
     This function creates exactly 4 subplots arranged in a 2x2 grid, each showing lat-lon 
     profiles for a specific season. The seasons are hardcoded and must be provided in the 
@@ -41,7 +41,7 @@ def plot_seasonal_lat_lon_profiles(seasonal_data,
         ref_std_data (list, optional): Reference standard deviation data for each season.
         style (str, optional): Style configuration for the plot.
         loglevel (str): Logging level.
-        titles (list, optional): List of titles for each subplot. If provided, must have 4 elements.
+        data_labels (list, optional): List of data_labels for each subplot. If provided, must have 4 elements.
         title (str, optional): Overall title for the 2x2 subplot figure.
         ref_label (str, optional): Label for the reference data in the legend.
 
@@ -96,7 +96,7 @@ def plot_seasonal_lat_lon_profiles(seasonal_data,
     # Plot the 4 seasonal subplots
     for i, ax in enumerate(axs):
         season_data = seasonal_data[i]
-        season_title = titles[i] if titles and i < len(titles) else season_names[i]        
+        season_title = data_labels[i] if data_labels and i < len(data_labels) else season_names[i]        
         season_ref_data = ref_data[i] if ref_data is not None and i < len(ref_data) else None
         season_std_data = std_data[i] if std_data is not None and i < len(std_data) else None
         season_ref_std_data = ref_std_data[i] if ref_std_data is not None and i < len(ref_std_data) else None
