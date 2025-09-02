@@ -34,7 +34,7 @@ __all__ = ["plot_gregory_monthly", "plot_gregory_annual",
            "ConfigStyle",
            "plot_timeseries", "plot_seasonalcycle",
            "plot_maps", "plot_maps_diff",
-           "plot_vertical_profile", "plot_vertical_profile_diff"]
+           "plot_vertical_profile", "plot_vertical_profile_diff",
            "plot_lat_lon_profiles",
            "plot_seasonal_lat_lon_profiles"]
 
