@@ -15,6 +15,7 @@ AQUA core complete list:
 - `apply_circular_window()` utility function to apply a circular window to cartopy maps (#2100)
 
 AQUA diagnostics complete list:
+- Ensemble: Updating the ensemble module according the the issue #1925 (#2004)
 - SeasonalCycles: fix a bug which was preventing to plot when no reference data is provided (#2114)
 
 ## [v0.17.0]
@@ -72,7 +73,6 @@ AQUA diagnostics complete list:
 - Timeseries: `center_time` option to center the time axis is exposed in the CLI (#2028)
 - Timeseries: fix the missing variable name in some netcdf output (#2023)
 - Diagnostic core: new `_select_region` method in `Diagnostic`, wrapped by `select_region` to select a region also on custom datasets (#2020, #2032)
-- Ensemble: Updating the ensemble module according the the issue #1925 (#2004)
 
 ## [v0.16.0]
 
