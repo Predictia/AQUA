@@ -235,7 +235,7 @@ class BaseMixin(Diagnostic):
             exp=self.exp,
             model_ref=self.ref_model,
             exp_ref=self.ref_exp,
-            outdir=self.outputdir,
+            outputdir=self.outputdir,
             loglevel=self.log_level,
         )
 
@@ -269,7 +269,7 @@ class BaseMixin(Diagnostic):
             exp=self.exp,
             model_ref=self.ref_model,
             exp_ref=self.ref_exp,
-            outdir=self.outputdir,
+            outputdir=self.outputdir,
             loglevel=self.log_level,
         )
         if description is None:
@@ -312,7 +312,7 @@ class BaseMixin(Diagnostic):
                 exp=self.exp,
                 model_ref=self.ref_model,
                 exp_ref=self.ref_exp,
-                outdir=self.outputdir,
+                outputdir=self.outputdir,
                 loglevel=self.log_level,
             )
             if description is None:
