@@ -14,8 +14,9 @@ def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
                           style: str | None = None,
                           fig: plt.Figure | None = None,
                           ax: plt.Axes | None = None,
-                          loglevel: str = 'WARNING',
-                          **kwargs):
+                          figsize: tuple = (10, 5),
+                          title: str | None = None,
+                          loglevel: str = 'WARNING'):
     """
     Plot latitude or longitude profiles of data, averaging over the specified axis.
 
@@ -32,8 +33,9 @@ def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
         style (str | None, optional): Style for the plot.
         fig (plt.Figure | None, optional): Matplotlib figure object.
         ax (plt.Axes | None, optional): Matplotlib axes object.
+        figsize (tuple, optional): Figure size if a new figure is created.
+        title (str | None, optional): Title for the plot.
         loglevel (str, optional): Logging level.
-        **kwargs: Additional keyword arguments for customization.
 
     Returns:
         tuple: Matplotlib figure and axes objects.
@@ -65,8 +67,7 @@ def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
 
     # Create figure if needed
     if fig is None:
-        fig_size = kwargs.get('figsize', (10, 5))
-        fig = plt.figure(figsize=fig_size)
+        fig = plt.figure(figsize=figsize)
     if ax is None:
         ax = fig.add_subplot(1, 1, 1)
 
@@ -157,7 +158,7 @@ def plot_lat_lon_profiles(data: xr.DataArray | list[xr.DataArray],
     elif coord_name and 'lon' in coord_name:
         ax.set_xlabel('Longitude')
 
-    title = kwargs.get('title', None)
+    # Set title if provided
     if title:
         ax.set_title(title, fontsize=13, fontweight='bold')
 
