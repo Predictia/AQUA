@@ -99,6 +99,8 @@ class TCs(DetectNodes, StitchNodes):
             self.enddate = enddate
             self.write_fullres = write_fullres
 
+        self.orog = None
+
         self.streaming = streaming
         if self.streaming:
             self.stream_step = stream_step
@@ -148,14 +150,15 @@ class TCs(DetectNodes, StitchNodes):
             2*tdict['stitch']['n_days_ext']
         last_run_stitch = self.stream_startdate
 
-
         # loop to simulate streaming
-        while len(np.unique(self.data2d.time.dt.day)) == streamstep_n:   
+        # while len(np.unique(self.data2d.time.dt.day)) == streamstep_n:   
+        while self.data_retrieve():
             self.logger.warning(
-                "New streaming from %s to %s", pd.to_datetime(self.stream_startdate), pd.to_datetime(self.stream_enddate))
+                "Streaming from %s to %s", pd.to_datetime(self.stream_startdate), pd.to_datetime(self.stream_enddate))
 
             # retrieve data and call to Tempest DetectNodes
-            self.data_retrieve()
+            # self.data_retrieve()
+
             self.detect_nodes_zoomin()
 
             # add one hour since time ends at 23
@@ -273,28 +276,26 @@ class TCs(DetectNodes, StitchNodes):
         # now retrieve 2d and 3d data needed
 
         self.data2d = self.reader2d.retrieve(var=self.varlist2d)
+
         if self.model in ["ERA5", "IFS-FESOM"]: # plev are in Pa
             self.data3d = self.reader3d.retrieve(var=self.varlist3d)
-            self.data3d = self.data3d.sel(plev=[30000, 50000], method="nearest")
+            if self.data3d is not None:
+                self.data3d = self.data3d.sel(plev=[30000, 50000], method="nearest")
         else: # plev are in hPa
             self.data3d = self.reader3d.retrieve(var=self.varlist3d)
-            self.data3d = self.data3d.sel(plev=[300, 500], method="nearest")
+            if self.data3d is not None:
+                self.data3d = self.data3d.sel(plev=[300, 500], method="nearest")
 
         self.fullres = self.reader_fullres.retrieve(var=self.var2store)
         
         # in case data2d is empty, we reached the end of the data
-        if isinstance(self.data2d, type(None)):
-            self.logger.warning("End of data/streaming")
-            raise SystemExit
-
-        if self.streaming:
-            self.stream_enddate = self.data2d.time[-1].values
-            self.stream_startdate = self.data2d.time[0].values
-
+        #if isinstance(self.data2d, type(None)):
+        #    self.logger.warning("End of data/streaming")
+        #    raise SystemExit
 
         #if orography is provided in a file access it without reader
             
-        if self.orography:
+        if self.orography and not self.orog:  # only if not already done
             self.logger.info("orography retrieved from file")
             self.orog = xr.open_dataset(self.orography_file)
             if self.model == "IFS" or self.model == "IFS-NEMO" or self.model == "IFS-FESOM":
@@ -311,6 +312,13 @@ class TCs(DetectNodes, StitchNodes):
             else:
                 raise ValueError(f'Orography variable of {self.model} not recognised!')
 
+        if self.data2d is not None and self.data3d is not None:
+            if self.streaming:
+                self.stream_enddate = self.data2d.time[-1].values
+                self.stream_startdate = self.data2d.time[0].values
+            return True
+        else:
+            return False
 
     def store_fullres_field(self, xfield, nodes):
         """
