@@ -91,6 +91,25 @@ Please refer to the individual diagnostic documentation for the specific setting
 
   Not all the diagnostics support yet the ``create_catalog_entry`` keyword.
 
+.. _diagnostics-cli-arguments:
+
+Diagnostics CLI arguments
++++++++++++++++++++++++++
+
+The following command line arguments are available for all the diagnostics:
+
+- ``--config``, ``-c``: Path to the configuration file.
+- ``--nworkers``, ``-n``: Number of workers to use for parallel processing.
+- ``--cluster``: Cluster to use for parallel processing. By default a local cluster is used.
+- ``--loglevel``, ``-l``: Logging level. Default is ``WARNING``.
+- ``--catalog``: Catalog to use for the analysis. It can be defined in the config file.
+- ``--model``: Model to analyse. It can be defined in the config file.
+- ``--exp``: Experiment to analyse. It can be defined in the config file.
+- ``--source``: Source to analyse. It can be defined in the config file.
+- ``--outputdir``: Output directory for the plots.
+
+If a diagnostic has extra arguments, these will be described in the individual diagnostic documentation.
+
 Running the monitoring diagnostics
 ++++++++++++++++++++++++++++++++++
 
