@@ -190,7 +190,16 @@ def time_to_string(time=None, format='%Y-%m-%d'):
 
 
 def int_month_name(month, abbreviated=False):
-    """Return month name from integer (1-12) if xarray functions cannot be used"""
+    """
+    Return month name from integer (1-12) if xarray functions cannot be used
+    
+    Args:
+        month (int): The month as an integer (1-12).
+        abbreviated (bool): Whether to return the abbreviated month name (default is False).
+
+    Returns:
+        str: The name of the month.
+    """
     name = ["January", "February", "March", "April", "May", "June",
             "July", "August", "September", "October", "November", "December"][month - 1]
     return name[:3] if abbreviated else name
