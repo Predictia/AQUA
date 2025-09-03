@@ -48,7 +48,7 @@ class Diagnostic():
         # Data to be retrieved
         self.data = None
 
-    def retrieve(self, var: str = None | None = None, reader_kwargs: dict = {},
+    def retrieve(self, var: str | None = None, reader_kwargs: dict = {},
                  months_required: int | None = None):
         """
         Retrieve the data from the model.
