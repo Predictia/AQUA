@@ -212,15 +212,16 @@ class Hovmoller(Diagnostic):
         anomaly_ref.append(None)
         
         if dim_mean is not None:
-            # self.logger.debug(f"Computing mean over dimension: {dim_mean}")
-            # self.reader.tgt_fldstat.area = self.reader.tgt_fldstat.area.sel(
-            #     lon=self.data.lon,
-            #     lat=self.data.lat
-            # )
-
+            self.logger.debug(f"Computing mean over dimension: {dim_mean}")
+            self.reader.tgt_fldstat.area = self.reader.tgt_fldstat.area.sel(
+                lon=self.data.lon,
+                lat=self.data.lat
+            ) # Ensure area weights match data grid
+            
+            self.data = self.reader.tgt_fldstat.fldstat(self.data, stat= 'mean', dims= dim_mean)
             # self.data = self.reader.fldmean(self.data)
-            self.data = self.weighted_area(self.data)
-            self.data = self.data.mean(dim=dim_mean)
+            # self.data = self.weighted_area(self.data)
+            # self.data = self.data.mean(dim=dim_mean)
 
         for standardise, anomaly_ref in product([False, True], anomaly_ref):
             if not (standardise is True and anomaly_ref is None):
