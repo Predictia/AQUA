@@ -1,5 +1,6 @@
 import xarray as xr
 from aqua.logger import log_configure
+from aqua.util import pandas_freq_to_string
 from aqua.diagnostics.core import Diagnostic, OutputSaver
 from collections import Counter
 
@@ -151,27 +152,6 @@ class BaseMixin(Diagnostic):
         logger.info(f"Outputs will be saved with {self.catalog}, {self.model} and {self.exp}.")
         self.outputdir = outputdir
 
-    def _str_freq(self, freq: str):
-        """
-        Args:
-            freq (str): The frequency to be used.
-
-        Returns:
-            str_freq (str): The frequency as a string.
-        """
-        if freq in ["h", "hourly"]:
-            str_freq = "hourly"
-        elif freq in ["D", "daily"]:
-            str_freq = "daily"
-        elif freq in ["MS", "ME", "M", "mon", "monthly"]:
-            str_freq = "monthly"
-        elif freq in ["YS", "YE", "Y", "annual"]:
-            str_freq = "annual"
-        else:
-            self.logger.error("Frequency %s not recognized", freq)
-
-        return str_freq
-
     def save_netcdf(
         self,
         var: str = None,
@@ -204,7 +184,7 @@ class BaseMixin(Diagnostic):
             var = getattr(data, "standard_name", None)
         extra_keys = {"var": var, "data_name": data_name}
         if freq is not None:
-            str_freq = self._str_freq(freq)
+            str_freq = pandas_freq_to_string(freq)
             self.logger.info("%s frequency is given", str_freq)
             if data is None:
                 self.logger.error("No %s %s available", str_freq, data_name)

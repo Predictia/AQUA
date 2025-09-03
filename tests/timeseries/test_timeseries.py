@@ -87,7 +87,7 @@ class TestTimeseries:
     def test_hourly_daily_with_region(self):
         ts = Timeseries(diagnostic_name=self.diagnostic_name,
                         catalog=self.catalog, model=self.model, exp=self.exp, source=self.source,
-                        region=self.region, loglevel=loglevel, startdate='19900101', enddate='19900102',
+                        region=self.region, loglevel=loglevel, startdate='19900101', enddate='19900301',
                         regrid=self.regrid)
 
         ts.retrieve(var=self.var)
