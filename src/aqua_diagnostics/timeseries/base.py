@@ -2,7 +2,8 @@ import os
 import xarray as xr
 from aqua.fixer import EvaluateFormula
 from aqua.logger import log_configure
-from aqua.util import frequency_string_to_pandas, time_to_string, strlist_to_phrase
+from aqua.util import frequency_string_to_pandas, pandas_freq_to_string
+from aqua.util import time_to_string, strlist_to_phrase
 from aqua.diagnostics.core import Diagnostic, start_end_dates, OutputSaver
 
 xr.set_options(keep_attrs=True)
@@ -147,7 +148,7 @@ class BaseMixin(Diagnostic):
             raise ValueError('Frequency not provided')
 
         freq = frequency_string_to_pandas(freq)
-        str_freq = self._str_freq(freq)
+        str_freq = pandas_freq_to_string(freq)
         self.logger.info('Computing %s standard deviation', str_freq)
 
         freq_dict = {'hourly': {'data': self.hourly, 'groupdby': 'time.hour'},
@@ -200,7 +201,7 @@ class BaseMixin(Diagnostic):
             create_catalog_entry (bool): If True, create a catalog entry for the data. Default is False.
             dict_catalog_entry (dict): A dictionary with catalog entry information. Default is {'jinjalist': ['freq', 'region', 'realization'], 'wildcardlist': ['var']}.
         """
-        str_freq = self._str_freq(freq)
+        str_freq = pandas_freq_to_string(freq)
 
         if str_freq == 'hourly':
             data = self.hourly if self.hourly is not None else self.logger.error('No hourly data available')
@@ -246,27 +247,6 @@ class BaseMixin(Diagnostic):
             units (str): The units to be checked.
         """
         self.data = super()._check_data(data=self.data, var=var, units=units)
-
-    def _str_freq(self, freq: str):
-        """
-        Args:
-            freq (str): The frequency to be used.
-
-        Returns:
-            str_freq (str): The frequency as a string.
-        """
-        if freq in ['h', 'hourly']:
-            str_freq = 'hourly'
-        elif freq in ['D', 'daily']:
-            str_freq = 'daily'
-        elif freq in ['MS', 'ME', 'M', 'mon', 'monthly']:
-            str_freq = 'monthly'
-        elif freq in ['YS', 'YE', 'Y', 'annual']:
-            str_freq = 'annual'
-        else:
-            self.logger.error('Frequency %s not recognized', freq)
-
-        return str_freq
 
 
 class PlotBaseMixin():

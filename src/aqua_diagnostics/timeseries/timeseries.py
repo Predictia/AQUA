@@ -1,7 +1,7 @@
 """Timeseries class for retrieve and netcdf saving of a single experiment"""
 import xarray as xr
 import pandas as pd
-from aqua.util import to_list, frequency_string_to_pandas
+from aqua.util import to_list, frequency_string_to_pandas, pandas_freq_to_string
 from aqua.diagnostics.core import round_startdate, round_enddate
 from .util import loop_seasonalcycle
 from .base import BaseMixin
@@ -108,7 +108,7 @@ class Timeseries(BaseMixin):
             return
 
         freq = frequency_string_to_pandas(freq)
-        str_freq = self._str_freq(freq)
+        str_freq = pandas_freq_to_string(freq)
 
         self.logger.info('Computing %s mean', str_freq)
         data = self.data.sel(time=slice(self.plt_startdate, self.plt_enddate))
