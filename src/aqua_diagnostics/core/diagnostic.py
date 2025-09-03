@@ -4,7 +4,8 @@ from aqua import Reader
 from aqua.exceptions import NotEnoughDataError
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
-from aqua.util import load_yaml, convert_units, xarray_to_pandas_freq
+from aqua.util import load_yaml, convert_units
+from aqua.util import xarray_to_pandas_freq, pandas_freq_to_string
 from aqua.util import area_selection, DEFAULT_REALIZATION
 from .output_saver import OutputSaver
 
@@ -149,13 +150,22 @@ class Diagnostic():
         if not data:
             raise ValueError(f"No data found for {model} {exp} {source} with variable {var}")
 
+        # If there is a month requirement we infer the data frequency,
+        # then we check how many months are available in the data
+        # and finally raise an error if the requirement is not met.
         if months_required is not None:
             timedelta = xarray_to_pandas_freq(data)
-            months = 0
-            if 'Y' in timedelta:
-                months = len(data['time']*12)
-            elif 'MS' in timedelta:
-                months = len(data['time'])
+            freq = pandas_freq_to_string(timedelta)
+            factor = {
+                'hourly': 1/(24*30),
+                'daily': 1/30,
+                'weekly': 1/4,
+                'monthly': 1,
+                'seasonal': 3,
+                'annual': 12
+            }
+            # We automatically raise an error if the frequency is not pandas compliant
+            months = len(data['time']) * factor.get(freq, 0)
 
             if months < months_required:
                 raise NotEnoughDataError(f"Not enough months of data found for {model} {exp} {source}, at least {months_required} months required, only {months} found.")
