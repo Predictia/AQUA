@@ -9,9 +9,10 @@ from .styles import ConfigStyle
 
 
 def plot_vertical_profile(data: xr.DataArray, var: str,
+                          lev_name: str = "plev", x_coord: str = "lat",
                           lev_min: Optional[float] = None,lev_max: Optional[float] = None,
                           vmin: Optional[float] = None, vmax: Optional[float] = None,
-                          nlevels: int = 18, lev_name: str = "plev",
+                          nlevels: int = 18, 
                           title: Optional[str] = None, style: Optional[str] = None,
                           logscale: bool = False,
                           return_fig: bool = False, figsize: Tuple[int, int] = (10, 8),
@@ -24,6 +25,8 @@ def plot_vertical_profile(data: xr.DataArray, var: str,
 
     Args:
         data: DataArray to plot.
+        lev_name: Name of the vertical levels (default 'plev').
+        x_coord: Name of the horizontal coordinate (default 'lat').
         var: Variable name for labeling purposes.
         lev_min, lev_max: Range of vertical levels to plot.
         vmin, vmax: Colorbar limits.
@@ -64,11 +67,11 @@ def plot_vertical_profile(data: xr.DataArray, var: str,
     ax = ax or fig.add_subplot(*ax_pos)
 
     # Plot
-    cax = ax.contourf(data["lat"], data[lev_name], data,
+    cax = ax.contourf(data[x_coord], data[lev_name], data,
                       cmap="RdBu_r", levels=levels, extend="both")
     if logscale:
         ax.set_yscale("log")
-    ax.set_xlabel("Latitude")
+    ax.set_xlabel("Latitude") if x_coord == "lat" else x_coord
     ax.set_ylabel("Pressure Level (Pa)" if lev_name == "plev" else lev_name)
     ax.invert_yaxis()
     fig.colorbar(cax, ax=ax, label=f"{var} [{data.attrs.get('units', '')}]")
@@ -85,11 +88,12 @@ def plot_vertical_profile(data: xr.DataArray, var: str,
 
 def plot_vertical_profile_diff(data: xr.DataArray, data_ref: xr.DataArray,
                                var: str, 
+                               lev_name: str = "plev", x_coord: str = "lat",
                                lev_min: Optional[float] = None, lev_max: Optional[float] = None,
                                vmin: Optional[float] = None, vmax: Optional[float] = None,
                                vmin_contour: Optional[float] = None, vmax_contour: Optional[float] = None,
                                sym_contour: bool = False, add_contour: bool = False,
-                               nlevels: int = 18, lev_name: str = "plev",
+                               nlevels: int = 18,
                                title: Optional[str] = None, style: Optional[str] = None,
                                return_fig: bool = False, fig: Optional[plt.Figure] = None,
                                ax: Optional[plt.Axes] = None, ax_pos: Tuple[int, int, int] = (1, 1, 1),
@@ -102,13 +106,14 @@ def plot_vertical_profile_diff(data: xr.DataArray, data_ref: xr.DataArray,
     Args:
         data, data_ref: DataArrays to compare.
         var: Variable name for labeling purposes.
+        lev_name: Name of the vertical levels.
+        x_coord: Name of the horizontal coordinate.
         vmin, vmax: Limits for the difference plot.
         vmin_contour, vmax_contour: Limits for contour plot.
         sym_contour: If True, contour limits symmetric around zero.
         add_contour: If True, overlay contour lines from reference data.
         lev_min, lev_max: Range of vertical levels to plot.
         nlevels: Number of contour levels.
-        lev_name: Name of the vertical levels.
         title: Plot title.
         return_fig: If True, return (fig, ax).
     """
@@ -133,7 +138,7 @@ def plot_vertical_profile_diff(data: xr.DataArray, data_ref: xr.DataArray,
         levels = np.linspace(vmin_contour, vmax_contour, max(2, int(nlevels)))
         data_common = data.sel({lev_name: diff[lev_name]})
 
-        cs = ax.contour(data_common["lat"], data_common[lev_name], data_common,
+        cs = ax.contour(data_common[x_coord], data_common[lev_name], data_common,
                         levels=levels, colors="k", linewidths=0.5)
         fmt = {lvl: f"{lvl:.1e}" if (abs(lvl) < 0.1 or abs(lvl) > 1000)
                else f"{lvl:.1f}" for lvl in cs.levels}
