@@ -54,6 +54,7 @@ def xarray_to_pandas_freq(xdataset: xr.Dataset | xr.DataArray):
     """
     Given a Xarray Dataset or DataArray, estimate the time frequency
     with the pandas method.
+    Important: the infer_freq method requires at least 3 time points.
 
     Args:
         xdataset (xr.Dataset | xr.DataArray): The input xarray object.
