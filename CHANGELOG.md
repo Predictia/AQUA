@@ -13,6 +13,9 @@ Workflow modifications:
 - `aqua-analysis.py` is now an entry point `aqua analysis` in the AQUA console, with the same syntax as before.
 
 AQUA core complete list:
+- Refactor of the `dump_yaml` utility function, now correctly handling `None` values as `null` (#2198)
+- `Reader` will now turn off areas and grids capabilities when `src_grid_name` is `False` (#2198)
+- LRA and `OutputSaver` jinja-related duplicated methods are now merged (#2198)
 - LatLonProfiles: refinement of the graphical functions (#2201)
 - Minor EC-Earth4 adjustments (#2196)
 - Hotfix in catgen for monthly chunking (#2184)
@@ -32,6 +35,8 @@ AQUA core complete list:
 - `apply_circular_window()` utility function to apply a circular window to cartopy maps (#2100)
 
 AQUA diagnostics complete list:
+- Timeseries: introduction of the catalog entry capability, default in CLI (#2198)
+- Diagnostic core: introduction of the catalog entry capability and `self.realization` attribute (#2198)
 - Ensemble: Updating the ensemble module according the the issue #1925 (#2004)
 - Timeseries: refined title and description, more attributes used (#2193)
 - New LatLonProfiles diagnostic tool (#1934)
