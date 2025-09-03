@@ -19,7 +19,7 @@ from .util import extract_literal_and_numeric, extract_attrs, add_pdf_metadata, 
 from .util import open_image, username, update_metadata
 from .yaml import load_yaml, dump_yaml, load_multi_yaml
 from .time import check_chunk_completeness, frequency_string_to_pandas
-from .time import time_to_string, int_month_name
+from .time import time_to_string, int_month_name, xarray_timedelta_string
 from .zarr import create_zarr_reference
 
 __all__ = ['replace_intake_vars', 'replace_urlpath_jinja', 'replace_urlpath_wildcard',
@@ -44,5 +44,5 @@ __all__ = ['replace_intake_vars', 'replace_urlpath_jinja', 'replace_urlpath_wild
            'check_chunk_completeness', 'frequency_string_to_pandas',
            'time_to_string',
            'create_zarr_reference',
-           'int_month_name', 'merge_attrs',
+           'int_month_name', 'merge_attrs', 'xarray_timedelta_string',
            'strlist_to_phrase', 'lat_to_phrase']

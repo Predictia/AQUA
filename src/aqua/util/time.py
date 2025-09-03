@@ -1,8 +1,6 @@
 """
 Module including time utilities for AQUA
 """
-
-# import math
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -48,7 +46,7 @@ def frequency_string_to_pandas(freq):
     return new_freq
 
 
-def _xarray_timedelta_string(xdataset: xr.Dataset | xr.DataArray):
+def xarray_timedelta_string(xdataset: xr.Dataset | xr.DataArray):
     """
     Given a Xarray Dataset or DataArray, estimate the time frequency
     with the pandas method.
@@ -58,26 +56,6 @@ def _xarray_timedelta_string(xdataset: xr.Dataset | xr.DataArray):
 
     # Try to infer frequency
     freq = pd.infer_freq(time_index)
-
-    # OLD FUNCTION TO REMOVE
-    # # to check if this is necessary
-    # timedelta = pd.Timedelta(xdataset.time.diff('time').mean().values)
-
-    # hours = math.floor(timedelta.total_seconds() / 3600)
-    # days = math.floor(hours / 24)
-    # months = math.floor(days / 28)  # Minimum month has around 28 days
-    # years = math.floor(days / 365)  # Assuming an average year has around 365 days
-
-    # # print([hours, days, months, years])
-
-    # if years >= 1:
-    #     return f"{years}Y"
-    # elif months >= 1:
-    #     return f"{months}MS"
-    # elif days >= 1:
-    #     return f"{days}D"
-    # else:
-    #     return f"{hours}h"
 
     return freq
 
@@ -125,7 +103,7 @@ def check_chunk_completeness(xdataset, resample_frequency='1D', loglevel='WARNIN
     logger = log_configure(loglevel, 'timmean_chunk_completeness')
 
     # get frequency of the dataset. Expected to be regular!
-    data_frequency = _xarray_timedelta_string(xdataset)
+    data_frequency = xarray_timedelta_string(xdataset)
 
     # convert offset
     pandas_period = to_offset(resample_frequency)
