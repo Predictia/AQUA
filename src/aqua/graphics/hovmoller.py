@@ -76,14 +76,17 @@ def plot_hovmoller(data: xr.DataArray,
     if not isinstance(data, xr.DataArray):
         raise TypeError('Data is not a DataArray')
 
-    # Evaluate the mean over the dimension to be averaged over
-    logger.info('Averaging over dimension: {}'.format(dim))
-    dim_min = data.coords[dim].min()
-    dim_max = data.coords[dim].max()
-    dim_min = np.round(dim_min, 0)
-    dim_max = np.round(dim_max, 0)
+    if dim:
+        # Evaluate the mean over the dimension to be averaged over
+        logger.info('Averaging over dimension: {}'.format(dim))
+        dim_min = data.coords[dim].min()
+        dim_max = data.coords[dim].max()
+        dim_min = np.round(dim_min, 0)
+        dim_max = np.round(dim_max, 0)
 
-    data_mean = data.mean(dim=dim)
+        data_mean = data.mean(dim=dim)
+    else:
+        data_mean = data
 
     # Create figure and axes
     if fig is None:
