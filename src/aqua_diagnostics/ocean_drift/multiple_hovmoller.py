@@ -87,6 +87,7 @@ def plot_multi_hovmoller(
                 sym=sym,
                 contour=contour,
                 box_text=False,
+                dim=None,
                 vmin=vmin[k] if vmin else None,
                 vmax=vmax[k] if vmax else None,
                 cmap=cmap[k] if cmap else None,
