@@ -70,6 +70,50 @@ def xarray_to_pandas_freq(xdataset: xr.Dataset | xr.DataArray):
     return freq
 
 
+def pandas_freq_to_string(freq: str) -> str:
+    """
+    Convert a pandas frequency string to a more human-readable format.
+    It also supports already human-readable formats.
+
+    Args:
+        freq (str): The pandas frequency string.
+
+    Returns:
+        str: The human-readable format of the frequency.
+    """
+    trans = {
+        # Hourly
+        'H': 'hourly',
+        'h': 'hourly',
+        'hourly': 'hourly',
+        # Daily
+        'D': 'daily',
+        'd': 'daily',
+        'daily': 'daily',
+        # Weekly
+        'W': 'weekly',
+        'weekly': 'weekly',
+        # Seasonal
+        'Q-NOV': 'seasonal',
+        'Q': 'seasonal',
+        # Monthly
+        'MS': 'monthly',
+        'M': 'monthly',
+        'ME': 'monthly',
+        'mon': 'monthly',
+        'monthly': 'monthly',
+        # Annual
+        'YS': 'annual',
+        'Y': 'annual',
+        'YE': 'annual',
+        'yearly': 'annual',
+        'years': 'annual',
+        'annual': 'annual'
+    }
+
+    return trans.get(freq, freq)
+
+
 def _find_end_date(start_date, offset):
     """Given a date and an offset in the form of pandas frequency
     return the expected end date of that period"""
