@@ -365,7 +365,6 @@ class OutputSaver:
         self.logger.debug("Available metadata: %s", metadata)
         return metadata
 
-
     def _create_catalog_entry(self, filepath, metadata, jinjalist=None, wildcardlist=None):
         """
         Creates an entry in the catalog

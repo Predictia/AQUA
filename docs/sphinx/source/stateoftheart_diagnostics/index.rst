@@ -26,6 +26,7 @@ Currently implemented diagnostics are:
    ocean3d
    seaice
    teleconnections
+   ensemble
 
 .. _diagnostics-configuration-files:
 
