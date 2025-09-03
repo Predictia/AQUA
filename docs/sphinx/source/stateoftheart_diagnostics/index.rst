@@ -162,3 +162,7 @@ Here you can find the minimum requirements for each diagnostic.
 .. note::
    Some diagnostics will technically run with less data, but the results may not be meaningful.
    Some other will raise errors in the log files if the data is not enough.
+
+.. note::
+  If you are a developer you can enforce the minimum data requirements by using the `months_required` argument in the `retrieve` and `_retrieve` methods
+  available in the diagnostic core.

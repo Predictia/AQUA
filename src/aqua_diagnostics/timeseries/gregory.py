@@ -101,7 +101,8 @@ class Gregory(Diagnostic):
         data, self.reader, self.catalog = super()._retrieve(catalog=self.catalog, model=self.model,
                                                             exp=self.exp, source=self.source,
                                                             regrid=self.regrid, startdate=self.startdate,
-                                                            enddate=self.enddate, reader_kwargs=reader_kwargs)
+                                                            enddate=self.enddate, reader_kwargs=reader_kwargs,
+                                                            months_required=2)
         self.realization = reader_kwargs['realization'] if 'realization' in reader_kwargs else DEFAULT_REALIZATION
 
         if t2m:

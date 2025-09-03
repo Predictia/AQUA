@@ -18,8 +18,8 @@ from .util import file_is_complete, files_exist, find_vert_coord
 from .util import extract_literal_and_numeric, extract_attrs, add_pdf_metadata, add_png_metadata
 from .util import open_image, username, update_metadata
 from .yaml import load_yaml, dump_yaml, load_multi_yaml
-from .time import check_chunk_completeness, frequency_string_to_pandas
-from .time import time_to_string, int_month_name
+from .time import check_chunk_completeness, frequency_string_to_pandas, pandas_freq_to_string
+from .time import time_to_string, int_month_name, xarray_to_pandas_freq
 from .zarr import create_zarr_reference
 
 __all__ = ['replace_intake_vars', 'replace_urlpath_jinja', 'replace_urlpath_wildcard',
@@ -30,19 +30,17 @@ __all__ = ['replace_intake_vars', 'replace_urlpath_jinja', 'replace_urlpath_wild
            'evaluate_colorbar_limits', 'cbar_get_label', 'set_map_title',
            'coord_names', 'ticks_round', 'set_ticks', 'generate_colorbar_ticks',
            'apply_circular_window',
-           'area_selection', 'check_coordinates', 'select_season',
-           'generate_random_string', 'get_arg', 'create_folder', 'to_list',
-           'files_exist',
-           'file_is_complete', 'find_vert_coord',
-           'extract_literal_and_numeric', 'add_pdf_metadata', 'add_png_metadata',
-           'extract_attrs',
            'get_nside', 'get_npix', 'healpix_resample',
            'get_projection',
            'format_realization', 'DEFAULT_REALIZATION',
+           'area_selection', 'check_coordinates', 'select_season', 'merge_attrs',
+           'strlist_to_phrase', 'lat_to_phrase',
+           'generate_random_string', 'get_arg', 'create_folder', 'to_list',
+           'file_is_complete', 'files_exist', 'find_vert_coord',
+           'extract_literal_and_numeric', 'extract_attrs', 'add_pdf_metadata', 'add_png_metadata',
            'open_image', 'username', 'update_metadata',
            'load_yaml', 'dump_yaml', 'load_multi_yaml',
-           'check_chunk_completeness', 'frequency_string_to_pandas',
-           'time_to_string',
+           'check_chunk_completeness', 'frequency_string_to_pandas', 'pandas_freq_to_string',
+           'time_to_string', 'int_month_name',  'xarray_to_pandas_freq',
            'create_zarr_reference',
-           'int_month_name', 'merge_attrs',
-           'strlist_to_phrase', 'lat_to_phrase']
+           ]
