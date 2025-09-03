@@ -11,8 +11,13 @@ def frequency_string_to_pandas(freq):
     """
     Convert a string from the AQUA convention to
     the usual pandas frequency standard
-    """
 
+    Args:
+        freq (str): The frequency string to convert.
+
+    Returns:
+        str: The converted frequency string, pandas compliant.
+    """
     logger = log_configure('WARNING', 'frequency_string_to_pandas')
 
     trans = {
@@ -42,14 +47,19 @@ def frequency_string_to_pandas(freq):
     if freq in ['M', 'ME', 'Y', 'YE']:
         logger.warning('You are using a pandas frequency pointing at the end of a period, this can behave unexpectedly if you have subdaily data')
 
-
     return new_freq
 
 
-def xarray_timedelta_string(xdataset: xr.Dataset | xr.DataArray):
+def xarray_to_pandas_freq(xdataset: xr.Dataset | xr.DataArray):
     """
     Given a Xarray Dataset or DataArray, estimate the time frequency
     with the pandas method.
+
+    Args:
+        xdataset (xr.Dataset | xr.DataArray): The input xarray object.
+
+    Returns:
+        str: The inferred time frequency as a string, pandas compliant.
     """
     # Convert time coordinate to a pandas index
     time_index = pd.DatetimeIndex(xdataset.time.values)
@@ -85,12 +95,13 @@ def _generate_expected_time_series(start_date, frequency, time_period):
 
 
 def check_chunk_completeness(xdataset, resample_frequency='1D', loglevel='WARNING'):
-    """Support function for timmean().
+    """
+    Support function for timmean().
     Verify that all the chunks available in a dataset are complete given a
     fixed resample_frequency.
 
     Args:
-        xdataset: The original dataset before averagin
+        xdataset: The original dataset before averaging
         resample_frequency: the frequency on which we are planning to resample, based on pandas frequency
 
     Raise:
@@ -98,12 +109,12 @@ def check_chunk_completeness(xdataset, resample_frequency='1D', loglevel='WARNIN
 
     Returns:
         A Xarray DataArray binary, 1 for complete chunks and 0 for incomplete ones, to be used by timmean()
-        """
+    """
 
     logger = log_configure(loglevel, 'timmean_chunk_completeness')
 
     # get frequency of the dataset. Expected to be regular!
-    data_frequency = xarray_timedelta_string(xdataset)
+    data_frequency = xarray_to_pandas_freq(xdataset)
 
     # convert offset
     pandas_period = to_offset(resample_frequency)

@@ -4,9 +4,8 @@ from aqua import Reader
 from aqua.exceptions import NotEnoughDataError
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
-from aqua.util import load_yaml, convert_units
+from aqua.util import load_yaml, convert_units, xarray_to_pandas_freq
 from aqua.util import area_selection, DEFAULT_REALIZATION
-from aqua.util.time import _xarray_timedelta_string
 from .output_saver import OutputSaver
 
 
@@ -151,7 +150,7 @@ class Diagnostic():
             raise ValueError(f"No data found for {model} {exp} {source} with variable {var}")
 
         if months_required is not None:
-            timedelta = _xarray_timedelta_string(data)
+            timedelta = xarray_to_pandas_freq(data)
             months = 0
             if 'Y' in timedelta:
                 months = len(data['time']*12)
