@@ -92,7 +92,7 @@ class BaseMixin(Diagnostic):
         # If the user requires a formula the evaluation requires the retrieval
         # of all the variables
         if formula:
-            super().retrieve(reader_kwargs=reader_kwargs)
+            super().retrieve(reader_kwargs=reader_kwargs, months_required=2)
             self.logger.debug("Evaluating formula %s", var)
             self.data = EvaluateFormula(data=self.data, formula=var, long_name=long_name,
                                         short_name=short_name, units=units,
@@ -101,7 +101,7 @@ class BaseMixin(Diagnostic):
                 raise ValueError(f'Error evaluating formula {var}. '
                                  'Check the variable names and the formula syntax.')
         else:
-            super().retrieve(var=var, reader_kwargs=reader_kwargs)
+            super().retrieve(var=var, reader_kwargs=reader_kwargs, months_required=2)
             if self.data is None:
                 raise ValueError(f'Variable {var} not found in the data. '
                                  'Check the variable name and the data source.')
