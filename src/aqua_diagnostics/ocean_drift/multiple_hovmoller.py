@@ -128,7 +128,7 @@ def plot_multi_hovmoller(
 
     if title:
         logger.debug("Setting super title to %s", title)
-        fig.suptitle(title, fontsize=nrows * 10, fontweight='bold')
+        fig.suptitle(title, fontsize=ncols * 10, fontweight='bold')
 
     if return_fig:
         return fig
