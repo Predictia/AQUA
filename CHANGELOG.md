@@ -14,6 +14,8 @@ Workflow modifications:
 
 AQUA core complete list:
 - Split out plotting function for vertical profile and add contour option (#2190)
+- Separation of concerns in LRA between dask-based computation and serial netcdf writing (#2212)
+- Refactor `grids-downloader.sh` script, now outputdir is a cli argument (#2209)
 - Refactor of some `aqua.util.time` function, improving name and pandas integration (#2205)
 - Refactor of the `dump_yaml` utility function, now correctly handling `None` values as `null` (#2198)
 - `Reader` will now turn off areas and grids capabilities when `src_grid_name` is `False` (#2198)
