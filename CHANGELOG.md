@@ -14,6 +14,7 @@ Workflow modifications:
 
 AQUA core complete list:
 - Split out plotting function for vertical profile and add contour option (#2190)
+- GSV update to v2.13.1, support for Polytope access to MN5 DataBridge (#2202)
 - Separation of concerns in LRA between dask-based computation and serial netcdf writing (#2212)
 - Refactor `grids-downloader.sh` script, now outputdir is a cli argument (#2209)
 - Refactor of some `aqua.util.time` function, improving name and pandas integration (#2205)
@@ -39,6 +40,7 @@ AQUA core complete list:
 - `apply_circular_window()` utility function to apply a circular window to cartopy maps (#2100)
 
 AQUA diagnostics complete list:
+- Dummy: removed old diagnostic (#2210)
 - Diagnostic core: `retrieve` and `_retrieve` methods can take a `months_required` argument so that diagnostics can raise an error if insufficient months of data are available. (#2205)
 - Timeseries: introduction of the catalog entry capability, default in CLI (#2198)
 - Diagnostic core: introduction of the catalog entry capability and `self.realization` attribute (#2198)
