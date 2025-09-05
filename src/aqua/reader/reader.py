@@ -233,6 +233,11 @@ class Reader():
                 self.logger.warning('Grid metadata is not defined. Trying to access the real data')
                 data = self._retrieve_plain()
                 self.regridder = Regridder(cfg_regrid, data=data, loglevel=self.loglevel)
+            elif self.src_grid_name is False:
+                self.logger.info('Grid metadata is False, regrid and areas disabled')
+                regrid = False
+                areas = False
+                return
             else:
                 self.logger.info('Grid metadata is %s', self.src_grid_name)
                 self.regridder = Regridder(cfg_regrid, src_grid_name=self.src_grid_name, 
@@ -372,8 +377,12 @@ class Reader():
 
         if self.streaming:
             data = self.streamer.stream(data)
-        elif startdate and enddate and not ffdb:  # do not select if data come from FDB (already done)
-            data = data.sel(time=slice(startdate, enddate))
+        else:
+            if data is None or len(data.data_vars) == 0:
+                self.logger.error(f"Retrieved empty dataset for {var=}. First, check its existence in the data catalog.")
+
+            if startdate and enddate and not ffdb:  # do not select if data come from FDB (already done)
+                data = data.sel(time=slice(startdate, enddate))
 
         if isinstance(data, xr.Dataset):
             data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
