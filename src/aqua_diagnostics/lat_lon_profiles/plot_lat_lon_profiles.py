@@ -349,8 +349,8 @@ class PlotLatLonProfiles():
             format='png', 
             plot_type=None,              # Override data_type if needed
             plot_std=False,
-            std_maps=None,
-            ref_std_maps=None):
+            std_data=None,
+            ref_std_data=None):
         """
         Unified run method that handles all plotting scenarios.
         
@@ -364,8 +364,8 @@ class PlotLatLonProfiles():
             format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
             plot_type (str): Override data_type ('standard' or 'seasonal').
             plot_std (bool): Whether to plot standard deviation bands.
-            std_maps (list): Standard deviation data for each season.
-            ref_std_maps (list): Reference standard deviation data for each season.
+            std_data (list): Standard deviation data for each season.
+            ref_std_data (list): Reference standard deviation data for each season.
         """
         self.logger.info('Running PlotLatLonProfiles')
         
@@ -391,7 +391,7 @@ class PlotLatLonProfiles():
         elif actual_plot_type == 'seasonal':
             # Single variable seasonal case
             return self._run_seasonal_single(variables[0], units_list[0], region, 
-                                        outputdir, rebuild, dpi, format, std_maps, ref_std_maps)
+                                        outputdir, rebuild, dpi, format, std_data, ref_std_data)
         
         else:
             # Standard single variable case
@@ -417,7 +417,7 @@ class PlotLatLonProfiles():
         
         self.logger.info('PlotLatLonProfiles completed successfully')
 
-    def _run_seasonal_single(self, var, units, region, outputdir, rebuild, dpi, format, std_maps, ref_std_maps):
+    def _run_seasonal_single(self, var, units, region, outputdir, rebuild, dpi, format, std_data, ref_std_data):
         """Private method for seasonal single variable plotting."""
         data_labels = self.set_data_labels()
         description = self.set_description(region=region)
@@ -425,8 +425,8 @@ class PlotLatLonProfiles():
         
         fig, axs = self.plot_seasonal_lines(data_labels=data_labels, 
                                             title=title, 
-                                            std_maps=std_maps, 
-                                            ref_std_maps=ref_std_maps)
+                                            std_data=std_data, 
+                                            ref_std_data=ref_std_data)
         
         region_short = region.replace(' ', '').lower() if region is not None else None
         self.save_plot(fig, var=var, description=description, region=region_short, 
@@ -446,11 +446,11 @@ class PlotLatLonProfiles():
         
         # Use the existing seasonal plotting function
         fig, axs = plot_seasonal_lat_lon_profiles(
-            maps=self.data,                    # Should be [DJF, MAM, JJA, SON] structure
-            ref_maps=self.ref_data,
-            std_maps=None,                     # Could be added later if needed
-            ref_std_maps=None,
-            data_labels=data_labels,
+            seasonal_data=self.data,                    # Should be [DJF, MAM, JJA, SON] structure
+            ref_data=self.ref_data,
+            std_data=None,                     # Could be added later if needed
+            ref_std_data=None,
+            titles=data_labels,
             title=f"Multi-variable Seasonal Comparison: {', '.join(variables)}",
             loglevel=self.loglevel
         )
@@ -466,8 +466,8 @@ class PlotLatLonProfiles():
                             data_labels=None, 
                             title=None, 
                             style=None,
-                            std_maps=None, 
-                            ref_std_maps=None):
+                            std_data=None, 
+                            ref_std_data=None):
         """
         Plot seasonal means using plot_seasonal_lat_lon_profiles.
         Creates a 4-panel plot with DJF, MAM, JJA, SON only (no annual).
@@ -476,8 +476,8 @@ class PlotLatLonProfiles():
             data_labels (list): List of data labels.
             title (str): Title of the plot.
             style (str): Plotting style.
-            std_maps (list): Standard deviation data for each season.
-            ref_std_maps (list): Reference standard deviation data for each season.
+            std_data (list): Standard deviation data for each season.
+            ref_std_data (list): Reference standard deviation data for each season.
 
         Returns:
             fig (matplotlib.figure.Figure): Figure object.
@@ -495,23 +495,23 @@ class PlotLatLonProfiles():
         
         # Handle std data - use first 4 seasons if available
         seasonal_std_only = None
-        if std_maps:
-            seasonal_std_only = std_maps[:4] if len(std_maps) >= 4 else std_maps
+        if std_data:
+            seasonal_std_only = std_data[:4] if len(std_data) >= 4 else std_data
         elif hasattr(self, 'std_seasonal_annual_data') and self.std_seasonal_annual_data:
             seasonal_std_only = self.std_seasonal_annual_data[:4]
         
         seasonal_ref_std_only = None
-        if ref_std_maps:
-            seasonal_ref_std_only = ref_std_maps[:4] if len(ref_std_maps) >= 4 else ref_std_maps
+        if ref_std_data:
+            seasonal_ref_std_only = ref_std_data[:4] if len(ref_std_data) >= 4 else ref_std_data
         
         self.logger.debug(f'Plotting {len(seasonal_data_only)} seasons')
         
         return plot_seasonal_lat_lon_profiles(
-            maps=seasonal_data_only,
-            ref_maps=seasonal_ref_only,
-            std_maps=seasonal_std_only,
-            ref_std_maps=seasonal_ref_std_only,
-            data_labels=data_labels,
+            seasonal_data=seasonal_data_only,
+            ref_data=seasonal_ref_only,
+            std_data=seasonal_std_only,
+            ref_std_data=seasonal_ref_std_only,
+            titles=None,
             title=title,
             style=style,
             loglevel=self.loglevel
