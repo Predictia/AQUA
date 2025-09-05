@@ -103,8 +103,8 @@ if __name__ == '__main__':
             monthly_mod = [None] * len(datasets)
 
             for i, dataset in enumerate(datasets):
-                # Get the variable name for this method from the current dataset
-                mod_var = dataset['varname'][method]
+                # Get the variable name for this method from the diagnostic configuration
+                mod_var = conf_dict_ts['varname'][method]
                 
                 # Integrate by method the model data and store them in a list.
                 seaice = SeaIce(model=dataset['model'], 
@@ -214,8 +214,8 @@ if __name__ == '__main__':
             monthly_mod = [None] * len(datasets)
 
             for i, dataset in enumerate(datasets):
-                # Get the variable name for this method from the current dataset
-                mod_var = dataset['varname'][method]
+                # Get the variable name for this method from the diagnostic configuration
+                mod_var = conf_dict_ts['varname'][method]
 
                 # Integrate by method the model data and store them in a list.
                 seaice = SeaIce(model=dataset['model'], 
@@ -329,8 +329,8 @@ if __name__ == '__main__':
             clims_mod = [None] * len(datasets)
 
             for i, dataset in enumerate(datasets):
-                # Get the variable name for this method from the current dataset
-                mod_var = dataset['varname'][method]
+                # Get the variable name for this method from the diagnostic configuration
+                mod_var = conf_dict_2d['varname'][method]
 
                 # Compute 2D sea ice data for the model
                 seaice = SeaIce(model=dataset['model'], exp=dataset['exp'], 

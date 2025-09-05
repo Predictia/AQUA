@@ -12,11 +12,6 @@ datasets:
     exp: 'historical-1990'     # mandatory
     source: 'lra-r100-monthly' # mandatory
     regrid: null               # if the diagnostic supports it
-    varname:
-      extent: 'siconc'
-      volume: 'sithick'
-      fraction: 'siconc'       # for 2D bias
-      thickness: 'sithick'     # for 2D bias
 
 # =======  Reference Datasets  =======
 references:
@@ -84,6 +79,11 @@ diagnostics:
     enddate: '2000-01-01'
     calc_ref_std: true
     ref_std_freq: 'monthly' # set to 'monthly' 'annual'
+    varname:
+      extent: 'siconc'
+      volume: 'sithick'
+      fraction: 'siconc'       # for 2D bias
+      thickness: 'sithick'     # for 2D bias
   
     # ====  Update Datasets and reference entries  ====
     references:
@@ -120,6 +120,11 @@ diagnostics:
     enddate: '2000-01-01'
     calc_ref_std: true
     ref_std_freq: 'monthly' # set to 'monthly' 'annual'
+    varname:
+      extent: 'siconc'
+      volume: 'sithick'
+      fraction: 'siconc'       # for 2D bias
+      thickness: 'sithick'     # for 2D bias
   
     # ====  Update Datasets and reference entries  ====
     references:
@@ -172,6 +177,11 @@ diagnostics:
         extent_regions:
           Arctic: [-180, 180, 50, 90]
           Antarctic: [-180, 180, -50, -90]
+    varname:
+      extent: 'siconc'
+      volume: 'sithick'
+      fraction: 'siconc'       # for 2D bias
+      thickness: 'sithick'     # for 2D bias
   
     # ====  Update Datasets and reference entries  ====
     references:
