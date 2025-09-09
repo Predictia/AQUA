@@ -489,7 +489,7 @@ class SeaIce(Diagnostic):
         """
         ensure_istype(da_seaice_computed, xr.DataArray, logger=self.logger)
 
-        # set attributes: 'method','unit'   
+        # set attributes: 'method','unit'  
         units_dict = {"extent": "million km^2",
                       "volume": "thousands km^3",
                       "fraction": "[0-1]",
