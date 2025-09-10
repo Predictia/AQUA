@@ -67,7 +67,6 @@ class PlotHovmoller:
             titles=self.title_list,
             vmax=self.vmax,
             vmin=self.vmin,
-            #TODO: vmin e vmax should have appropriate values for each variable
             cmap=self.cmap,
             text=self.texts
         )
@@ -107,8 +106,8 @@ class PlotHovmoller:
         hovmoller_plot_dic = {
             'thetao' :
                 {
-                    'full': {'vmax': 310, 'vmin': 273 },
-                    'anom_t0': {'vmax': 2, 'vmin': -2, 'cbar': 'coolwarm'},
+                    'full': {'vmax': 40, 'vmin': 10 },
+                    'anom_t0': {'vmax': 6, 'vmin': -6, 'cbar': 'coolwarm'},
                     'std_anom_t0': {'vmax': 5, 'vmin': -5, 'cbar': 'coolwarm'},
                     
                     'anom_tmean': {'vmax': 6, 'vmin': -6, 'cbar': 'coolwarm'},
@@ -118,7 +117,7 @@ class PlotHovmoller:
                 {
                     'full': {'vmax': 38, 'vmin': 33, 'cbar': 'coolwarm'},
                     'anom_t0': {'vmax': 0.9, 'vmin': -0.3, 'cbar': 'coolwarm'},
-                    'std_anom_t0': {'vmax': 5, 'vmin': -5, 'cbar': 'coolwarm'},
+                    'std_anom_t0': {'vmax': 5, 'vmin': -6, 'cbar': 'coolwarm'},
                     
                     'anom_tmean': {'vmax': 5, 'vmin': -5, 'cbar': 'coolwarm'},
                     'std_anom_tmean': {'vmax': 1, 'vmin': -1, 'cbar': 'coolwarm'},

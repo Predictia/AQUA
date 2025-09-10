@@ -221,10 +221,6 @@ class Hovmoller(Diagnostic):
                 lat_limits=self.lat_limits,
                 lon_limits=self.lon_limits,
             )
-            # self.data = self.weighted_area(self.data)
-            # self.data = self.data.mean(dim=dim_mean)
-        # else:
-        #     self.data = self.res_dict['data']
 
 
         for standardise, anomaly_ref in product([False, True], anomaly_ref):
@@ -246,11 +242,6 @@ class Hovmoller(Diagnostic):
             return (1, type)
         elif type.startswith("std"):
             return (2, type)
-
-    def weighted_area(self, data):
-        weights = xr.ufuncs.cos(xr.ufuncs.deg2rad(data.lat))
-        weighted_data = data.weighted(weights)
-        return weighted_data
 
     def save_netcdf(
         self,
