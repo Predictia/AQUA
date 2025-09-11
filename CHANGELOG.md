@@ -13,7 +13,6 @@ Workflow modifications:
 - `aqua-analysis.py` is now an entry point `aqua analysis` in the AQUA console, with the same syntax as before.
 
 AQUA core complete list:
-- Bugfix in Diagnostic class related to parsing realization (#2226)
 - Data extraction (LRA) can be done without regrid option and LRA log history is more accurate (#2142)
 - Split out plotting function for vertical profile and add contour option (#2190)
 - GSV update to v2.13.1, support for Polytope access to MN5 DataBridge (#2202)
@@ -42,6 +41,8 @@ AQUA core complete list:
 - `apply_circular_window()` utility function to apply a circular window to cartopy maps (#2100)
 
 AQUA diagnostics complete list:
+- Timeseries: fix output figure to use diagnostic name (#2240)
+- Diagnostic core: bugfix in Diagnostic class related to parsing realization (#2226)
 - Dummy: removed old diagnostic (#2210)
 - Diagnostic core: `retrieve` and `_retrieve` methods can take a `months_required` argument so that diagnostics can raise an error if insufficient months of data are available. (#2205)
 - Timeseries: introduction of the catalog entry capability, default in CLI (#2198)
