@@ -56,7 +56,7 @@ AQUA diagnostics complete list:
 - Timeseries: fix lazy calculation of seasonal cycles (#2143)
 - Boxplots: fix output dir (#2136) 
 - Boxplots: add tests and update docs (#2129)
-- Seaice: refactored diagnostic with cli and added bias plot with custom projections (#1684, #2140, #2165, #2171, #2178, #2185)
+- Seaice: refactored diagnostic with cli and added bias plot with custom projections (#1684, #2140, #2165, #2171, #2178, #2185, #2221)
 - Stratification: Stratification class to create density and mixed layer depth data, notebook and tests added. (#2093)
 - Radiation: complete refactor of the diagnostic, now based on the `Boxplots` diagnostic and the  `boxplot ` function in graphics (#2007)
 - SeasonalCycles: fix a bug which was preventing to plot when no reference data is provided (#2114)
