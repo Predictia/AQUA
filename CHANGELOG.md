@@ -41,6 +41,7 @@ AQUA core complete list:
 - `apply_circular_window()` utility function to apply a circular window to cartopy maps (#2100)
 
 AQUA diagnostics complete list:
+- Diagnostic core: Locking of catalog yaml when modified (#2238)
 - Timeseries: fix output figure to use diagnostic name (#2240)
 - Diagnostic core: bugfix in Diagnostic class related to parsing realization (#2226)
 - Dummy: removed old diagnostic (#2210)
