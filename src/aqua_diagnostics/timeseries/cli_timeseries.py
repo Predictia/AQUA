@@ -79,7 +79,7 @@ if __name__ == '__main__':
                 var_config, regions = load_var_config(config_dict, var)
                 logger.info(f"Running Timeseries diagnostic for variable {var} with config {var_config} in regions {[region if region else 'global' for region in regions]}") # noqa
                 for region in regions:
-#                    try:
+                    try:
                         logger.info(f"Running Timeseries diagnostic in region {region if region else 'global'}")
 
                         init_args = {'region': region, 'loglevel': loglevel, 'diagnostic_name': diagnostic_name}
@@ -146,8 +146,8 @@ if __name__ == '__main__':
                             if save_png:
                                 plot_ts.save_plot(fig, description=description, outputdir=outputdir,
                                                 dpi=dpi, rebuild=rebuild, format='png')
-#                    except Exception as e:
-#                        logger.error(f"Error running Timeseries diagnostic for variable {var} in region {region if region else 'global'}: {e}")
+                    except Exception as e:
+                        logger.error(f"Error running Timeseries diagnostic for variable {var} in region {region if region else 'global'}: {e}")
 
             for var in config_dict['diagnostics']['timeseries'].get('formulae', []):
                 var_config, regions = load_var_config(config_dict, var)
