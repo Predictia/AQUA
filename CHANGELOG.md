@@ -44,6 +44,7 @@ AQUA diagnostics complete list:
 - Diagnostic core: Locking of catalog yaml when modified (#2238)
 - Timeseries: fix output figure to use diagnostic name (#2240)
 - Diagnostic core: bugfix in Diagnostic class related to parsing realization (#2226)
+- Updated grouping file for dashboard (#2241)
 - Dummy: removed old diagnostic (#2210)
 - Diagnostic core: `retrieve` and `_retrieve` methods can take a `months_required` argument so that diagnostics can raise an error if insufficient months of data are available. (#2205)
 - Timeseries: introduction of the catalog entry capability, default in CLI (#2198)
