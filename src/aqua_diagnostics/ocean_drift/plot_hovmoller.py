@@ -42,8 +42,9 @@ class PlotHovmoller:
             exp=self.exp, 
             outputdir=outputdir, 
             loglevel=self.loglevel)
-    
-    def plot_hovmoller(self, rebuild: bool = True):
+
+    def plot_hovmoller(self, rebuild: bool = True, save_pdf: bool = True,
+                       save_png: bool = True, dpi: int = 300):
         """
         Plot the Hovmoller diagram for the given data.
         This method sets the title, description, vmax, vmin, and texts for the plot.
@@ -52,6 +53,8 @@ class PlotHovmoller:
 
         Args:
             rebuild (bool): Whether to rebuild the output, default is True
+            save_pdf (bool): Whether to save the plot as a PDF, default is True
+            save_png (bool): Whether to save the plot as a PNG, default is True
         """
         self.set_suptitle()
         self.set_title()
@@ -71,8 +74,13 @@ class PlotHovmoller:
             cmap=self.cmap,
             text=self.texts
         )
-        self.outputsaver.save_pdf(fig, diagnostic_product="hovmoller", metadata=self.description,
-                                  rebuild=rebuild)
+        extra_keys = {'region': self.region}
+        if save_pdf:
+            self.outputsaver.save_pdf(fig, diagnostic_product="hovmoller", metadata=self.description,
+                                      rebuild=rebuild, extra_keys=extra_keys)
+        if save_png:
+            self.outputsaver.save_png(fig, diagnostic_product="hovmoller", metadata=self.description,
+                                      rebuild=rebuild, dpi=dpi, extra_keys=extra_keys)
 
     def set_suptitle(self):
         """Set the suptitle for the Hovmoller plot."""
