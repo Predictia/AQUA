@@ -4,6 +4,7 @@ datasets:
     exp: hpz3
     source: monthly-3d
     regrid: r100
+    # reader_kwargs: {}
 
 output:
   outputdir: "./"
@@ -16,7 +17,8 @@ output:
 diagnostics:
   ocean_drift:
     hovmoller:
+      diagnostic_name: 'ocean3d'
       run: true
       var: ['thetao', 'so']
-      region: 'io'
-      dim_mean: ['lat']
+      regions: ['io', 'sss']
+      dim_mean: ['lat', 'lon']
