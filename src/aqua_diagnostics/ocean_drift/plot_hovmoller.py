@@ -74,7 +74,7 @@ class PlotHovmoller:
             cmap=self.cmap,
             text=self.texts
         )
-        extra_keys = {'region': self.region}
+        extra_keys = {'region': self.region.replace(" ", "_").lower()}
         if save_pdf:
             self.outputsaver.save_pdf(fig, diagnostic_product="hovmoller", metadata=self.description,
                                       rebuild=rebuild, extra_keys=extra_keys)
