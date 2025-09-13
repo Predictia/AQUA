@@ -30,6 +30,7 @@ class Hovmoller(Diagnostic):
         regrid: str = None,
         startdate: str = None,
         enddate: str = None,
+        diagnostic_name: str = "oceandrift",
         loglevel: str = "WARNING",
     ):
         """
@@ -55,7 +56,8 @@ class Hovmoller(Diagnostic):
             enddate=enddate,
             loglevel=loglevel,
         )
-        self.logger = log_configure(log_name="Hovmoller", log_level=loglevel)
+        self.logger = log_configure(log_name="OceanHovmoller", log_level=loglevel)
+        self.diagnostic_name = diagnostic_name
         # Initialize the results list. Elements of the list are dataset with different anomanly ref.
         self.processed_data_list = []
 
@@ -79,7 +81,7 @@ class Hovmoller(Diagnostic):
         Args:
             outputdir (str, optional): Directory to save the output files. Defaults to ".".
             rebuild (bool, optional): Whether to rebuild the netCDF file. Defaults to True.
-            region (str, optional): Region for area selection. Defaults to None.
+            region (str, optional): Region for area selection. Defaults to None (global evaluation).
             var (list, optional): List of variables to process. Defaults to ["thetao", "so"].
             dim_mean (list, optional): List of dimensions over which to compute the mean. Defaults to ["lat", "lon"].
             anomaly_ref (str or None, optional): Reference for anomaly calculation. Can be "t0", "tmean", or None.
@@ -87,8 +89,8 @@ class Hovmoller(Diagnostic):
         """
         self.logger.info("Running Hovmoller diagram generation")
         # This will populate self.data
-        super().retrieve(var=var, reader_kwargs=reader_kwargs)
-        self.logger.info("Data retrieved successfully")
+        super().retrieve(var=var, reader_kwargs=reader_kwargs, months_required=2)
+        self.logger.debug("Data retrieved successfully")
         # If a region is specified, apply area selection to self.data
         if region:
             self.logger.info(f"Selecting region: {region} for diagnostic 'ocean3d'.")
@@ -100,8 +102,8 @@ class Hovmoller(Diagnostic):
             self.lon_limits = res_dict["lon_limits"]
         else:
             self.region = "global"
-            self.lat_limits = [-90, 90]
-            self.lon_limits = [0, 360]
+            self.lat_limits = None
+            self.lon_limits = None
         self.stacked_data = self.compute_hovmoller(
             dim_mean=dim_mean, anomaly_ref=anomaly_ref
         )
@@ -150,7 +152,7 @@ class Hovmoller(Diagnostic):
         data = data / data.std(dim=dim)
         data.attrs["units"] = "Stand. Units"
         data.attrs["AQUA_standardise"] = f"Standardised with {dim}"
-        type_str = f"Std_{data.attrs.get('AQUA_type', 'full')}"
+        #type_str = f"Std_{data.attrs.get('AQUA_type', 'full')}"
         return data
 
     def _get_std_anomaly(
@@ -243,7 +245,6 @@ class Hovmoller(Diagnostic):
 
     def save_netcdf(
         self,
-        diagnostic: str = "ocean_drift",
         diagnostic_product: str = "hovmoller",
         region: str = None,
         outputdir: str = ".",
@@ -253,7 +254,6 @@ class Hovmoller(Diagnostic):
         Saves the processed data to a netCDF file.
 
         Args:
-            diagnostic (str): Name of the diagnostic.
             diagnostic_product (str): Name of the diagnostic product.
             region (str): Region for area selection. Defaults to None.
             outputdir (str): Directory to save the output files. Defaults to '.'.
@@ -263,9 +263,9 @@ class Hovmoller(Diagnostic):
         for processed_data in self.processed_data_list:
             super().save_netcdf(
                 data=processed_data,
-                diagnostic=diagnostic,
-                diagnostic_product=f"{diagnostic_product}_{processed_data.attrs['AQUA_ocean_drift_type']}",
+                diagnostic=self.diagnostic_name,
+                diagnostic_product=f"{diagnostic_product}",
                 outputdir=outputdir,
                 rebuild=rebuild,
-                extra_keys={"region": region},
+                extra_keys={"region": region, 'ocean_drift_type': processed_data.attrs['AQUA_ocean_drift_type']}
             )
