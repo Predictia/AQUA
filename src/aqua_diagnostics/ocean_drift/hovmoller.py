@@ -1,9 +1,8 @@
 from itertools import product
 import xarray as xr
+from aqua.util import to_list
 from aqua.logger import log_configure
 from aqua.diagnostics.core import Diagnostic
-from aqua.util import to_list
-
 
 xr.set_options(keep_attrs=True)
 
