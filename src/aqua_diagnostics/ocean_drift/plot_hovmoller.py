@@ -8,7 +8,7 @@ xr.set_options(keep_attrs=True)
 class PlotHovmoller:
     def __init__(self,
                  data: list [xr.Dataset],
-                 diagnostic: str = "ocean_drift",
+                 diagnostic_name: str = "oceandrift",
                  outputdir: str = ".",
                  loglevel: str = "WARNING"):
         """
@@ -16,9 +16,8 @@ class PlotHovmoller:
 
         Args:
             data (list[xr.Dataset]): List of xarray datasets containing the data to be plotted
-            diagnostic (str): Name of the diagnostic, default is "ocean_drift"
+            diagnostic_name (str): Name of the diagnostic, default is "oceandrift"
             outputdir (str): Directory where the output will be saved, default is current directory
-            rebuild (bool): Whether to rebuild the output, default is True
             loglevel (str): Logging level, default is "WARNING"
         """
         self.data = data
@@ -26,10 +25,11 @@ class PlotHovmoller:
         self.loglevel = loglevel
         self.logger = log_configure(self.loglevel, "PlotHovmoller")
 
-        self.diagnostic = diagnostic
+        self.diagnostic = diagnostic_name
         self.vars = list(self.data[0].data_vars)
         self.logger.debug("Variables in data: %s", self.vars)
 
+        # Getting metadata from the first dataset
         self.catalog = self.data[0][self.vars[0]].AQUA_catalog
         self.model = self.data[0][self.vars[0]].AQUA_model
         self.exp = self.data[0][self.vars[0]].AQUA_exp
@@ -42,7 +42,6 @@ class PlotHovmoller:
             exp=self.exp, 
             outputdir=outputdir, 
             loglevel=self.loglevel)
-            
     
     def plot_hovmoller(self, rebuild: bool = True):
         """
@@ -72,11 +71,11 @@ class PlotHovmoller:
             cmap=self.cmap,
             text=self.texts
         )
-        self.outputsaver.save_pdf(fig, diagnostic_product="Hovmoller", metadata=self.description,
+        self.outputsaver.save_pdf(fig, diagnostic_product="hovmoller", metadata=self.description,
                                   rebuild=rebuild)
 
     def set_suptitle(self):
-        """Set the title for the Hovmoller plot."""
+        """Set the suptitle for the Hovmoller plot."""
         self.suptitle = f"{self.catalog} {self.model} {self.exp} {self.region}"
         self.logger.debug(f"Suptitle set to: {self.suptitle}")
 
@@ -87,16 +86,14 @@ class PlotHovmoller:
         """
         self.title_list = []
         for j in range(len(self.data)):
-            for i, var in enumerate(self.vars):
-                if j == 0:
-                    title = f"{var} ({self.data[j][var].attrs.get('units')})"
-                    self.title_list.append(title)
-                else:
-                    self.title_list.append(None)
+            for _, var in enumerate(self.vars):
+                title = f"{var} ({self.data[j][var].attrs.get('units')})"
+                self.title_list.append(title)
         self.logger.debug("Title list set to: %s", self.title_list)
 
 
     def set_description(self):
+        """Set the description for the Hovmoller plot."""
         self.description = {}
         self.description['description'] = {f'Spatially averaged {self.region} region {self.diagnostic} of {self.catalog} {self.model} {self.exp}'}
 
@@ -146,12 +143,18 @@ class PlotHovmoller:
         for data in self.data:
             type = data.attrs.get('AQUA_ocean_drift_type', 'NA')
             self.data_type.append(type)
+
     def set_texts(self):
+        """
+        Set the texts for the Hovmoller plot.
+        This method can be extended to set specific texts.
+        """
         self.texts = []
-        for i, data in enumerate(self.data):
-            for j, var in enumerate(self.vars):
+        for _, data in enumerate(self.data):
+            for j, _ in enumerate(self.vars):
                 if j == 0:
                     type = data.attrs.get('AQUA_ocean_drift_type', 'NA')
                     self.texts.append(type)
                 else:
                     self.texts.append(None)
+        self.logger.debug("Texts set to: %s", self.texts)
