@@ -10,7 +10,7 @@ import argparse
 import sys
 
 from aqua.logger import log_configure
-from aqua.util import get_arg
+from aqua.util import get_arg, to_list
 from aqua.version import __version__ as aqua_version
 from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_cluster
 from aqua.diagnostics.core import load_diagnostic_config, merge_config_args
@@ -53,13 +53,13 @@ if __name__ == '__main__':
     model = get_arg(args, 'model', config_dict['datasets'][0]['model'])
     exp = get_arg(args, 'exp', config_dict['datasets'][0]['exp'])
     source = get_arg(args, 'source', config_dict['datasets'][0]['source'])
-    logger.info(f"Catalog: {catalog}, Model: {model}, Experiment: {exp}")
-    
-
     regrid = get_arg(args, 'regrid', config_dict['datasets'][0]['regrid'])
-    logger.info(f"Regrid option is set to {regrid}")
-
-    
+    realization = get_arg(args, 'realization', None)
+    if realization:
+        reader_kwargs = {'realization': realization}
+    else:
+        reader_kwargs = config_dict['datasets'][0].get('reader_kwargs', {})
+    logger.info(f"Catalog: {catalog}, Model: {model}, Experiment: {exp}, Source: {source}, Regrid: {regrid}")
 
     # Output options
     outputdir = config_dict['output'].get('outputdir', './')
@@ -72,28 +72,40 @@ if __name__ == '__main__':
         hovmoller_config = config_dict['diagnostics']['ocean_drift']['hovmoller']
         logger.info(f"Hovmoller diagnostic is set to {hovmoller_config['run']}")
         if hovmoller_config['run']:
-            region = hovmoller_config.get('region', None)
-            var = hovmoller_config.get('var', None)
-            dim_mean = hovmoller_config.get('dim_mean', None) 
-            data_hovmoller = Hovmoller(
-                catalog= catalog,
-                model=model,
-                exp=exp,
-                source=source,
-                regrid=regrid,
-                loglevel=loglevel
-            )
-            data_hovmoller.run(
-                region=region,
-                var=var,
-                dim_mean=dim_mean,
-                anomaly_ref= "t0",
-                outputdir=outputdir,
-                rebuild=rebuild,
-            )
-            hov_plot = PlotHovmoller(
-                data=data_hovmoller.processed_data_list,
-                outputdir=outputdir,
-                loglevel=loglevel
-            )
-            hov_plot.plot_hovmoller()
+            regions = to_list(hovmoller_config.get('regions', None))
+            diagnostic_name = hovmoller_config.get('diagnostic_name', 'ocean_drift')
+            # Add the global region if not present
+            if regions != [None]:
+                regions.append(None)
+            for region in regions:
+                logger.info(f"Processing region: {region}")
+                var = hovmoller_config.get('var', None)
+                dim_mean = hovmoller_config.get('dim_mean', ['lat', 'lon'])
+                data_hovmoller = Hovmoller(
+                    diagnostic_name=diagnostic_name,
+                    catalog=catalog,
+                    model=model,
+                    exp=exp,
+                    source=source,
+                    regrid=regrid,
+                    loglevel=loglevel
+                )
+                data_hovmoller.run(
+                    region=region,
+                    var=var,
+                    dim_mean=dim_mean,
+                    anomaly_ref= "t0",
+                    outputdir=outputdir,
+                    reader_kwargs=reader_kwargs,
+                    rebuild=rebuild
+                )
+                hov_plot = PlotHovmoller(
+                    diagnostic_name=diagnostic_name,
+                    data=data_hovmoller.processed_data_list,
+                    outputdir=outputdir,
+                    loglevel=loglevel
+                )
+                hov_plot.plot_hovmoller(
+                    rebuild=rebuild, save_pdf=save_pdf,
+                    save_png=save_png, dpi=dpi
+                )
