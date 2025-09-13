@@ -197,7 +197,6 @@ def plot_hovmoller(data: xr.DataArray,
     if title:    
         ax.set_title(title, fontsize=20)
 
-    fig.tight_layout()
     if return_fig:
         logger.debug("Returning figure and axes")
         return fig, ax
