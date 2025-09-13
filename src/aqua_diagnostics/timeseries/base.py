@@ -2,7 +2,8 @@ import os
 import xarray as xr
 from aqua.fixer import EvaluateFormula
 from aqua.logger import log_configure
-from aqua.util import frequency_string_to_pandas, time_to_string, strlist_to_phrase
+from aqua.util import frequency_string_to_pandas, pandas_freq_to_string
+from aqua.util import time_to_string, strlist_to_phrase
 from aqua.diagnostics.core import Diagnostic, start_end_dates, OutputSaver
 
 xr.set_options(keep_attrs=True)
@@ -91,7 +92,7 @@ class BaseMixin(Diagnostic):
         # If the user requires a formula the evaluation requires the retrieval
         # of all the variables
         if formula:
-            super().retrieve(reader_kwargs=reader_kwargs)
+            super().retrieve(reader_kwargs=reader_kwargs, months_required=2)
             self.logger.debug("Evaluating formula %s", var)
             self.data = EvaluateFormula(data=self.data, formula=var, long_name=long_name,
                                         short_name=short_name, units=units,
@@ -100,7 +101,7 @@ class BaseMixin(Diagnostic):
                 raise ValueError(f'Error evaluating formula {var}. '
                                  'Check the variable names and the formula syntax.')
         else:
-            super().retrieve(var=var, reader_kwargs=reader_kwargs)
+            super().retrieve(var=var, reader_kwargs=reader_kwargs, months_required=2)
             if self.data is None:
                 raise ValueError(f'Variable {var} not found in the data. '
                                  'Check the variable name and the data source.')
@@ -147,7 +148,7 @@ class BaseMixin(Diagnostic):
             raise ValueError('Frequency not provided')
 
         freq = frequency_string_to_pandas(freq)
-        str_freq = self._str_freq(freq)
+        str_freq = pandas_freq_to_string(freq)
         self.logger.info('Computing %s standard deviation', str_freq)
 
         freq_dict = {'hourly': {'data': self.hourly, 'groupdby': 'time.hour'},
@@ -185,7 +186,10 @@ class BaseMixin(Diagnostic):
             self.std_annual = data
 
     def save_netcdf(self, diagnostic_product: str, freq: str,
-                    outputdir: str = './', rebuild: bool = True):
+                    outputdir: str = './', rebuild: bool = True,
+                    create_catalog_entry: bool = False,
+                    dict_catalog_entry: dict = {'jinjalist': ['freq', 'realization', 'region'],
+                                                'wildcardlist': ['var']}):
         """
         Save the data to a netcdf file.
 
@@ -194,8 +198,10 @@ class BaseMixin(Diagnostic):
             freq (str): The frequency of the data.
             outputdir (str): The directory to save the data.
             rebuild (bool): If True, rebuild the data from the original files.
+            create_catalog_entry (bool): If True, create a catalog entry for the data. Default is False.
+            dict_catalog_entry (dict): A dictionary with catalog entry information. Default is {'jinjalist': ['freq', 'region', 'realization'], 'wildcardlist': ['var']}.
         """
-        str_freq = self._str_freq(freq)
+        str_freq = pandas_freq_to_string(freq)
 
         if str_freq == 'hourly':
             data = self.hourly if self.hourly is not None else self.logger.error('No hourly data available')
@@ -216,17 +222,19 @@ class BaseMixin(Diagnostic):
         if data.name is None:
             data.name = var
 
-        if self.region is not None:
-            region = self.region.replace(' ', '').lower()
-            extra_keys.update({'region': region})
+        # In order to have a catalog entry we want to have a key region even in the global case
+        region = self.region.replace(' ', '').lower() if self.region is not None else 'global'
+        extra_keys.update({'region': region})
 
         self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
 
         super().save_netcdf(data=data, diagnostic=self.diagnostic_name, diagnostic_product=diagnostic_product,
-                            outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
+                            outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys,
+                            create_catalog_entry=create_catalog_entry, dict_catalog_entry=dict_catalog_entry)
         if data_std is not None:
             extra_keys.update({'std': 'std'})
             self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
+            #TODO: Check if the catalog entry generation is required for the std values
             super().save_netcdf(data=data_std, diagnostic=self.diagnostic_name, diagnostic_product=diagnostic_product,
                                 outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys)
 
@@ -239,27 +247,6 @@ class BaseMixin(Diagnostic):
             units (str): The units to be checked.
         """
         self.data = super()._check_data(data=self.data, var=var, units=units)
-
-    def _str_freq(self, freq: str):
-        """
-        Args:
-            freq (str): The frequency to be used.
-
-        Returns:
-            str_freq (str): The frequency as a string.
-        """
-        if freq in ['h', 'hourly']:
-            str_freq = 'hourly'
-        elif freq in ['D', 'daily']:
-            str_freq = 'daily'
-        elif freq in ['MS', 'ME', 'M', 'mon', 'monthly']:
-            str_freq = 'monthly'
-        elif freq in ['YS', 'YE', 'Y', 'annual']:
-            str_freq = 'annual'
-        else:
-            self.logger.error('Frequency %s not recognized', freq)
-
-        return str_freq
 
 
 class PlotBaseMixin():
