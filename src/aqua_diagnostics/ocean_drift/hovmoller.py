@@ -21,13 +21,12 @@ class Hovmoller(Diagnostic):
         var (list): List of variables to process.
         stacked_data (xarray.Dataset): Processed data for Hovmoller diagrams.
     """
-
     def __init__(
         self,
+        model: str,
+        exp: str,
+        source: str,
         catalog: str = None,
-        model: str = None,
-        exp: str = None,
-        source: str = None,
         regrid: str = None,
         startdate: str = None,
         enddate: str = None,
@@ -37,10 +36,10 @@ class Hovmoller(Diagnostic):
         Initializes the Hovmoller class.
 
         Args:
+            model (str): Model name.
+            exp (str): Experiment name.
+            source (str): Data source.
             catalog (str, optional): Path to the catalog file.
-            model (str, optional): Model name.
-            exp (str, optional): Experiment name.
-            source (str, optional): Data source.
             regrid (str, optional): Regridding method.
             startdate (str, optional): Start date for data retrieval.
             enddate (str, optional): End date for data retrieval.
