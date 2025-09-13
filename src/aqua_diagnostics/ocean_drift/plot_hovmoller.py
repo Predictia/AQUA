@@ -10,7 +10,6 @@ class PlotHovmoller:
                  data: list [xr.Dataset],
                  diagnostic: str = "ocean_drift",
                  outputdir: str = ".",
-                 rebuild: bool = True,
                  loglevel: str = "WARNING"):
         """
         Initialize the PlotHovmoller class.
@@ -45,12 +44,15 @@ class PlotHovmoller:
             loglevel=self.loglevel)
             
     
-    def plot_hovmoller(self):
+    def plot_hovmoller(self, rebuild: bool = True):
         """
         Plot the Hovmoller diagram for the given data.
         This method sets the title, description, vmax, vmin, and texts for the plot.
         It then calls the `plot_multi_hovmoller` function to create the plot and
         saves it using the `OutputSaver`.
+
+        Args:
+            rebuild (bool): Whether to rebuild the output, default is True
         """
         self.set_suptitle()
         self.set_title()
@@ -70,7 +72,8 @@ class PlotHovmoller:
             cmap=self.cmap,
             text=self.texts
         )
-        self.outputsaver.save_pdf(fig, diagnostic_product="Hovmoller", metadata= self.description)
+        self.outputsaver.save_pdf(fig, diagnostic_product="Hovmoller", metadata=self.description,
+                                  rebuild=rebuild)
 
     def set_suptitle(self):
         """Set the title for the Hovmoller plot."""
