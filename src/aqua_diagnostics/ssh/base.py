@@ -168,7 +168,21 @@ class BaseMixin(Diagnostic):
     
 class PlotBaseMixin():
     """PlotBaseMixin class is used for the PlotSSHVariability."""
-    def __init__(self, diagnostic_name: str = 'ssh', loglevel: str = 'WARNING'):
+    def __init__(
+        self, 
+        diagnostic_name: str = 'sshVariability', 
+        catalog: str = None,
+        model: str = None,
+        exp: str = None,
+        ref_catalog: str = None,
+        ref_model: str = None,
+        ref_exp: str = None, 
+        region: str = None,
+        short_name: str = None,
+        long_name: str = None,
+        units: str = None,
+        loglevel: str = 'WARNING',    
+    ):
         """
         Initialize the PlotBaseMixin class.
 
@@ -182,93 +196,29 @@ class PlotBaseMixin():
         self.diagnostic_name = diagnostic_name
         log_name = 'Plot' + diagnostic_name.capitalize()
         self.logger = log_configure(log_level=loglevel, log_name=log_name)
-        # All these will be filled by the get_data_info() methods
-        self.catalogs = None
-        self.models = None
-        self.exps = None
-        self.ref_catalogs = None
-        self.ref_models = None
-        self.ref_exps = None
-        self.startdate = None
-        self.enddate = None
-        self.ref_startdate = None
-        self.ref_enddate = None
-        self.region = None
-        self.short_name = None
-        self.long_name = None
-        self.units = None
-    
-    #TODO: Move this function to a common util. Because this function is used in timeseries diagnostics.
-    def set_title(self, diagnostic: str = None):
-        """
-        Set the title for the plot. Uses short_name, long_name, and units attributes.
-
-        Args:
-            diagnostic (str): Diagnostic name to be used in the title.
-
-        Returns:
-            title (str): Title for the plot.
-        """
-        title = f'{diagnostic} '
-        if self.short_name is not None:
-            title += f'for {self.short_name} '
-
-        if self.units is not None:
-            title += f'[{self.units}] '
-
-        if self.region is not None:
-            title += f'[{self.region}] '
-
-        if self.len_data == 1:
-            title += f'for {self.catalogs[0]} {self.models[0]} {self.exps[0]} '
-
-        self.logger.debug('Title: %s', title)
-        return title
-
-    #TODO: This function can also be moved in a common util. This is used in 'timeseries' diagnostic.
-    # The only change is the name of the reference: ERA5/AVISO
-    def set_description(self, diagnostic: str = None):
-        """
-        Set the caption for the plot.
-        The caption is extracted from the data arrays attributes and the
-        reference data arrays attributes.
-        The caption is stored as 'Description' in the metadata dictionary.
-
-        Args:
-            diagnostic (str): Diagnostic name to be used in the caption.
-
-        Returns:
-            description (str): Caption for the plot.
-        """
-
-        description = f'{diagnostic} '
-
-        description += f'of {self.long_name} '
-        if self.units is not None:
-            description += f'[{self.units}] '
-
-        if self.region is not None:
-            description += f'for region {self.region} '
-
-        description += 'for '
-        description += strlist_to_phrase(items=[f'{self.catalogs[i]} {self.models[i]} {self.exps[i]}' for i in range(self.len_data)])
-        description += ' '
-
-        for i in range(self.len_ref):
-            if self.ref_models[i] == 'AVISO' or self.ref_models == 'AVISO':
-                description += f'with reference AVISO '
-            elif isinstance(self.ref_models, list):
-                description += f'with reference {self.ref_models[i]} {self.ref_exps[i]} '
-            else:
-                description += f'with reference {self.ref_models} {self.ref_exps} '
-
-
-        self.logger.debug('Description: %s', description)
-        return description
-
-    #TODO: Move this function to a common util. This is used in 'timesereies' diagnostic.  
-    def save_plot(self, fig, description: str = None, rebuild: bool = True,
-                  outputdir: str = './', dpi: int = 300, format: str = 'png', diagnostic_product: str = 'sshVariability'):
+        self.catalog = catalog
+        self.model = model
+        self.exp = exp
+        self.ref_catalog = ref_catalog
+        self.ref_model = ref_model
+        self.ref_exp = ref_exp 
+        self.region = region
+        self.short_name = short_name
+        self.long_name = long_name
+        self.units = units
+ 
+    def save_plot(
+        self,
+        var,
+        region, 
+        fig, 
+        description: str = None, 
+        rebuild: bool = True,
+        outputdir: str = './', 
+        dpi: int = 300, 
+        format: str = 'png', 
+        diagnostic_product: str = 'sshVariability'
+    ):
         """
         Save the plot to a file.
 
@@ -282,12 +232,12 @@ class PlotBaseMixin():
             diagnostic_product (str): Diagnostic product to be used in the filename as diagnostic_product.
         """
         outputsaver = OutputSaver(diagnostic=self.diagnostic_name,
-                                  catalog=self.catalogs,
-                                  model=self.models,
-                                  exp=self.exps,
-                                  catalog_ref=list(self.ref_catalogs.values()) if isinstance(self.ref_catalogs, dict) else self.ref_catalogs,
-                                  model_ref=list(self.ref_models.values()) if isinstance(self.ref_models, dict) else self.ref_models,
-                                  exp_ref=list(self.ref_exps.values()) if isinstance(self.ref_exps, dict) else self.ref_exps,
+                                  catalog=self.catalog,
+                                  model=self.model,
+                                  exp=self.exp,
+                                  catalog_ref=self.ref_catalog,
+                                  model_ref=self.ref_model,
+                                  exp_ref=self.ref_exp,
                                   outputdir=outputdir,
                                   loglevel=self.loglevel)
 
@@ -307,3 +257,4 @@ class PlotBaseMixin():
         else:
             raise ValueError(f'Format {format} not supported. Use png or pdf.')
 
+ 
