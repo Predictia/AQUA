@@ -966,7 +966,7 @@ class Reader():
         return data
 
     def timstat(self, data, stat, freq=None, exclude_incomplete=False,
-             time_bounds=False, center_time=False):
+             time_bounds=False, center_time=False, **kwargs):
         """
         Time averaging wrapper which is calling the timstat module
 
@@ -977,13 +977,14 @@ class Reader():
             exclude_incomplete (bool):  exclude incomplete time averages
             time_bounds (bool):  produce time bounds after averaging
             center_time (bool):  center time for averaging
+            kwargs:  additional arguments to be passed to the statistical function
         """
 
         data = self.timemodule.timstat(
             data, stat=stat, freq=freq,
             exclude_incomplete=exclude_incomplete,
             time_bounds=time_bounds,
-            center_time=center_time)
+            center_time=center_time, **kwargs)
         data.aqua.set_default(self) #accessor linking
         return data
     
@@ -1003,9 +1004,8 @@ class Reader():
        return self.timstat(data, stat='sum', **kwargs)
 
     def histogram(self, data, **kwargs):
-        """ Wrapper for the histogram function. """
-
-        return histogram(data, **kwargs)
+        """ Wrapper for the histogram function with TimStat functionality. """
+        return self.timstat(data, stat=histogram, **kwargs)
 
 
 def units_extra_definition():
