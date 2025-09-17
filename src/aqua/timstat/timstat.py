@@ -96,7 +96,10 @@ class TimStat():
             out = getattr(resample_data, stat)(**extra_kwargs)
         else:  # we can safely assume that it is a callable function now
             self.logger.info(f'Resampling to %s frequency and computing custom function...', str(resample_freq))
-            out = resample_data.apply(partial(stat, **kwargs))
+            if resample_freq is not None:
+                out = resample_data.apply(partial(stat, **kwargs))
+            else:
+                out = stat(data, **kwargs)
 
         if exclude_incomplete and freq not in [None, 'seasonal']:
             self.logger.info('Checking if incomplete chunks has been produced...')
