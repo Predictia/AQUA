@@ -989,22 +989,40 @@ class Reader():
         return data
     
     def timmean(self, data, **kwargs):
+        """
+        Time mean wrapper which is calling the timstat module.
+        """
         return self.timstat(data, stat='mean', **kwargs)
 
     def timmax(self, data, **kwargs):
+        """
+        Time max wrapper which is calling the timstat module.
+        """
         return self.timstat(data, stat='max', **kwargs)
     
     def timmin(self, data, **kwargs):
+       """
+       Time min wrapper which is calling the timstat module.
+       """
        return self.timstat(data, stat='min', **kwargs)
     
     def timstd(self, data, **kwargs):
+       """
+       Time standard deviation wrapper which is calling the timstat module.
+       """
        return self.timstat(data, stat='std', **kwargs)
     
     def timsum(self, data, **kwargs):
-       return self.timstat(data, stat='sum', **kwargs)
+        """
+        Time sum wrapper which is calling the timstat module.
+        """
+        return self.timstat(data, stat='sum', **kwargs)
 
     def histogram(self, data, **kwargs):
-        """ Wrapper for the histogram function with TimStat functionality. """
+        """
+        Wrapper for the histogram function, with added timstat functionality.
+        It accepts arguments of timstat to resample in time before computing the histogram.
+        """
         return self.timstat(data, stat=histogram, **kwargs)
 
 
