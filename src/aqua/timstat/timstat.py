@@ -25,7 +25,7 @@ class TimStat():
         return ['mean', 'std', 'max', 'min', 'sum']
 
     def timstat(self, data, stat='mean', freq=None, exclude_incomplete=False,
-                time_bounds=False, center_time=False, **kwargs):
+                time_bounds=False, center_time=False, func_kwargs={}, **kwargs):
         """
         Compute a time statistic on the input data. The statistic is computed over a time window defined by the frequency
         parameter. The frequency can be a string (e.g. '1D', '1M', '1Y') or a pandas frequency object. The statistic can be
@@ -39,6 +39,7 @@ class TimStat():
             exclude_incomplete (bool): If True, exclude incomplete chunks from the output.
             time_bounds (bool): If True, add time bounds to the output data.
             center_time (bool): If True, center the time axis of the output data.
+            func_kwargs (dict): Additional keyword arguments to pass to the custom function if stat is callable.
             kwargs (dict): Additional keyword arguments to pass to the statistic function.
 
         Returns:
@@ -97,9 +98,9 @@ class TimStat():
         else:  # we can safely assume that it is a callable function now
             self.logger.info(f'Resampling to %s frequency and computing custom function...', str(resample_freq))
             if resample_freq is not None:
-                out = resample_data.apply(partial(stat, **kwargs))
+                out = resample_data.apply(partial(stat, **func_kwargs, **kwargs))
             else:
-                out = stat(data, **kwargs)
+                out = stat(data, **func_kwargs, **kwargs)
 
         if exclude_incomplete and freq not in [None, 'seasonal']:
             self.logger.info('Checking if incomplete chunks has been produced...')
