@@ -11,7 +11,7 @@ class BaseMixin(Diagnostic):
 
     def __init__(
         self,
-        diagnostic_name: str = "ssh",
+        diagnostic_name: str = "sshVariability",
         catalog: str = None,
         model: str = None,
         exp: str = None,
@@ -171,16 +171,6 @@ class PlotBaseMixin():
     def __init__(
         self, 
         diagnostic_name: str = 'sshVariability', 
-        catalog: str = None,
-        model: str = None,
-        exp: str = None,
-        ref_catalog: str = None,
-        ref_model: str = None,
-        ref_exp: str = None, 
-        region: str = None,
-        short_name: str = None,
-        long_name: str = None,
-        units: str = None,
         loglevel: str = 'WARNING',    
     ):
         """
@@ -196,28 +186,25 @@ class PlotBaseMixin():
         self.diagnostic_name = diagnostic_name
         log_name = 'Plot' + diagnostic_name.capitalize()
         self.logger = log_configure(log_level=loglevel, log_name=log_name)
-        self.catalog = catalog
-        self.model = model
-        self.exp = exp
-        self.ref_catalog = ref_catalog
-        self.ref_model = ref_model
-        self.ref_exp = ref_exp 
-        self.region = region
-        self.short_name = short_name
-        self.long_name = long_name
-        self.units = units
  
     def save_plot(
         self,
-        var,
-        region, 
-        fig, 
+        fig,
+        var: str = None, 
         description: str = None, 
         rebuild: bool = True,
         outputdir: str = './', 
         dpi: int = 300, 
         format: str = 'png', 
-        diagnostic_product: str = 'sshVariability'
+        diagnostic_product: str = 'sshVariability',
+        catalog: str = None,
+        model: str = None,
+        exp: str = None,
+        region: str = None,
+        startdate: str = None,
+        enddate: str = None,
+        long_name: str = None,
+        units: str = None,
     ):
         """
         Save the plot to a file.
@@ -229,18 +216,16 @@ class PlotBaseMixin():
             outputdir (str): Output directory to save the plot.
             dpi (int): Dots per inch for the plot.
             format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
-            diagnostic_product (str): Diagnostic product to be used in the filename as diagnostic_product.
+            diagnostic_product (str): Diagnostic product name i.e., 'sshVariability'.
         """
         outputsaver = OutputSaver(diagnostic=self.diagnostic_name,
-                                  catalog=self.catalog,
-                                  model=self.model,
-                                  exp=self.exp,
-                                  catalog_ref=self.ref_catalog,
-                                  model_ref=self.ref_model,
-                                  exp_ref=self.ref_exp,
+                                  catalog=catalog,
+                                  model=model,
+                                  exp=exp,
                                   outputdir=outputdir,
                                   loglevel=self.loglevel)
-
+        if description is None: description = "sshVariability diagnostic" 
+        description = description + f" ({startdate}-{enddate}) "
         metadata = {"Description": description, "dpi": dpi }
         extra_keys = {'diagnostic_product': diagnostic_product}
 
@@ -257,4 +242,68 @@ class PlotBaseMixin():
         else:
             raise ValueError(f'Format {format} not supported. Use png or pdf.')
 
- 
+     def save_diff_plot(
+        self,
+        fig,
+        var: str = None, 
+        description: str = None, 
+        rebuild: bool = True,
+        outputdir: str = './', 
+        dpi: int = 300, 
+        format: str = 'png', 
+        diagnostic_product: str = 'Difference_sshVariability',
+        catalog: str = None,
+        model: str = None,
+        exp: str = None,
+        startdate: str = None,
+        enddate: str = None,
+        catalog_ref: str = None,
+        model_ref: str = None,
+        exp_ref: str = None,
+        startdate_ref: str = None,
+        enddate_ref: str = None,
+        region: str = None,
+        long_name: str = None,
+        units: str = None,
+    ):
+        """
+        Save the plot of the difference of SSH variabilities b/w reference and model to a file.
+
+        Args:
+            fig (matplotlib.figure.Figure): Figure object.
+            description (str): Description of the plot.
+            rebuild (bool): If True, rebuild the plot even if it already exists.
+            outputdir (str): Output directory to save the plot.
+            dpi (int): Dots per inch for the plot.
+            format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
+            diagnostic_product (str): Diagnostic product to be used in the filename as diagnostic_product.
+                                      In this diagnostic this variable can be: 'sshVariability' or 'Diff_sshVariability'
+        """
+        outputsaver = OutputSaver(diagnostic=self.diagnostic_name,
+                                  catalog=catalog,
+                                  model=model,
+                                  exp=exp,
+                                  catalog_ref=catalog_ref,
+                                  model_ref=model_ref,
+                                  exp_ref=exp_ref,
+                                  outputdir=outputdir,
+                                  loglevel=self.loglevel)
+        if description is None: description = "sshVariability diagnostic" 
+        description = description + f" model time: ({startdate}-{enddate}) and reference time: ({startdate}-{enddate})" 
+        metadata = {"Description": description, "dpi": dpi }
+        extra_keys = {'diagnostic_product': diagnostic_product}
+
+        if self.short_name is not None:
+            extra_keys.update({'var': self.short_name})
+        if self.region is not None:
+            region = self.region.replace(' ', '').lower()
+            extra_keys.update({'region': region})
+
+        if format == 'png':
+            outputsaver.save_png(fig, diagnostic_product=diagnostic_product, rebuild=rebuild, extra_keys=extra_keys, metadata=metadata)
+        elif format == 'pdf':
+            outputsaver.save_pdf(fig, diagnostic_product=diagnostic_product, rebuild=rebuild, extra_keys=extra_keys, metadata=metadata)
+        else:
+            raise ValueError(f'Format {format} not supported. Use png or pdf.')
+
+

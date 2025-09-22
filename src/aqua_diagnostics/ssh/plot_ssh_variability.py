@@ -17,62 +17,37 @@ from aqua.logger import log_configure
 class sshVariabilityPlot(PlotBaseMixin):
     def __init__(
         self, 
-        var=None,
-        catalog=None, 
-        model=None,
-        exp=None,
-        source=None,
-        ref_catalog=None, 
-        ref_model=None, 
-        ref_exp=None, 
-        ref_source=None,
-        short_name=None,
-        long_name=None,
-        region=None,
+        diagnostic_name=None,
         outputdir='./', 
         loglevel='WARNING', 
-        **kwargs,
     ):
         """
         Initialize the sshVariability.
 
         Args:
-            var (str): Variable name
-            data_ref: xarray.Dataset of the obeservational data
-            data_model: xarray.Dataset of the model data
-            name_ref (str): Name of the observational data
-            name_model (str): Name of the model data
-            exp_ref (str): Name of the obervational experiment
-            exp_model (str): Name of the model experiment
-            region (str): Name of the region
+            diagnostic_name (str): sshVariability
             outputdir (str): output directory
             loglevel (str): Default WARNING
         """
-        self.var = var
+
+        self.loglevel = loglevel
         self.outputdir = outputdir
-        
+
         super().__init__(
-            log_level=self.log_level
-            catalog = catalog
-            model = model
-            exp = exp
-            ref_catalog = ref_catalog
-            ref_model = ref_model
-            ref_exp = ref_exp
-            region = region
-            short_name = short_name
-            long_name = long_name
-            units = units
+            diagnostic_name=self.diagnostic_name
+            loglevel=self.loglevel
         )
 
-    def plot_std(
-        self, 
-        data_std=None, 
+    def plot(
+        self,
+        var=None 
+        dataset_std=None,
+        catalog=None, 
         model=None, 
         exp=None, 
-        source=None, 
         startdate=None, 
         enddate=None, 
+        regrid=None,
         contours=21,
         plot_options={},
         vmin=None,
@@ -91,6 +66,9 @@ class sshVariabilityPlot(PlotBaseMixin):
         mask_southern_boundary=True
         northern_boundary_latitude=70
         southern_boundary_latitude=-62
+        
+        diagnostic_product='sshVariabililty'
+        description=None,
     ):
         """
         Visualize the SSH variability using Cartopy.
@@ -100,32 +78,38 @@ class sshVariabilityPlot(PlotBaseMixin):
             The following Args are used for the title in the plot
             model_name (str): Name of the Dataset.
             exp_name (str): Name of the experiment.
-            source (str): source defined in the catalog file
             startdate (str): start date
             enddate (str): end date
             contours (int): Number of contours for plot (default: 21). If 0 or None the pcolormesh is used.
         """
-        # STD plot
+        
+        if dataset_std is None: self.logger.error("Please provide the data to the plot function")
+
         if isinstance(dataset_std, xr.Dataset):
-            dataset_std = dataset_std[self.var]
+            dataset_std = dataset_std[var]
         else:
             dataset_std = dataset_std
+        
+        if regrid:
+            dataset_std = dataset_std[var].aqua.regrid()
+        if startdate is None or enddate is None: self.logger.error("Please specify the time period of the data") 
 
         self.logger.info(f'Plotting SSH Variability for {model} and {exp}, from {startdate} to {enddate}.')
         
-        title = (f"SSH Variability of {dataset_std[self.var].attrs.get('long_name', self.var)} for {model} {exp} from {startdate} to {enddate} ")
+        title = (f"SSH Variability of {dataset_std[var].attrs.get('long_name', var)} for {model} {exp} ({startdate}-{enddate}) ")
         
         #TODO: discuss what should be in the description
-        description = (f"SSH Variability of {dataset_std[self.var].attrs.get('long_name', self.var)} for {model} {exp} from {startdate} to {enddate} ")
+        description = (f"SSH Variability of {dataset_std[var].attrs.get('long_name', var)} for {model} {exp} ({startdate}-{enddate}) ")
         
         if vmin is None:
             vmin = dataset_std.values.min()
-        if vmax_std is None:
-            vmax_std = dataset_std.values.max()
+        if vmax is None:
+            vmax = dataset_std.values.max()
 
         if region is not None:
             title = title + "{region} "
-            description = description + "{description} "
+            if lon_lim is None or lat_lim is None: self.logger.error(f"For the {region}, please specify the lon_lim and lat_lim.")
+            description = description + "for {region} "
             dataset_std = self.subregion_selection(
                 data=dataset_std, 
                 model=model, 
@@ -138,15 +122,13 @@ class sshVariabilityPlot(PlotBaseMixin):
                 lat_lim=lat_lim,
                 region=region)
    
-        startdate = startdate or pd.to_datetime(data_std.time[0].values).strftime('%Y-%m-%d')
-        enddate = enddate or pd.to_datetime(data_std.time[-1].values).strftime('%Y-%m-%d')
         proj = get_projection(proj, **proj_params)
         
-        if vmin_std == vmax_std:
+        if vmin == vmax:
             # TODO: discuss what should do here in this case.
             self.logger.info("STD is Zero everywhere") 
             fig, ax = plot_single_map(
-                data[self.var],
+                dataset[var],
                 return_fig=True,
                 title=title,
                 proj=proj,
@@ -155,7 +137,7 @@ class sshVariabilityPlot(PlotBaseMixin):
             )
         else:
             fig, ax = plot_single_map(
-                data[self.var],
+                dataset[var],
                 return_fig=True,
                 title=title,
                 vmin=vmin,
@@ -169,61 +151,210 @@ class sshVariabilityPlot(PlotBaseMixin):
 
         # Saving plots
         if save_png:
-            self.save_plot(var=self.var, fig=fig, region=region, description=description, rebuild=rebuild, outputdir=outputdir, format='png', dpi=dpi)
+            self.save_plot(
+                var=var, 
+                fig=fig, 
+                description=description, 
+                rebuild=rebuild, 
+                outputdir=outputdir, 
+                format='png',
+                catalog=catalog,
+                model=model,
+                exp=exp,
+                startdate=startdate,
+                enddate=enddate,
+                long_name=long_name,
+                units=units,
+                dpi=dpi)
         if save_pdf:
-            self.save_plot(var=self.var, fig=fig, region=region, description=description, rebuild=rebuild, outputdir=outputdir, format='pdf', dpi=dpi)
+            self.save_plot(
+                var=var, 
+                fig=fig, 
+                description=description, 
+                rebuild=rebuild, 
+                outputdir=outputdir, 
+                format='pdf',
+                catalog=catalog,
+                model=model,
+                exp=exp,
+                startdate=startdate,
+                enddate=enddate,
+                long_name=long_name,
+                units=units,
+                dpi=dpi)
 
-        return fig1, ax1
+        return fig, ax
 
-    def plot_std_diff(self, contours=21):
+    def plot_diff(
+        self,
+        var=None 
+        dataset_std=None,
+        catalog=None, 
+        model=None, 
+        exp=None,
+        startdate=None, 
+        enddate=None, 
+        dataset_std_ref=None,
+        catalog_ref=None,
+        model_ref=None,
+        exp_ref=None,
+        startdate_ref=None, 
+        enddate_ref=None, 
+        regrid=None,
+        contours=21,
+        plot_options={},
+        vmin_diff=None,
+        vmax_diff=None,
+        proj='robinson', 
+        proj_params={}
+        save_png=True,
+        save_pdf=True,
+        dpi=300,
+        region=None,
+        lon_lim=None,
+        lat_lim=None,
+        # Retrieve the masking flags and boundary latitudes from the configuration, Specific to ICON
+        mask_options={},
+        mask_northern_boundary=True
+        mask_southern_boundary=True
+        northern_boundary_latitude=70
+        southern_boundary_latitude=-62
+        
+        diagnostic_product='sshVariabililty'
+        description=None,
+    ):
         """
-        Visualize the difference in SSH variability data between each model and the AVISO model.
+        Visualize the SSH variability using Cartopy.
 
         Args:
+            data_std: xarray.Dataset as input to be plotted.
+            The following Args are used for the title in the plot
+            model_name (str): Name of the Dataset.
+            exp_name (str): Name of the experiment.
+            startdate (str): start date
+            enddate (str): end date
             contours (int): Number of contours for plot (default: 21). If 0 or None the pcolormesh is used.
         """
-        self.logger.info(f'Plotting the difference in std between: {self.name_model} and {self.name_ref}.')
-        fig, ax = plt.subplots(figsize=(12, 6), subplot_kw={'projection': ccrs.PlateCarree()})
-        #to remove large fill values
-        data_ref = xr.where(self.data_ref < 100, self.data_ref, np.nan)
-        if self.data_ref is not None and self.data_model is not None:
-            #to remove large fill values
-            data_ref = xr.where(self.data_ref < 100, self.data_ref, np.nan)
-            diff_data = data_ref - self.data_model
+        
+        if dataset_std is None and dataset_std_ref is None: self.logger.error("Please provide the data to the plot function")
+
+        if isinstance(dataset_std, xr.Dataset):
+            dataset_std = dataset_std[var]
         else:
-            raise ValueError("Data is missing for for plotting the difference std plot")
+            dataset_std = dataset_std
 
-        if "ICON" in self.name_model:
-            if self.mask_northern_boundary and self.northern_boundary_latitude:
-                diff_data = diff_data.where(data.lat < self.northern_boundary_latitude)
-            if self.mask_southern_boundary and self.southern_boundary_latitude:
-                diff_data = diff_data.where(data.lat > self.southern_boundary_latitude)
-
-        lonname, latname = coord_names(self.data_model)
-
-        if contours:
-            lon, lat = np.meshgrid(self.data_model[lonname].values, self.data_model[latname].values)
-            levels = np.linspace(-0.4, 0.4, contours)
-
-            contf = ax.contourf(lon, lat, diff_data, transform=ccrs.PlateCarree(), 
-                                levels=levels, extend='both',
-                                cmap='RdBu', transform_first=True)
+        if isinstance(dataset_std_ref, xr.Dataset):
+            dataset_std_ref = dataset_std_ref[var]
         else:
-            contf = ax.pcolormesh(self.data_model[lonname], self.data_model[latname], diff_data,
-                                transform=ccrs.PlateCarree(),
-                                vmin=-0.4,
-                                vmax=0.4,
-                                cmap="RdBu")
+            dataset_std_ref = dataset_std_ref
 
-        # ax.set_title(f"{model_name} - Difference from {ref_model_name}")
-        ax.coastlines()
-        ax.set_title(f"{self.name_model} - Difference from {self.name_ref}")
-        # Add a colorbar for each subplot
-        cbar = fig.colorbar(contf, ax=ax, orientation='vertical', shrink=0.9)
-        cbar.set_label('SSH Variability Difference (m)')
-        fig.tight_layout()
-        filename = "difference_plot_" + self.name_model + "-" + self.name_ref
-        self.save_plot(filename, fig)
+        if startdate is None or enddate is None: self.logger.error("Please specify the time period of the data") 
+        if startdate_ref is None or enddate_ref is None: self.logger.error("Please specify the time period of the reference data") 
+        
+        title = (f"The difference of the SSH Variability of {dataset_std[var].attrs.get('long_name', var)} for {model} {exp} ({startdate}-{enddate}) and, reference {catalog_ref} {model_ref} and {exp_ref} ({startdate_ref}-{enddate_ref}) ")
+        
+        #TODO: discuss what should be in the description
+        description = (f"The difference of the SSH Variability of {dataset_std[var].attrs.get('long_name', var)} for {model} {exp} ({startdate}-{enddate}) and, reference {catalog_ref} {model_ref} and {exp_ref} ({startdate_ref}-{enddate_ref}) ")
+        
+            title = title + "{region} "
+            if lon_lim is None or lat_lim is None: self.logger.error(f"For the {region}, please specify the lon_lim and lat_lim.")
+            description = description + "for {region} "
+            dataset_std = self.subregion_selection(
+                data=dataset_std, 
+                model=model, 
+                exp=exp, 
+                mask_northern_boundary=mask_northern_boundary,
+                northern_boundary_latitude=northern_boundary_latitude,
+                mask_southern_boundary=mask_southern_boundary,
+                southern_boundary_latitude=southern_boundary_latitude,
+                lon_lim=lon_lim,
+                lat_lim=lat_lim,
+                region=region)
+            dataset_std_ref = self.subregion_selection(
+                data=dataset_std_ref, 
+                model=model_ref, 
+                exp=exp_ref, 
+                lon_lim=lon_lim,
+                lat_lim=lat_lim,
+                region=region)
+        
+        dataset_diff = dataset_std - dataset_std_ref
+ 
+        proj = get_projection(proj, **proj_params)
+
+        if regrid:
+            dataset_diff = dataset_diff[var].aqua.regrid()
+
+        if vmin_diff is None:
+            vmin_diff = dataset_diff.values.min()
+        if vmax_diff is None:
+            vmax_diff = dataset_diff.values.max()
+        
+        if vmin_diff == vmax_diff:
+            # TODO: discuss what should do here in this case.
+            self.logger.info("STD is Zero everywhere") 
+            fig, ax = plot_single_map(
+                dataset[var],
+                return_fig=True,
+                title=title,
+                proj=proj,
+                loglevel=self.loglevel,
+                cbar_label=cbar_label
+            )
+        else:
+            fig, ax = plot_single_map(
+                dataset[var],
+                return_fig=True,
+                title=title,
+                vmin=vmin_diff,
+                vmax=vmax_diff,
+                proj=proj,
+                loglevel=self.loglevel,
+                cbar_label=cbar_label
+            )
+        ax.set_xlabel("Longitude")
+        ax.set_ylabel("Latitude")
+
+        # Saving plots
+        if save_png:
+            self.save_plot_diff(
+                var=var, 
+                fig=fig, 
+                description=description, 
+                rebuild=rebuild, 
+                outputdir=outputdir, 
+                format='png',
+                catalog=catalog,
+                model=model,
+                exp=exp,
+                startdate=startdate,
+                enddate=enddate,
+                catalog_ref=catalog_ref,
+                model_ref=model_ref,
+                exp_ref=exp_ref,
+                startdate_ref=startdate_ref,
+                enddate_ref=enddate_ref,
+                long_name=long_name,
+                units=units,
+                dpi=dpi)
+        if save_pdf:
+            self.save_plot_diff(
+                var=var, 
+                fig=fig, 
+                description=description, 
+                rebuild=rebuild, 
+                outputdir=outputdir, 
+                format='pdf',
+                catalog=catalog,
+                model=model,
+                exp=exp,
+                startdate=startdate,
+                enddate=enddate,
+                long_name=long_name,
+                units=units,
+                dpi=dpi)
+
+        return fig, ax
 
     def subregion_selection(
         self,
@@ -239,9 +370,9 @@ class sshVariabilityPlot(PlotBaseMixin):
         region_name=None
     ):
         """
-        Plotting the subregion and saving as pdf and png
+        Selecting sub-region based on lon-lat 
         """
-        self.logger.info(f'Plotting the sub-region plots: {region_name}.')
+        self.logger.info(f'Selecting the sub-region plots: {region_name}.')
         # Apply masking if necessary
         if "ICON" in model and mask_northern_boundary and northern_boundary_latitude:
             data = data.where(data.lat < northern_boundary_latitude)
