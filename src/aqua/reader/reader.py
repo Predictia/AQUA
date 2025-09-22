@@ -1018,13 +1018,18 @@ class Reader():
         """
         return self.timstat(data, stat='sum', **kwargs)
 
-    def histogram(self, data, **kwargs):
+    def timhist(self, data, **kwargs):
         """
         Wrapper for the histogram function, with added timstat functionality.
         It accepts arguments of timstat to resample in time before computing the histogram.
         """
         return self.timstat(data, stat=histogram, **kwargs)
 
+    def histogram(self, data, **kwargs):
+        """
+        Wrapper for the histogram function
+        """
+        return histogram(data, **kwargs)
 
 def units_extra_definition():
     """Add units to the pint registry"""
