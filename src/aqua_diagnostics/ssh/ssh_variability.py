@@ -12,10 +12,26 @@ from aqua.util import create_folder, coord_names, area_selection
 from aqua import Reader, plot_single_map
 from aqua.logger import log_configure
 
-class sshVariabilityCompute():
-    def __init__(self, data=None, variable=None, catalog=None, model=None, exp=None, source=None, startdate=None, enddate=None, regrid=None, outputdir=None, loglevel='WARNING'):
+class sshVariabilityCompute(BaseMixin):
+    """
+    SSH Computation
+    """
+    def __init__(
+        self, 
+        var=None, 
+        catalog=None, 
+        model=None, 
+        exp=None, 
+        source=None, 
+        startdate=None, 
+        enddate=None, 
+        regrid=None, 
+        outputdir=None, 
+        loglevel='WARNING'
+    ):
+
         """
-        Initialize the sshVariability.
+        Initialize the 'sshVariabilityCompute' class.
 
         This class is designed to load an xarray.Dataset and computes std. It can load either load data using the Reader class or takes in input xarray.Dataset and regrids it using the Reader.regrid method. It then returns the xarray.Dataset. 
         Args:
@@ -31,32 +47,14 @@ class sshVariabilityCompute():
             outputdir (str): output directory
             loglevel (str): Default WARNING
         """
-        self.variable = variable
-        self.catalog = catalog
-        self.model = model
-        self.exp = exp
-        self.source = source 
-        self.regrid = regrid
-        self.startdate = startdate
-        self.enddate = enddate
-        self.outputdir = outputdir + "/ssh"
-        self.logger = log_configure(log_level=loglevel, log_name='SSH Variability Computation')
+        super()__init__(catalog=
         self.data = data 
+        
+        
 
-    def save_netcdf(self):
-        """
-        Save the standard deviation data to a NetCDF file.
-        """
-        # Create the file type folder within the output directory
-        file_type_folder = os.path.join(self.outputdir,"netcdf")
-        os.makedirs(file_type_folder, exist_ok=True)
+    def compute(self):
+        pass
 
-        # Set the output file path
-        if self.data is not None:
-            output_file = os.path.join(file_type_folder, f"{self.model}_{self.exp}_{self.source}_{self.startdate}_to_{self.enddate}_std.nc")
-            self.data.to_netcdf(output_file)
-        else:
-            self.logger.error("The data can not be saved")
 
     def run(self):
         # Retrieve model data and handle potential errors
