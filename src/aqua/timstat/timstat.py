@@ -6,6 +6,7 @@ from functools import partial
 from aqua.util import check_chunk_completeness, frequency_string_to_pandas
 from aqua.util import extract_literal_and_numeric
 from aqua.logger import log_history, log_configure
+from aqua.histogram import histogram
 
 
 class TimStat():
@@ -22,19 +23,19 @@ class TimStat():
     @property
     def AVAILABLE_STATS(self):
         """Return the list of available statistics."""
-        return ['mean', 'std', 'max', 'min', 'sum']
+        return ['mean', 'std', 'max', 'min', 'sum', 'histogram']
 
     def timstat(self, data, stat='mean', freq=None, exclude_incomplete=False,
                 time_bounds=False, center_time=False, func_kwargs={}, **kwargs):
         """
         Compute a time statistic on the input data. The statistic is computed over a time window defined by the frequency
         parameter. The frequency can be a string (e.g. '1D', '1M', '1Y') or a pandas frequency object. The statistic can be
-        'mean', 'std', 'max', 'min'. The output is a new xarray dataset with the time dimension resampled to the desired
+        'mean', 'std', 'max', 'min' or 'histogram'. The output is a new xarray dataset with the time dimension resampled to the desired
         frequency and the statistic computed over the time window.
 
         Args: 
             data (xarray.Dataset): Input data to compute the statistic on.
-            stat (str, func): Statistic to compute. Can be a string in ['mean', 'std', 'max', 'min'] or a custom function.
+            stat (str, func): Statistic to compute. Can be a string in ['mean', 'std', 'max', 'min', 'histogram'] or a custom function.
             freq (str): Frequency to resample the data to. Can be a string (e.g. '1D', '1M', '1Y') or a pandas frequency object.
             exclude_incomplete (bool): If True, exclude incomplete chunks from the output.
             time_bounds (bool): If True, add time bounds to the output data.
@@ -51,6 +52,9 @@ class TimStat():
 
         if not isinstance(stat, str) and not callable(stat):
             raise TypeError('stat must be a string or a callable function')
+        
+        if stat == 'histogram':  # convert to callable function
+            stat = histogram
         
         resample_freq = frequency_string_to_pandas(freq)
 
