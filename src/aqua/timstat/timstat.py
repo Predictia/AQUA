@@ -104,7 +104,7 @@ class TimStat():
             if resample_freq is not None:
                 out = resample_data.apply(partial(stat, **func_kwargs, **kwargs))
             else:
-                out = stat(data, **func_kwargs, **kwargs)
+                out = stat(resample_data, **func_kwargs, **kwargs)
 
         if exclude_incomplete and freq not in [None, 'seasonal']:
             self.logger.info('Checking if incomplete chunks has been produced...')
