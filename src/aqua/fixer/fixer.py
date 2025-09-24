@@ -1,15 +1,11 @@
 """Fixer mixin for the Reader class"""
-
 import re
-
 import numpy as np
-
-from aqua.util import eval_formula, get_eccodes_attr
-from aqua.util import to_list, convert_units
+from aqua.util import to_list, convert_units, get_eccodes_attr
 from aqua.logger import log_history, log_configure
-
 from .fixer_operator import FixerOperator
 from .fixer_datamodel import FixerDataModel
+from .evaluate_formula import EvaluateFormula
 
 DEFAULT_DELTAT = 1
 
@@ -359,7 +355,8 @@ class Fixer():
                         continue
                     try:
                         source = shortname
-                        data[source] = eval_formula(formula, data)
+                        data[source] = EvaluateFormula(data=data, formula=formula, short_name=shortname,
+                                                       loglevel=self.loglevel).evaluate()
                         attributes.update({"derived": formula})
                         self.logger.debug("Derived %s from %s", var, formula)
                         log_history(data[source], f"Variable {var}, derived with {formula} by fixer")
@@ -416,6 +413,10 @@ class Fixer():
                             data[source].attrs.update({key: value})
                             self.logger.debug("Fixing %s to %s. Unit fix: %s=%f", source, var, key, float(value))
                             log_history(data[source], f"Fixing {source} to {var}. Unit fix: {key}={value}")
+                    elif conversion_dictionary == {} and data[source].units != tgt_units:
+                        self.logger.info("No conversion needed for %s, but units are renamed from %s to %s",
+                                         var, data[source].units, tgt_units)
+                        data[source].attrs.update({"units": tgt_units})
 
                 # Set to NaN before a certain date
                 mindate = varfix.get("mindate", None)
@@ -526,7 +527,7 @@ class Fixer():
         """
         self.logger.debug("Grib variable %s, looking for attributes", var)
         try:
-            attributes = get_eccodes_attr(var, loglevel=self.loglevel)
+            attributes = get_eccodes_attr(var, loglevel=self.loglevel).copy()  # The copy is needed because the function in eccodes.py is cached
             shortname = attributes.get("shortName", None)
             self.logger.debug("Grib variable %s, shortname is %s", var, shortname)
 

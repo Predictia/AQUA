@@ -12,16 +12,20 @@ class TimStat():
     Time statistic AQUA module
     """
 
+
     def __init__(self, loglevel='WARNING'):
         self.loglevel = loglevel
         self.orig_freq = None
         self.logger = log_configure(loglevel, 'TimStat')
 
+    @property
+    def AVAILABLE_STATS(self):
+        """Return the list of available statistics."""
+        return ['mean', 'std', 'max', 'min', 'sum']
 
     def timstat(self, data, stat='mean', freq=None, exclude_incomplete=False,
                 time_bounds=False, center_time=False):
-        
-        """"
+        """
         Compute a time statistic on the input data. The statistic is computed over a time window defined by the frequency
         parameter. The frequency can be a string (e.g. '1D', '1M', '1Y') or a pandas frequency object. The statistic can be
         'mean', 'std', 'max', 'min'. The output is a new xarray dataset with the time dimension resampled to the desired
@@ -36,10 +40,9 @@ class TimStat():
             center_time (bool): If True, center the time axis of the output data.
 
         Returns:
-            xarray.Dataset: Output data the required statistic computed at the desired frequency.
+            xarray.Dataset: Output data with the required statistic computed at the desired frequency.
         """
-
-        if stat not in ['mean', 'std', 'max', 'min']:
+        if stat not in self.AVAILABLE_STATS:
             raise KeyError(f'{stat} is not a statistic supported by AQUA')
 
         resample_freq = frequency_string_to_pandas(freq)
@@ -80,7 +83,7 @@ class TimStat():
             resample_data = data
 
         # compact call, equivalent of "out = resample_data.mean()""
-        if stat in ['mean', 'std', 'max', 'min']:
+        if stat in self.AVAILABLE_STATS:
             self.logger.info(f'Resampling to %s frequency and computing {stat}...', str(resample_freq))
             # use the kwargs to feed the time dimension to define the method and its options
             extra_kwargs = {} if resample_freq is not None else {'dim': 'time'}
@@ -88,12 +91,14 @@ class TimStat():
         else:
             raise KeyError(f'{stat} is not a statistic supported by AQUA TimStat()')
 
-        if exclude_incomplete:
+        if exclude_incomplete and freq not in [None, 'seasonal']:
             self.logger.info('Checking if incomplete chunks has been produced...')
             boolean_mask = check_chunk_completeness(data,
                                                     resample_frequency=resample_freq,
                                                     loglevel=self.loglevel)
             out = out.where(boolean_mask, drop=True)
+        elif exclude_incomplete and freq in ['seasonal']:
+            self.logger.warning('Excluding incomplete chunks is not supported for seasonal averaging, skipping this option...')
 
         # Set time:
         # if not center_time as the first timestamp of each month/day according to the sampling frequency
@@ -149,4 +154,3 @@ class TimStat():
                               pd.to_datetime(avg_data['time']) + offset)
         
         return avg_data
-    

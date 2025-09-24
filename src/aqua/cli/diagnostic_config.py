@@ -6,6 +6,13 @@ diagnostic_config = {
             'target_path': 'diagnostics/global_biases/cli'
         },
     ],
+    'lat_lon_profiles': [
+        {
+            'config_file': 'regions.yaml',
+            'source_path': 'config/diagnostics/lat_lon_profiles/definitions',
+            'target_path': 'diagnostics/lat_lon_profiles/definitions'
+        },
+    ],
     'ecmean': [
         {
             'config_file': 'ecmean_config_climatedt.yaml',
@@ -85,6 +92,11 @@ diagnostic_config = {
             'config_file': 'config.yaml',
             'source_path': 'diagnostics/ocean3d/cli',
             'target_path': 'diagnostics/ocean3d/cli'
+        },
+            {
+            'config_file': 'config_ocean_drift.yaml',
+            'source_path': 'config/diagnostics/ocean3d',
+            'target_path': 'diagnostics/ocean3d'
         }
     ],
     'radiation': [
@@ -106,29 +118,14 @@ diagnostic_config = {
     ],
     'seaice': [
         {
-            'config_file': 'regions_definition.yaml',
-            'source_path': 'diagnostics/seaice/config',
-            'target_path': 'diagnostics/seaice/config'
+            'config_file': 'regions.yaml',
+            'source_path': 'config/diagnostics/seaice/definitions',
+            'target_path': 'diagnostics/seaice/definitions'
         },
         {
-            'config_file': 'config_Concentration.yaml',
-            'source_path': 'diagnostics/seaice/cli',
-            'target_path': 'diagnostics/seaice/cli'
-        },
-        {
-            'config_file': 'config_Extent.yaml',
-            'source_path': 'diagnostics/seaice/cli',
-            'target_path': 'diagnostics/seaice/cli'
-        },
-        {
-            'config_file': 'config_Thickness.yaml',
-            'source_path': 'diagnostics/seaice/cli',
-            'target_path': 'diagnostics/seaice/cli'
-        },
-        {
-            'config_file': 'config_Volume.yaml',
-            'source_path': 'diagnostics/seaice/cli',
-            'target_path': 'diagnostics/seaice/cli'
+            'config_file': 'config_seaice.yaml',
+            'source_path': 'config/diagnostics/seaice',
+            'target_path': 'diagnostics/seaice'
         }
     ],
     'ssh': [
@@ -188,6 +185,22 @@ diagnostic_config = {
             'source_path': 'diagnostics/tropical_rainfall/cli',
             'target_path': 'diagnostics/tropical_rainfall/cli'
         }
-    ]
-    # Add other diagnostic configurations here
+    ],
+    'ensemble': [
+        {
+            'config_file': 'config_global_2D_ensemble.yaml',
+            'source_path': 'config/diagnostics/ensemble',
+            'target_path': 'diagnostics/ensemble'
+        },
+        {
+            'config_file': 'config_timeseries_ensemble.yaml',
+            'source_path': 'config/diagnostics/ensemble',
+            'target_path': 'diagnostics/ensemble'
+        },
+        {
+            'config_file': 'config_zonalmean_ensemble.yaml',
+            'source_path': 'config/diagnostics/ensemble',
+            'target_path': 'diagnostics/ensemble'
+        }
+    ],  # Add other diagnostic configurations here
 }

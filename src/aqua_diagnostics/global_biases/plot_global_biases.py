@@ -1,13 +1,16 @@
 import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
 from aqua.logger import log_configure
 from aqua.diagnostics.core import OutputSaver
-from aqua.graphics import plot_single_map, plot_single_map_diff, plot_maps
+from aqua.graphics import plot_single_map, plot_single_map_diff, plot_maps, plot_vertical_profile_diff
+from aqua.util import get_projection
 from .util import handle_pressure_level
 
 class PlotGlobalBiases: 
     def __init__(self, 
+                 diagnostic='globalbiases',
                  save_pdf=True, save_png=True, 
                  dpi=300, outputdir='./',
                  loglevel='WARNING'):
@@ -15,12 +18,14 @@ class PlotGlobalBiases:
         Initialize the PlotGlobalBiases class.
 
         Args:
+            diagnostic (str): Name of the diagnostic.
             save_pdf (bool): Whether to save the figure as PDF.
             save_png (bool): Whether to save the figure as PNG.
             dpi (int): Resolution of saved figures.
             outputdir (str): Output directory for saved plots.
             loglevel (str): Logging level.
         """
+        self.diagnostic = diagnostic
         self.save_pdf = save_pdf
         self.save_png = save_png
         self.dpi = dpi
@@ -47,13 +52,13 @@ class PlotGlobalBiases:
             format (str): Format to save the figure ('png' or 'pdf').
         """
         outputsaver = OutputSaver(
-            diagnostic='globalbiases',
+            diagnostic=self.diagnostic,
             catalog=data.catalog,
             model=data.model,
             exp=data.exp,
             model_ref=data_ref.model if data_ref else None,
             exp_ref=data_ref.exp if data_ref else None,
-            outdir=self.outputdir,
+            outputdir=self.outputdir,
             loglevel=self.loglevel
         )
 
@@ -75,7 +80,7 @@ class PlotGlobalBiases:
             raise ValueError(f'Format {format} not supported. Use png or pdf.')
 
 
-    def plot_climatology(self, data, var, plev=None, vmin=None, vmax=None):
+    def plot_climatology(self, data, var, plev=None, proj='robinson', proj_params={}, vmin=None, vmax=None, cbar_label=None):
         """
         Plots the climatology map for a given variable and time range.
 
@@ -83,8 +88,11 @@ class PlotGlobalBiases:
             data (xarray.Dataset): Climatology dataset to plot.
             var (str): Variable name.
             plev (float, optional): Pressure level to plot (if applicable).
+            proj (string, optional): Desired projection for the map.
+            proj_params (dict, optional): Additional arguments for the projection (e.g., {'central_longitude': 0}).
             vmin (float, optional): Minimum color scale value.
             vmax (float, optional): Maximum color scale value.
+            cbar_label (str, optional): Label for the colorbar.
 
         Returns:
             tuple: Matplotlib figure and axis objects.
@@ -95,7 +103,9 @@ class PlotGlobalBiases:
         if data is None:
             return None
 
-        title = (f"{var} map {data.model} {data.exp}" 
+        proj = get_projection(proj, **proj_params)
+        
+        title = (f"Climatology of {data[var].attrs.get('long_name', var)} for {data.model} {data.exp}" 
                 + (f" at {int(plev / 100)} hPa" if plev else ""))
 
         fig, ax = plot_single_map(
@@ -104,13 +114,15 @@ class PlotGlobalBiases:
             title=title,
             vmin=vmin,
             vmax=vmax,
-            loglevel=self.loglevel
+            proj=proj,
+            loglevel=self.loglevel,
+            cbar_label=cbar_label
         )
         ax.set_xlabel("Longitude")
         ax.set_ylabel("Latitude")
 
         description = (
-            f"Spatial map of the climatology of variable {var}"
+            f"Spatial map of the climatology {data[var].attrs.get('long_name', var)}"
             f"{' at ' + str(int(plev / 100)) + ' hPa' if plev else ''}"
             f" from {data.startdate} to {data.enddate} "
             f"for the {data.model} model, experiment {data.exp}."
@@ -124,7 +136,7 @@ class PlotGlobalBiases:
                               description=description, var=var, plev=plev)
 
 
-    def plot_bias(self, data, data_ref, var, plev=None, vmin=None, vmax=None):
+    def plot_bias(self, data, data_ref, var, plev=None, proj='robinson', proj_params={}, vmin=None, vmax=None, cbar_label=None):
         """
         Plots the bias map between two datasets.
 
@@ -133,8 +145,11 @@ class PlotGlobalBiases:
             data_ref (xarray.Dataset): Reference dataset.
             var (str): Variable name.
             plev (float, optional): Pressure level.
+            proj (str, optional): Desired projection for the map.
+            proj_params (dict, optional): Additional arguments for the projection.
             vmin (float, optional): Minimum colorbar value.
             vmax (float, optional): Maximum colorbar value.
+            cbar_label (str, optional): Label for the colorbar.
         """
         self.logger.info('Plotting global biases.')
 
@@ -143,7 +158,9 @@ class PlotGlobalBiases:
 
         sym = vmin is None or vmax is None
 
-        title = (f"{var} global bias of {data.model} {data.exp}\n"
+        proj = get_projection(proj, **proj_params)
+
+        title = (f"Global bias of {data[var].attrs.get('long_name', var)} for {data.model} {data.exp}\n"
                  f"relative to {data_ref.model} climatology"
                  + (f" at {int(plev / 100)} hPa" if plev else ""))
 
@@ -154,15 +171,17 @@ class PlotGlobalBiases:
             contour=True, 
             title=title,
             sym=sym,
+            proj=proj,
             vmin_fill=vmin, 
             vmax_fill=vmax,
+            cbar_label=cbar_label,
             loglevel=self.loglevel
         )
         ax.set_xlabel("Longitude")
         ax.set_ylabel("Latitude")
 
         description = (
-            f"Spatial map of total bias of variable {var}"
+            f"Spatial map of total bias of {data[var].attrs.get('long_name', var)}"
             f"{' at ' + str(int(plev / 100)) + ' hPa' if plev else ''}"
             f" from {data.startdate} to {data.enddate} "
             f"for the {data.model} model, experiment {data.exp}, with {data_ref.model} used as reference data."
@@ -176,7 +195,7 @@ class PlotGlobalBiases:
                               description=description, var=var, plev=plev)
 
 
-    def plot_seasonal_bias(self, data, data_ref, var, plev=None, vmin=None, vmax=None):
+    def plot_seasonal_bias(self, data, data_ref, var, plev=None, proj='robinson', proj_params={}, vmin=None, vmax=None, cbar_label=None):
         """
         Plots seasonal biases for each season (DJF, MAM, JJA, SON).
 
@@ -185,8 +204,11 @@ class PlotGlobalBiases:
             data_ref (xarray.Dataset): Reference dataset.
             var (str): Variable name.
             plev (float, optional): Pressure level.
+            proj (str, optional): Desired projection for the map.
+            proj_params (dict, optional): Additional arguments for the projection.
             vmin (float, optional): Minimum colorbar value.
             vmax (float, optional): Maximum colorbar value.
+            cbar_label (str, optional): Label for the colorbar.
 
         Returns:
             matplotlib.figure.Figure: The resulting figure.
@@ -199,12 +221,21 @@ class PlotGlobalBiases:
         season_list = ['DJF', 'MAM', 'JJA', 'SON']
         sym = vmin is None or vmax is None
 
+        title = (f"Seasonal bias of {data[var].attrs.get('long_name', var)} for {data.model} {data.exp}\n"
+                 f"relative to {data_ref.model} climatology"
+                 + (f" at {int(plev / 100)} hPa" if plev else ""))
+
         plot_kwargs = {
             'maps': [data[var].sel(season=season) - data_ref[var].sel(season=season) for season in season_list],
+            'proj': get_projection(proj, **proj_params),
             'return_fig': True,
+            'title': title,
             'titles': season_list,
+            'titles_size': 16,
+            'figsize':(10, 8),
             'contour': True,
             'sym': sym,
+            'cbar_label': cbar_label,
             'loglevel': self.loglevel
         }
 
@@ -216,7 +247,7 @@ class PlotGlobalBiases:
         fig = plot_maps(**plot_kwargs)
 
         description = (
-            f"Seasonal bias map of the variable {var}"
+            f"Seasonal bias map of {data[var].attrs.get('long_name', var)}"
             f"{' at ' + str(int(plev / 100)) + ' hPa' if plev else ''} "
             f"for the {data.model} model, experiment {data.exp}, "
             f"using {data_ref.model} as reference data. "
@@ -247,49 +278,32 @@ class PlotGlobalBiases:
         """
         self.logger.info('Plotting vertical biases for variable: %s', var)
 
-        bias = data[var] - data_ref[var]
-        # Determine pressure level bounds if not provided
-        if plev_min is None:
-            plev_min = bias['plev'].min().item()
-        if plev_max is None:
-            plev_max = bias['plev'].max().item()
-        # Slice pressure levels 
-        mask = (bias['plev'] >= plev_min) & (bias['plev'] <= plev_max)
-        bias = bias.sel(plev=bias['plev'].where(mask, drop=True))
-
-        # Ensure reasonable number of levels
-        nlevels = max(2, int(nlevels))
-
-        zonal_bias = bias.mean(dim='lon')
-        # Determine colorbar limits if not provided
-        if vmin is None or vmax is None:
-            vmin, vmax = float(zonal_bias.min()), float(zonal_bias.max())
-            if vmin * vmax < 0:
-                vmax = max(abs(vmin), abs(vmax))
-                vmin = -vmax
-
-        levels = np.linspace(vmin, vmax, nlevels)
         title = (
-            f"{var} vertical bias of {data.model} {data.exp}\n"
+            f"Vertical bias of {data[var].attrs.get('long_name', var)} for {data.model} {data.exp}\n"
             f"relative to {data_ref.model} climatology\n"
         )
 
-        fig, ax = plt.subplots(figsize=(10, 8))
-        cax = ax.contourf(
-            zonal_bias['lat'], zonal_bias['plev'], zonal_bias,
-            cmap='RdBu_r', levels=levels, extend='both'
-        )
-        ax.set_title(title)
-        ax.set_yscale('log')
-        ax.set_ylabel('Pressure Level (Pa)')
-        ax.set_xlabel('Latitude')
-        ax.invert_yaxis()
-        fig.colorbar(cax, ax=ax, label=f'{var} [{data[var].attrs.get("units", "")}]')
-        ax.grid(True)
-
         description = (
-            f"Vertical bias plot of the variable {var} across pressure levels from {data.startdate} to {data.enddate} "
+            f"Vertical bias plot of {data[var].attrs.get('long_name', var)} across pressure levels from {data.startdate} to {data.enddate} "
             f"for the {data.model} model, experiment {data.exp}, with {data_ref.model} used as reference data."
+        )
+
+        fig, ax = plot_vertical_profile_diff(
+            data=data[var].mean(dim='lon'),
+            data_ref=data_ref[var].mean(dim='lon'),
+            var=var,
+            plev_min=plev_min,
+            plev_max=plev_max,
+            vmin=vmin,
+            vmax=vmax,
+            vmin_contour=vmin,
+            vmax_contour=vmax,
+            logscale=True,
+            add_contour=True, 
+            nlevels=nlevels,
+            title=title,
+            return_fig=True,
+            loglevel=self.loglevel
         )
 
         if self.save_pdf:

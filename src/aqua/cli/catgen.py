@@ -12,7 +12,6 @@ import argparse
 import jinja2
 from aqua.util import load_yaml, dump_yaml, get_arg, ConfigPath
 from aqua.logger import log_configure
-from aqua.lra_generator.lra_util import replace_intake_vars
 
 from ruamel.yaml import YAML
 yaml = YAML()
@@ -50,6 +49,9 @@ class AquaFDBGenerator:
         self.author = self.config.get('author')
         if not self.author: 
             raise ValueError("Please specify the author of the experiment")
+        self.machine = self.config.get('machine')
+        if not self.machine:
+            raise ValueError("Please specify the machine you are using")
         self.dp_dir_path = self.config["repos"]["data-portfolio_path"]
         self.catalog_dir_path = self.config["repos"]["Climate-DT-catalog_path"]
         self.model = self.config["model"].lower()
@@ -61,8 +63,8 @@ class AquaFDBGenerator:
 
         # portfolio
         self.logger.info("Running FDB catalog generator for %s portfolio for model %s", data_portfolio, self.model)
-        self.dp = load_yaml(os.path.join(self.dp_dir_path, data_portfolio, 'portfolio.yaml'))
-        self.grids = load_yaml(os.path.join(self.dp_dir_path, data_portfolio, 'grids.yaml'))
+        self.dp = load_yaml(os.path.join(self.dp_dir_path, 'portfolios', data_portfolio, 'portfolio.yaml'))
+        self.grids = load_yaml(os.path.join(self.dp_dir_path, 'portfolios', data_portfolio, 'grids.yaml'))
         self.levels = load_yaml(os.path.join(self.dp_dir_path, 'definitions', 'levels.yaml'))
 
         self.local_grids = self.get_local_grids(self.resolution, self.grids)
@@ -155,7 +157,7 @@ class AquaFDBGenerator:
             },
             "monthly": {
                 'time': None,
-                'chunks': 'D' if levtype == 'o3d' else 'MS',
+                'chunks': 'MS',
                 'savefreq': "MS"
             }
         }
@@ -214,9 +216,9 @@ class AquaFDBGenerator:
             'oce2d' if profile["levtype"] == 'o2d' else
             'oce3d' if profile["levtype"] == 'o3d' and 'full' in profile['vertical'] else
             'oce3d-half' if profile["levtype"] == 'o3d' and 'half' in profile['vertical'] else
-            'sol4' if profile["levtype"] == 'sol' and profile['vertical'] == 'sol4' else
-            'sol5' if profile["levtype"] == 'sol' and profile['vertical'] == 'sol5' else
-            profile["levtype"]
+            'sol4' if profile["levtype"] == 'sol' and profile['vertical'] == 'IFS-sol4' or profile['vertical'] == 'ICON-sol4' else
+            'sol5' if profile["levtype"] == 'sol' and profile['vertical'] == 'IFS-sol5' or profile['vertical'] == 'ICON-sol5' else
+            profile["levtype"] 
         )
 
         if not self.ocean_grid:
@@ -324,7 +326,7 @@ class AquaFDBGenerator:
             'metadata': {
                 'author': self.author,
                 'maintainer': self.config.get('maintainer') or 'not specified',
-                'machine': self.config['machine'],
+                'machine': self.machine,
                 'expid': self.config['expver'],
                 'resolution_atm': self.atm_grid,
                 'resolution_oce': self.ocean_grid,

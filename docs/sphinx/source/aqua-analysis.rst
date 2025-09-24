@@ -3,26 +3,30 @@
 AQUA analysis wrapper
 =====================
 
-A wrapper containing calls to all the state-of-the-art diagnostic available in AQUA
-is provided in the ``cli/aqua-analysis/`` folder.
+A wrapper containing calls to all the state-of-the-art diagnostic available in AQUA.
+
+.. note::
+
+    Since ``v0.18.0``, the AQUA analysis tool is available as part of the AQUA console (see :ref:`aqua-console`).
+    If you are using an older version of AQUA, you can find it in the ``cli/aqua-analysis`` folder.
 
 Basic usage
 -----------
 
 .. code-block:: bash
 
-    python aqua-analysis.py
+    aqua analysis <options>
 
 Without any argument, the script will run all the diagnostics available in AQUA on an hard-coded dataset,
-with LUMI configuration and output directory in the ``cli/aqua-analysis/output`` folder.
+with LUMI configuration and output directory in the ``./output`` folder.
 
 All the diagnostic logfiles will be saved in this main folder, while the diagnostics output will be saved in subfolders
 named after the diagnostic name.
 Inside each diagnostic folder, the output will be saved in a subfolder named with the filetype (e.g. ``pdf``, ``netcdf``).
 
 The exact list of diagnostics to run and technical details of the analysis
-(such as the number of workers/thread/memory to use for the dask cluster) 
-are specified in the configuration file ``config.aqua-analysis.yaml`` in the same folder.
+(such as the number of workers/thread/memory to use for the dask cluster) are specified in the configuration file ``config.aqua-analysis.yaml`` in the same folder.
+This file is available in the ``$AQUA/config/analysis`` folder and it is installed with AQUA (see :ref:`aqua-install`).
 
 Additional options
 ------------------
@@ -47,6 +51,10 @@ so that the script can be used in a batch job or in a workflow. These override c
 
     The source to use.
 
+.. option:: --source_oce <source_oce>
+
+    Additional ocean source to use for diagnostics accepting it (currently only ECmean).
+
 .. option:: -f <config>, --config <source>
 
     The config file to use.
@@ -55,6 +63,11 @@ so that the script can be used in a batch job or in a workflow. These override c
 
     The target grid to use for regridding the data.
     If not specified, the default is ``null``, which means no regridding will be applied.
+
+.. option:: --realization <realization>
+
+    The realization to use. If not specified or set to ``None``,
+    no realization argument will be passed to the diagnostics.
 
 .. option:: -d <dir>, --outputdir <dir>
 
@@ -98,6 +111,11 @@ The configuration file is divided in three main sections:
 - ``job``: contains the technical details of the analysis.
 - ``cluster``: contains the details of the dask cluster to use.
 - ``diagnostics``: contains the list of diagnostics to run.
+
+.. note::
+
+    The configuration file allows for the definition of a custom folder path where the individual diagnostics configuration files are stored.
+    This is done by setting an environment variable ``AQUA_CONFIG``.
 
 Job
 ^^^
@@ -143,5 +161,7 @@ The diagnostics are specified as a dictionary with the following keys:
 - ``nworkers``: the number of workers to use for this diagnostic.
 - ``script_path``: the relative path to the diagnostic script with respect to ``script_path_base``. 
 - ``config``: the configuration file for the diagnostic.
+- ``nocluster``: a boolean flag to disable the use of the global dask cluster for this diagnostic (used by ECmean)
+- ``source_oce``: a boolean flag to pass the additional ocean source to the diagnostic (currently only ECmean). Defaults to False.
 - ``extra``: a string with extra arguments to pass to the diagnostic script.
 - ``outname``: the name of the output folder if different from the diagnostic name.

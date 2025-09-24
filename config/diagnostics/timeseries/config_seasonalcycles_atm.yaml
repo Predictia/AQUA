@@ -27,6 +27,7 @@ output:
   rebuild: true
   save_pdf: true
   save_png: true
+  create_catalog_entry: true
   dpi: 300
 
 diagnostics:
@@ -44,6 +45,7 @@ diagnostics:
                  'tnlwrf', #Mean top net long-wave radiation flux
                  'tnswrf' #Mean top net short-wave radiation flux
                  ]
+    center_time: true
     params:
       default:
         std_startdate: '19900101'
