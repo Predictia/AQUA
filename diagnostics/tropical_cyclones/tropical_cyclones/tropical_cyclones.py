@@ -112,6 +112,8 @@ class TCs(DetectNodes, StitchNodes):
             self.paths['tmpdir'], self.model, self.exp)
         self.paths['fulldir'] = os.path.join(
             self.paths['fulldir'], self.model, self.exp)
+        self.paths['trackdir'] = os.path.join(
+            self.paths['trackdir'], self.model, self.exp)
 
         for path in self.paths:
             os.makedirs(self.paths[path], exist_ok=True)

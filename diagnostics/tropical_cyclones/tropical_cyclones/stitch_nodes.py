@@ -115,7 +115,7 @@ class StitchNodes():
 
         self.tempest_filenames = filenames
         self.track_file = os.path.join(
-            self.paths['tmpdir'], f'tempest_track_{block.strftime("%Y%m%d")}-{dates_freq[-1].strftime("%Y%m%d")}.txt')
+            self.paths['trackdir'], f'tempest_track_{block.strftime("%Y%m%d")}-{dates_freq[-1].strftime("%Y%m%d")}.txt')
 
     def run_stitch_nodes(self, maxgap='24h', mintime='54h'):
         """"
