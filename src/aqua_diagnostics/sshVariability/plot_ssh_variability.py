@@ -12,7 +12,7 @@ from aqua.util import create_folder, coord_names, area_selection
 from aqua.util import get_projection
 from aqua import Reader, plot_single_map
 from aqua.logger import log_configure
-from .base import BaseMixin
+from .base import PlotBaseMixin
 
 xr.set_options(keep_attrs=True)
 
@@ -39,7 +39,7 @@ class sshVariabilityPlot(PlotBaseMixin):
         self.outputdir = outputdir
 
         super().__init__(
-            diagnostic_name=self.diagnostic_name
+            diagnostic_name=self.diagnostic_name,
             loglevel=self.loglevel
         )
 
@@ -58,7 +58,7 @@ class sshVariabilityPlot(PlotBaseMixin):
         vmin=None,
         vmax=None,
         proj='robinson', 
-        proj_params={}
+        proj_params={},
         save_png=True,
         save_pdf=True,
         dpi=600,
@@ -205,7 +205,7 @@ class sshVariabilityPlot(PlotBaseMixin):
 
     def plot_diff(
         self,
-        var=None 
+        var=None, 
         dataset_std=None,
         catalog=None, 
         model=None, 
@@ -224,7 +224,7 @@ class sshVariabilityPlot(PlotBaseMixin):
         vmin_diff=None,
         vmax_diff=None,
         proj='robinson', 
-        proj_params={}
+        proj_params={},
         save_png=True,
         save_pdf=True,
         dpi=300,
@@ -233,12 +233,11 @@ class sshVariabilityPlot(PlotBaseMixin):
         lat_lim=None,
         # Retrieve the masking flags and boundary latitudes from the configuration, Specific to ICON
         mask_options={},
-        mask_northern_boundary=True
-        mask_southern_boundary=True
-        northern_boundary_latitude=70
-        southern_boundary_latitude=-62
-        
-        diagnostic_product='sshVariabililty'
+        mask_northern_boundary=True,
+        mask_southern_boundary=True,
+        northern_boundary_latitude=70,
+        southern_boundary_latitude=-62,
+        diagnostic_product='sshVariabililty_Difference',
         description=None,
     ):
         """
@@ -278,7 +277,9 @@ class sshVariabilityPlot(PlotBaseMixin):
         #TODO: discuss what should be in the description
         description = (f"The difference of the SSH Variability of {dataset_std[var].attrs.get('long_name', var)} for {model} {exp} ({startdate}-{enddate}) and, reference {catalog_ref} {model_ref} and {exp_ref} ({startdate_ref}-{enddate_ref}) ")
         
+        if region:
             title = title + "{region} "
+
             if lon_lim is None or lat_lim is None: self.logger.error(f"For the {region}, please specify the lon_lim and lat_lim.")
             description = description + "for {region} "
             dataset_std = self.subregion_selection(

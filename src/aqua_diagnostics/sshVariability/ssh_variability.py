@@ -68,7 +68,7 @@ class sshVariabilityCompute(BaseMixin):
 
     def run(self):
         # Retrieve model data, compute STD and handle potential errors.
-        super().retrieve(var=var, reader_kwargs=reader_kwargs)
+        super().retrieve()
         if self.data is None:
             raise ValueError(f'Variable {self.var} not found in the data. '
                                 'Check the variable name and the data source.')
