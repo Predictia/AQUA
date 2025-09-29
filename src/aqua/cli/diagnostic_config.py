@@ -3,7 +3,14 @@ diagnostic_config = {
         {
             'config_file': 'config_global_biases.yaml',
             'source_path': 'config/diagnostics/global_biases',
-            'target_path': 'diagnostics/global_biases/cli'
+            'target_path': 'diagnostics/global_biases'
+        },
+    ],
+    'lat_lon_profiles': [
+        {
+            'config_file': 'regions.yaml',
+            'source_path': 'config/diagnostics/lat_lon_profiles/definitions',
+            'target_path': 'diagnostics/lat_lon_profiles/definitions'
         },
     ],
     'ecmean': [
@@ -85,23 +92,28 @@ diagnostic_config = {
             'config_file': 'config.yaml',
             'source_path': 'diagnostics/ocean3d/cli',
             'target_path': 'diagnostics/ocean3d/cli'
+        },
+            {
+            'config_file': 'config_ocean_drift.yaml',
+            'source_path': 'config/diagnostics/ocean3d',
+            'target_path': 'diagnostics/ocean3d'
         }
     ],
     'radiation': [
         {
             'config_file': 'config_radiation-boxplots.yaml',
             'source_path': 'config/diagnostics/radiation',
-            'target_path': 'diagnostics/radiation/cli'
+            'target_path': 'diagnostics/radiation'
         },
         {
             'config_file': 'config_radiation-biases.yaml',
             'source_path': 'config/diagnostics/radiation',
-            'target_path': 'diagnostics/radiation/cli'
+            'target_path': 'diagnostics/radiation'
         },
         {
             'config_file': 'config_radiation-timeseries.yaml',
             'source_path': 'config/diagnostics/radiation',
-            'target_path': 'diagnostics/radiation/cli'
+            'target_path': 'diagnostics/radiation'
         },
     ],
     'seaice': [
@@ -173,6 +185,22 @@ diagnostic_config = {
             'source_path': 'diagnostics/tropical_rainfall/cli',
             'target_path': 'diagnostics/tropical_rainfall/cli'
         }
-    ]
-    # Add other diagnostic configurations here
+    ],
+    'ensemble': [
+        {
+            'config_file': 'config_global_2D_ensemble.yaml',
+            'source_path': 'config/diagnostics/ensemble',
+            'target_path': 'diagnostics/ensemble'
+        },
+        {
+            'config_file': 'config_timeseries_ensemble.yaml',
+            'source_path': 'config/diagnostics/ensemble',
+            'target_path': 'diagnostics/ensemble'
+        },
+        {
+            'config_file': 'config_zonalmean_ensemble.yaml',
+            'source_path': 'config/diagnostics/ensemble',
+            'target_path': 'diagnostics/ensemble'
+        }
+    ],  # Add other diagnostic configurations here
 }
