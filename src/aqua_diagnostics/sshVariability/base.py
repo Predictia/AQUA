@@ -20,18 +20,24 @@ class BaseMixin(Diagnostic):
         enddate: str = None,
         region: str = None,
         regrid: str = None,
-        lon_limits: list = None,
-        lat_limits: list = None,
-        zoom: str = None,
+        lon_limits: list[float] = None,
+        lat_limits: list[float] = None,
+        zoom: float = None,
         outputdir: str = "./",
-        log_level: str = "WARNING",
+        reader_kwargs: dict = {}
+        var: str = None,
+        long_name: str = None,
+        short_name: str = None,
+        units: str = None,
+        rebuild: bool = True,
+        loglevel: str = "WARNING",
     ):
         
         """
         Initialize the Base class.
 
         Args:
-            diagnostic_name (str): The name of the diagnostic ,i.e., 'ssh'.
+            diagnostic_name (str): The name of the diagnostic ,i.e., 'sshVariability'.
                                    This will be used to configure the logger and the output files.
             catalog (str): The catalog to be used. If None, the catalog will be determined by the Reader.
             model (str): The model to be used.
@@ -45,10 +51,17 @@ class BaseMixin(Diagnostic):
             region (str): The region to select. This will define the lon and lat limits.
             lon_limits (list): The longitude limits to be used. Overriden by region.
             lat_limits (list): The latitude limits to be used. Overriden by region.
+            rebuild (bool): If True, rebuild the data from the original files.
+            outputdir (str): The directory to save the data.
+            reader_kwargs (dict): Additional keyword arguments for the Reader. Default is an empty dictionary.
             loglevel (str): The log level to be used. Default is 'WARNING'.
+
+        Keyword Args: 
+            zoom (int, optional): HEALPix grid zoom level (e.g. zoom=10 is h1024). Allows for multiple gridname definitions.
+            realization (int, optional): The ensemble realization number, included in the output filename.
+            **kwargs: Additional arbitrary keyword arguments to be passed as additional parameters to the intake catalog entry.
         """
-        super().__init__(catalog=catalog, model=model, exp=exp, source=source, regrid=regrid,
-                         loglevel=loglevel)
+        super().__init__(catalog=catalog, model=model, exp=exp, source=source, regrid=regrid, startdate=startdate, enddate=enddate, loglevel=loglevel)
         
         # Log name is the diagnostic name with the first letter capitalized
         self.logger = log_configure(log_level=loglevel, log_name=diagnostic_name.capitalize())
@@ -57,52 +70,65 @@ class BaseMixin(Diagnostic):
         # We want to make sure we retrieve the required amount of data with a single Reader instance
         self.startdate, self.enddate = start_end_dates(startdate=startdate, enddate=enddate)
         self.logger.debug(f"Retrieve start date: {self.startdate}, End date: {self.enddate}")
-
-        # Set the region based on the region name or the lon and lat limits
-        self.region, self.lon_limits, self.lat_limits = self._set_region(region=region, diagnostic='ssh',
+        
+        if region is not None and lon_limits is not None and lat_limits is not None:
+            # Set the region based on the region name or the lon and lat limits
+            self.region, self.lon_limits, self.lat_limits = self._set_region(region=region, diagnostic='sshVariability',
                                                                          lon_limits=lon_limits, lat_limits=lat_limits)
         self.logger.debug(f"Region: {self.region}, Lon limits: {self.lon_limits}, Lat limits: {self.lat_limits}")
-
+        
         self.outputdir = outputdir
         logger.info(f"Outputs will be saved at {self.outputdir}.")
 
-    def retrieve(self, var: str, long_name: str = None,
-                 units: str = None, short_name: str = None, reader_kwargs: dict = {}):
+        self.var = var
+        self.zoom = zoom
+        self.rebuild = rebuild
+        if zoom:
+            reader_kwargs["zoom"] = zoom
+        self.reader_kwargs = reader_kwargs
+
+    def _check_data(self, var: str, units: str):
         """
-        Retrieve the data for the given variable.
+        Make sure that the data is in the correct units.
 
         Args:
-            var (str): The variable to be retrieved.
-            long_name (str): The long name of the variable, if different from the variable name.
-            units (str): The units of the variable, if different from the original units.
-            short_name (str): The short name of the variable, if different from the variable name.
-            reader_kwargs (dict): Additional keyword arguments for the Reader. Default is an empty dictionary.
+            var (str): The variable to be checked.
+            units (str): The units to be checked.
         """
-        super().retrieve(var=var, reader_kwargs=reader_kwargs)
+        self.data[self.var] = super()._check_data(data=self.data[self.var], var=var, units=units)
+
+    def retrieve(self):
+        """
+        Retrieve the data for the given variable.
+        """  
+        
+        super().retrieve(var=self.var, reader_kwargs=self.reader_kwargs)
         if self.data is None:
             raise ValueError(f'Variable {var} not found in the data. '
                              'Check the variable name and the data source.')
         # Get the xr.DataArray to be aligned with the formula code
-        self.data = self.data[var]
+        self.data = self.data[self.var]
 
         # Customization of the data, expecially needed for formula
-        if units is not None:
-            self._check_data(var, units)
-        if long_name is not None:
-            self.data.attrs['long_name'] = long_name
+        if self.units is not None:
+            self._check_data(self.var, self.units)
+        else:
+            self.units = self.data.attrs.get("units")
+        if self.long_name is not None:
+            self.data.attrs['long_name'] = self.long_name
         # We want to be sure that a long_name is always defined for description setup
         elif self.data.attrs.get('long_name') is None:
-            self.data.attrs['long_name'] = var
+            self.data.attrs['long_name'] = self.var
         # We use the short_name as the name of the variable
         # to be always used in plots
-        if short_name is not None:
-            self.data.attrs['short_name'] = short_name
-            self.data.name = short_name
+        if self.short_name is not None:
+            self.data.attrs['short_name'] = self.short_name
+            self.data.name = self.short_name
         else:
-            self.data.attrs['short_name'] = var
+            self.data.attrs['short_name'] = self.var
 
-    def save_netcdf(self, diagnostic_product: str='sshVariability', freq: str=None,
-                    outputdir: str = './', rebuild: bool = True,
+
+    def netcdf_save(self, data, diagnostic_product: str='sshVariability', freq: str=None,
                     create_catalog_entry: bool = False,
                     dict_catalog_entry: dict = {'jinjalist': ['freq', 'realization', 'region'],
                                                 'wildcardlist': ['var']}):
@@ -110,6 +136,7 @@ class BaseMixin(Diagnostic):
         Save the data to a netcdf file.
 
         Args:
+            data (xarray.DataArray): Input data array
             diagnostic_product (str): The product name to be used in the filename 'sshVariability'.
             freq (str): The frequency of the data. It is set to 'None' for this release of code.
             outputdir (str): The directory to save the data.
@@ -151,19 +178,8 @@ class BaseMixin(Diagnostic):
         self.logger.info('Saving output data for %s to netcdf in %s', diagnostic_product, outputdir)
 
         super().save_netcdf(data=data, diagnostic=self.diagnostic_name, diagnostic_product=diagnostic_product,
-                            outputdir=outputdir, rebuild=rebuild, extra_keys=extra_keys,
+                            outputdir=self.outputdir, rebuild=self.rebuild, extra_keys=extra_keys,
                             create_catalog_entry=create_catalog_entry, dict_catalog_entry=dict_catalog_entry)
-
-    #TODO: Move this function to a common util. Because this function is being used in multiple diagnostics.
-    def _check_data(self, var: str, units: str):
-        """
-        Make sure that the data is in the correct units.
-
-        Args:
-            var (str): The variable to be checked.
-            units (str): The units to be checked.
-        """
-        self.data = super()._check_data(data=self.data, var=var, units=units)
 
     
 class PlotBaseMixin():
@@ -203,8 +219,8 @@ class PlotBaseMixin():
         region: str = None,
         startdate: str = None,
         enddate: str = None,
-        long_name: str = None,
-        units: str = None,
+        #long_name: str = None,
+        #units: str = None,
     ):
         """
         Save the plot to a file.
@@ -217,6 +233,19 @@ class PlotBaseMixin():
             dpi (int): Dots per inch for the plot.
             format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
             diagnostic_product (str): Diagnostic product name i.e., 'sshVariability'.
+            catalog (str): The catalog to be used in the 'OutputSaver' class. (Mandatory)
+            model (str): The model to be used in the 'OutputSaver' class. (Mandatory)
+            exp (str): The experiment to be used in the 'OutputSaver' class. (Mandatory)
+            startdate (str): The start date of the data to be used in description and title.
+                             If None, all available data will be retrieved.
+            enddate (str): The end date of the data to be retrieved.
+                           If None, all available data will be retrieved.
+            region (str): The region to select. This will define the lon and lat limits.
+            rebuild (bool): If True, rebuild the data from the original files.
+            outputdir (str): The directory to save the data.
+            reader_kwargs (dict): Additional keyword arguments for the Reader. Default is an empty dictionary.
+            loglevel (str): The log level to be used. Default is 'WARNING'.
+
         """
         outputsaver = OutputSaver(diagnostic=self.diagnostic_name,
                                   catalog=catalog,
@@ -249,9 +278,9 @@ class PlotBaseMixin():
         description: str = None, 
         rebuild: bool = True,
         outputdir: str = './', 
-        dpi: int = 300, 
+        dpi: int = 600, 
         format: str = 'png', 
-        diagnostic_product: str = 'Difference_sshVariability',
+        diagnostic_product: str = 'sshVariability_Difference',
         catalog: str = None,
         model: str = None,
         exp: str = None,
@@ -263,19 +292,33 @@ class PlotBaseMixin():
         startdate_ref: str = None,
         enddate_ref: str = None,
         region: str = None,
-        long_name: str = None,
-        units: str = None,
+        #long_name: str = None,
+        #units: str = None,
     ):
         """
         Save the plot of the difference of SSH variabilities b/w reference and model to a file.
 
         Args:
+
             fig (matplotlib.figure.Figure): Figure object.
             description (str): Description of the plot.
             rebuild (bool): If True, rebuild the plot even if it already exists.
             outputdir (str): Output directory to save the plot.
             dpi (int): Dots per inch for the plot.
             format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
+            catalog (str): The catalog to be used in the 'OutputSaver' class. (Mandatory)
+            model (str): The model to be used in the 'OutputSaver' class. (Mandatory)
+            exp (str): The experiment to be used in the 'OutputSaver' class. (Mandatory)
+            startdate (str): The start date of the data to be used in description and title.
+                             If None, all available data will be retrieved.
+            enddate (str): The end date of the data to be retrieved.
+                           If None, all available data will be retrieved.
+            region (str): The region to select. This will define the lon and lat limits.
+            rebuild (bool): If True, rebuild the data from the original files.
+            outputdir (str): The directory to save the data.
+            reader_kwargs (dict): Additional keyword arguments for the Reader. Default is an empty dictionary.
+            loglevel (str): The log level to be used. Default is 'WARNING'.
+
             diagnostic_product (str): Diagnostic product to be used in the filename as diagnostic_product.
                                       In this diagnostic this variable can be: 'sshVariability' or 'Diff_sshVariability'
         """

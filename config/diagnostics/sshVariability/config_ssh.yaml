@@ -24,12 +24,12 @@ output:
   save_netcdf: true
   save_pdf: true
   save_png: true
-  dpi: 300
+  dpi: 600
 
 diagnostics:
-  ssh:
+  sshVariability:
     run: true
-    diagnostic_name: 'ssh'
+    diagnostic_name: 'sshVariability'
     variables: ['zos',]
     params:
       default:
@@ -58,9 +58,9 @@ diagnostics:
         northern_boundary_latitude: 70
         southern_boundary_latitude: -62
 
-## This is the current dask configuration which works for the inputs above. It could be adjusted based on the system this application is run.
-#cluster:
-#  nworkers: 8
-#  threads_per_worker: 1
-#  memory_limit: 30e9
+# This is the current dask configuration which works for the inputs above. It could be adjusted based on the system this application is run.
+cluster:
+  nworkers: 8
+  #threads_per_worker: 1
+  #memory_limit: 30e9
 

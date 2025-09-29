@@ -15,6 +15,9 @@ from aqua.logger import log_configure
 
 
 class sshVariabilityPlot(PlotBaseMixin):
+    """
+    Plot sshVariability and the difference of sshVariability
+    """
     def __init__(
         self, 
         diagnostic_name=None,
@@ -40,7 +43,7 @@ class sshVariabilityPlot(PlotBaseMixin):
 
     def plot(
         self,
-        var=None 
+        var=None,
         dataset_std=None,
         catalog=None, 
         model=None, 
@@ -56,31 +59,44 @@ class sshVariabilityPlot(PlotBaseMixin):
         proj_params={}
         save_png=True,
         save_pdf=True,
-        dpi=300,
+        dpi=600,
         region=None,
         lon_lim=None,
         lat_lim=None,
         # Retrieve the masking flags and boundary latitudes from the configuration, Specific to ICON
         mask_options={},
-        mask_northern_boundary=True
-        mask_southern_boundary=True
-        northern_boundary_latitude=70
-        southern_boundary_latitude=-62
-        
-        diagnostic_product='sshVariabililty'
+        mask_northern_boundary=True,
+        mask_southern_boundary=True,
+        northern_boundary_latitude=70,
+        southern_boundary_latitude=-62,
+        diagnostic_product='sshVariabililty',
+        rebuild: bool = True,
         description=None,
     ):
         """
-        Visualize the SSH variability using Cartopy.
+        Visualize the SSH variability.
 
         Args:
             data_std: xarray.Dataset as input to be plotted.
-            The following Args are used for the title in the plot
-            model_name (str): Name of the Dataset.
-            exp_name (str): Name of the experiment.
-            startdate (str): start date
-            enddate (str): end date
+            var (str): variable name.
+            The following Args are used for the title in the plot.
+            catalog (str): catalog name. (Mandatory)
+            model (str): Name of the Dataset. (Mandatory)
+            exp (str): Name of the experiment. (Mandatory)
+            startdate (str): start date to be used in the plot title
+            enddate (str): end date to be used in the plot title
             contours (int): Number of contours for plot (default: 21). If 0 or None the pcolormesh is used.
+            dpi (int): Default is 300.
+            vmin (float): If this is 'None', choose by the function.
+            vmax (float): If this is 'None', choose by the function.
+            save_pdf (bool): Default is True.
+            save_png (bool): Default is True.
+            proj (str): Projection type. Default is 'robinson'. 
+            proj_params (dict): dictionary for plot kwargs.
+            region (str): The region to select. This will define the lon and lat limits.
+            lon_lim (List[float]): limits of lon for plotting.
+            lat_lim (List[float]): limits of lat for plotting.
+            rebuild (bool): If True, rebuild the data from the original files.
         """
         
         if dataset_std is None: self.logger.error("Please provide the data to the plot function")
@@ -95,11 +111,11 @@ class sshVariabilityPlot(PlotBaseMixin):
         if startdate is None or enddate is None: self.logger.error("Please specify the time period of the data") 
 
         self.logger.info(f'Plotting SSH Variability for {model} and {exp}, from {startdate} to {enddate}.')
-        
-        title = (f"SSH Variability of {dataset_std[var].attrs.get('long_name', var)} for {model} {exp} ({startdate}-{enddate}) ")
+        long_name = dataset_std[var].attrs.get('long_name', var)
+        title = (f"SSH Variability of {long_name} for {model} {exp} ({startdate}-{enddate}) ")
         
         #TODO: discuss what should be in the description
-        description = (f"SSH Variability of {dataset_std[var].attrs.get('long_name', var)} for {model} {exp} ({startdate}-{enddate}) ")
+        description = (f"SSH Variability of {long_name} for {model} {exp} ({startdate}-{enddate}) ")
         
         if vmin is None:
             vmin = dataset_std.values.min()
@@ -163,8 +179,8 @@ class sshVariabilityPlot(PlotBaseMixin):
                 exp=exp,
                 startdate=startdate,
                 enddate=enddate,
-                long_name=long_name,
-                units=units,
+                #long_name=long_name,
+                #units=units,
                 dpi=dpi)
         if save_pdf:
             self.save_plot(
@@ -179,8 +195,8 @@ class sshVariabilityPlot(PlotBaseMixin):
                 exp=exp,
                 startdate=startdate,
                 enddate=enddate,
-                long_name=long_name,
-                units=units,
+                #long_name=long_name,
+                #units=units,
                 dpi=dpi)
 
         return fig, ax
@@ -248,6 +264,10 @@ class sshVariabilityPlot(PlotBaseMixin):
         else:
             dataset_std_ref = dataset_std_ref
 
+        if regrid:
+            dataset_std = dataset_std.aqua.regrid()
+            dataset_std_ref = dataset_std_ref.aqua.regrid() 
+
         if startdate is None or enddate is None: self.logger.error("Please specify the time period of the data") 
         if startdate_ref is None or enddate_ref is None: self.logger.error("Please specify the time period of the reference data") 
         
@@ -277,13 +297,14 @@ class sshVariabilityPlot(PlotBaseMixin):
                 lon_lim=lon_lim,
                 lat_lim=lat_lim,
                 region=region)
-        
+       
+        #if regrid:
+        #    dataset_std = dataset_std.aqua.regrid()
+        #    dataset_std_ref = dataset_std_ref.aqua.regrid() 
+
         dataset_diff = dataset_std - dataset_std_ref
  
         proj = get_projection(proj, **proj_params)
-
-        if regrid:
-            dataset_diff = dataset_diff[var].aqua.regrid()
 
         if vmin_diff is None:
             vmin_diff = dataset_diff.values.min()
@@ -334,8 +355,8 @@ class sshVariabilityPlot(PlotBaseMixin):
                 exp_ref=exp_ref,
                 startdate_ref=startdate_ref,
                 enddate_ref=enddate_ref,
-                long_name=long_name,
-                units=units,
+                #long_name=long_name,
+                #units=units,
                 dpi=dpi)
         if save_pdf:
             self.save_plot_diff(
@@ -350,8 +371,8 @@ class sshVariabilityPlot(PlotBaseMixin):
                 exp=exp,
                 startdate=startdate,
                 enddate=enddate,
-                long_name=long_name,
-                units=units,
+                #long_name=long_name,
+                #units=units,
                 dpi=dpi)
 
         return fig, ax

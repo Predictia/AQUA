@@ -5,7 +5,7 @@ from .global_biases import GlobalBiases, PlotGlobalBiases
 from .boxplots import Boxplots, PlotBoxplots
 from .ensemble import EnsembleTimeseries, EnsembleLatLon, EnsembleZonal
 from .ecmean import PerformanceIndices, GlobalMean
-from .ssh import sshVariabilityCompute, sshVariabilityPlot
+from .sshVariability import sshVariabilityCompute, sshVariabilityPlot
 from .seaice import SeaIce, PlotSeaIce, Plot2DSeaIce
 
 __all__ = ["NAO", "ENSO", "MJO",
