@@ -477,8 +477,8 @@ class ACC:
                  try:
                      # Ensure 'time' dimension exists before taking mean
                      if 'time' in da_clim.dims:
-                         climatology_means[key] = da_clim.mean(dim='time', skipna=True)
-                         self.logger.debug(f"Calculated climatology mean for key: {key}")
+                         climatology_means[key] = self.reader_climatology.timmean(da_clim)
+                         self.logger.debug(f"Calculated climatology mean for key: {key} using AQUA timmean")
                      else:
                          self.logger.warning(f"Climatology data for key '{key}' (variable '{base_var_name}') is missing 'time' dimension. Cannot calculate mean. Storing as is.")
                          # Store the non-time-varying climatology - anomaly calculation might still work if coords match

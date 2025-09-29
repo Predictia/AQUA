@@ -25,18 +25,18 @@ def preprocess_coords_to_float32(ds):
         ds = ds.assign_coords(**modified_coords)
     return ds
 
-def _calculate_correlation(da1, da2, dim='time'):
+def _calculate_correlation(da1, da2, reader, dim='time'):
     """Calculates Pearson correlation between two DataArrays over a given dimension."""
     
     # Compute anomalies
-    da1_anom = da1 - da1.mean(dim)
-    da2_anom = da2 - da2.mean(dim)
+    da1_anom = da1 - reader.timmean(da1)
+    da2_anom = da2 - reader.timmean(da2)
     
     # Mean of product of anomalies
-    numerator = (da1_anom * da2_anom).mean(dim)
+    numerator = reader.timmean(da1_anom * da2_anom)
     
     # Product of standard deviations
-    denominator = da1.std(dim) * da2.std(dim)
+    denominator = reader.timstd(da1) * reader.timstd(da2)
     
     # Pearson correlation
     correlation = numerator / denominator
@@ -198,11 +198,11 @@ class COV:
 
                 # Calculations
                 self.logger.debug(f"Calculating correlation for reference: {pair_name}")
-                corr_ref = _calculate_correlation(data_ref1, data_ref2)
+                corr_ref = _calculate_correlation(data_ref1, data_ref2, self.reader_data_ref)
                 corr_ref.name = 'correlation'
 
                 self.logger.debug(f"Calculating correlation for model: {pair_name}")
-                corr_model = _calculate_correlation(data1, data2)
+                corr_model = _calculate_correlation(data1, data2, self.reader_data)
                 corr_model.name = 'correlation'
 
                 self.logger.debug(f"Calculating difference for: {pair_name}")

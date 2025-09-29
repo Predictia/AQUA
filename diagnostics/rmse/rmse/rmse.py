@@ -404,9 +404,11 @@ class RMSE:
                 data, data_ref = self.check_and_convert_coords(data, data_ref, base_var_name=base_var_name)
                 self.logger.debug(f"Coordinates checked/converted for {processed_key}")
 
-                # Calculate RMSE using the base variable name
-                rmse = ((data[base_var_name] - data_ref[base_var_name])**2).mean(dim='time', skipna=True)**0.5
-                self.logger.debug(f"RMSE calculated for {processed_key}")
+                # Calculate RMSE using AQUA's temporal aggregation
+                squared_diff = (data[base_var_name] - data_ref[base_var_name])**2
+                temporal_mean_sq = self.reader_data.timmean(squared_diff)
+                rmse = np.sqrt(temporal_mean_sq)
+                self.logger.debug(f"RMSE calculated for {processed_key} using AQUA timmean")
 
                 # Plotting
                 vmin = 0 # RMSE is always non-negative
@@ -538,9 +540,11 @@ class RMSE:
                 data, data_ref = self.check_and_convert_coords(data, data_ref, base_var_name=base_var_name)
                 self.logger.debug(f"Coordinates checked/converted for {processed_key}")
 
-                # Calculate RMSE (averaged spatially) using base_var_name
-                rmse = ((data[base_var_name] - data_ref[base_var_name])**2).mean(dim=['lat', 'lon'], skipna=True)**0.5
-                self.logger.debug(f"Temporal RMSE calculated for {processed_key}")
+                # Calculate RMSE using AQUA's spatial aggregation
+                squared_diff = (data[base_var_name] - data_ref[base_var_name])**2
+                spatial_mean_sq = self.reader_data.fldmean(squared_diff)
+                rmse = np.sqrt(spatial_mean_sq)
+                self.logger.debug(f"Temporal RMSE calculated for {processed_key} using AQUA fldmean")
 
                 # Plotting
                 fig, ax = plt.subplots(figsize=(12, 6))

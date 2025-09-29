@@ -248,11 +248,11 @@ class PSD:
                 try:
                     self.logger.info(f"  Calculating PSD of time-mean for {key}...")
 
-                    data_mean = data_da.mean('time').values
+                    data_mean = self.reader_data.timmean(data_da).values
                     data_mean = np.nan_to_num(data_mean, nan=0.0) if has_nans else data_mean
                     psd_1d = self._radial_average(np.abs(fft.fftshift(fft.fft2(data_mean)))**2)
 
-                    data_ref_mean = data_ref_da.mean('time').values
+                    data_ref_mean = self.reader_data_ref.timmean(data_ref_da).values
                     data_ref_mean = np.nan_to_num(data_ref_mean, nan=0.0) if has_nans_ref else data_ref_mean
                     psd_1d_ref = self._radial_average(np.abs(fft.fftshift(fft.fft2(data_ref_mean)))**2)
 
