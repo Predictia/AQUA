@@ -72,31 +72,67 @@ if __name__ == "__main__":
             logger.info(f"Variable under consideration: {variable}")
 
             # Model data
-            models = config_dict["datasets"]
+            model = config_dict["datasets"]
 
-            catalog_list = []
-            model_list = []
-            exp_list = []
-            source_list = []
-            if models is not None:
-                models[0]["catalog"] = get_arg(args, "catalog", models[0]["catalog"])
-                models[0]["model"] = get_arg(args, "model", models[0]["model"])
-                models[0]["exp"] = get_arg(args, "exp", models[0]["exp"])
-                models[0]["source"] = get_arg(args, "source", models[0]["source"])
+            if model is not None:
+                catalog = get_arg(args, "catalog", model[0]["catalog"])
+                model = get_arg(args, "model", model[0]["model"])
+                exp = get_arg(args, "exp", model[0]["exp"])
+                source = get_arg(args, "source", model[0]["source"])
+                startdate_model = get_arg(args, "startdate_data", model[0]["startdate_data"])
+                enddate_model = get_arg(args, "enddate_data", model[0]["enddate_data"])
 
             ssh_model = sshVariability(
                 var=variable,
                 catalog=catalog,
                 model=model,
                 source=source,
+                startdate=startdate_model,
+                enddate=enddate_model,
             )
 
             ssh_model.run()
             
+            # Reference data as AVISO
+            model_ref = config_dict["references"]
+
+            if model_ref is not None:
+                catalog_ref = get_arg(args, "catalog", model_ref[0]["catalog"])
+                model_ref = get_arg(args, "model", model_ref[0]["model"])
+                exp_ref = get_arg(args, "exp", model_ref[0]["exp"])
+                source_ref = get_arg(args, "source", model_ref[0]["source"])
+                startdate_ref = get_arg(args, "startdate_ref", model[0]["startdate_ref"])
+                enddate_ref = get_arg(args, "enddate_ref", model[0]["enddate_ref"])
+
+
+            ssh_ref = sshVariability(
+                var=variable,
+                catalog=catalog,
+                model=model,
+                source=source,
+                startdate=startdate_ref,
+                enddate=enddate_ref,
+            )
+
+            ssh_ref.run()
+           
+             
             # Initialize plotting class
             ssh_Plot = sshVariabilityPlot()
             
-            plot_arguments = {
+            plot_arguments_model = {
+                "var": variable,
+                "catalog": catalog,
+                "model": model,
+                "exp": exp,
+                "source": source,
+                "save_pdf": save_pdf,
+                "save_png": save_png,
+            }
+
+            ssh_plot.plot(dataset_std=ssh_model., **plot_arguments_model)
+
+            plot_arguments_ref = {
                 "var": variable,
                 "catalog": catalog,
                 "model": model,
@@ -107,6 +143,8 @@ if __name__ == "__main__":
             }
 
             ssh_plot.plot(dataset_std=ssh_model, **plot_arguments)
+
+
             logger.info(f"Finished SSH Variability diagnostic for {variable}.")
 
     # Close the Dask client and cluster

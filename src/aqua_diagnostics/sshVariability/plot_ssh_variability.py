@@ -12,7 +12,9 @@ from aqua.util import create_folder, coord_names, area_selection
 from aqua.util import get_projection
 from aqua import Reader, plot_single_map
 from aqua.logger import log_configure
+from .base import BaseMixin
 
+xr.set_options(keep_attrs=True)
 
 class sshVariabilityPlot(PlotBaseMixin):
     """

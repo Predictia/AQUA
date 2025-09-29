@@ -5,7 +5,6 @@ from aqua.diagnostics.core import Diagnostic, OutputSaver, start_end_dates
 
 xr.set_options(keep_attrs=True)
 
-
 class BaseMixin(Diagnostic):
     """The BaseMixin class is used to save the outputs from the ssh module."""
 
@@ -24,7 +23,7 @@ class BaseMixin(Diagnostic):
         lat_limits: list[float] = None,
         zoom: float = None,
         outputdir: str = "./",
-        reader_kwargs: dict = {}
+        reader_kwargs: dict = {},
         var: str = None,
         long_name: str = None,
         short_name: str = None,
@@ -271,7 +270,7 @@ class PlotBaseMixin():
         else:
             raise ValueError(f'Format {format} not supported. Use png or pdf.')
 
-     def save_diff_plot(
+    def save_diff_plot(
         self,
         fig,
         var: str = None, 

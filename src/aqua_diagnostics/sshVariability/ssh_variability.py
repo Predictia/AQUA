@@ -11,6 +11,9 @@ from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.util import create_folder, coord_names, area_selection
 from aqua import Reader, plot_single_map
 from aqua.logger import log_configure
+from .base import BaseMixin 
+
+xr.set_options(keep_attrs=True)
 
 class sshVariabilityCompute(BaseMixin):
     """
@@ -31,7 +34,7 @@ class sshVariabilityCompute(BaseMixin):
         lat_limits: list[float] = None,
         zoom: float = None,
         outputdir: str = "./",
-        reader_kwargs: dict = {}
+        reader_kwargs: dict = {},
         var: str = None,
         long_name: str = None,
         short_name: str = None,
@@ -58,7 +61,7 @@ class sshVariabilityCompute(BaseMixin):
             outputdir (str): output directory
             loglevel (str): Default WARNING
         """
-        super()__init__(catalog=catalog, model=model, exp=exp, source=source, startdate=startdate, enddate=enddate, region=region, regrid=regrid, lon_limits=lon_limits, lat_limits=lat_limits, zoom=zoom, reader_kwargs=reader_kwargs, var=var, long_name=long_name, short_name=short_name, units=untis, outputdir=outputdir, rebuild=rebuild, loglevel=loglevel)
+        super().__init__(catalog=catalog,model=model,exp=exp,source=source,startdate=startdate,enddate=enddate,region=region,regrid=regrid,lon_limits=lon_limits,lat_limits=lat_limits,zoom=zoom,reader_kwargs=reader_kwargs,var=var,long_name=long_name,short_name=short_name,units=units,outputdir=outputdir,rebuild=rebuild,loglevel=loglevel)
         
         self.save_netcdf = save_netcdf
         self.data_std = None 
