@@ -13,6 +13,7 @@ class PlotGlobalBiases:
                  diagnostic='globalbiases',
                  save_pdf=True, save_png=True, 
                  dpi=300, outputdir='./',
+                 cmap='RdBu_r',
                  loglevel='WARNING'):
         """
         Initialize the PlotGlobalBiases class.
@@ -23,6 +24,7 @@ class PlotGlobalBiases:
             save_png (bool): Whether to save the figure as PNG.
             dpi (int): Resolution of saved figures.
             outputdir (str): Output directory for saved plots.
+            cmap (str): Colormap to use for the plots.
             loglevel (str): Logging level.
         """
         self.diagnostic = diagnostic
@@ -30,6 +32,7 @@ class PlotGlobalBiases:
         self.save_png = save_png
         self.dpi = dpi
         self.outputdir = outputdir
+        self.cmap = cmap
         self.loglevel = loglevel
 
         self.logger = log_configure(log_level=loglevel, log_name='Global Biases')
@@ -117,7 +120,8 @@ class PlotGlobalBiases:
             vmax=vmax,
             proj=proj,
             loglevel=self.loglevel,
-            cbar_label=cbar_label
+            cbar_label=cbar_label,
+            cmap=self.cmap
         )
         ax.set_xlabel("Longitude")
         ax.set_ylabel("Latitude")
@@ -177,6 +181,7 @@ class PlotGlobalBiases:
             vmin_fill=vmin, 
             vmax_fill=vmax,
             cbar_label=cbar_label,
+            cmap=self.cmap,
             loglevel=self.loglevel
         )
         ax.set_xlabel("Longitude")
@@ -240,6 +245,7 @@ class PlotGlobalBiases:
             'contour': True,
             'sym': sym,
             'cbar_label': cbar_label,
+            'cmap': self.cmap,
             'loglevel': self.loglevel
         }
 
@@ -306,6 +312,7 @@ class PlotGlobalBiases:
             vmax_contour=vmax,
             logscale=True,
             add_contour=True, 
+            cmap=self.cmap,
             nlevels=nlevels,
             title=title,
             title_size=18,
