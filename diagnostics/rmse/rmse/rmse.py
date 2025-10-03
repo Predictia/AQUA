@@ -423,7 +423,7 @@ class RMSE:
 
                 self.logger.debug(f"Plotting parameters for {processed_key}: vmin={vmin}, vmax={vmax}")
 
-                title_level_part = f" at {int(level / 100)} hPa" if level is not None else ""
+                title_level_part = f" at level {level}" if level is not None else ""
                 title = (f"{base_var_name}{title_level_part} RMSE of {model} {exp} ({source})\n" # Use base_var_name
                          f"relative to {model_ref} {exp_ref} ({source_ref})\n"
                          f"{self.startdate} to {self.enddate}")
@@ -575,7 +575,7 @@ class RMSE:
                 ax.grid(True)
 
                 # Construct title using base_var_name and level
-                title_level_part = f" at {int(level / 100)} hPa" if level is not None else ""
+                title_level_part = f" at level {level}" if level is not None else ""
                 title = (f"Temporal RMSE: {base_var_name}{title_level_part}\n" # Use base_var_name
                          f"{model} {exp} ({source}) vs {model_ref} {exp_ref} ({source_ref})\n"
                          f"{self.startdate} to {self.enddate}")
