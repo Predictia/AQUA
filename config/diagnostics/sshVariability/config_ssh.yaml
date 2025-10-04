@@ -1,19 +1,20 @@
 # Models for which sea surface height (SSH) variability is to be evaluated.
 datasets:
-  - catalog: null
-    model: 'IFS-FESOM'
-    exp: 'ssp370'
-    source: 'lra-r100-monthly'
-    #zoom: 10
-    regrid: null
+  - catalog: 'climatedt-phase1'
+    model: 'IFS-NEMO'
+    exp: 'historical-1990'
+    source: 'daily-hpz10-oce2d'
+    regrid: 'r005' #doesn't work with startdate and enddate
+    zoom: null
+    reader_kwargs: null # it can be a dictionary with reader kwargs
 
 # This is the reference model against which other models are compared.
 references:
-  - catalog: null 
+  - catalog: 'obs' 
     model: 'AVISO'
     exp: 'ssh-L4'
     source: 'daily'
-    regrid: null
+    regrid: 'r005' #doesn't work with startdate and enddate
 
 setup:
   loglevel: 'WARNING'
@@ -22,7 +23,7 @@ output:
   outputdir: "./"
   rebuild: true
   save_netcdf: true
-  save_pdf: true
+  save_pdf: false
   save_png: true
   dpi: 600
 
@@ -30,20 +31,21 @@ diagnostics:
   sshVariability:
     run: true
     diagnostic_name: 'sshVariability'
-    variables: ['zos',]
+    variables: 'zos'
     params:
       default:
-        startdate_data: '2021-01-01'
-        enddate_data: '2021-01-07'
-        startdate_ref: "2021-01-01"
-        enddate_ref: "2021-01-07"
+        startdate_data: '1994-01-01'
+        enddate_data: '1994-01-04'
+        startdate_ref: '1994-01-01'
+        enddate_ref: '1994-01-04'
     plot_params:
       default: 
         projection: 'robinson'
         projection_params: {}
-        vmin: 0.1
-        vmax: 0.4
-        contours: 21
+      zos:
+        vmin: -15
+        vmax: 15
+        cmap: 'RdBu_r'
       # sub region selection 
       sub_region : 
         name: Agulhas

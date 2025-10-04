@@ -9,7 +9,7 @@ from .ensemble import PlotEnsembleTimeseries, PlotEnsembleLatLon, PlotEnsembleZo
 from .ensemble import retrieve_merge_ensemble_data
 from .ecmean import PerformanceIndices, GlobalMean
 from .seaice import SeaIce, PlotSeaIce, Plot2DSeaIce
-from sshVariability import sshVariabilityCompute, sshVariabilityPlot
+from .sshVariability import sshVariabilityCompute, sshVariabilityPlot
 
 __all__ = ["NAO", "ENSO", "MJO",
            "PlotNAO", "PlotENSO", "PlotMJO",

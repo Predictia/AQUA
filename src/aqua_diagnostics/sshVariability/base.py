@@ -1,7 +1,8 @@
 import xarray as xr
+from aqua import Reader
+from aqua.diagnostics.core import Diagnostic, OutputSaver, start_end_dates
 from aqua.logger import log_configure
 from aqua.util import pandas_freq_to_string
-from aqua.diagnostics.core import Diagnostic, OutputSaver, start_end_dates
 
 xr.set_options(keep_attrs=True)
 
@@ -21,7 +22,6 @@ class BaseMixin(Diagnostic):
         regrid: str = None,
         lon_limits: list[float] = None,
         lat_limits: list[float] = None,
-        zoom: float = None,
         outputdir: str = "./",
         reader_kwargs: dict = {},
         var: str = None,
@@ -60,15 +60,15 @@ class BaseMixin(Diagnostic):
             realization (int, optional): The ensemble realization number, included in the output filename.
             **kwargs: Additional arbitrary keyword arguments to be passed as additional parameters to the intake catalog entry.
         """
-        super().__init__(catalog=catalog, model=model, exp=exp, source=source, regrid=regrid, startdate=startdate, enddate=enddate, loglevel=loglevel)
+        super().__init__(catalog=catalog, model=model, exp=exp, source=source, regrid=regrid, loglevel=loglevel)
         
         # Log name is the diagnostic name with the first letter capitalized
         self.logger = log_configure(log_level=loglevel, log_name=diagnostic_name.capitalize())
         self.diagnostic_name = diagnostic_name
 
         # We want to make sure we retrieve the required amount of data with a single Reader instance
-        self.startdate, self.enddate = start_end_dates(startdate=startdate, enddate=enddate)
-        self.logger.debug(f"Retrieve start date: {self.startdate}, End date: {self.enddate}")
+        #self.startdate, self.enddate = start_end_dates(startdate=startdate, enddate=enddate)
+        #self.logger.debug(f"Retrieve start date: {self.startdate}, End date: {self.enddate}")
         
         if region is not None and lon_limits is not None and lat_limits is not None:
             # Set the region based on the region name or the lon and lat limits
@@ -80,11 +80,12 @@ class BaseMixin(Diagnostic):
         self.logger.info(f"Outputs will be saved at {self.outputdir}.")
 
         self.var = var
-        self.zoom = zoom
+        self.units = units
+        self.long_name = long_name
+        self.short_name = short_name
         self.rebuild = rebuild
-        if zoom:
-            reader_kwargs["zoom"] = zoom
         self.reader_kwargs = reader_kwargs
+        self.region = region
 
     def _check_data(self, var: str, units: str):
         """
@@ -100,14 +101,16 @@ class BaseMixin(Diagnostic):
         """
         Retrieve the data for the given variable.
         """  
-        
+
         super().retrieve(var=self.var, reader_kwargs=self.reader_kwargs)
+        
         if self.data is None:
             raise ValueError(f'Variable {var} not found in the data. '
                              'Check the variable name and the data source.')
         # Get the xr.DataArray to be aligned with the formula code
         self.data = self.data[self.var]
-
+        self.data = self.data.sel(time=slice(self.startdate, self.enddate))
+        
         # Customization of the data, expecially needed for formula
         if self.units is not None:
             self._check_data(self.var, self.units)
@@ -125,7 +128,10 @@ class BaseMixin(Diagnostic):
             self.data.name = self.short_name
         else:
             self.data.attrs['short_name'] = self.var
-
+        if self.region:
+            self.data.attrs['region'] = self.region
+            self.data.attrs['lon_limits'] = self.lon_limits
+            self.data.attrs['lat_limits'] = self.lat_limits
 
     def netcdf_save(self, data, diagnostic_product: str='sshVariability', freq: str=None,
                     create_catalog_entry: bool = False,
@@ -174,7 +180,7 @@ class BaseMixin(Diagnostic):
         extra_keys.update({'region': region})
 
         #self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
-        self.logger.info('Saving output data for %s to netcdf in %s', diagnostic_product, outputdir)
+        self.logger.info('Saving output data for %s to netcdf in %s', diagnostic_product, self.outputdir)
 
         super().save_netcdf(data=data, diagnostic=self.diagnostic_name, diagnostic_product=diagnostic_product,
                             outputdir=self.outputdir, rebuild=self.rebuild, extra_keys=extra_keys,
@@ -209,7 +215,7 @@ class PlotBaseMixin():
         description: str = None, 
         rebuild: bool = True,
         outputdir: str = './', 
-        dpi: int = 300, 
+        dpi: int = 600, 
         format: str = 'png', 
         diagnostic_product: str = 'sshVariability',
         catalog: str = None,
@@ -218,33 +224,42 @@ class PlotBaseMixin():
         region: str = None,
         startdate: str = None,
         enddate: str = None,
-        #long_name: str = None,
-        #units: str = None,
+        long_name: str = None,
+        short_name: str = None,
+        units: str = None,
     ):
         """
-        Save the plot to a file.
+        Save a matplotlib figure to file with metadata for diagnostics.
+
+        This function saves the given figure in the specified format and resolution,
+        embedding metadata such as variable name, experiment details, region, and time range
+        for better traceability of diagnostic plots.
 
         Args:
-            fig (matplotlib.figure.Figure): Figure object.
-            description (str): Description of the plot.
-            rebuild (bool): If True, rebuild the plot even if it already exists.
-            outputdir (str): Output directory to save the plot.
-            dpi (int): Dots per inch for the plot.
-            format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
-            diagnostic_product (str): Diagnostic product name i.e., 'sshVariability'.
-            catalog (str): The catalog to be used in the 'OutputSaver' class. (Mandatory)
-            model (str): The model to be used in the 'OutputSaver' class. (Mandatory)
-            exp (str): The experiment to be used in the 'OutputSaver' class. (Mandatory)
-            startdate (str): The start date of the data to be used in description and title.
-                             If None, all available data will be retrieved.
-            enddate (str): The end date of the data to be retrieved.
-                           If None, all available data will be retrieved.
-            region (str): The region to select. This will define the lon and lat limits.
-            rebuild (bool): If True, rebuild the data from the original files.
-            outputdir (str): The directory to save the data.
-            reader_kwargs (dict): Additional keyword arguments for the Reader. Default is an empty dictionary.
-            loglevel (str): The log level to be used. Default is 'WARNING'.
+            fig (matplotlib.figure.Figure): The figure object to be saved.
+            var (str, optional): Variable name associated with the plot (e.g., ``'zos'``).
+            description (str, optional): Additional description of the plot.
+            rebuild (bool, optional): If ``True``, overwrite and rebuild the file even if it exists. Default is ``True``.
+            outputdir (str, optional): Directory where the figure will be saved. Default is current directory ``'./'``.
+            dpi (int, optional): Resolution of the saved figure in dots per inch. Default is ``600``.
+            format (str, optional): File format for saving the figure (e.g., ``'png'``, ``'pdf'``). Default is ``'png'``.
+            diagnostic_product (str, optional): Diagnostic product name. Default is ``'sshVariability'``.
+            catalog (str, optional): Catalog identifier for the dataset. (Mandatory for proper labeling)
+            model (str, optional): Model name associated with the dataset. (Mandatory for proper labeling)
+            exp (str, optional): Experiment name. (Mandatory for proper labeling)
+            region (str, optional): Geographic region identifier for the plot.
+            startdate (str, optional): Start date of the dataset used in the plot (used in metadata and title).
+            enddate (str, optional): End date of the dataset used in the plot (used in metadata and title).
+            long_name (str, optional): Long descriptive name of the variable (for labeling/metadata).
+            short_name (str, optional): Short variable name (for labeling/metadata).
+            units (str, optional): Units of the variable (e.g., ``'m'`` for meters).
 
+        Returns:
+            str: Full path to the saved plot file.
+
+        Raises:
+            ValueError: If mandatory arguments (``catalog``, ``model``, or ``exp``) are missing.
+            OSError: If the output directory does not exist and cannot be created.
         """
         outputsaver = OutputSaver(diagnostic=self.diagnostic_name,
                                   catalog=catalog,
@@ -257,10 +272,10 @@ class PlotBaseMixin():
         metadata = {"Description": description, "dpi": dpi }
         extra_keys = {'diagnostic_product': diagnostic_product}
 
-        if self.short_name is not None:
-            extra_keys.update({'var': self.short_name})
-        if self.region is not None:
-            region = self.region.replace(' ', '').lower()
+        if short_name is not None:
+            extra_keys.update({'var': short_name})
+        if region is not None:
+            region = region.replace(' ', '').lower()
             extra_keys.update({'region': region})
 
         if format == 'png':
@@ -291,36 +306,47 @@ class PlotBaseMixin():
         startdate_ref: str = None,
         enddate_ref: str = None,
         region: str = None,
-        #long_name: str = None,
-        #units: str = None,
+        long_name: str = None,
+        short_name: str = None,
+        units: str = None,
     ):
         """
-        Save the plot of the difference of SSH variabilities b/w reference and model to a file.
+        Save the plot of SSH variability differences between a reference dataset and a model.
+
+        This function saves a figure illustrating the difference in sea surface height (SSH) 
+        variability between a reference dataset and a model, including metadata for reproducibility 
+        and traceability.
 
         Args:
+            fig (matplotlib.figure.Figure): The matplotlib figure object to be saved.
+            var (str, optional): Variable name associated with the plot (e.g., ``'zos'``).
+            description (str, optional): Additional description to include in the saved file metadata.
+            rebuild (bool, optional): If ``True``, overwrite the plot file even if it already exists. Default is ``True``.
+            outputdir (str, optional): Directory where the plot file will be saved. Default is current directory ``'./'``.
+            dpi (int, optional): Resolution of the saved figure in dots per inch. Default is ``600``.
+            format (str, optional): Output file format (e.g., ``'png'``, ``'pdf'``). Default is ``'png'``.
+            diagnostic_product (str, optional): Diagnostic product identifier. Default is ``'sshVariability_Difference'``.
+            catalog (str, optional): Catalog name for the model dataset. (Mandatory for labeling)
+            model (str, optional): Model name for the dataset. (Mandatory for labeling)
+            exp (str, optional): Experiment identifier for the dataset. (Mandatory for labeling)
+            startdate (str, optional): Start date for the model dataset. Used in plot title/metadata.
+            enddate (str, optional): End date for the model dataset. Used in plot title/metadata.
+            catalog_ref (str, optional): Catalog name for the reference dataset.
+            model_ref (str, optional): Model name for the reference dataset.
+            exp_ref (str, optional): Experiment identifier for the reference dataset.
+            startdate_ref (str, optional): Start date for the reference dataset.
+            enddate_ref (str, optional): End date for the reference dataset.
+            region (str, optional): Geographic region identifier for the plot.
+        Returns:
+            str: The full path to the saved plot file.
 
-            fig (matplotlib.figure.Figure): Figure object.
-            description (str): Description of the plot.
-            rebuild (bool): If True, rebuild the plot even if it already exists.
-            outputdir (str): Output directory to save the plot.
-            dpi (int): Dots per inch for the plot.
-            format (str): Format of the plot ('png' or 'pdf'). Default is 'png'.
-            catalog (str): The catalog to be used in the 'OutputSaver' class. (Mandatory)
-            model (str): The model to be used in the 'OutputSaver' class. (Mandatory)
-            exp (str): The experiment to be used in the 'OutputSaver' class. (Mandatory)
-            startdate (str): The start date of the data to be used in description and title.
-                             If None, all available data will be retrieved.
-            enddate (str): The end date of the data to be retrieved.
-                           If None, all available data will be retrieved.
-            region (str): The region to select. This will define the lon and lat limits.
-            rebuild (bool): If True, rebuild the data from the original files.
-            outputdir (str): The directory to save the data.
-            reader_kwargs (dict): Additional keyword arguments for the Reader. Default is an empty dictionary.
-            loglevel (str): The log level to be used. Default is 'WARNING'.
-
-            diagnostic_product (str): Diagnostic product to be used in the filename as diagnostic_product.
-                                      In this diagnostic this variable can be: 'sshVariability' or 'Diff_sshVariability'
+        Raises:
+            ValueError: If required arguments (``catalog``, ``model``, ``exp``) are missing.
+            OSError: If the output directory does not exist and cannot be created.
         """
+        #TODO:
+        # Test if the sshVariability is computed in healpix/native grid then compte the difference will be an issue.
+        # Therefore perform regridding via Regridding class.
         outputsaver = OutputSaver(diagnostic=self.diagnostic_name,
                                   catalog=catalog,
                                   model=model,
@@ -330,15 +356,15 @@ class PlotBaseMixin():
                                   exp_ref=exp_ref,
                                   outputdir=outputdir,
                                   loglevel=self.loglevel)
-        if description is None: description = "sshVariability diagnostic" 
+        if description is None: description = "sshVariability difference" 
         description = description + f" model time: ({startdate}-{enddate}) and reference time: ({startdate}-{enddate})" 
         metadata = {"Description": description, "dpi": dpi }
         extra_keys = {'diagnostic_product': diagnostic_product}
 
-        if self.short_name is not None:
-            extra_keys.update({'var': self.short_name})
-        if self.region is not None:
-            region = self.region.replace(' ', '').lower()
+        if short_name is not None:
+            extra_keys.update({'var': short_name})
+        if region is not None:
+            region = region.replace(' ', '').lower()
             extra_keys.update({'region': region})
 
         if format == 'png':
