@@ -153,15 +153,18 @@ class sshVariabilityPlot(PlotBaseMixin):
                 southern_boundary_latitude=southern_boundary_latitude,
                 lon_lim=lon_limits,
                 lat_lim=lat_limits,
-                region=region)
+                region_name=region)
    
         if vmin is None or (isinstance(vmin, (float, int)) and np.isnan(vmin)):
             vmin = float(dataset_std.min(skipna=True))
         if vmax is None or (isinstance(vmax, (float, int)) and np.isnan(vmax)):
             vmax = float(dataset_std.max(skipna=True))
- 
-        proj = get_projection(proj, **proj_params)
-        
+
+        if region is None: 
+            proj = get_projection(proj, **proj_params)
+        else:
+            proj = None
+
         if vmin == vmax:
             self.logger.info("STD is Zero everywhere")
             fig, ax = plot_single_map(
@@ -402,7 +405,10 @@ class sshVariabilityPlot(PlotBaseMixin):
         if np.array_equal(np.nan_to_num(dataset_std.values), np.nan_to_num(dataset_std_ref.values)):
             self.logger.warning("The values are exactly the same (ignoring NaNs), no difference to plot")
 
-        proj = get_projection(proj, **proj_params)
+        if region is None:
+            proj = get_projection(proj, **proj_params)
+        else:
+            proj = None
 
         if vmin_diff is None or (isinstance(vmin_diff, (float, int)) and np.isnan(vmin_diff)):
             vmin_diff = float(diff_map.min(skipna=True))

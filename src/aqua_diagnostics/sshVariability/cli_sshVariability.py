@@ -14,6 +14,7 @@ from aqua.logger import log_configure
 from aqua.util import get_arg
 from aqua.version import __version__ as aqua_version
 
+import cartopy.crs as ccrs
 
 def parse_arguments(args):
     """Parse command-line arguments for sshVariability diagnostic.
@@ -42,10 +43,11 @@ if __name__ == "__main__":
     ) = open_cluster(nworkers=nworkers, cluster=cluster, loglevel=loglevel)
 
     # Load the configuration file and then merge it with the command-line arguments
+    # If for development: config_ssh_dev.yaml 
     config_dict = load_diagnostic_config(
         diagnostic="sshVariability",
         config=args.config,
-        default_config="config_ssh.yaml",
+        default_config="config_ssh_dev.yaml",
         loglevel=loglevel,
     )
     config_dict = merge_config_args(config=config_dict, args=args, loglevel=loglevel)
@@ -56,10 +58,6 @@ if __name__ == "__main__":
         reader_kwargs = {'realization': realization}
     else:
         reader_kwargs = {}
-    zoom = get_arg(args, 'zoom', None)
-    if zoom:
-        logger.info(f"zoom option is set to {zoom}")
-        reader_kwargs = {'zoom': zoom}
 
     # Output options
     outputdir = config_dict["output"].get("outputdir", "./")
@@ -74,10 +72,12 @@ if __name__ == "__main__":
             logger.info("sshVariability module is used.")
 
             # Model data
-            dataset = config_dict["datasets"][0]
+            dataset = config_dict["datasets"][0] 
             if dataset is not None:
                 dataset_dict = {"catalog" : dataset["catalog"], "model" : dataset["model"], "exp" : dataset["exp"], "source" : dataset["source"], "regrid" : dataset["regrid"]}
-
+            if dataset["zoom"]:
+                reader_kwargs.update({'zoom': dataset["zoom"]})
+            
             # Reference data
             dataset_ref = config_dict["references"][0]
             if dataset_ref is not None:
@@ -89,75 +89,153 @@ if __name__ == "__main__":
             enddate_data = config_dict['diagnostics']["sshVariability"]['params']['default'].get('enddate_data', None)
             startdate_ref = config_dict['diagnostics']["sshVariability"]['params']['default'].get('startdate_ref', None)
             enddate_ref = config_dict['diagnostics']["sshVariability"]['params']['default'].get('enddate_ref', None)
+
+            proj = config_dict['diagnostics']["sshVariability"]['plot_params']['default'].get('projection', 'robinson')
+            proj_params = config_dict['diagnostics']["sshVariability"]['plot_params']['default'].get('projection_params', {})
+            logger.debug(f"Using projection: {proj} for variable: {variable}")
+            vmin = config_dict['diagnostics']["sshVariability"]['plot_params']['default'].get('vmin', None)  
+            vmax = config_dict['diagnostics']["sshVariability"]['plot_params']['default'].get('vmax', None)
+
+            region_name = config_dict['diagnostics']["sshVariability"]['plot_params']['sub_region'].get('name', None)
+            region_proj = config_dict['diagnostics']["sshVariability"]['plot_params']['sub_region'].get('projection', None)
+            region_proj_params = config_dict['diagnostics']["sshVariability"]['plot_params']['sub_region'].get('projection_params', None)
+
+            lon_limits = config_dict['diagnostics']["sshVariability"]['plot_params']['sub_region'].get('lon_limits', None)
+            lat_limits = config_dict['diagnostics']["sshVariability"]['plot_params']['sub_region'].get('lat_limits', None)
+
+            mask_northern_boundary = config_dict['diagnostics']["sshVariability"]['plot_params']['mask_options'].get('mask_northern_boundary', None)
+            mask_southern_boundary = config_dict['diagnostics']["sshVariability"]['plot_params']['mask_options'].get('mask_southern_boundary', None)
+            northern_boundary_latitude = config_dict['diagnostics']["sshVariability"]['plot_params']['mask_options'].get('northern_boundary_latitude', None)
+            southern_boundary_latitude = config_dict['diagnostics']["sshVariability"]['plot_params']['mask_options'].get('southern_boundary_latitude', None)
+
+
             if dataset["zoom"]:
                 logger.info(f"zoom option is set to {zoom}")
                 reader_kwargs = {'zoom': dataset["zoom"]}
 
             # Initialize SSH Variability for model dataset
-            ssh_dataset = sshVariabilityCompute(
-                **dataset_dict,
-                var=variable,
-                startdate=startdate_data,
-                enddate=enddate_data,
-                reader_kwargs=reader_kwargs,
-            )
-            # Perform computation here for model dataset
-            ssh_dataset.run()
+            if (dataset_dict["catalog"] is not None) or (dataset_dict["model"] is not None) or (dataset_dict["exp"] is not None) or (dataset_dict["source"] is not None):  
+                ssh_dataset = sshVariabilityCompute(
+                    **dataset_dict,
+                    var=variable,
+                    startdate=startdate_data,
+                    enddate=enddate_data,
+                )
+                # Perform computation here for model dataset
+                ssh_dataset.run()
             
             # Initialize SSH Variability for reference dataset
-            ssh_ref = sshVariabilityCompute(
-                **dataset_dict_ref,
-                var=variable,
-                startdate=startdate_ref,
-                enddate=enddate_ref,
-            )
-            # Perform computation here for reference dataset
-            ssh_ref.run()
-             
+            if (dataset_dict_ref["catalog"] is not None) or (dataset_dict_ref["model"] is not None) or (dataset_dict_ref["exp"] is not None) or (dataset_dict_ref["source"] is not None):
+                ssh_ref = sshVariabilityCompute(
+                    **dataset_dict_ref,
+                    var=variable,
+                    startdate=startdate_ref,
+                    enddate=enddate_ref,
+                    #reader_kwargs=reader_kwargs,
+                )
+                # Perform computation here for reference dataset
+                ssh_ref.run()
+                 
             # Initialize plotting class
             ssh_plot = sshVariabilityPlot()
             
             # Dictionary for dataset plot
-            plot_arguments_dataset = {
-                "var": variable,
-                "catalog": dataset["catalog"],
-                "model": dataset["model"],
-                "exp": dataset["exp"],
-                "save_pdf": save_pdf,
-                "save_png": save_png,
-                "startdate": startdate_data,
-                "enddate": enddate_data,
-            }
-            ssh_plot.plot(dataset_std=ssh_dataset.data_std, **plot_arguments_dataset)
+            if ssh_dataset.data_std is not None:
+                plot_arguments_dataset = {
+                    "var": variable,
+                    "catalog": dataset["catalog"],
+                    "model": dataset["model"],
+                    "exp": dataset["exp"],
+                    "save_pdf": save_pdf,
+                    "save_png": save_png,
+                    "startdate": startdate_data,
+                    "enddate": enddate_data,
+                    "proj": proj,
+                    "proj_params": proj_params,
+                    "vmin": vmin,
+                    "vmax": vmax,
+                }
+                ssh_plot.plot(dataset_std=ssh_dataset.data_std, **plot_arguments_dataset)
+
+            # Dictionary for sub-region dataset plot
+            if ssh_dataset.data_std is not None and region_name is not None:
+                plot_arguments_dataset = {
+                    "var": variable,
+                    "catalog": dataset["catalog"],
+                    "model": dataset["model"],
+                    "exp": dataset["exp"],
+                    "save_pdf": save_pdf,
+                    "save_png": save_png,
+                    "startdate": startdate_data,
+                    "enddate": enddate_data,
+                    "lon_limits": lon_limits,
+                    "lat_limits": lat_limits,
+                    "proj": ccrs.PlateCarree(), #region_proj,
+                    "proj_params": region_proj_params,
+                    "vmin": vmin,
+                    "vmax": vmax,
+                    "region": region_name,
+                    "lon_limits": lon_limits,
+                    "lat_limits": lon_limits,
+                    "mask_northern_boundary": mask_northern_boundary,
+                    "mask_southern_boundary": mask_southern_boundary,
+                    "northern_boundary_latitude": northern_boundary_latitude,
+                    "southern_boundary_latitude": southern_boundary_latitude,
+                }
+                ssh_plot.plot(dataset_std=ssh_dataset.data_std, **plot_arguments_dataset)
 
             # Dictionary for reference plot
-            plot_arguments_ref = {
-                "var": variable,
-                "catalog": dataset_ref["catalog"],
-                "model": dataset_ref["model"],
-                "exp": dataset_ref["exp"],
-                "save_pdf": save_pdf,
-                "save_png": save_png,
-                "startdate": startdate_ref,
-                "enddate": enddate_ref,
-            }
-            ssh_plot.plot(dataset_std=ssh_ref.data_std, **plot_arguments_ref)
-           
+            if ssh_ref.data_std is not None:
+                plot_arguments_ref = {
+                    "var": variable,
+                    "catalog": dataset_ref["catalog"],
+                    "model": dataset_ref["model"],
+                    "exp": dataset_ref["exp"],
+                    "save_pdf": save_pdf,
+                    "save_png": save_png,
+                    "startdate": startdate_ref,
+                    "enddate": enddate_ref,
+                    "region": region_name,
+                    "lon_limits": lon_limits,
+                    "lat_limits": lat_limits,
+                }
+                ssh_plot.plot(dataset_std=ssh_ref.data_std, **plot_arguments_ref)
+
+             # Dictionary for sub-region reference plot
+            if ssh_ref.data_std is not None:
+                plot_arguments_ref = {
+                    "var": variable,
+                    "catalog": dataset_ref["catalog"],
+                    "model": dataset_ref["model"],
+                    "exp": dataset_ref["exp"],
+                    "save_pdf": save_pdf,
+                    "save_png": save_png,
+                    "startdate": startdate_ref,
+                    "enddate": enddate_ref,
+                    "region": region_name,
+                    "lon_limits": lon_limits,
+                    "lat_limits": lat_limits,
+                    "proj": ccrs.PlateCarree(), # region_proj,
+                    "proj_params": region_proj_params,
+                }
+                ssh_plot.plot(dataset_std=ssh_ref.data_std, **plot_arguments_ref)
+          
             # Dictionary for difference of sshVariability plot
-            plot_arguments_diff = {
-                "var": variable,
-                "catalog": dataset["catalog"],
-                "model": dataset["model"],
-                "exp": dataset["exp"],
-                "catalog_ref": dataset_ref["catalog"],
-                "model_ref": dataset_ref["model"],
-                "exp_ref": dataset_ref["exp"],
-                "save_pdf": save_pdf,
-                "save_png": save_png,
-                "startdate": startdate_ref,
-                "enddate": enddate_ref,
-            }
-            ssh_plot.plot_diff(dataset_std=ssh_dataset.data_std, dataset_std_ref=ssh_ref.data_std, **plot_arguments_diff)
+            if ssh_dataset.data_std is not None or ssh_ref.data_std is not None:
+                plot_arguments_diff = {
+                    "var": variable,
+                    "catalog": dataset["catalog"],
+                    "model": dataset["model"],
+                    "exp": dataset["exp"],
+                    "catalog_ref": dataset_ref["catalog"],
+                    "model_ref": dataset_ref["model"],
+                    "exp_ref": dataset_ref["exp"],
+                    "save_pdf": save_pdf,
+                    "save_png": save_png,
+                    "startdate": startdate_ref,
+                    "enddate": enddate_ref,
+                }
+                ssh_plot.plot_diff(dataset_std=ssh_dataset.data_std, dataset_std_ref=ssh_ref.data_std, **plot_arguments_diff)
 
             logger.info(f"Finished SSH Variability diagnostic for {variable}.")
 
