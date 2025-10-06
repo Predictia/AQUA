@@ -97,9 +97,9 @@ if __name__ == "__main__":
             vmax = config_dict['diagnostics']["sshVariability"]['plot_params']['default'].get('vmax', None)
 
             region_name = config_dict['diagnostics']["sshVariability"]['plot_params']['sub_region'].get('name', None)
-            region_proj = config_dict['diagnostics']["sshVariability"]['plot_params']['sub_region'].get('projection', None)
-            region_proj_params = config_dict['diagnostics']["sshVariability"]['plot_params']['sub_region'].get('projection_params', None)
-
+            region_proj = config_dict['diagnostics']["sshVariability"]['plot_params']['sub_region'].get('projection', 'plate_carree')
+            region_proj_params = config_dict['diagnostics']["sshVariability"]['plot_params']['sub_region'].get('projection_params', {})
+             
             lon_limits = config_dict['diagnostics']["sshVariability"]['plot_params']['sub_region'].get('lon_limits', None)
             lat_limits = config_dict['diagnostics']["sshVariability"]['plot_params']['sub_region'].get('lat_limits', None)
 
@@ -137,7 +137,7 @@ if __name__ == "__main__":
                 ssh_ref.run()
                  
             # Initialize plotting class
-            ssh_plot = sshVariabilityPlot()
+            plot_class = sshVariabilityPlot()
             
             # Dictionary for dataset plot
             if ssh_dataset.data_std is not None:
@@ -155,7 +155,8 @@ if __name__ == "__main__":
                     "vmin": vmin,
                     "vmax": vmax,
                 }
-                ssh_plot.plot(dataset_std=ssh_dataset.data_std, **plot_arguments_dataset)
+                plot_class.plot(dataset_std=ssh_dataset.data_std, **plot_arguments_dataset)
+                
 
             # Dictionary for sub-region dataset plot
             if ssh_dataset.data_std is not None and region_name is not None:
@@ -168,9 +169,7 @@ if __name__ == "__main__":
                     "save_png": save_png,
                     "startdate": startdate_data,
                     "enddate": enddate_data,
-                    "lon_limits": lon_limits,
-                    "lat_limits": lat_limits,
-                    "proj": ccrs.PlateCarree(), #region_proj,
+                    "proj": region_proj,
                     "proj_params": region_proj_params,
                     "vmin": vmin,
                     "vmax": vmax,
@@ -182,8 +181,8 @@ if __name__ == "__main__":
                     "northern_boundary_latitude": northern_boundary_latitude,
                     "southern_boundary_latitude": southern_boundary_latitude,
                 }
-                ssh_plot.plot(dataset_std=ssh_dataset.data_std, **plot_arguments_dataset)
-
+                plot_class.plot(dataset_std=ssh_dataset.data_std, **plot_arguments_dataset)
+ 
             # Dictionary for reference plot
             if ssh_ref.data_std is not None:
                 plot_arguments_ref = {
@@ -195,13 +194,14 @@ if __name__ == "__main__":
                     "save_png": save_png,
                     "startdate": startdate_ref,
                     "enddate": enddate_ref,
-                    "region": region_name,
-                    "lon_limits": lon_limits,
-                    "lat_limits": lat_limits,
+                    "proj": proj,
+                    "proj_params": proj_params,
+                    "vmin": vmin,
+                    "vmax": vmax,
                 }
-                ssh_plot.plot(dataset_std=ssh_ref.data_std, **plot_arguments_ref)
+                plot_class.plot(dataset_std=ssh_ref.data_std, **plot_arguments_ref)
 
-             # Dictionary for sub-region reference plot
+            # Dictionary for sub-region reference plot
             if ssh_ref.data_std is not None:
                 plot_arguments_ref = {
                     "var": variable,
@@ -215,11 +215,13 @@ if __name__ == "__main__":
                     "region": region_name,
                     "lon_limits": lon_limits,
                     "lat_limits": lat_limits,
-                    "proj": ccrs.PlateCarree(), # region_proj,
+                    "proj": region_proj,
                     "proj_params": region_proj_params,
+                    "vmin": vmin,
+                    "vmax": vmax,
                 }
-                ssh_plot.plot(dataset_std=ssh_ref.data_std, **plot_arguments_ref)
-          
+                plot_class.plot(dataset_std=ssh_ref.data_std, **plot_arguments_ref)
+         
             # Dictionary for difference of sshVariability plot
             if ssh_dataset.data_std is not None or ssh_ref.data_std is not None:
                 plot_arguments_diff = {
@@ -232,10 +234,13 @@ if __name__ == "__main__":
                     "exp_ref": dataset_ref["exp"],
                     "save_pdf": save_pdf,
                     "save_png": save_png,
-                    "startdate": startdate_ref,
-                    "enddate": enddate_ref,
+                    "startdate": startdate_data,
+                    "enddate": enddate_data,
+                    "startdate_ref": startdate_ref,
+                    "enddate_ref": enddate_ref,
+
                 }
-                ssh_plot.plot_diff(dataset_std=ssh_dataset.data_std, dataset_std_ref=ssh_ref.data_std, **plot_arguments_diff)
+                plot_class.plot_diff(dataset_std=ssh_dataset.data_std, dataset_std_ref=ssh_ref.data_std, **plot_arguments_diff)
 
             logger.info(f"Finished SSH Variability diagnostic for {variable}.")
 

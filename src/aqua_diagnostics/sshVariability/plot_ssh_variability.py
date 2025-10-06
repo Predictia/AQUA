@@ -1,5 +1,5 @@
 import sys
-
+import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -10,7 +10,8 @@ from aqua import Reader, Regridder
 from aqua.exceptions import NoDataError, NoObservationError, NotEnoughDataError
 from aqua.graphics import plot_single_map
 from aqua.logger import log_configure
-from aqua.util import area_selection, coord_names, create_folder, get_projection
+from aqua.util import coord_names, create_folder, get_projection
+from aqua.util import area_selection
 
 from .base import PlotBaseMixin
 
@@ -80,7 +81,7 @@ class sshVariabilityPlot(PlotBaseMixin):
         Plot the variability of sea surface height (SSH) from an input dataset.
 
         This function visualizes SSH variability using configurable spatial, temporal, 
-        and plotting options. It supports regional selection, custom projections, 
+        and plotting options. It supports contou, regional selection, custom projections, 
         masking, and output saving in multiple formats.
 
         Args:
@@ -129,20 +130,19 @@ class sshVariabilityPlot(PlotBaseMixin):
             dataset_std = dataset_std[var]
         else:
             dataset_std = dataset_std
-
         # This is important to provide the start and end dates. These dates will be used in the title of the plot
         if startdate is None or enddate is None: self.logger.error("Please specify the time period of the data") 
 
         self.logger.info(f'Plotting SSH Variability for {model} and {exp}, from {startdate} to {enddate}.')
         long_name = dataset_std.attrs.get('long_name', var)
-        title = (f"SSH Variability of {long_name} for {model} {exp} ({startdate}-{enddate}) ")
+        title = (f"SSH Variability of {long_name} for {model} {exp} ({startdate} to {enddate}) ")
         
-        description = (f"SSH Variability of {long_name} for {model} {exp} ({startdate}-{enddate}) ")
-        
+        description = (f"SSH Variability of {long_name} for {model} {exp} ({startdate} to {enddate}) ")
+         
         if region is not None:
             title = title + "{region} "
             if lon_limits is None or lat_limits is None: self.logger.error(f"For the {region}, please specify the lon_limits and lat_limits.")
-            description = description + "for {region} "
+            description = description + f"for {region} "
             dataset_std = self.subregion_selection(
                 data=dataset_std, 
                 model=model, 
@@ -160,38 +160,32 @@ class sshVariabilityPlot(PlotBaseMixin):
         if vmax is None or (isinstance(vmax, (float, int)) and np.isnan(vmax)):
             vmax = float(dataset_std.max(skipna=True))
 
-        if region is None: 
-            proj = get_projection(proj, **proj_params)
-        else:
-            proj = None
-
+        proj = get_projection(proj, **proj_params)
         if vmin == vmax:
             self.logger.info("STD is Zero everywhere")
             fig, ax = plot_single_map(
                 dataset_std,
-                contour=False,
+                contour=True,
                 return_fig=True,
                 title=title,
                 proj=proj,
-                #cyclic_lon = False,
+                cyclic_lon = False,
                 add_land=True,
                 loglevel=self.loglevel,
-                **plot_options,
-            )
+                **plot_options,)
         else:
             fig, ax = plot_single_map(
                 dataset_std,
-                contour=False,
+                contour=True,
                 return_fig=True,
                 title=title,
                 vmin=vmin,
                 vmax=vmax,
                 proj=proj,
-                #cyclic_lon = False,
+                cyclic_lon = False,
                 add_land=True,
                 loglevel=self.loglevel,
-                **plot_options,
-            )
+                **plot_options,)
         ax.set_xlabel("Longitude")
         ax.set_ylabel("Latitude")
 
@@ -273,7 +267,7 @@ class sshVariabilityPlot(PlotBaseMixin):
         Visualize the difference in sea surface height (SSH) variability between a model and a reference dataset.
 
         This function generates a map of SSH variability differences using Cartopy projections,
-        supporting custom contours, masking, regional selection, and configurable plotting options.
+        supporting custom contour, masking, regional selection, and configurable plotting options.
         The plot can be saved as PNG or PDF.
 
         Args:
@@ -417,9 +411,10 @@ class sshVariabilityPlot(PlotBaseMixin):
 
         if vmin_diff == vmax_diff:
             # TODO: discuss what should do here in this case.
-            self.logger.info("STD is Zero everywhere") 
+            self.logger.info("STD is Zero everywhere")
             fig, ax = plot_single_map(
                 dataset_diff,
+                contour=True,
                 return_fig=True,
                 title=title,
                 proj=proj,
@@ -429,6 +424,7 @@ class sshVariabilityPlot(PlotBaseMixin):
         else:
             fig, ax = plot_single_map(
                 diff_map,
+                contour=True,
                 return_fig=True,
                 title=title,
                 vmin=vmin_diff,
@@ -511,3 +507,100 @@ class sshVariabilityPlot(PlotBaseMixin):
         
         return area_selection(data, lon=lon_lim, lat=lat_lim, drop=True)
 
+
+#def area_selection(
+#    data=None,
+#    lat=None,
+#    lon=None,
+#    box_brd=True,
+#    drop=False,
+#    clip=False,
+#    **kwargs
+#):
+#    """
+#    Extract a custom area from a DataArray or Dataset.
+#    Sets other coordinates to NaN or drops them.
+#
+#    Works with lon in either 0–360 or −180–180 format.
+#
+#    Args:
+#        data (xr.DataArray | xr.Dataset): Input data
+#        lat (list): [lat_min, lat_max]
+#        lon (list): [lon_min, lon_max]
+#        box_brd (bool): Inclusive boundaries (default=True)
+#        drop (bool): Drop points outside region (default=False)
+#        clip (bool): Clip requested lat/lon to data bounds (default=False)
+#
+#    Returns:
+#        xr.DataArray | xr.Dataset: Data limited to the requested region
+#    """
+#
+#    # --- Basic validation ---
+#    if data is None:
+#        raise ValueError("data cannot be None")
+#
+#    if "lon" not in data.coords or "lat" not in data.coords:
+#        raise KeyError("Cannot find 'lon' and 'lat' in data coordinates")
+#
+#    if lat is None and lon is None:
+#        raise ValueError("Both lat and lon cannot be None")
+#
+#    # --- Normalize longitude to [0, 360) for consistency ---
+#    data = data.assign_coords(lon=(data.lon % 360))
+#    lon = [(l % 360) for l in lon]
+#
+#    # --- Ensure ascending latitude order ---
+#    if data.lat[0] > data.lat[-1]:
+#        data = data.sortby("lat")
+#
+#    # --- Bounds checking ---
+#    lat_min, lat_max = np.min(lat), np.max(lat)
+#    lon_min, lon_max = np.min(lon), np.max(lon)
+#
+#    lat_in_domain = (lat_max >= data.lat.min()) and (lat_min <= data.lat.max())
+#    lon_in_domain = (lon_max >= data.lon.min()) and (lon_min <= data.lon.max())
+#
+#    if not (lat_in_domain and lon_in_domain):
+#        warnings.warn(
+#            f"⚠️ Requested region [{lat_min}, {lat_max}] x [{lon_min}, {lon_max}] "
+#            f"is partially outside the data domain "
+#            f"({data.lat.min().item():.2f}, {data.lat.max().item():.2f}) x "
+#            f"({data.lon.min().item():.2f}, {data.lon.max().item():.2f})."
+#        )
+#
+#        if clip:
+#            lat_min = max(lat_min, data.lat.min().item())
+#            lat_max = min(lat_max, data.lat.max().item())
+#            lon_min = max(lon_min, data.lon.min().item())
+#            lon_max = min(lon_max, data.lon.max().item())
+#
+#    # --- Selection logic ---
+#    if box_brd:
+#        lat_condition = (data.lat >= lat_min) & (data.lat <= lat_max)
+#        # Handle across-Greenwich case
+#        if lon_min > lon_max:
+#            lon_condition = ((data.lon >= lon_min) & (data.lon <= 360)) | (
+#                (data.lon >= 0) & (data.lon <= lon_max)
+#            )
+#        else:
+#            lon_condition = (data.lon >= lon_min) & (data.lon <= lon_max)
+#    else:
+#        lat_condition = (data.lat > lat_min) & (data.lat < lat_max)
+#        if lon_min > lon_max:
+#            lon_condition = ((data.lon > lon_min) & (data.lon < 360)) | (
+#                (data.lon > 0) & (data.lon < lon_max)
+#            )
+#        else:
+#            lon_condition = (data.lon > lon_min) & (data.lon < lon_max)
+#
+#    # --- Apply mask ---
+#    data = data.where(lat_condition & lon_condition, drop=drop)
+#
+#    # --- Optional logging ---
+#    print(
+#        f"✅ Area selection: lat=[{lat_min}, {lat_max}], lon=[{lon_min}, {lon_max}] "
+#        f"→ shape ({data.lat.size}, {data.lon.size})"
+#    )
+#
+#    return data
+# 
