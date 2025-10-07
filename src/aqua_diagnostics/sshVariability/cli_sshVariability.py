@@ -175,7 +175,7 @@ if __name__ == "__main__":
                     "vmax": vmax,
                     "region": region_name,
                     "lon_limits": lon_limits,
-                    "lat_limits": lon_limits,
+                    "lat_limits": lat_limits,
                     "mask_northern_boundary": mask_northern_boundary,
                     "mask_southern_boundary": mask_southern_boundary,
                     "northern_boundary_latitude": northern_boundary_latitude,

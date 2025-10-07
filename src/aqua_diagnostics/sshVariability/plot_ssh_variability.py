@@ -54,6 +54,8 @@ class sshVariabilityPlot(PlotBaseMixin):
         startdate=None, 
         enddate=None, 
         plot_options={},
+        figsize: tuple = (11, 8.5),
+        ax_pos: tuple = (1, 1, 1),
         vmin=None,
         vmax=None,
         proj='robinson', 
@@ -140,7 +142,7 @@ class sshVariabilityPlot(PlotBaseMixin):
         description = (f"SSH Variability of {long_name} for {model} {exp} ({startdate} to {enddate}) ")
          
         if region is not None:
-            title = title + "{region} "
+            title = title + f"{region} "
             if lon_limits is None or lat_limits is None: self.logger.error(f"For the {region}, please specify the lon_limits and lat_limits.")
             description = description + f"for {region} "
             dataset_std = self.subregion_selection(
@@ -161,11 +163,14 @@ class sshVariabilityPlot(PlotBaseMixin):
             vmax = float(dataset_std.max(skipna=True))
 
         proj = get_projection(proj, **proj_params)
+        #fig = plt.figure(figsize=figsize)
+        #ax = fig.add_subplot(ax_pos[0], ax_pos[1], ax_pos[2], projection=proj)
         if vmin == vmax:
             self.logger.info("STD is Zero everywhere")
             fig, ax = plot_single_map(
+                #ax,
                 dataset_std,
-                contour=True,
+                contour=False,
                 return_fig=True,
                 title=title,
                 proj=proj,
@@ -175,8 +180,9 @@ class sshVariabilityPlot(PlotBaseMixin):
                 **plot_options,)
         else:
             fig, ax = plot_single_map(
+                #ax,
                 dataset_std,
-                contour=True,
+                contour=False,
                 return_fig=True,
                 title=title,
                 vmin=vmin,
@@ -239,7 +245,9 @@ class sshVariabilityPlot(PlotBaseMixin):
         model_ref=None,
         exp_ref=None,
         startdate_ref=None, 
-        enddate_ref=None, 
+        enddate_ref=None,
+        figsize: tuple = (11, 8.5),
+        ax_pos: tuple = (1, 1, 1),
         plot_options={},
         vmin_diff=None,
         vmax_diff=None,
@@ -349,10 +357,10 @@ class sshVariabilityPlot(PlotBaseMixin):
         description = (f"The difference of the SSH Variability of {long_name} for {model} {exp} ({startdate}-{enddate}) and, reference {catalog_ref} {model_ref} and {exp_ref} ({startdate_ref}-{enddate_ref}) ")
         
         if region:
-            title = title + "{region} "
+            title = title + f"{region} "
 
             if lon_limits is None or lat_limits is None: self.logger.error(f"For the {region}, please specify the lon_limits and lat_limits.")
-            description = description + "for {region} "
+            description = description + f"for {region} "
             dataset_std = self.subregion_selection(
                 data=dataset_std, 
                 model=model, 
@@ -399,10 +407,9 @@ class sshVariabilityPlot(PlotBaseMixin):
         if np.array_equal(np.nan_to_num(dataset_std.values), np.nan_to_num(dataset_std_ref.values)):
             self.logger.warning("The values are exactly the same (ignoring NaNs), no difference to plot")
 
-        if region is None:
-            proj = get_projection(proj, **proj_params)
-        else:
-            proj = None
+        proj = get_projection(proj, **proj_params)
+        #fig = plt.figure(figsize=figsize)
+        #ax = fig.add_subplot(ax_pos[0], ax_pos[1], ax_pos[2], projection=proj)
 
         if vmin_diff is None or (isinstance(vmin_diff, (float, int)) and np.isnan(vmin_diff)):
             vmin_diff = float(diff_map.min(skipna=True))
@@ -413,8 +420,9 @@ class sshVariabilityPlot(PlotBaseMixin):
             # TODO: discuss what should do here in this case.
             self.logger.info("STD is Zero everywhere")
             fig, ax = plot_single_map(
+                #ax,
                 dataset_diff,
-                contour=True,
+                contour=False,
                 return_fig=True,
                 title=title,
                 proj=proj,
@@ -423,8 +431,9 @@ class sshVariabilityPlot(PlotBaseMixin):
             )
         else:
             fig, ax = plot_single_map(
+                #ax,
                 diff_map,
-                contour=True,
+                contour=False,
                 return_fig=True,
                 title=title,
                 vmin=vmin_diff,
