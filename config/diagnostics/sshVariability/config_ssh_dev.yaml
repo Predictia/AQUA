@@ -42,14 +42,16 @@ diagnostics:
       default: 
         projection: 'robinson'
         projection_params: {}
-        vmin: 0
-        vmax: 1
+        vmin: 
+        vmax: 
         cmap: 'RdBu_r'
       # sub region selection 
       sub_region : 
         name: Agulhas
         lon_limits: [5, 50]
         lat_limits: [-10, -50]
+        projection: 'plate_carree'
+        projection_params: {}
       # ONLY FOR ICON: Flags for northern and southern boundaries to mask out specific latitudes.
       # As AVISO does not have data under the sea ice, which ICON does, 
       # to make the datasets comparable - SSH under sea ice for ICON can be masked out.
