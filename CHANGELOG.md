@@ -13,6 +13,7 @@ Workflow modifications:
 - `aqua-analysis.py` is now an entry point `aqua analysis` in the AQUA console, with the same syntax as before.
 
 AQUA core complete list:
+- Add updated grids conformal to OSI-SAF v3 (#2317)
 - Area selection is now a separate class, `AreaSelection` in the `aqua.fldstat` module (#2245)
 - Added graphical function for vertical profile plotting (#2314, #2316)
 - Added catgen support for storyline experiments (#2308)
