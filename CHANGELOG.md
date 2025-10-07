@@ -13,6 +13,7 @@ Workflow modifications:
 - `aqua-analysis.py` is now an entry point `aqua analysis` in the AQUA console, with the same syntax as before.
 
 AQUA core complete list:
+- Added catgen support for storyline experiments (#2308)
 - Pin maximum version of xarray (#2303)
 - CI/CD data now is read from aqua-dvc repository (#8370)
 - Histogram (or any callable function) possible through TimStat. New timhist method (#2263)
