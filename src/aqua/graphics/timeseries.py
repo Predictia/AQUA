@@ -109,6 +109,8 @@ def plot_timeseries(monthly_data: list[xr.DataArray] | xr.DataArray = None,
 
     if title:
         ax.set_title(title, fontsize=13, fontweight='bold')
+    else:
+        ax.set_title("")
 
     return fig, ax
 
@@ -183,8 +185,11 @@ def plot_seasonalcycle(data: list[xr.DataArray] | xr.DataArray,
     ax.set_xlim(0.5, 12.5)
     ax.set_axisbelow(True)
     ax.grid(True, axis="y", linestyle='-', color='silver', alpha=0.8)
+
     if title is not None:
         ax.set_title(title, fontsize=13, fontweight='bold')
+    else:
+        ax.set_title("")
 
     return fig, ax
 
