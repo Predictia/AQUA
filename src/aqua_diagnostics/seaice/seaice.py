@@ -6,7 +6,7 @@ from aqua.exceptions import NoDataError
 from aqua.logger import log_configure, log_history
 from aqua.util import to_list, merge_attrs
 from aqua.diagnostics.seaice.util import ensure_istype
-from aqua.diagnostics.fldstat import FldStat
+from aqua.fldstat import FldStat
 
 xr.set_options(keep_attrs=True)
 
@@ -317,6 +317,9 @@ class SeaIce(Diagnostic):
             areacello = areacello['cell_area']
         else:
             areacello = areacello.to_array().squeeze()
+            # Ensure the DataArray has a proper name for GridInspector
+            if areacello.name is None:
+                areacello.name = 'cell_area'
 
         return areacello, space_coord
 
@@ -369,6 +372,10 @@ class SeaIce(Diagnostic):
         """
         areacello, space_coord = self.get_area_cells_and_coords(masked_data)
         areacello = self.select_region_area_cell(areacello, region)
+        
+        # Select the region for masked_data to match the regionally-selected areacello
+        masked_data_region = self._select_region(masked_data, region=region, diagnostic='seaice').get('data')
+
 
         self.logger.info(f'Computing sea ice {self.method} for {region}')
 
@@ -377,14 +384,13 @@ class SeaIce(Diagnostic):
         else:
             grid_name = self.reader.src_grid_name
 
-        # Create FldStat instance with the regional area cells
-        fldstat = FldStat(area=areacello, horizontal_dims=space_coord, 
-                          grid_name=grid_name, loglevel=self.loglevel)
+        si_fldstat = FldStat(area=areacello, horizontal_dims=space_coord, 
+                             grid_name=grid_name, loglevel=self.loglevel)
 
         if self.method == 'extent':
             # compute sea ice extent: exclude areas with no sea ice and sum over the spatial dimension, divide by 1e12 to convert to million km^2
             # seaice_integrated = areacello.where(masked_data.notnull()).sum(skipna = True, min_count = 1, dim=space_coord) / 1e12
-            seaice_integrated = fldstat.fldstat(masked_data, stat='areasum', dims=space_coord) / 1e12
+            seaice_integrated = si_fldstat.fldstat(masked_data_region.notnull(), stat='areasum', dims=space_coord) / 1e12
         if self.method == 'volume':
             # compute sea ice volume: exclude areas with no sea ice
             # area_weighted_volume = masked_data * areacello.where(masked_data.notnull())
@@ -396,7 +402,7 @@ class SeaIce(Diagnostic):
             # # sum over the spatial dimension, divide by 1e12 to convert to thousand km^3
             # seaice_integrated = area_weighted_volume.sum(skipna = True, min_count = 1, dim=space_coord) / 1e12
 
-            seaice_integrated = fldstat.fldstat(masked_data, stat='integral', dims=space_coord) / 1e12
+            seaice_integrated = si_fldstat.fldstat(masked_data_region, stat='integral', dims=space_coord) / 1e12
 
         # ensure masked_data attrs are present
         merge_attrs(seaice_integrated.attrs, masked_data.attrs)
