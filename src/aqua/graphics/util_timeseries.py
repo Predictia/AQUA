@@ -20,19 +20,22 @@ def plot_timeseries_data(ax: plt.Axes,
         data_labels (str | list[str], optional): Labels for the data.
         lw (float, optional): Line width. Default is 1.5.
         realization (bool, optional): Whether the data is a realization. Default is False.
-        kind (str, optional): 'monthly' or 'annual'. Determines label suffix and line style.
+        kind (str, optional): 'monthly' or 'annual'. Determines the line style.
+        colors (list[str], optional): List of colors to use for the lines.
+    
+    Returns:
+        list[plt.Line2D]: List of Line2D objects representing the plotted lines.
     """
     data = to_list(data)
     data_labels = to_list(data_labels) if data_labels is not None else None
 
     linestyle = '-' if kind == 'monthly' else '--'
-    suffix = f' {kind}' if kind in ['monthly', 'annual'] else ''
     lines = []
 
     for i in range(len(data)):
         da = data[i]
         if data_labels and not realization:
-            label = data_labels[i] + suffix
+            label = data_labels[i]
         else:
             label = None
 
