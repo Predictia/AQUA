@@ -10,6 +10,7 @@ Unreleased in the current development version (target v0.19.0):
 AQUA core complete list:
 
 AQUA diagnostics complete list:
+- Implement `fldstat` methods in Seaice diagnostics (#2297)
 - Gregory: more detailed description and plot labels (#2306)
 
 ## [v0.18.0]
