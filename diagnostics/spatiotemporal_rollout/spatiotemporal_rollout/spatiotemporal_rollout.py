@@ -144,6 +144,14 @@ class SpatiotemporalRollout:
                     data_ref = self.reader_data_ref.retrieve(**retrieve_args)
                     if level is not None and "plev" in data_ref.coords:
                         data_ref = data_ref.isel(plev=0, drop=True)
+                    # Apply regridding if configured
+                    if self.reader_data_ref.tgt_grid_name is not None:
+                        self.logger.debug(
+                            "Applying regridding to reference data for %s to %s",
+                            var_name,
+                            self.reader_data_ref.tgt_grid_name,
+                        )
+                        data_ref = self.reader_data_ref.regrid(data_ref)
                     self.retrieved_data_ref[key] = data_ref
                 except Exception as exc:
                     self.logger.error("Failed to retrieve reference data for %s: %s", key, exc, exc_info=True)
@@ -153,6 +161,14 @@ class SpatiotemporalRollout:
                     data = self.reader_data.retrieve(**retrieve_args)
                     if level is not None and "plev" in data.coords:
                         data = data.isel(plev=0, drop=True)
+                    # Apply regridding if configured
+                    if self.reader_data.tgt_grid_name is not None:
+                        self.logger.debug(
+                            "Applying regridding to prediction data for %s to %s",
+                            var_name,
+                            self.reader_data.tgt_grid_name,
+                        )
+                        data = self.reader_data.regrid(data)
                     self.retrieved_data[key] = data
                 except Exception as exc:
                     self.logger.error("Failed to retrieve prediction data for %s: %s", key, exc, exc_info=True)
@@ -166,6 +182,11 @@ class SpatiotemporalRollout:
             self.logger.warning("Dropped variables with incomplete data: %s", sorted(missing))
 
         self.logger.info("Retrieved data for keys: %s", sorted(self.retrieved_data.keys()))
+        # Log regridding information
+        if self.reader_data_ref.tgt_grid_name is not None:
+            self.logger.info(f"Reference data regridded to: {self.reader_data_ref.tgt_grid_name}")
+        if self.reader_data.tgt_grid_name is not None:
+            self.logger.info(f"Prediction data regridded to: {self.reader_data.tgt_grid_name}")
 
     def generate_videos(self) -> Dict[str, str]:
         """Generate rollout videos for each retrieved variable.

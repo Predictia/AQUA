@@ -4,13 +4,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 import numpy.fft as fft
 
+try:
+    import healpy as hp
+except ImportError:
+    hp = None
+
 from aqua.logger import log_configure
 from aqua.util import load_yaml
 from aqua.reader import Reader
 
 
 class PSD:
-    """Power Spectral Density (PSD) diagnostic"""
+    """Power Spectral Density (PSD) diagnostic
+    
+    Supports both regular lat-lon grids (using FFT) and HEALPix grids (using spherical harmonics).
+    Automatically detects the grid type and uses the appropriate method.
+    """
 
     def __init__(self, config, loglevel: str = 'WARNING'):
         """Initialize the PSD diagnostic class."""
@@ -66,19 +75,21 @@ class PSD:
 
                 try:
                     self.logger.debug(f"Retrieving reference data for {var_name}{log_msg_suffix}")
-                    # data_ref = self.reader_data_ref.retrieve(**retrieve_args).sel(plev=level, drop=True) if level is not None and 'plev' in self.reader_data_ref.retrieve(**retrieve_args).coords else self.reader_data_ref.retrieve(**retrieve_args)
-                    if level is not None and 'plev' in self.reader_data_ref.retrieve(**retrieve_args).coords:
-                        data_ref = self.reader_data_ref.retrieve(**retrieve_args).isel(plev=0, drop=True)
-                    else:
-                        data_ref = self.reader_data_ref.retrieve(**retrieve_args)
+                    data_ref = self.reader_data_ref.retrieve(**retrieve_args)
+                    if level is not None and 'plev' in data_ref.coords:
+                        data_ref = data_ref.isel(plev=0, drop=True)
+                    if getattr(self.reader_data_ref, 'tgt_grid_name', None):
+                        self.logger.debug(f"Regridding reference data for {var_name}{log_msg_suffix} to {self.reader_data_ref.tgt_grid_name}")
+                        data_ref = self.reader_data_ref.regrid(data_ref)
                     self.retrieved_data_ref[data_key] = data_ref
 
                     self.logger.debug(f"Retrieving main data for {var_name}{log_msg_suffix}")
-                    # data = self.reader_data.retrieve(**retrieve_args).sel(plev=level, drop=True) if level is not None and 'plev' in self.reader_data.retrieve(**retrieve_args).coords else self.reader_data.retrieve(**retrieve_args)
-                    if level is not None and 'plev' in self.reader_data.retrieve(**retrieve_args).coords:
-                        data = self.reader_data.retrieve(**retrieve_args).isel(plev=0, drop=True)
-                    else:
-                        data = self.reader_data.retrieve(**retrieve_args)
+                    data = self.reader_data.retrieve(**retrieve_args)
+                    if level is not None and 'plev' in data.coords:
+                        data = data.isel(plev=0, drop=True)
+                    if getattr(self.reader_data, 'tgt_grid_name', None):
+                        self.logger.debug(f"Regridding main data for {var_name}{log_msg_suffix} to {self.reader_data.tgt_grid_name}")
+                        data = self.reader_data.regrid(data)
                     self.retrieved_data[data_key] = data
                 except Exception as e:
                     self.logger.error(f"Failed to retrieve data for {data_key}: {e}", exc_info=True)
@@ -104,6 +115,100 @@ class PSD:
         radial_profile = np.divide(tbin, nr, out=np.zeros_like(tbin, dtype=float), where=nr!=0)
         
         return radial_profile
+
+    def _get_healpix_dim(self, data_da):
+        """Get the HEALPix dimension from a DataArray."""
+        candidate_dims = ("ncells", "cell")
+        for dim in candidate_dims:
+            if dim in data_da.dims:
+                if hp is None:
+                    return dim
+                if hp.isnpixok(data_da.sizes[dim]):
+                    return dim
+        if hp is None:
+            return None
+        for dim in data_da.dims:
+            if hp.isnpixok(data_da.sizes[dim]):
+                return dim
+        return None
+
+    def _detect_healpix_order(self, data_da, healpix_dim=None, reader=None):
+        # helper to read ordering metadata
+        def parse_order(value):
+            if not value:
+                return None
+            value = str(value).lower()
+            if "nest" in value:
+                return "nested"
+            if "ring" in value:
+                return "ring"
+            return None
+
+        sources = [getattr(data_da, "attrs", {}), getattr(data_da, "encoding", {})]
+        if healpix_dim and healpix_dim in data_da.coords:
+            sources.append(getattr(data_da.coords[healpix_dim], "attrs", {}))
+
+        for attrs in sources:
+            for key in ("healpix_order", "healpix_ordering", "ordering", "order", "nest"):
+                order = parse_order(attrs.get(key))
+                if order:
+                    return order
+
+        order = parse_order(data_da.attrs.get("grid"))
+        if order:
+            return order
+
+        if reader is not None:
+            for attr in ("src_grid_name", "tgt_grid_name"):
+                order = parse_order(getattr(reader, attr, None))
+                if order:
+                    return order
+
+        return None
+
+    def _is_healpix_data(self, data_da):
+        """Check if data is on a HEALPix grid."""
+        if self._get_healpix_dim(data_da):
+            return True
+        grid_attr = str(data_da.attrs.get("grid", "")).lower()
+        if "healpix" in grid_attr:
+            return True
+        grid_attr = str(data_da.attrs.get("AQUA_grid", "")).lower()
+        if "healpix" in grid_attr:
+            return True
+        for reader in (getattr(self, "reader_data", None), getattr(self, "reader_data_ref", None)):
+            grid_name = getattr(reader, "src_grid_name", None)
+            if grid_name and "hp" in grid_name.lower():
+                return True
+        return False
+
+    def _prepare_healpix_maps(self, data_da, reader=None, replace_nans=False):
+        """Prepare HEALPix maps for spherical harmonic analysis."""
+        if hp is None:
+            raise ImportError("healpy is required to process HEALPix grids.")
+        healpix_dim = self._get_healpix_dim(data_da)
+        if healpix_dim is None:
+            raise ValueError("Could not identify the HEALPix dimension.")
+        order = [dim for dim in data_da.dims if dim != healpix_dim] + [healpix_dim]
+        arr = data_da.transpose(*order).values
+        if arr.ndim == 1:
+            arr = arr[np.newaxis, :]
+        else:
+            arr = arr.reshape(-1, arr.shape[-1])
+        if replace_nans:
+            arr = np.nan_to_num(arr, nan=0.0)
+
+        healpix_order = self._detect_healpix_order(data_da, healpix_dim=healpix_dim, reader=reader)
+        if healpix_order == "nested":
+            self.logger.debug("Detected nested HEALPix ordering; converting to ring.")
+            arr = np.asarray([hp.reorder(m, n2r=True) for m in arr])
+        elif healpix_order is None:
+            self.logger.debug("Could not determine HEALPix ordering; assuming ring.")
+        elif healpix_order != "ring":
+            self.logger.warning("Unknown HEALPix ordering '%s'; assuming ring ordering.", healpix_order)
+
+        nside = hp.npix2nside(arr.shape[-1])
+        return arr, nside
 
     def _parse_processed_key(self, processed_key):
         parts = processed_key.split('_')
@@ -188,6 +293,14 @@ class PSD:
             data_da = self.retrieved_data[key][base_var]
             data_ref_da = self.retrieved_data_ref[key][base_var]
 
+            # Detect HEALPix grid
+            is_healpix = self._is_healpix_data(data_da)
+            if is_healpix and not self._is_healpix_data(data_ref_da):
+                self.logger.warning("Reference data is not on the same HEALPix grid; falling back to FFT PSD.")
+                is_healpix = False
+            if is_healpix:
+                self.logger.info("  Detected HEALPix grid; using spherical harmonics.")
+
             # Check for nans in the data
             has_nans = np.isnan(data_da.values).any()
             if has_nans:
@@ -202,43 +315,76 @@ class PSD:
                 try:
                     self.logger.info(f"  Calculating time-averaged PSD for {key}...")
                     
-                    data_np = data_da.values
-                    data_np = np.nan_to_num(data_np, nan=0.0) if has_nans else data_np
+                    if is_healpix:
+                        if hp is None:
+                            raise ImportError("healpy is required to process HEALPix grids.")
+                        maps_target, nside_target = self._prepare_healpix_maps(
+                            data_da, reader=self.reader_data, replace_nans=has_nans)
+                        maps_ref, nside_ref = self._prepare_healpix_maps(
+                            data_ref_da, reader=self.reader_data_ref, replace_nans=has_nans_ref)
+                        lmax = min(3 * nside_target - 1, 3 * nside_ref - 1)
+                        psd_target_stack = [hp.anafast(m, lmax=lmax) for m in maps_target]
+                        psd_ref_stack = [hp.anafast(m, lmax=lmax) for m in maps_ref]
+                        avg_psd_1d = np.mean(psd_target_stack, axis=0)
+                        avg_psd_1d_ref = np.mean(psd_ref_stack, axis=0)
 
-                    fft_2d_stack = fft.fft2(data_np, axes=(-2, -1))
-                    shifted_fft_stack = fft.fftshift(fft_2d_stack, axes=(-2, -1))
-                    power_2d_stack = np.abs(shifted_fft_stack)**2
-                    psd_1d_list = [self._radial_average(power_2d) for power_2d in power_2d_stack]
-                    avg_psd_1d = np.mean(psd_1d_list, axis=0)
+                        fig, ax = plt.subplots(figsize=(10, 6))
+                        ell = np.arange(len(avg_psd_1d))
+                        ell_ref = np.arange(len(avg_psd_1d_ref))
+                        ax.loglog(ell, avg_psd_1d, label=f"{data_cfg.get('model', 'Target')}")
+                        ax.loglog(ell_ref, avg_psd_1d_ref, label=f"{ref_cfg.get('model', 'Reference')}", linestyle='--')
+                        ax.set_xlabel("Spherical harmonic degree (l)")
+                        ax.set_ylabel("Power Spectral Density")
+                        ax.set_title(f"Time-Averaged Power Spectrum: {base_var}" + (f" at level {level}" if level else ""))
+                        ax.legend()
+                        ax.grid(True, which="both", ls="-", alpha=0.5)
+                        fig.tight_layout()
 
-                    data_ref_np = data_ref_da.values
-                    data_ref_np = np.nan_to_num(data_ref_np, nan=0.0) if has_nans_ref else data_ref_np
+                        max_len = max(len(avg_psd_1d), len(avg_psd_1d_ref))
+                        wavenumbers = np.arange(max_len)
+                        psd_ds = xr.Dataset({
+                            'psd_target': (('wavenumber'), np.pad(avg_psd_1d, (0, max_len - len(avg_psd_1d)), 'constant', constant_values=np.nan)),
+                            'psd_reference': (('wavenumber'), np.pad(avg_psd_1d_ref, (0, max_len - len(avg_psd_1d_ref)), 'constant', constant_values=np.nan)),
+                        }, coords={'wavenumber': wavenumbers})
+                        results['time_averaged_psd'][key] = (fig, ax, psd_ds)
+                    else:
+                        data_np = data_da.values
+                        data_np = np.nan_to_num(data_np, nan=0.0) if has_nans else data_np
 
-                    fft_2d_stack_ref = fft.fft2(data_ref_np, axes=(-2, -1))
-                    shifted_fft_stack_ref = fft.fftshift(fft_2d_stack_ref, axes=(-2, -1))
-                    power_2d_stack_ref = np.abs(shifted_fft_stack_ref)**2
-                    psd_1d_ref_list = [self._radial_average(power_2d) for power_2d in power_2d_stack_ref]
-                    avg_psd_1d_ref = np.mean(psd_1d_ref_list, axis=0)
+                        fft_2d_stack = fft.fft2(data_np, axes=(-2, -1))
+                        shifted_fft_stack = fft.fftshift(fft_2d_stack, axes=(-2, -1))
+                        power_2d_stack = np.abs(shifted_fft_stack)**2
+                        psd_1d_list = [self._radial_average(power_2d) for power_2d in power_2d_stack]
+                        avg_psd_1d = np.mean(psd_1d_list, axis=0)
 
-                    fig, ax = plt.subplots(figsize=(10, 6))
-                    wavenumber = np.arange(len(avg_psd_1d))
-                    wavenumber_ref = np.arange(len(avg_psd_1d_ref))
-                    ax.loglog(wavenumber, avg_psd_1d, label=f"{data_cfg.get('model', 'Target')}")
-                    ax.loglog(wavenumber_ref, avg_psd_1d_ref, label=f"{ref_cfg.get('model', 'Reference')}", linestyle='--')
-                    ax.set_xlabel("Wavenumber")
-                    ax.set_ylabel("Power Spectral Density")
-                    ax.set_title(f"Time-Averaged Power Spectrum: {base_var}" + (f" at level {level}" if level else ""))
-                    ax.legend()
-                    ax.grid(True, which="both", ls="-", alpha=0.5)
-                    fig.tight_layout()
+                        data_ref_np = data_ref_da.values
+                        data_ref_np = np.nan_to_num(data_ref_np, nan=0.0) if has_nans_ref else data_ref_np
 
-                    max_len = max(len(avg_psd_1d), len(avg_psd_1d_ref))
-                    wavenumbers = np.arange(max_len)
-                    psd_ds = xr.Dataset({
-                        'psd_target': (('wavenumber'), np.pad(avg_psd_1d, (0, max_len - len(avg_psd_1d)), 'constant', constant_values=np.nan)),
-                        'psd_reference': (('wavenumber'), np.pad(avg_psd_1d_ref, (0, max_len - len(avg_psd_1d_ref)), 'constant', constant_values=np.nan)),
-                    }, coords={'wavenumber': wavenumbers})
-                    results['time_averaged_psd'][key] = (fig, ax, psd_ds)
+                        fft_2d_stack_ref = fft.fft2(data_ref_np, axes=(-2, -1))
+                        shifted_fft_stack_ref = fft.fftshift(fft_2d_stack_ref, axes=(-2, -1))
+                        power_2d_stack_ref = np.abs(shifted_fft_stack_ref)**2
+                        psd_1d_ref_list = [self._radial_average(power_2d) for power_2d in power_2d_stack_ref]
+                        avg_psd_1d_ref = np.mean(psd_1d_ref_list, axis=0)
+
+                        fig, ax = plt.subplots(figsize=(10, 6))
+                        wavenumber = np.arange(len(avg_psd_1d))
+                        wavenumber_ref = np.arange(len(avg_psd_1d_ref))
+                        ax.loglog(wavenumber, avg_psd_1d, label=f"{data_cfg.get('model', 'Target')}")
+                        ax.loglog(wavenumber_ref, avg_psd_1d_ref, label=f"{ref_cfg.get('model', 'Reference')}", linestyle='--')
+                        ax.set_xlabel("Wavenumber")
+                        ax.set_ylabel("Power Spectral Density")
+                        ax.set_title(f"Time-Averaged Power Spectrum: {base_var}" + (f" at level {level}" if level else ""))
+                        ax.legend()
+                        ax.grid(True, which="both", ls="-", alpha=0.5)
+                        fig.tight_layout()
+
+                        max_len = max(len(avg_psd_1d), len(avg_psd_1d_ref))
+                        wavenumbers = np.arange(max_len)
+                        psd_ds = xr.Dataset({
+                            'psd_target': (('wavenumber'), np.pad(avg_psd_1d, (0, max_len - len(avg_psd_1d)), 'constant', constant_values=np.nan)),
+                            'psd_reference': (('wavenumber'), np.pad(avg_psd_1d_ref, (0, max_len - len(avg_psd_1d_ref)), 'constant', constant_values=np.nan)),
+                        }, coords={'wavenumber': wavenumbers})
+                        results['time_averaged_psd'][key] = (fig, ax, psd_ds)
 
                 except Exception as e:
                     self.logger.error(f"Failed to process time-averaged PSD for key {key}: {e}", exc_info=True)
@@ -248,33 +394,66 @@ class PSD:
                 try:
                     self.logger.info(f"  Calculating PSD of time-mean for {key}...")
 
-                    data_mean = self.reader_data.timmean(data_da).values
-                    data_mean = np.nan_to_num(data_mean, nan=0.0) if has_nans else data_mean
-                    psd_1d = self._radial_average(np.abs(fft.fftshift(fft.fft2(data_mean)))**2)
+                    if is_healpix:
+                        if hp is None:
+                            raise ImportError("healpy is required to process HEALPix grids.")
+                        data_mean = self.reader_data.timmean(data_da)
+                        data_ref_mean = self.reader_data_ref.timmean(data_ref_da)
+                        maps_mean, nside_mean = self._prepare_healpix_maps(
+                            data_mean, reader=self.reader_data, replace_nans=has_nans)
+                        maps_ref_mean, nside_ref_mean = self._prepare_healpix_maps(
+                            data_ref_mean, reader=self.reader_data_ref, replace_nans=has_nans_ref)
+                        lmax = min(3 * nside_mean - 1, 3 * nside_ref_mean - 1)
+                        psd_1d = hp.anafast(maps_mean[0], lmax=lmax)
+                        psd_1d_ref = hp.anafast(maps_ref_mean[0], lmax=lmax)
 
-                    data_ref_mean = self.reader_data_ref.timmean(data_ref_da).values
-                    data_ref_mean = np.nan_to_num(data_ref_mean, nan=0.0) if has_nans_ref else data_ref_mean
-                    psd_1d_ref = self._radial_average(np.abs(fft.fftshift(fft.fft2(data_ref_mean)))**2)
+                        fig, ax = plt.subplots(figsize=(10, 6))
+                        ell = np.arange(len(psd_1d))
+                        ell_ref = np.arange(len(psd_1d_ref))
+                        ax.loglog(ell, psd_1d, label=f"{data_cfg.get('model', 'Target')}")
+                        ax.loglog(ell_ref, psd_1d_ref, label=f"{ref_cfg.get('model', 'Reference')}", linestyle='--')
+                        ax.set_xlabel("Spherical harmonic degree (l)")
+                        ax.set_ylabel("Power Spectral Density")
+                        ax.set_title(f"Power Spectrum of Time-Mean: {base_var}" + (f" at level {level}" if level else ""))
+                        ax.legend()
+                        ax.grid(True, which="both", ls="-", alpha=0.5)
+                        fig.tight_layout()
 
-                    fig, ax = plt.subplots(figsize=(10, 6))
-                    wavenumber = np.arange(len(psd_1d))
-                    wavenumber_ref = np.arange(len(psd_1d_ref))
-                    ax.loglog(wavenumber, psd_1d, label=f"{data_cfg.get('model', 'Target')}")
-                    ax.loglog(wavenumber_ref, psd_1d_ref, label=f"{ref_cfg.get('model', 'Reference')}", linestyle='--')
-                    ax.set_xlabel("Wavenumber")
-                    ax.set_ylabel("Power Spectral Density")
-                    ax.set_title(f"Power Spectrum of Time-Mean: {base_var}" + (f" at level {level}" if level else ""))
-                    ax.legend()
-                    ax.grid(True, which="both", ls="-", alpha=0.5)
-                    fig.tight_layout()
+                        max_len = max(len(psd_1d), len(psd_1d_ref))
+                        wavenumbers = np.arange(max_len)
+                        psd_ds = xr.Dataset({
+                            'psd_target': (('wavenumber'), np.pad(psd_1d, (0, max_len - len(psd_1d)), 'constant', constant_values=np.nan)),
+                            'psd_reference': (('wavenumber'), np.pad(psd_1d_ref, (0, max_len - len(psd_1d_ref)), 'constant', constant_values=np.nan)),
+                        }, coords={'wavenumber': wavenumbers})
+                        results['psd_of_time_mean'][key] = (fig, ax, psd_ds)
+                    else:
+                        data_mean = self.reader_data.timmean(data_da).values
+                        data_mean = np.nan_to_num(data_mean, nan=0.0) if has_nans else data_mean
+                        psd_1d = self._radial_average(np.abs(fft.fftshift(fft.fft2(data_mean)))**2)
 
-                    max_len = max(len(psd_1d), len(psd_1d_ref))
-                    wavenumbers = np.arange(max_len)
-                    psd_ds = xr.Dataset({
-                        'psd_target': (('wavenumber'), np.pad(psd_1d, (0, max_len - len(psd_1d)), 'constant', constant_values=np.nan)),
-                        'psd_reference': (('wavenumber'), np.pad(psd_1d_ref, (0, max_len - len(psd_1d_ref)), 'constant', constant_values=np.nan)),
-                    }, coords={'wavenumber': wavenumbers})
-                    results['psd_of_time_mean'][key] = (fig, ax, psd_ds)
+                        data_ref_mean = self.reader_data_ref.timmean(data_ref_da).values
+                        data_ref_mean = np.nan_to_num(data_ref_mean, nan=0.0) if has_nans_ref else data_ref_mean
+                        psd_1d_ref = self._radial_average(np.abs(fft.fftshift(fft.fft2(data_ref_mean)))**2)
+
+                        fig, ax = plt.subplots(figsize=(10, 6))
+                        wavenumber = np.arange(len(psd_1d))
+                        wavenumber_ref = np.arange(len(psd_1d_ref))
+                        ax.loglog(wavenumber, psd_1d, label=f"{data_cfg.get('model', 'Target')}")
+                        ax.loglog(wavenumber_ref, psd_1d_ref, label=f"{ref_cfg.get('model', 'Reference')}", linestyle='--')
+                        ax.set_xlabel("Wavenumber")
+                        ax.set_ylabel("Power Spectral Density")
+                        ax.set_title(f"Power Spectrum of Time-Mean: {base_var}" + (f" at level {level}" if level else ""))
+                        ax.legend()
+                        ax.grid(True, which="both", ls="-", alpha=0.5)
+                        fig.tight_layout()
+
+                        max_len = max(len(psd_1d), len(psd_1d_ref))
+                        wavenumbers = np.arange(max_len)
+                        psd_ds = xr.Dataset({
+                            'psd_target': (('wavenumber'), np.pad(psd_1d, (0, max_len - len(psd_1d)), 'constant', constant_values=np.nan)),
+                            'psd_reference': (('wavenumber'), np.pad(psd_1d_ref, (0, max_len - len(psd_1d_ref)), 'constant', constant_values=np.nan)),
+                        }, coords={'wavenumber': wavenumbers})
+                        results['psd_of_time_mean'][key] = (fig, ax, psd_ds)
 
                 except Exception as e:
                     self.logger.error(f"Failed to process PSD of time-mean for key {key}: {e}", exc_info=True)

@@ -19,6 +19,7 @@ import xarray as xr
 from aqua.logger import log_configure
 from aqua.reader import Reader
 from aqua.util import load_yaml
+from smmregrid import GridInspector
 
 
 class Rollout:
@@ -95,7 +96,9 @@ class Rollout:
         )
 
     def retrieve(self) -> None:
-        """Retrieve all variables defined in the configuration."""
+        """Retrieve all variables defined in the configuration.
+        If regridding is configured, data will be regridded automatically after retrieval.
+        """
 
         variables = self.config.get("variables", [])
         if not variables:
@@ -123,6 +126,10 @@ class Rollout:
                     data_ref = self.reader_data_ref.retrieve(**retrieve_args)
                     if level is not None and "plev" in data_ref.coords:
                         data_ref = data_ref.isel(plev=0, drop=True)
+                    # Apply regridding if configured
+                    if self.reader_data_ref.tgt_grid_name is not None:
+                        self.logger.debug(f"Applying regridding to reference data for {key}")
+                        data_ref = self.reader_data_ref.regrid(data_ref)
                     self.retrieved_data_ref[key] = data_ref
                     self.logger.debug("Retrieved reference data for %s", key)
                 except Exception as exc:  # pragma: no cover - retrieval depends on I/O
@@ -135,6 +142,10 @@ class Rollout:
                     data = self.reader_data.retrieve(**retrieve_args)
                     if level is not None and "plev" in data.coords:
                         data = data.isel(plev=0, drop=True)
+                    # Apply regridding if configured
+                    if self.reader_data.tgt_grid_name is not None:
+                        self.logger.debug(f"Applying regridding to experiment data for {key}")
+                        data = self.reader_data.regrid(data)
                     self.retrieved_data[key] = data
                     self.logger.debug("Retrieved experiment data for %s", key)
                 except Exception as exc:  # pragma: no cover - retrieval depends on I/O
@@ -151,6 +162,11 @@ class Rollout:
             self.logger.warning("Dropped variables with incomplete data: %s", sorted(missing))
 
         self.logger.info("Retrieved data for keys: %s", sorted(self.retrieved_data.keys()))
+        # Log regridding information
+        if self.reader_data_ref.tgt_grid_name is not None:
+            self.logger.info(f"Reference data regridded to: {self.reader_data_ref.tgt_grid_name}")
+        if self.reader_data.tgt_grid_name is not None:
+            self.logger.info(f"Experiment data regridded to: {self.reader_data.tgt_grid_name}")
 
     def compute_rollout(
         self, save_fig: bool = True, save_data: bool = False
@@ -180,8 +196,55 @@ class Rollout:
                 )
                 continue
 
-            ts_target = self.reader_data_ref.fldmean(data_ref)
-            ts_exp = self.reader_data.fldmean(data)
+            # Identify horizontal dimensions for spatial averaging
+            fldmean_kwargs = {}
+            horizontal_dims = []
+            try:
+                grid_types = GridInspector(data).get_gridtype()
+                if grid_types:
+                    horizontal_dims = [dim for dim in grid_types[0].horizontal_dims if dim in data.dims]
+                    if not horizontal_dims:
+                        self.logger.warning(
+                            "GridInspector did not return usable horizontal dims for %s. Falling back to non-time dims.",
+                            key,
+                        )
+            except Exception as exc:
+                self.logger.warning(
+                    "Could not infer horizontal dims for fldmean on %s: %s",
+                    key,
+                    exc,
+                )
+
+            if horizontal_dims:
+                fldmean_kwargs["dims"] = horizontal_dims
+                # Synchronise the underlying FldStat horizontal dims with the data
+                fldstat_obj_data = self.reader_data.tgt_fldstat or self.reader_data.src_fldstat
+                if fldstat_obj_data is not None:
+                    fldstat_obj_data.horizontal_dims = horizontal_dims
+                fldstat_obj_ref = self.reader_data_ref.tgt_fldstat or self.reader_data_ref.src_fldstat
+                if fldstat_obj_ref is not None:
+                    fldstat_obj_ref.horizontal_dims = horizontal_dims
+            
+            self.logger.debug(f"Using fldmean_kwargs for {key}: {fldmean_kwargs}")
+            ts_target = self.reader_data_ref.fldmean(data_ref, **fldmean_kwargs)
+            ts_exp = self.reader_data.fldmean(data, **fldmean_kwargs)
+
+            # Ensure residual spatial dims are collapsed (e.g. ncells)
+            for dim in horizontal_dims:
+                if dim in ts_target.dims:
+                    self.logger.debug(
+                        "Residual dimension %s present after fldmean for %s (target). Applying mean.",
+                        dim,
+                        key,
+                    )
+                    ts_target = ts_target.mean(dim=dim)
+                if dim in ts_exp.dims:
+                    self.logger.debug(
+                        "Residual dimension %s present after fldmean for %s (experiment). Applying mean.",
+                        dim,
+                        key,
+                    )
+                    ts_exp = ts_exp.mean(dim=dim)
 
             try:
                 ts_target = ts_target.sel(time=slice(self.startdate, self.enddate))

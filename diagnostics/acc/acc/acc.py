@@ -3,6 +3,7 @@ import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from smmregrid import GridInspector
 from aqua.logger import log_configure
 from aqua.util import load_yaml
 from aqua.reader import Reader
@@ -176,12 +177,9 @@ class ACC:
                     if level is not None and 'plev' in data_ref.coords:
                         data_ref = data_ref.isel(plev=0, drop=True)
 
-                    # if level is not None and 'plev' in data_ref.coords:
-                    #      if level in data_ref['plev']:
-                    #          data_ref = data_ref.sel(plev=level, drop=True) # drop=True removes plev coord
-                    #      else:
-                    #          self.logger.warning(f"Level {level} not found in reference data for {var_name}. Skipping this level.")
-                    #          continue # Skip to next level or variable
+                    if self.reader_data_ref.tgt_grid_name is not None:
+                        self.logger.debug(f"Applying regridding to reference data for {var_name}{log_msg_suffix}")
+                        data_ref = self.reader_data_ref.regrid(data_ref)
 
                     self.retrieved_data_ref[data_key] = data_ref
                     ref_ok = True
@@ -198,15 +196,9 @@ class ACC:
                     if level is not None and 'plev' in data.coords:
                         data = data.isel(plev=0, drop=True)
 
-                    # if level is not None and 'plev' in data.coords:
-                    #      if level in data['plev']:
-                    #         data = data.sel(plev=level, drop=True)
-                    #      else:
-                    #          self.logger.warning(f"Level {level} not found in main data for {var_name}. Skipping this level.")
-                    #          # Clean up ref data if main data failed for this level
-                    #          if data_key in self.retrieved_data_ref:
-                    #              del self.retrieved_data_ref[data_key]
-                    #          continue # Skip to next level or variable
+                    if self.reader_data.tgt_grid_name is not None:
+                        self.logger.debug(f"Applying regridding to main data for {var_name}{log_msg_suffix}")
+                        data = self.reader_data.regrid(data)
 
                     self.retrieved_data[data_key] = data
                     data_ok = True
@@ -226,6 +218,10 @@ class ACC:
                         data_clim = data_clim.isel(plev=0, drop=True)
 
                     # if level is not None: data_clim = data_clim.sel(plev=level, drop=True)
+                    if self.reader_climatology.tgt_grid_name is not None:
+                        self.logger.debug(f"Applying regridding to climatology data for {var_name}{log_msg_suffix}")
+                        data_clim = self.reader_climatology.regrid(data_clim)
+
                     self.retrieved_climatology_data[data_key] = data_clim
                     clim_ok = True
                     self.logger.debug(f"Successfully retrieved climatology data for key: {data_key}")
@@ -248,6 +244,12 @@ class ACC:
 
         valid_keys = list(self.retrieved_climatology_data.keys()) # Keys for which all data exists
         self.logger.info(f"Data retrieval finished. Valid keys for ACC: {valid_keys}")
+        if self.reader_data_ref.tgt_grid_name is not None:
+            self.logger.info(f"Reference data regridded to: {self.reader_data_ref.tgt_grid_name}")
+        if self.reader_data.tgt_grid_name is not None:
+            self.logger.info(f"Main data regridded to: {self.reader_data.tgt_grid_name}")
+        if self.reader_climatology.tgt_grid_name is not None:
+            self.logger.info(f"Climatology data regridded to: {self.reader_climatology.tgt_grid_name}")
         if not valid_keys:
              self.logger.warning("No variables/levels had data successfully retrieved from all three sources (ref, main, clim). ACC cannot be computed.")
 
@@ -667,11 +669,31 @@ class ACC:
                 anom_ref = self._calculate_anomalies(da_ref, clim_mean_da)
                 self.logger.debug(f"Anomalies calculated for {processed_key}")
 
-                # Determine spatial dimensions
-                spatial_dims = [dim for dim in anom.dims if dim.lower() != 'time'] # Risky check
+                # Determine spatial dimensions using AQUA grid metadata
+                spatial_dims = []
+                try:
+                    grid_types = GridInspector(anom).get_gridtype()
+                    if grid_types:
+                        spatial_dims = [dim for dim in grid_types[0].horizontal_dims if dim in anom.dims]
+                        if not spatial_dims:
+                            self.logger.warning(
+                                "GridInspector did not return usable horizontal dims for %s. Falling back to non-time dims.",
+                                processed_key,
+                            )
+                except Exception as exc:
+                    self.logger.warning(
+                        "Failed to infer spatial dims via GridInspector for %s: %s.",
+                        processed_key,
+                        exc,
+                    )
+
+                if not spatial_dims:
+                    spatial_dims = [dim for dim in anom.dims if dim.lower() != 'time']
+
                 if not spatial_dims:
                     self.logger.error(f"Could not determine spatial dims for {processed_key}. Skipping.")
                     continue
+
                 self.logger.debug(f"Using spatial dimensions for correlation: {spatial_dims}")
 
                 # Calculate temporal ACC time series

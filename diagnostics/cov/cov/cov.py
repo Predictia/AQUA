@@ -6,6 +6,7 @@ from aqua.logger import log_configure
 from aqua.util import load_yaml
 from aqua.reader import Reader
 from aqua.graphics import plot_single_map
+from smmregrid import GridInspector
 
 def preprocess_coords_to_float32(ds):
     """
@@ -101,6 +102,7 @@ class COV:
     def retrieve(self):
         """
         Retrieves data for all unique variables specified in the configuration's variable_pairs.
+        If regridding is configured, data will be automatically regridded after retrieval.
         """
         self.retrieved_data_ref = {}
         self.retrieved_data = {}
@@ -141,6 +143,10 @@ class COV:
                 if level is not None and 'plev' in data_ref.coords:
                     # data_ref = data_ref.sel(plev=int(level), drop=True)
                     data_ref = data_ref.isel(plev=0, drop=True)
+                # Apply regridding if configured
+                if self.reader_data_ref.tgt_grid_name is not None:
+                    self.logger.debug(f"Applying regridding to reference data for {data_key}")
+                    data_ref = self.reader_data_ref.regrid(data_ref)
                 self.retrieved_data_ref[data_key] = data_ref
 
                 # Retrieve Main Data
@@ -149,6 +155,10 @@ class COV:
                 if level is not None and 'plev' in data.coords:
                     # data = data.sel(plev=int(level), drop=True)
                     data = data.isel(plev=0, drop=True)
+                # Apply regridding if configured
+                if self.reader_data.tgt_grid_name is not None:
+                    self.logger.debug(f"Applying regridding to main data for {data_key}")
+                    data = self.reader_data.regrid(data)
                 self.retrieved_data[data_key] = data
 
             except Exception as e:
@@ -159,6 +169,11 @@ class COV:
         self.logger.info("Data retrieval finished.")
         self.logger.info(f"Retrieved reference data for keys: {list(self.retrieved_data_ref.keys())}")
         self.logger.info(f"Retrieved main data for keys: {list(self.retrieved_data.keys())}")
+        # Log regridding information
+        if self.reader_data_ref.tgt_grid_name is not None:
+            self.logger.info(f"Reference data regridded to: {self.reader_data_ref.tgt_grid_name}")
+        if self.reader_data.tgt_grid_name is not None:
+            self.logger.info(f"Main data regridded to: {self.reader_data.tgt_grid_name}")
 
     def compute_and_plot(self, save_fig: bool = False, save_netcdf: bool = False):
         """
@@ -212,13 +227,15 @@ class COV:
                 # Plotting
                 # Plot 1: Reference Correlation
                 self.logger.debug(f"Plotting reference correlation for {pair_name}")
-                fig_ref, _ = plot_single_map(corr_ref, title=f"Reference Correlation: {pair_name}", return_fig=True, vmin=-1, vmax=1, cmap='RdBu_r')
+                fig_ref, _ = plot_single_map(corr_ref, title=f"Reference Correlation: {pair_name}", return_fig=True,
+                                             vmin=-1.0, vmax=1.0, sym=True, cmap='RdBu_r')
                 if save_fig:
                     self._save_figure(fig_ref, f"{pair_name}_ref", "correlation")
 
                 # Plot 2: Model Correlation
                 self.logger.debug(f"Plotting model correlation for {pair_name}")
-                fig_model, _ = plot_single_map(corr_model, title=f"Model Correlation: {pair_name}", return_fig=True, vmin=-1, vmax=1, cmap='RdBu_r')
+                fig_model, _ = plot_single_map(corr_model, title=f"Model Correlation: {pair_name}", return_fig=True,
+                                               vmin=-1.0, vmax=1.0, sym=True, cmap='RdBu_r')
                 if save_fig:
                     self._save_figure(fig_model, f"{pair_name}_model", "correlation")
 

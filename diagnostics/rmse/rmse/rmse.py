@@ -3,6 +3,8 @@ import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from smmregrid import GridInspector
+from smmregrid import GridInspector
 from aqua.logger import log_configure
 from aqua.util import load_yaml
 from aqua.reader import Reader
@@ -91,6 +93,9 @@ class RMSE:
         from both the reference and main data sources using the initialized readers.
         Stores retrieved data in self.retrieved_data_ref and self.retrieved_data dictionaries.
         Handles single levels, lists of levels, and surface variables.
+        
+        If regridding is configured in the Reader instances (via the 'regrid' parameter),
+        the data will be automatically regridded to the target grid after retrieval.
         """
 
         self.retrieved_data_ref = {}
@@ -140,6 +145,11 @@ class RMSE:
                     if level is not None and 'plev' in data_ref.coords:
                         data_ref = data_ref.isel(plev=0, drop=True)
 
+                    # Apply regridding if configured
+                    if self.reader_data_ref.tgt_grid_name is not None:
+                        self.logger.debug(f"Applying regridding to reference data for {var_name}{log_msg_suffix}")
+                        data_ref = self.reader_data_ref.regrid(data_ref)
+
                     self.retrieved_data_ref[data_key] = data_ref
                     self.logger.debug(f"Successfully retrieved reference data for key: {data_key}")
                 except Exception as e:
@@ -153,6 +163,11 @@ class RMSE:
                     
                     if level is not None and 'plev' in data.coords:
                         data = data.isel(plev=0, drop=True)
+
+                    # Apply regridding if configured
+                    if self.reader_data.tgt_grid_name is not None:
+                        self.logger.debug(f"Applying regridding to main data for {var_name}{log_msg_suffix}")
+                        data = self.reader_data.regrid(data)
 
                     self.retrieved_data[data_key] = data
                     self.logger.debug(f"Successfully retrieved main data for key: {data_key}")
@@ -170,6 +185,12 @@ class RMSE:
              # Log the keys which now include levels
              self.logger.info(f"Retrieved reference data for keys: {list(self.retrieved_data_ref.keys())}")
              self.logger.info(f"Retrieved main data for keys: {list(self.retrieved_data.keys())}")
+             
+             # Log regridding information
+             if self.reader_data_ref.tgt_grid_name is not None:
+                 self.logger.info(f"Reference data regridded to: {self.reader_data_ref.tgt_grid_name}")
+             if self.reader_data.tgt_grid_name is not None:
+                 self.logger.info(f"Main data regridded to: {self.reader_data.tgt_grid_name}")
 
     @staticmethod
     def check_and_convert_coords(data, data_ref, base_var_name): # Renamed arg for clarity
@@ -542,9 +563,47 @@ class RMSE:
 
                 # Calculate RMSE using AQUA's spatial aggregation
                 squared_diff = (data[base_var_name] - data_ref[base_var_name])**2
-                spatial_mean_sq = self.reader_data.fldmean(squared_diff)
+
+                # Identify horizontal dimensions for spatial averaging
+                horizontal_dims = []
+                try:
+                    grid_types = GridInspector(squared_diff).get_gridtype()
+                    if grid_types:
+                        horizontal_dims = [dim for dim in grid_types[0].horizontal_dims if dim in squared_diff.dims]
+                except Exception as exc:
+                    self.logger.warning(
+                        "Could not infer horizontal dimensions for fldmean on %s: %s",
+                        processed_key,
+                        exc,
+                    )
+
+                fldmean_kwargs = {}
+                if horizontal_dims:
+                    fldmean_kwargs["dims"] = horizontal_dims
+
+                    # Synchronise the underlying FldStat horizontal dims with the data
+                    fldstat_obj = self.reader_data.tgt_fldstat or self.reader_data.src_fldstat
+                    if fldstat_obj is not None:
+                        fldstat_obj.horizontal_dims = horizontal_dims
+
+                spatial_mean_sq = self.reader_data.fldmean(squared_diff, **fldmean_kwargs)
+
+                # Ensure residual spatial dims are collapsed (e.g. ncells)
+                for dim in horizontal_dims:
+                    if dim in spatial_mean_sq.dims:
+                        self.logger.debug(
+                            "Residual dimension %s present after fldmean for %s. Applying mean.",
+                            dim,
+                            processed_key,
+                        )
+                        spatial_mean_sq = spatial_mean_sq.mean(dim=dim)
+
                 rmse = np.sqrt(spatial_mean_sq)
-                self.logger.debug(f"Temporal RMSE calculated for {processed_key} using AQUA fldmean")
+                self.logger.debug(
+                    "Temporal RMSE calculated for %s with dims %s",
+                    processed_key,
+                    rmse.dims,
+                )
 
                 # Plotting
                 fig, ax = plt.subplots(figsize=(12, 6))
