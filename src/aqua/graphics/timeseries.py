@@ -30,6 +30,7 @@ def plot_timeseries(monthly_data: list[xr.DataArray] | xr.DataArray = None,
                     ax: Optional[plt.Axes] = None,
                     figsize: tuple = (10, 5),
                     title: Optional[str] = None,
+                    colors: Optional[list] = None,
                     loglevel: str = 'WARNING'):
     """
     monthly_data and annual_data are list of xr.DataArray
@@ -57,6 +58,7 @@ def plot_timeseries(monthly_data: list[xr.DataArray] | xr.DataArray = None,
         ax (plt.Axes): axis object to plot on
         figsize (tuple): size of the figure
         title (str): title of the plot
+        colors (list of str): colors to use for the plot lines
         loglevel (str): logging level
 
     Returns:
@@ -113,7 +115,8 @@ def plot_timeseries(monthly_data: list[xr.DataArray] | xr.DataArray = None,
         lines = plot_timeseries_data(ax=ax, data=monthly_data, kind='monthly',
                                      data_labels=data_labels['monthly'],
                                      realization=realization,
-                                     lw=2.5 if not realization else 0.8)
+                                     lw=2.5 if not realization else 0.8,
+                                     colors=to_list(colors) or None)
         # Extract the color used for each monthly line
         used_colors = [line.get_color() for line in lines]
     else:
