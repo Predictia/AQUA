@@ -85,6 +85,29 @@ def plot_timeseries(monthly_data: list[xr.DataArray] | xr.DataArray = None,
                 data_labels = {'monthly': None, 'annual': data_labels}
             else:
                 data_labels = {'monthly': data_labels, 'annual': None}
+    else:
+        data_labels = {'monthly': None, 'annual': None}
+
+    # Same for ref_label and ens_label, but they are strings
+    if ref_label is not None and suffix:
+        ref_label = {'monthly': f"{ref_label} monthly", 'annual': f"{ref_label} annual"}
+    elif ref_label is not None:
+        if ref_monthly_data is not None:
+            ref_label = {'monthly': ref_label, 'annual': None}
+        else:
+            ref_label = {'monthly': None, 'annual': ref_label}
+    else:
+        ref_label = {'monthly': None, 'annual': None}
+
+    if ens_label is not None and suffix:
+        ens_label = {'monthly': f"{ens_label} monthly", 'annual': f"{ens_label} annual"}
+    elif ens_label is not None:
+        if ens_monthly_data is not None:
+            ens_label = {'monthly': ens_label, 'annual': None}
+        else:
+            ens_label = {'monthly': None, 'annual': ens_label}
+    else:
+        ens_label = {'monthly': None, 'annual': None}
 
     if monthly_data is not None:
         lines = plot_timeseries_data(ax=ax, data=monthly_data, kind='monthly',
@@ -106,22 +129,26 @@ def plot_timeseries(monthly_data: list[xr.DataArray] | xr.DataArray = None,
     if ref_monthly_data is not None:
         plot_timeseries_ref_data(ax=ax, ref_data=ref_monthly_data,
                                  std_data=std_monthly_data,
-                                 ref_label=ref_label, lw=0.8, kind='monthly')
+                                 ref_label=ref_label['monthly'],
+                                 lw=0.8, kind='monthly')
 
     if ref_annual_data is not None:
         plot_timeseries_ref_data(ax=ax, ref_data=ref_annual_data,
                                  std_data=std_annual_data,
-                                 ref_label=ref_label, lw=0.8, kind='annual')
-    
+                                 ref_label=ref_label['annual'],
+                                 lw=0.8, kind='annual')
+
     if ens_monthly_data is not None:
         plot_timeseries_ensemble(ax=ax, data=ens_monthly_data,
                                  std_data=std_ens_monthly_data,
-                                 data_label=ens_label, lw=0.8, kind='monthly')
+                                 data_label=ens_label['monthly'],
+                                 lw=0.8, kind='monthly')
     
     if ens_annual_data is not None:
         plot_timeseries_ensemble(ax=ax, data=ens_annual_data,
                                  std_data=std_ens_annual_data,
-                                 data_label=ens_label, lw=0.8, kind='annual')
+                                 data_label=ens_label['annual'],
+                                 lw=0.8, kind='annual')
     
     if data_labels is not None or ref_label is not None or ens_label is not None:
         ax.legend(fontsize='small')
