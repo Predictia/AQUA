@@ -6,6 +6,7 @@ from typing import Optional
 import xarray as xr
 import matplotlib.pyplot as plt
 from aqua.logger import log_configure
+from aqua.util import to_list
 from .util_timeseries import plot_timeseries_data, plot_timeseries_ref_data, plot_timeseries_ensemble
 from .styles import ConfigStyle
 
@@ -21,6 +22,7 @@ def plot_timeseries(monthly_data: list[xr.DataArray] | xr.DataArray = None,
                     std_ens_monthly_data: Optional[xr.DataArray] = None,
                     std_ens_annual_data: Optional[xr.DataArray] = None,
                     data_labels: Optional[list] = None,
+                    suffix: bool = False,
                     ref_label: Optional[str] = None,
                     ens_label: Optional[str] = None,
                     style: Optional[str] = None,
@@ -46,7 +48,10 @@ def plot_timeseries(monthly_data: list[xr.DataArray] | xr.DataArray = None,
         std_ens_monthly_data (xr.DataArray): standard deviation of the ensemble monthly data
         std_ens_annual_data (xr.DataArray): standard deviation of the ensemble annual data
         data_labels (list of str): labels for the data
+        suffix (bool): whether to add a suffix to the label based on the kind (monthly or annual). Default is False.
+                       If False, only one label is used for both monthly and annual data.
         ref_label (str): label for the reference data
+        ens_label (str): label for the ensemble data
         style (str): style to use for the plot. By default the schema specified in the configuration file is used.
         fig (plt.Figure): figure object to plot on
         ax (plt.Axes): axis object to plot on
@@ -68,9 +73,23 @@ def plot_timeseries(monthly_data: list[xr.DataArray] | xr.DataArray = None,
         logger.info("monthly_data and annual_data will be considered as realizations of an ensemble")
         realization = True
 
+    # Label generation
+    # First we make sure that data_labels is a list
+    if data_labels is not None:
+        data_labels = to_list(data_labels)
+        if suffix:
+            data_labels = {'monthly': [f"{label} monthly" for label in data_labels],
+                           'annual': [f"{label} annual" for label in data_labels]}
+        else:
+            if monthly_data is not None and annual_data is None:
+                data_labels = {'monthly': None, 'annual': data_labels}
+            else:
+                data_labels = {'monthly': data_labels, 'annual': None}
+
     if monthly_data is not None:
         lines = plot_timeseries_data(ax=ax, data=monthly_data, kind='monthly',
-                                     data_labels=data_labels, realization=realization,
+                                     data_labels=data_labels['monthly'],
+                                     realization=realization,
                                      lw=2.5 if not realization else 0.8)
         # Extract the color used for each monthly line
         used_colors = [line.get_color() for line in lines]
@@ -79,7 +98,8 @@ def plot_timeseries(monthly_data: list[xr.DataArray] | xr.DataArray = None,
 
     if annual_data is not None:
         plot_timeseries_data(ax=ax, data=annual_data, kind='annual',
-                             data_labels=data_labels, realization=realization,
+                             data_labels=data_labels['annual'],
+                             realization=realization,
                              lw=2.5 if not realization else 0.8,
                              colors=used_colors)
 
