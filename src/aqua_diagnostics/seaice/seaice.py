@@ -318,9 +318,6 @@ class SeaIce(Diagnostic):
         else:
             var_name = list(areacello.data_vars)[0]
             areacello = areacello[var_name]
-            # Ensure the DataArray has a proper name for GridInspector
-            if areacello.name is None or areacello.name != 'cell_area':
-                areacello.name = 'cell_area'
 
         return areacello, space_coord
 
