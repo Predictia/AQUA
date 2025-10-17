@@ -15,6 +15,7 @@ from aqua.version import __version__ as aqua_version
 from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_cluster
 from aqua.diagnostics.core import load_diagnostic_config, merge_config_args
 from aqua.diagnostics.lat_lon_profiles import LatLonProfiles, PlotLatLonProfiles
+from aqua.diagnostics.lat_lon_profiles.util_cli import load_var_config
 
 
 def parse_arguments(args):
@@ -76,19 +77,23 @@ if __name__ == '__main__':
             box_brd = config_dict['diagnostics']['lat_lon_profiles'].get('box_brd', True)
             compute_std = config_dict['diagnostics']['lat_lon_profiles'].get('compute_std', False)
             
-            # Frequency options
+            # Determine which frequencies to compute
+            compute_seasonal = config_dict['diagnostics']['lat_lon_profiles'].get('seasonal', True)
+            compute_longterm = config_dict['diagnostics']['lat_lon_profiles'].get('longterm', True)
+
             freq = []
-            if config_dict['diagnostics']['lat_lon_profiles'].get('seasonal', True):
+            if compute_seasonal:
                 freq.append('seasonal')
-            if config_dict['diagnostics']['lat_lon_profiles'].get('longterm', True):
+            if compute_longterm:
                 freq.append('longterm')
 
             for var in config_dict['diagnostics']['lat_lon_profiles'].get('variables', []):
-                var_name = var.get('name')
-                var_units = var.get('units', None)
-                var_long_name = var.get('long_name', None)
-                var_standard_name = var.get('standard_name', None)
-                regions = var.get('regions', [None])  # None = global
+                var_config, regions = load_var_config(config_dict, var)
+                
+                var_name = var_config.get('name')
+                var_units = var_config.get('units', None)
+                var_long_name = var_config.get('long_name', None)
+                var_standard_name = var_config.get('standard_name', None)
                 
                 logger.info(f"Running LatLonProfiles diagnostic for variable {var_name} with mean_type={mean_type}")
                 
@@ -120,6 +125,7 @@ if __name__ == '__main__':
                             
                             run_args = {
                                 'var': var_name,
+                                'formula': False,
                                 'units': var_units,
                                 'long_name': var_long_name,
                                 'standard_name': var_standard_name,
@@ -138,7 +144,7 @@ if __name__ == '__main__':
                         # Process reference data if specified
                         profile_ref = None
                         if 'references' in config_dict and len(config_dict['references']) > 0:
-                            ref_config = config_dict['references'][0]  # Usa il primo reference
+                            ref_config = config_dict['references'][0]  # Use the first reference only
                             logger.info(f"Processing reference data: {ref_config}")
                             
                             ref_init_args = {
@@ -178,8 +184,8 @@ if __name__ == '__main__':
                         if save_pdf or save_png:
                             logger.info(f"Plotting LatLonProfiles diagnostic for {var_name}")
                             
-                            # Plot longterm (annual mean) if enabled
-                            if 'longterm' in freq:
+                            # Plot longterm (annual mean) if enabled and computed
+                            if compute_longterm and hasattr(profiles[0], 'longterm'):
                                 logger.info("Creating longterm (annual) plot")
                                 
                                 longterm_data = [profiles[i].longterm for i in range(len(profiles))]
@@ -201,8 +207,8 @@ if __name__ == '__main__':
                                     plot_longterm.run(outputdir=outputdir, rebuild=rebuild, 
                                                      dpi=dpi, format='png', style=None)
 
-                            # Plot seasonal (4-panel) if enabled
-                            if 'seasonal' in freq:
+                            # Plot seasonal (4-panel) if enabled and computed
+                            if compute_seasonal and hasattr(profiles[0], 'seasonal'):
                                 logger.info("Creating seasonal (4-panel) plot")
                                 
                                 # Prepare seasonal data for all 4 seasons
