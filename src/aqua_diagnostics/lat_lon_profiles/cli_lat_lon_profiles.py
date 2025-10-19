@@ -14,8 +14,7 @@ from aqua.util import get_arg
 from aqua.version import __version__ as aqua_version
 from aqua.diagnostics.core import template_parse_arguments, open_cluster, close_cluster
 from aqua.diagnostics.core import load_diagnostic_config, merge_config_args
-from aqua.diagnostics.lat_lon_profiles import LatLonProfiles, PlotLatLonProfiles
-from aqua.diagnostics.lat_lon_profiles.util_cli import load_var_config
+from aqua.diagnostics.lat_lon_profiles.util_cli import load_var_config, process_variable_or_formula
 
 
 def parse_arguments(args):
@@ -23,6 +22,9 @@ def parse_arguments(args):
 
     Args:
         args (list): list of command-line arguments to parse.
+
+    Returns:
+        argparse.Namespace: Parsed command-line arguments.
     """
     parser = argparse.ArgumentParser(description='LatLonProfiles CLI')
     parser = template_parse_arguments(parser)
@@ -70,16 +72,16 @@ if __name__ == '__main__':
         if config_dict['diagnostics']['lat_lon_profiles']['run']:
             logger.info("LatLonProfiles diagnostic is enabled.")
 
-            diagnostic_name = config_dict['diagnostics']['lat_lon_profiles'].get('diagnostic_name', 'lat_lon_profiles')
-            mean_type = config_dict['diagnostics']['lat_lon_profiles'].get('mean_type', 'zonal')
-            center_time = config_dict['diagnostics']['lat_lon_profiles'].get('center_time', True)
-            exclude_incomplete = config_dict['diagnostics']['lat_lon_profiles'].get('exclude_incomplete', True)
-            box_brd = config_dict['diagnostics']['lat_lon_profiles'].get('box_brd', True)
-            compute_std = config_dict['diagnostics']['lat_lon_profiles'].get('compute_std', False)
-            
-            # Determine which frequencies to compute
-            compute_seasonal = config_dict['diagnostics']['lat_lon_profiles'].get('seasonal', True)
-            compute_longterm = config_dict['diagnostics']['lat_lon_profiles'].get('longterm', True)
+            # Extract all configuration
+            diagnostic_config = config_dict['diagnostics']['lat_lon_profiles']
+            diagnostic_name = diagnostic_config.get('diagnostic_name', 'lat_lon_profiles')
+            mean_type = diagnostic_config.get('mean_type', 'zonal')
+            center_time = diagnostic_config.get('center_time', True)
+            exclude_incomplete = diagnostic_config.get('exclude_incomplete', True)
+            box_brd = diagnostic_config.get('box_brd', True)
+            compute_std = diagnostic_config.get('compute_std', False)
+            compute_seasonal = diagnostic_config.get('seasonal', True)
+            compute_longterm = diagnostic_config.get('longterm', True)
 
             freq = []
             if compute_seasonal:
@@ -87,163 +89,61 @@ if __name__ == '__main__':
             if compute_longterm:
                 freq.append('longterm')
 
-            for var in config_dict['diagnostics']['lat_lon_profiles'].get('variables', []):
+            # Process variables
+            for var in diagnostic_config.get('variables', []):
                 var_config, regions = load_var_config(config_dict, var)
-                
-                var_name = var_config.get('name')
-                var_units = var_config.get('units', None)
-                var_long_name = var_config.get('long_name', None)
-                var_standard_name = var_config.get('standard_name', None)
-                
-                logger.info(f"Running LatLonProfiles diagnostic for variable {var_name} with mean_type={mean_type}")
-                
-                for region in regions:
-                    try:
-                        logger.info(f"Running LatLonProfiles diagnostic in region {region if region else 'global'}")
+                process_variable_or_formula(
+                    config_dict=config_dict,
+                    var_config=var_config,
+                    regions=regions,
+                    datasets=config_dict['datasets'],
+                    mean_type=mean_type,
+                    diagnostic_name=diagnostic_name,
+                    regrid=regrid,
+                    freq=freq,
+                    compute_std=compute_std,
+                    exclude_incomplete=exclude_incomplete,
+                    center_time=center_time,
+                    box_brd=box_brd,
+                    outputdir=outputdir,
+                    rebuild=rebuild,
+                    reader_kwargs=reader_kwargs,
+                    save_pdf=save_pdf,
+                    save_png=save_png,
+                    dpi=dpi,
+                    compute_longterm=compute_longterm,
+                    compute_seasonal=compute_seasonal,
+                    loglevel=loglevel,
+                    formula=False  # <-- Variable
+                )
 
-                        # Initialize a list of LatLonProfiles objects for each dataset
-                        profiles = [None] * len(config_dict['datasets'])
-                        
-                        for i, dataset in enumerate(config_dict['datasets']):
-                            logger.info(f'Processing dataset: {dataset}')
-                            
-                            init_args = {
-                                'catalog': dataset['catalog'],
-                                'model': dataset['model'],
-                                'exp': dataset['exp'],
-                                'source': dataset['source'],
-                                'regrid': regrid if regrid is not None else dataset.get('regrid', None),
-                                'startdate': dataset.get('startdate'),
-                                'enddate': dataset.get('enddate'),
-                                'region': region,
-                                'mean_type': mean_type,
-                                'diagnostic_name': diagnostic_name,
-                                'loglevel': loglevel
-                            }
-                            
-                            profiles[i] = LatLonProfiles(**init_args)
-                            
-                            run_args = {
-                                'var': var_name,
-                                'formula': False,
-                                'units': var_units,
-                                'long_name': var_long_name,
-                                'standard_name': var_standard_name,
-                                'std': compute_std,
-                                'freq': freq,
-                                'exclude_incomplete': exclude_incomplete,
-                                'center_time': center_time,
-                                'box_brd': box_brd,
-                                'outputdir': outputdir,
-                                'rebuild': rebuild,
-                                'reader_kwargs': dataset.get('reader_kwargs') or reader_kwargs
-                            }
-                            
-                            profiles[i].run(**run_args)
-
-                        # Process reference data if specified
-                        profile_ref = None
-                        if 'references' in config_dict and len(config_dict['references']) > 0:
-                            ref_config = config_dict['references'][0]  # Use the first reference only
-                            logger.info(f"Processing reference data: {ref_config}")
-                            
-                            ref_init_args = {
-                                'catalog': ref_config['catalog'],
-                                'model': ref_config['model'],
-                                'exp': ref_config['exp'],
-                                'source': ref_config['source'],
-                                'regrid': regrid if regrid is not None else ref_config.get('regrid', None),
-                                'startdate': ref_config.get('std_startdate'),
-                                'enddate': ref_config.get('std_enddate'),
-                                'region': region,
-                                'mean_type': mean_type,
-                                'diagnostic_name': diagnostic_name,
-                                'loglevel': loglevel
-                            }
-                            
-                            profile_ref = LatLonProfiles(**ref_init_args)
-                                                    
-                            ref_run_args = {
-                                'var': var_name,
-                                'units': var_units,
-                                'long_name': var_long_name,
-                                'standard_name': var_standard_name,
-                                'std': True,  # Always compute std for reference
-                                'freq': freq,
-                                'exclude_incomplete': exclude_incomplete,
-                                'center_time': center_time,
-                                'box_brd': box_brd,
-                                'outputdir': outputdir,
-                                'rebuild': rebuild,
-                                'reader_kwargs': ref_config.get('reader_kwargs') or {}
-                            }
-                            
-                            profile_ref.run(**ref_run_args)
-
-                        # Plot the profiles
-                        if save_pdf or save_png:
-                            logger.info(f"Plotting LatLonProfiles diagnostic for {var_name}")
-                            
-                            # Plot longterm (annual mean) if enabled and computed
-                            if compute_longterm and hasattr(profiles[0], 'longterm'):
-                                logger.info("Creating longterm (annual) plot")
-                                
-                                longterm_data = [profiles[i].longterm for i in range(len(profiles))]
-                                
-                                plot_args = {
-                                    'data': longterm_data,
-                                    'ref_data': profile_ref.longterm if profile_ref else None,
-                                    'ref_std_data': profile_ref.std_annual if profile_ref else None,
-                                    'data_type': 'longterm',
-                                    'loglevel': loglevel
-                                }
-                                
-                                plot_longterm = PlotLatLonProfiles(**plot_args)
-                                
-                                if save_pdf:
-                                    plot_longterm.run(outputdir=outputdir, rebuild=rebuild, 
-                                                     dpi=dpi, format='pdf', style=None)
-                                if save_png:
-                                    plot_longterm.run(outputdir=outputdir, rebuild=rebuild, 
-                                                     dpi=dpi, format='png', style=None)
-
-                            # Plot seasonal (4-panel) if enabled and computed
-                            if compute_seasonal and hasattr(profiles[0], 'seasonal'):
-                                logger.info("Creating seasonal (4-panel) plot")
-                                
-                                # Prepare seasonal data for all 4 seasons
-                                combined_seasonal_data = []
-                                combined_ref_data = []
-                                combined_ref_std_data = []
-                                
-                                for season_idx in range(4):  # DJF, MAM, JJA, SON
-                                    season_data = [profiles[i].seasonal[season_idx] for i in range(len(profiles))]
-                                    combined_seasonal_data.append(season_data)
-                                    
-                                    if profile_ref:
-                                        combined_ref_data.append(profile_ref.seasonal[season_idx])
-                                        combined_ref_std_data.append(profile_ref.std_seasonal[season_idx])
-                                
-                                plot_args = {
-                                    'data': combined_seasonal_data,
-                                    'ref_data': combined_ref_data if profile_ref else None,
-                                    'ref_std_data': combined_ref_std_data if profile_ref else None,
-                                    'data_type': 'seasonal',
-                                    'loglevel': loglevel
-                                }
-                                
-                                plot_seasonal = PlotLatLonProfiles(**plot_args)
-                                
-                                if save_pdf:
-                                    plot_seasonal.run(outputdir=outputdir, rebuild=rebuild, 
-                                                     dpi=dpi, format='pdf', style=None)
-                                if save_png:
-                                    plot_seasonal.run(outputdir=outputdir, rebuild=rebuild, 
-                                                     dpi=dpi, format='png', style=None)
-
-                    except Exception as e:
-                        logger.error(f"Error running LatLonProfiles diagnostic for variable {var_name} in region {region if region else 'global'}: {e}")
+            # Process formulae
+            for var in diagnostic_config.get('formulae', []):
+                var_config, regions = load_var_config(config_dict, var)
+                process_variable_or_formula(
+                    config_dict=config_dict,
+                    var_config=var_config,
+                    regions=regions,
+                    datasets=config_dict['datasets'],
+                    mean_type=mean_type,
+                    diagnostic_name=diagnostic_name,
+                    regrid=regrid,
+                    freq=freq,
+                    compute_std=compute_std,
+                    exclude_incomplete=exclude_incomplete,
+                    center_time=center_time,
+                    box_brd=box_brd,
+                    outputdir=outputdir,
+                    rebuild=rebuild,
+                    reader_kwargs=reader_kwargs,
+                    save_pdf=save_pdf,
+                    save_png=save_png,
+                    dpi=dpi,
+                    compute_longterm=compute_longterm,
+                    compute_seasonal=compute_seasonal,
+                    loglevel=loglevel,
+                    formula=True  # <-- Formulae
+                )
 
     close_cluster(client=client, cluster=cluster, private_cluster=private_cluster, loglevel=loglevel)
-
     logger.info("LatLonProfiles diagnostic completed.")
