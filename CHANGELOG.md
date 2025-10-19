@@ -15,7 +15,7 @@ AQUA core complete list:
 
 AQUA diagnostics complete list:
 - Global Biases: add 10si as formula to config file (#2338)
-- LatLonProfiles: tests implementation (#2339)
+- LatLonProfiles: tests (#2339) and CLI implementation (#2345)
 - Ocean Drift: timeseries plotting function with update in cli (#2322)
 - Implement `fldstat` methods in Seaice diagnostics (#2297)
 - Gregory: more detailed description and plot labels (#2306)
