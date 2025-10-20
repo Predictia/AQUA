@@ -12,6 +12,11 @@ diagnostic_config = {
             'source_path': 'config/diagnostics/lat_lon_profiles/definitions',
             'target_path': 'diagnostics/lat_lon_profiles/definitions'
         },
+        {
+            'config_file': 'config_lat_lon_profiles.yaml',
+            'source_path': 'config/diagnostics/lat_lon_profiles',
+            'target_path': 'diagnostics/lat_lon_profiles'
+        }
     ],
     'ecmean': [
         {

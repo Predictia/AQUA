@@ -46,7 +46,8 @@ diagnostics:
           "seasonal_cycles",
           "radiation-boxplots", 
           "radiation-timeseries", 
-          "radiation-biases", 
+          "radiation-biases",
+          "lat_lon_profiles", 
           "tropical_rainfall", 
           "teleconnections_atm", "teleconnections_oce",
           "ecmean", 
@@ -148,3 +149,8 @@ diagnostics:
     script_path: "seaice/cli_seaice.py"
     nworkers: 4
     config: "${AQUA_CONFIG}/diagnostics/seaice/config_seaice.yaml"
+  lat_lon_profiles:
+    script_path: "lat_lon_profiles/cli_lat_lon_profiles.py"
+    nworkers: 8
+    config: "${AQUA_CONFIG}/diagnostics/lat_lon_profiles/config_lat_lon_profiles.yaml"
+    outname: lat_lon_profiles
