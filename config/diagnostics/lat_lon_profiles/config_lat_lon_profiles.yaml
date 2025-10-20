@@ -1,62 +1,32 @@
+# Template according to #1613
+# The first model in this block can be overridden
+# in the command line by using:
+# --model, --exp, --source, --outputdir, --catalog
 datasets:
-  # IFS-NEMO historical
-  - catalog: 'climatedt-phase1'
+  - catalog: null
     model: 'IFS-NEMO'
     exp: 'historical-1990'
     source: 'lra-r100-monthly'
-    startdate: '1990-01-01'
-    enddate: '1999-12-31'
+    startdate: null
+    enddate: null
     regrid: null
-    reader_kwargs: null
+    reader_kwargs: null # it can be a dictionary with reader kwargs
+  # Possible second/third/fourth datasets here, no present by default
+  # - catalog: 'obs'
+  #   model: 'ERA5'
+  #   exp: 'era5'
+  #   source: 'monthly'
+  #   regrid: r100
 
-  # IFS-NEMO future (ssp370)
-  - catalog: 'climatedt-phase1'
-    model: 'IFS-NEMO'
-    exp: 'ssp370'
-    source: 'lra-r100-monthly'
-    startdate: '2030-01-01'
-    enddate: '2039-12-31'
-    regrid: null
-    reader_kwargs: null
-
-  # ICON historical
-  - catalog: 'climatedt-phase1'
-    model: 'ICON'
-    exp: 'historical-1990'
-    source: 'lra-r100-monthly'
-    startdate: '1990-01-01'
-    enddate: '1999-12-31'
-    regrid: null
-    reader_kwargs: null
-
-  # ICON future (ssp370)
-  - catalog: 'climatedt-phase1'
-    model: 'ICON'
-    exp: 'ssp370'
-    source: 'lra-r100-monthly'
-    startdate: '2030-01-01'
-    enddate: '2039-12-31'
-    regrid: null
-    reader_kwargs: null
-
+references:
   # MSWEP
   - catalog: 'obs'
     model: 'MSWEP'
     exp: 'v2.8'
     source: 'monthly'
-    startdate: '1990-01-01'
-    enddate: '1999-12-31'
-    regrid: 'r100'
-
-references:
-  # ERA5 as reference dataset
-  - catalog: 'obs'
-    model: 'ERA5'
-    exp: 'era5'
-    source: 'monthly'
-    regrid: 'r100'
     std_startdate: '1990-01-01'
     std_enddate: '1999-12-31'
+    regrid: 'r100'
 
 output:
   outputdir: "./"
@@ -74,7 +44,6 @@ diagnostics:
     center_time: true
     exclude_incomplete: true
     box_brd: true
-    
     seasonal: true
     longterm: true
     
@@ -82,5 +51,5 @@ diagnostics:
       - name: 'tprate'
         units: 'mm/day'
         long_name: 'Total Precipitation Rate'
-        standard_name: null
+        standard_name: 'tprate'
         regions: [null, 'tropics']  # global and tropics
