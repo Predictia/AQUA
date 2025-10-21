@@ -203,14 +203,16 @@ class TestFldStatDims():
 class TestFldStatWrappers():
     """Test class for fldstat wrapper methods"""
 
-    @pytest.fixture
-    def reader(self):
-        return Reader(model="IFS", exp="test-tco79", source='short', loglevel=LOGLEVEL)
+    # Aliases for session fixtures with scope in current class
+    @pytest.fixture(scope='class')
+    def reader(self, ifs_tco79_short_reader):
+        return ifs_tco79_short_reader
 
-    @pytest.fixture
-    def data(self, reader):
-        return reader.retrieve(var='2t')
+    @pytest.fixture(scope='class')
+    def data(self, ifs_tco79_short_data_2t):
+        return ifs_tco79_short_data_2t
 
+    # Test methods
     def test_fldmean(self, reader, data):
         """Test fldmean wrapper method"""
         avg = reader.fldmean(data['2t'])
