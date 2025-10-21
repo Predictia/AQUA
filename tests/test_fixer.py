@@ -83,7 +83,7 @@ def test_fixer_ifs_names():
     """Check with fixer_name method"""
 
     reader = Reader(model="IFS", exp="test-tco79", source="short_masked", loglevel=LOGLEVEL)
-    data = reader.retrieve()
+    data = reader.retrieve(var=['2t'])
     assert data['2t'].attrs['donald'] == 'duck'
 
 @pytest.mark.aqua
@@ -152,15 +152,15 @@ def reader():
     return Reader(model="ERA5", exp='era5-hpz3', source='monthly', loglevel=LOGLEVEL)
 
 @pytest.fixture
-def data(reader):
-    return reader.retrieve()
+def data_2t_tp(reader):
+    return reader.retrieve(var=['2t', 'tprate'])
 
 @pytest.mark.aqua
 class TestEvaluateFormula:
-    def test_evaluate_formula(self, data):
+    def test_evaluate_formula(self, data_2t_tp):
         formula = "2t -273.15"
         convert = EvaluateFormula(
-            data=data, formula=formula,
+            data=data_2t_tp, formula=formula,
             units='Celsius',
             short_name="2t_celsius",
             long_name='2t converted to Celsius').evaluate()
@@ -169,14 +169,14 @@ class TestEvaluateFormula:
         assert convert.attrs['long_name'] == '2t converted to Celsius'
         assert convert.attrs['units'] == 'Celsius'
 
-        original_values = (data['2t'].isel(time=0) - 273.15).mean()
+        original_values = (data_2t_tp['2t'].isel(time=0) - 273.15).mean()
         expected_values = convert.isel(time=0).mean()
         assert np.allclose(original_values.values, expected_values.values)
 
-    def test_complex_formula(self, data):
+    def test_complex_formula(self, data_2t_tp):
         formula = "((2t - 273.15)^2)/2 +  (tprate / 1000)"
         convert = EvaluateFormula(
-            data=data, formula=formula,
+            data=data_2t_tp, formula=formula,
             units='Celsius^2 * hPa',
             short_name="complex_calc",
             long_name='Complex calculation').evaluate()
@@ -185,15 +185,15 @@ class TestEvaluateFormula:
         assert convert.attrs['long_name'] == 'Complex calculation'
         assert convert.attrs['units'] == 'Celsius^2 * hPa'
 
-        original_values = (((data['2t'].isel(time=0) - 273.15)**2)/2 + (data['tprate'].isel(time=0) / 1000)).mean()
+        original_values = (((data_2t_tp['2t'].isel(time=0) - 273.15)**2)/2 + (data_2t_tp['tprate'].isel(time=0) / 1000)).mean()
         expected_values = convert.isel(time=0).mean()
         assert np.allclose(original_values.values, expected_values.values)
 
-    def test_magnitude(self, data):
+    def test_magnitude(self, data_2t_tp):
         """Test magnitude calculation"""
         formula = "(2t^2 + 2t^2)^0.5"
         convert = EvaluateFormula(
-            data=data, formula=formula,
+            data=data_2t_tp, formula=formula,
             units='K',
             short_name="magnitude_2t",
             long_name='Magnitude of 2t vector').evaluate()
@@ -201,17 +201,17 @@ class TestEvaluateFormula:
         assert convert.attrs['short_name'] == 'magnitude_2t'
         assert convert.attrs['long_name'] == 'Magnitude of 2t vector'
         assert convert.attrs['units'] == 'K'
-        original_values = ((data['2t'].isel(time=0)**2 + data['2t'].isel(time=0)**2)**0.5).mean()
+        original_values = ((data_2t_tp['2t'].isel(time=0)**2 + data_2t_tp['2t'].isel(time=0)**2)**0.5).mean()
         expected_values = convert.isel(time=0).mean()
         assert np.allclose(original_values.values, expected_values.values)
 
-    def test_wrong_formula(self, data):
+    def test_wrong_formula(self, data_2t_tp):
         """Test wrong parentheses handling"""
         formula = "(2t - 273.15)) + (tprate / 1000"
         with pytest.raises(ValueError):
-            EvaluateFormula(data=data, formula=formula).evaluate()
+            EvaluateFormula(data=data_2t_tp, formula=formula).evaluate()
         formula = "((2t - 273.15) + (tprate / 1000)"
         with pytest.raises(ValueError):
-            EvaluateFormula(data=data, formula=formula).evaluate()
+            EvaluateFormula(data=data_2t_tp, formula=formula).evaluate()
         with pytest.raises(KeyError):
-            EvaluateFormula(data=data, formula="2t ++ tprate").evaluate()
+            EvaluateFormula(data=data_2t_tp, formula="2t ++ tprate").evaluate()
