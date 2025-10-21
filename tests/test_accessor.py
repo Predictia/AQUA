@@ -18,33 +18,36 @@ def reader_instance2():
 class TestAccessor():
     """Test class for accessor"""
 
-    def test_accessor_fldmean(self, reader_instance):
+    @pytest.fixture
+    def data(self, reader_instance):
+        """Retrieve data once for first two tests"""
+        return reader_instance.retrieve()
+
+    @pytest.fixture
+    def data2(self, reader_instance2):
+        """Retrieve data for second reader"""
+        return reader_instance2.retrieve()
+
+    def test_accessor_fldmean(self, data):
         """Test fldmean as accessor"""
-        data = reader_instance.retrieve()
         avg = data.aqua.fldmean()['2t'].values
         assert avg[1] == pytest.approx(285.75920)
 
-    def test_accessor_histogram(self, reader_instance):
+    def test_accessor_histogram(self, data):
         """Test histogram as accessor"""
-        data = reader_instance.retrieve()
         hist = data['2t'].aqua.histogram(bins=200, range=(150, 350), weighted=False)
         assert sum(hist.values) == data['2t'].size
 
-    def test_accessor_two(self, reader_instance, reader_instance2):
+    def test_accessor_two(self, reader_instance, reader_instance2, data, data2):
         """Test the use of two reader instances"""
- 
-        data1 = reader_instance.retrieve()
-        data2 = reader_instance2.retrieve()
-
         # test accessor on dataset, the object should remember the correct reader
-        data1r = data1.aqua.regrid()
+        data1r = data.aqua.regrid()
         data2r = data2.aqua.regrid()
 
         assert len(data1r.lon) == 360
         assert len(data2r.lon) == 180
 
         # Check if the accessor still works with the result
-
         reader_instance.set_default()  # Make sure that the correct reader is used
         avg = data1r.aqua.fldmean()['2t'].values
         assert avg[1] == pytest.approx(285.7543, rel=1e-4)
