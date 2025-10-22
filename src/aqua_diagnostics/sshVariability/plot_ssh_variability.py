@@ -11,7 +11,7 @@ from aqua.exceptions import NoDataError, NoObservationError, NotEnoughDataError
 from aqua.graphics import plot_single_map
 from aqua.logger import log_configure
 from aqua.util import coord_names, create_folder, get_projection
-from aqua.util import area_selection
+from aqua.fldstat import AreaSelection
 
 from .base import PlotBaseMixin
 
@@ -514,7 +514,7 @@ class sshVariabilityPlot(PlotBaseMixin):
         if "ICON" in model and mask_southern_boundary and southern_boundary_latitude:
             data = data.where(data.lat > southern_boundary_latitude)
         
-        return area_selection(data, lon=lon_lim, lat=lat_lim, drop=True)
+        return AreaSelection(data, lon=lon_lim, lat=lat_lim, drop=True)
 
 
 #def area_selection(

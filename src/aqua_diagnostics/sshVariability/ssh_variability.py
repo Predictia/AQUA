@@ -4,7 +4,8 @@ import pandas as pd
 import xarray as xr
 from aqua.exceptions import NoDataError, NoObservationError, NotEnoughDataError
 from aqua.logger import log_configure
-from aqua.util import area_selection, coord_names, create_folder
+from aqua.util import coord_names, create_folder
+#from aqua.fldstat import AreaSelection
 
 from .base import BaseMixin
 
