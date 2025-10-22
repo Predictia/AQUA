@@ -74,10 +74,8 @@ class TestAqua:
         """
         global_mean = reader_instance.fldmean(data.sst[:2, :])
         assert global_mean.shape == (2,)
-        assert global_mean.values[0] == pytest.approx(17.99434183,
-                                                      rel=approx_rel)
-        assert global_mean.values[1] == pytest.approx(17.98060367,
-                                                      rel=approx_rel)
+        assert global_mean.values[0] == pytest.approx(17.99434183, rel=approx_rel)
+        assert global_mean.values[1] == pytest.approx(17.98060367, rel=approx_rel)
 
     def test_catalog_override(self):
         """

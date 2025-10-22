@@ -64,6 +64,31 @@ def ifs_tco79_short_r200_reader():
 def ifs_tco79_short_r200_data(ifs_tco79_short_r200_reader):
     return ifs_tco79_short_r200_reader.retrieve()
 
+@pytest.fixture(scope="session")
+def ifs_tco79_intake_esm_reader():
+    return Reader(model="IFS", exp="test-tco79", source="intake-esm-test", areas=False, fix=False, loglevel=LOGLEVEL)
+
+@pytest.fixture(scope="session")
+def ifs_tco79_intake_esm_data(ifs_tco79_intake_esm_reader):
+    return ifs_tco79_intake_esm_reader.retrieve()
+
+@pytest.fixture(scope="session")
+def ifs_tco79_long_fF_reader():
+    return Reader(model="IFS", exp="test-tco79", source="long", fix=False, loglevel=LOGLEVEL)
+
+@pytest.fixture(scope="session")
+def ifs_tco79_long_fF_data(ifs_tco79_long_fF_reader):
+    return ifs_tco79_long_fF_reader.retrieve(var=['2t', 'ttr'])
+
+@pytest.fixture(scope="session")
+def ifs_tco79_long_reader():
+    return Reader(model="IFS", exp="test-tco79", source="long", loglevel=LOGLEVEL)
+
+@pytest.fixture(scope="session")
+def ifs_tco79_long_data(ifs_tco79_long_reader):
+    return ifs_tco79_long_reader.retrieve()
+
+
 # =============================================================================
 # FESOM fixtures
 # =============================================================================
@@ -121,3 +146,22 @@ def nemo_test_eORCA1_short_3d_reader():
 @pytest.fixture(scope="session")
 def nemo_test_eORCA1_short_3d_data(nemo_test_eORCA1_short_3d_reader):
     return nemo_test_eORCA1_short_3d_reader.retrieve(var='so')
+
+# =============================================================================
+# ERA5 fixtures
+# =============================================================================
+@pytest.fixture(scope="session")
+def era5_hpz3_monthly_reader():
+    return Reader(model="ERA5", exp='era5-hpz3', source='monthly', loglevel=LOGLEVEL)
+
+@pytest.fixture(scope="session")
+def era5_hpz3_monthly_data(era5_hpz3_monthly_reader):
+    return era5_hpz3_monthly_reader.retrieve(var=['2t', 'tprate','q'])
+
+@pytest.fixture(scope="session")
+def era5_hpz3_monthly_r100_reader():
+    return Reader(model="ERA5", exp='era5-hpz3', source='monthly', regrid="r100", loglevel=LOGLEVEL)
+
+@pytest.fixture(scope="session")
+def era5_hpz3_monthly_r100_data(era5_hpz3_monthly_r100_reader):
+    return era5_hpz3_monthly_r100_reader.retrieve(var=['q'])

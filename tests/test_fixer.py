@@ -7,14 +7,28 @@ from aqua.fixer import EvaluateFormula
 
 LOGLEVEL = 'DEBUG'
 
+@pytest.fixture(scope='module')
+def reader_ifs_tco79_long(ifs_tco79_long_reader):
+    return ifs_tco79_long_reader
+
+@pytest.fixture(scope='module')
+def data_ifs_tco79_long(ifs_tco79_long_data):
+    return ifs_tco79_long_data
+
+@pytest.fixture(scope='module')
+def reader_ifs_tco79_long_fF(ifs_tco79_long_fF_reader):
+    return ifs_tco79_long_fF_reader
+
+@pytest.fixture(scope='module')
+def data_ifs_tco79_long_fF(ifs_tco79_long_fF_data):
+    return ifs_tco79_long_fF_data
+
 @pytest.mark.aqua
-def test_fixer_ifs_long():
+def test_fixer_ifs_long(data_ifs_tco79_long, data_ifs_tco79_long_fF):
     """Test basic fixing"""
 
     ntime = [10, 20, 1000]  # points in time to be checked (includes 1 month jump)
-    reader = Reader(model="IFS", exp="test-tco79", source="long",
-                    fix=False, loglevel=LOGLEVEL)
-    data0 = reader.retrieve(var=['2t', 'ttr'])  # Retrieve not fixed data
+    data0 = data_ifs_tco79_long_fF  # Retrieve not fixed data
     ttr0 = data0.ttr[ntime, 0, 0]
     tas0 = data0['2t'][ntime, 5, 5]
 
@@ -23,8 +37,7 @@ def test_fixer_ifs_long():
     assert pytest.approx(ttr0.values) == [-6969528.64626286, -14032413.9597565, -9054387.41655567]
 
     # Now let's fix
-    reader1 = Reader(model="IFS", exp="test-tco79", source="long", loglevel='debug')
-    data1 = reader1.retrieve()  # Retrieve fixed data
+    data1 = data_ifs_tco79_long  # Retrieve fixed data
     # This is the decumulated ttr
     tnlwrf = data1.tnlwrf[ntime, 0, 0]
     tas1 = data1['skt'][ntime, 5, 5]
@@ -148,12 +161,8 @@ def test_fixer_deltat():
 
 
 @pytest.fixture
-def reader():
-    return Reader(model="ERA5", exp='era5-hpz3', source='monthly', loglevel=LOGLEVEL)
-
-@pytest.fixture
-def data_2t_tp(reader):
-    return reader.retrieve(var=['2t', 'tprate'])
+def data_2t_tp(era5_hpz3_monthly_data):
+    return era5_hpz3_monthly_data
 
 @pytest.mark.aqua
 class TestEvaluateFormula:
