@@ -8,17 +8,6 @@ from aqua import Reader
 
 LOGLEVEL = "DEBUG"
 
-# Helper fixtures for common test settings
-@pytest.fixture(scope="session")
-def approx_rel():
-    """Standard relative approximation for tests"""
-    return 1e-4
-
-@pytest.fixture
-def fxt_loglevel():
-    """Standard log level for tests (function scope for flexibility)"""
-    return LOGLEVEL
-
 # =============================================================================
 # Fixtures for custom configurations
 # =============================================================================
@@ -59,6 +48,22 @@ def ifs_tco79_short_data(ifs_tco79_short_reader):
 def ifs_tco79_short_data_2t(ifs_tco79_short_reader):
     return ifs_tco79_short_reader.retrieve(var='2t')
 
+@pytest.fixture(scope="session")
+def ifs_tco79_short_r100_reader():
+    return Reader(model="IFS", exp="test-tco79", source="short", loglevel=LOGLEVEL, regrid="r100")
+
+@pytest.fixture(scope="session")
+def ifs_tco79_short_r100_data(ifs_tco79_short_r100_reader):
+    return ifs_tco79_short_r100_reader.retrieve()
+
+@pytest.fixture(scope="session")
+def ifs_tco79_short_r200_reader():
+    return Reader(model="IFS", exp="test-tco79", source="short", loglevel=LOGLEVEL, regrid="r200")
+
+@pytest.fixture(scope="session")
+def ifs_tco79_short_r200_data(ifs_tco79_short_r200_reader):
+    return ifs_tco79_short_r200_reader.retrieve()
+
 # =============================================================================
 # FESOM fixtures
 # =============================================================================
@@ -69,6 +74,15 @@ def fesom_test_pi_original_2d_reader():
 @pytest.fixture(scope="session")
 def fesom_test_pi_original_2d_data(fesom_test_pi_original_2d_reader):
     return fesom_test_pi_original_2d_reader.retrieve(var='tos')
+
+@pytest.fixture(scope="session")
+def fesom_test_pi_original_2d_r200_fF_reader():
+    return Reader(model="FESOM", exp="test-pi", source="original_2d",
+                  regrid="r200", fix=False, loglevel=LOGLEVEL)
+
+@pytest.fixture(scope="session")
+def fesom_test_pi_original_2d_r200_fF_data(fesom_test_pi_original_2d_r200_fF_reader):
+    return fesom_test_pi_original_2d_r200_fF_reader.retrieve()
 
 # =============================================================================
 # ICON fixtures

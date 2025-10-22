@@ -5,8 +5,7 @@ from aqua import Reader, FldStat
 
 LOGLEVEL = "DEBUG"
 
-# Module-level fixtures (shared across all test classes in this file)
-# Aliases for session fixtures with scope in current class
+# Aliases with module scope for fixtures
 @pytest.fixture(scope='module')
 def reader_fesom(fesom_test_pi_original_2d_reader):
     return fesom_test_pi_original_2d_reader

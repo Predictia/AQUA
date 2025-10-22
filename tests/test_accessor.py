@@ -3,30 +3,27 @@
 import pytest
 from aqua import Reader
 
-loglevel = "DEBUG"
+# Aliases with module scope for fixtures
+@pytest.fixture(scope='module')
+def reader_instance(ifs_tco79_short_r100_reader):
+    return ifs_tco79_short_r100_reader
 
+@pytest.fixture(scope='module')
+def data(ifs_tco79_short_r100_data):
+    return ifs_tco79_short_r100_data
 
-@pytest.fixture
-def reader_instance():
-    return Reader(model="IFS", exp="test-tco79", source="short", loglevel=loglevel, regrid="r100")
+@pytest.fixture(scope='module')
+def reader_instance2(ifs_tco79_short_r200_reader):
+    return ifs_tco79_short_r200_reader
 
-@pytest.fixture
-def reader_instance2():
-    return Reader(model="IFS", exp="test-tco79", source="short", loglevel=loglevel, regrid="r200")
+@pytest.fixture(scope='module')
+def data2(ifs_tco79_short_r200_data):
+    return ifs_tco79_short_r200_data
 
+# Test classes
 @pytest.mark.aqua
 class TestAccessor():
     """Test class for accessor"""
-
-    @pytest.fixture
-    def data(self, reader_instance):
-        """Retrieve data once for first two tests"""
-        return reader_instance.retrieve()
-
-    @pytest.fixture
-    def data2(self, reader_instance2):
-        """Retrieve data for second reader"""
-        return reader_instance2.retrieve()
 
     def test_accessor_fldmean(self, data):
         """Test fldmean as accessor"""
