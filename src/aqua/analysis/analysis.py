@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+"""
+AQUA analysis module for running diagnostics and handling configurations.
+"""
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 import sys
 import subprocess
@@ -25,10 +27,12 @@ def run_command(cmd: str, log_file: str, logger=None) -> int:
         log_dir = os.path.dirname(log_file)
         create_folder(log_dir)
 
-        with open(log_file, 'w') as log:
-            process = subprocess.run(cmd, shell=True, stdout=log, stderr=log, text=True)
+        with open(log_file, 'w', encoding='utf-8') as log:
+            process = subprocess.run(
+                cmd, shell=True, stdout=log, stderr=log, text=True, check=False
+            )
             return process.returncode
-    except Exception as e:
+    except (OSError, subprocess.SubprocessError) as e:
         if logger:
             logger.error(f"Error running command {cmd}: {e}")
         raise
@@ -56,13 +60,15 @@ def run_diagnostic(diagnostic: str, script_path: str, extra_args: str,
         logger.info(f"Running diagnostic {diagnostic}")
         logger.debug(f"Command: {cmd}")
 
-        process = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        process = subprocess.run(
+            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False
+        )
 
         if process.returncode != 0:
             logger.error(f"Error running diagnostic {diagnostic}: {process.stderr}")
         else:
             logger.info(f"Diagnostic {diagnostic} completed successfully.")
-    except Exception as e:
+    except (OSError, subprocess.SubprocessError) as e:
         logger.error(f"Failed to run diagnostic {diagnostic}: {e}")
 
 
@@ -131,7 +137,8 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
             if nworkers is not None:
                 extra_args += f" --nworkers {nworkers}"
 
-        if cluster and not tool_config.get('nocluster', False):  # This is needed for ECmean which uses multiprocessing
+        # This is needed for ECmean which uses multiprocessing
+        if cluster and not tool_config.get('nocluster', False):
             extra_args += f" --cluster {cluster}"
 
         if catalog:
