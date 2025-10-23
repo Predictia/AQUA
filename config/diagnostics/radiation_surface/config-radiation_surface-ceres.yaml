@@ -95,3 +95,4 @@ diagnostics:
       - vars: ['-snlwrf', 'snswrf', 'slhtf', 'ishf']
         anomalies: true
         add_mean_line: true
+        ref_number: 1 # use ERA5 as reference for anomalies

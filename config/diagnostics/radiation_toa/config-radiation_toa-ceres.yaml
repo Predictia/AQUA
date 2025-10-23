@@ -119,3 +119,4 @@ diagnostics:
       - vars: ['-tnlwrf', 'tnswrf']
         add_mean_line: true
         anomalies: true
+        ref_number: 1 # use ERA5 as reference for anomalies
