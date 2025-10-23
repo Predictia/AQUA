@@ -51,7 +51,8 @@ if __name__ == '__main__':
                                          loglevel=loglevel)
     config_dict = merge_config_args(config=config_dict, args=args, loglevel=loglevel)
 
-    regrid = get_arg(args, 'regrid', None)
+    regrid = False
+    #regrid = get_arg(args, 'regrid', None)
     logger.info(f"Regrid option is set to {regrid}")
     realization = get_arg(args, 'realization', None)
     # This reader_kwargs will be used if the dataset corresponding value is None or not present
