@@ -73,10 +73,10 @@ def run_diagnostic(diagnostic: str, script_path: str, extra_args: str,
 
 
 def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = None, cli={},
-                        tool_config=None, catalog=None, model='default_model', exp='default_exp',
+                        diag_config=None, catalog=None, model='default_model', exp='default_exp',
                         source='default_source', source_oce=None, realization=None,
                         output_dir='./output', loglevel='INFO',
-                        logger=None, aqua_path='', cluster=None):
+                        logger=None, cluster=None):
     """
     Run the diagnostic and log the output, handling parallel processing if required.
 
@@ -85,7 +85,7 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
         parallel (bool): Whether to run in parallel mode.
         regrid (str): Regrid option.
         cli (dict): CLI definitions for the tools.
-        tool_config (dict): Configuration dictionary loaded from YAML.
+        diag_config (dict): Configuration dictionary loaded from YAML.
         catalog (str): Catalog name.
         model (str): Model name.
         exp (str): Experiment name.
@@ -106,7 +106,7 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
     output_dir = os.path.expandvars(output_dir)
     create_folder(output_dir)
 
-    for tool, tool_config in tool_config.items():  # run individual tools in serial mode
+    for tool, tool_config in diag_config.items():  # run individual tools in serial mode
 
         logger.info(f"Running tool: {tool} for diagnostic: {diagnostic}")
         logfile = f"{output_dir}/{diagnostic}-{tool}.log"

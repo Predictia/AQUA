@@ -168,8 +168,8 @@ def analysis_execute(args):
         for diagnostic in diag_group:
 
             logger.info("Starting diagnostic: %s", diagnostic)
-            tool_config = config.get('diagnostics', {}).get(diagnostic)
-            if tool_config is None:
+            diag_config = config.get('diagnostics', {}).get(diagnostic)
+            if diag_config is None:
                 logger.error("Diagnostic '%s' not found in the configuration, skipping.", diagnostic)
                 continue
             
@@ -180,7 +180,7 @@ def analysis_execute(args):
                     run_diagnostic_func,
                     diagnostic=diagnostic,
                     parallel=args.parallel,
-                    tool_config=tool_config,
+                    diag_config=diag_config,
                     cli=cli,
                     catalog=catalog,
                     model=model,
