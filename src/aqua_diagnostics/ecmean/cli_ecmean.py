@@ -234,7 +234,7 @@ if __name__ == '__main__':
     interface_file = get_arg(args, 'interface', ecmean_config.get('interface_file'))
 
     # define the interface file
-    ecmeandir = get_diagnostic_configpath('ecmean', loglevel=loglevel)
+    ecmeandir = get_diagnostic_configpath('climate-metrics', loglevel=loglevel)
     interface = os.path.join(ecmeandir, interface_file)
 
     # define the ecmean configuration file, using the default as a trick
