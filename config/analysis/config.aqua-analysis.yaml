@@ -56,8 +56,7 @@ cli:
   - trends: "ocean_trends/cli_ocean_trends.py"
   - tropical_rainfall: "../../diagnostics/tropical_rainfall/cli/cli_tropical_rainfall.py"
 
-diagnostics:
-  run: 
+run: 
   - ["atmosphere2d", "atmosphere3d", "climate_metrics"]
   - ["ocean2d", "radiation_toa", "radiation_surface"]
   - ["ocean3d", "seaice", "teleconnections", "water_cycle"]
@@ -73,6 +72,7 @@ diagnostics:
   #    script_path: the location of the script to run the diagnostic.
   #                 Default script_path is "$script_path_base/$diagnostic/cli/cli_${diagnostic}.py"
   #    nocluster: boolean, if set to true, the diagnostic will not use the global dask cluster. Default is false (needed for ECmean)
+diagnostics:
   atmosphere2d: 
     biases: 
       config: ["${AQUA_CONFIG}/diagnostics/atmosphere2d/config-atmosphere2d-berkeley.yaml", 
