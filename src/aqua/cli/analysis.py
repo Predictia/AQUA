@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dask.distributed import LocalCluster
 from aqua.analysis import run_diagnostic_func, run_command, get_aqua_paths
 from aqua.util import load_yaml, create_folder, ConfigPath, format_realization
+from aqua.util import expand_env_vars
 from aqua.logger import log_configure
 
 
@@ -102,6 +103,12 @@ def analysis_execute(args):
     os.environ["AQUA_CONFIG"] = aqua_configdir if 'AQUA_CONFIG' not in os.environ else os.environ["AQUA_CONFIG"]
     create_folder(output_dir, loglevel=loglevel)
 
+    print('before')
+    print(config)
+    config = expand_env_vars(config)
+    print("after")
+    print(config)
+
     run_checker = config.get('job', {}).get('run_checker', False)
     if run_checker:
         logger.info("Running setup checker")
@@ -153,6 +160,7 @@ def analysis_execute(args):
 
     for diag_group in run:
         for diagnostic in diag_group:
+            
             with ThreadPoolExecutor(max_workers=max_threads if max_threads > 0 else None) as executor:
                 futures = []
 
