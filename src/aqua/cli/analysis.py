@@ -125,9 +125,9 @@ def analysis_execute(args):
         else:
             logger.error(f"Setup checker returned exit code {result}, check the logs for more information.")
 
-    diagnostics = config.get('diagnostics', {}).get('run')
-    if not diagnostics:
-        logger.error("No diagnostics found in configuration.")
+    run = config.get('run', [])
+    if not run:
+        logger.error("No run block found in configuration.")
         sys.exit(1)
 
     if args.parallel:
@@ -149,33 +149,38 @@ def analysis_execute(args):
         cluster = None
         cluster_address = None
 
-    with ThreadPoolExecutor(max_workers=max_threads if max_threads > 0 else None) as executor:
-        futures = []
-        for diagnostic in diagnostics:
-            futures.append(executor.submit(
-                run_diagnostic_func,
-                diagnostic=diagnostic,
-                parallel=args.parallel,
-                config=config,
-                catalog=catalog,
-                model=model,
-                exp=exp,
-                source=source,
-                source_oce=source_oce,
-                realization=realization,
-                regrid=regrid,
-                output_dir=output_dir,
-                loglevel=loglevel,
-                logger=logger,
-                aqua_path=aqua_path,
-                cluster=cluster_address
-            ))
+    cli = config.get('cli', {})
 
-        for future in as_completed(futures):
-            try:
-                result = future.result()
-            except Exception as e:
-                logger.error(f"Diagnostic raised an exception: {e}")
+    for diag_group in run:
+        for diagnostic in diag_group:
+            with ThreadPoolExecutor(max_workers=max_threads if max_threads > 0 else None) as executor:
+                futures = []
+
+                futures.append(executor.submit(
+                    run_diagnostic_func,
+                    diagnostic=diagnostic,
+                    parallel=args.parallel,
+                    config=config,
+                    cli=cli,
+                    catalog=catalog,
+                    model=model,
+                    exp=exp,
+                    source=source,
+                    source_oce=source_oce,
+                    realization=realization,
+                    regrid=regrid,
+                    output_dir=output_dir,
+                    loglevel=loglevel,
+                    logger=logger,
+                    aqua_path=aqua_path,
+                    cluster=cluster_address
+                ))
+
+            for future in as_completed(futures):
+                try:
+                    result = future.result()
+                except Exception as e:
+                    logger.error(f"Diagnostic raised an exception: {e}")
 
     if cluster:
         cluster.close()

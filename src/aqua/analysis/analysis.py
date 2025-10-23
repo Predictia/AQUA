@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 import sys
 import subprocess
-from aqua.util import create_folder, ConfigPath
+from aqua.util import create_folder, ConfigPath, to_list
 from aqua import __path__ as pypath
 
 
@@ -66,7 +66,7 @@ def run_diagnostic(diagnostic: str, script_path: str, extra_args: str,
         logger.error(f"Failed to run diagnostic {diagnostic}: {e}")
 
 
-def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = None,
+def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = None, cli={},
                         config=None, catalog=None, model='default_model', exp='default_exp',
                         source='default_source', source_oce=None, realization=None,
                         output_dir='./output', loglevel='INFO',
@@ -78,6 +78,7 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
         diagnostic (str): Name of the diagnostic to run.
         parallel (bool): Whether to run in parallel mode.
         regrid (str): Regrid option.
+        cli (dict): CLI definitions for the tools.
         config (dict): Configuration dictionary loaded from YAML.
         catalog (str): Catalog name.
         model (str): Model name.
@@ -96,8 +97,8 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
     if not script_dir:
         script_dir=os.path.join(aqua_path, "diagnostics")
 
-    diagnostic_config = config.get('diagnostics', {}).get(diagnostic)
-    if diagnostic_config is None:
+    metadiagnostic_config = config.get('diagnostics', {}).get(diagnostic)
+    if metadiagnostic_config is None:
         logger.error(f"Diagnostic '{diagnostic}' not found in the configuration.")
         return
 
@@ -106,42 +107,53 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
 
     logfile = f"{output_dir}/{diagnostic}.log"
 
-    extra_args = diagnostic_config.get('extra', "")
-    cfg = diagnostic_config.get('config')
-    if cfg:
-        extra_args += f" --config {cfg}"
+    for tool, tool_config in metadiagnostic_config.items():  # run individual tools in serial mode
 
-    if regrid:
-        extra_args += f" --regrid {regrid}"
+        script_path = os.path.join(script_dir, cli.get(tool))
+        if not os.path.exists(script_path):
+            logger.error(f"Script for tool '{tool}' not found at path: {script_path}, skipping")
+            continue
 
-    if parallel:
-        nworkers = diagnostic_config.get('nworkers')
-        if nworkers is not None:
-            extra_args += f" --nworkers {nworkers}"
+        outname = f"{output_dir}/{tool_config.get('outname', diagnostic)}"
 
-    if cluster and not diagnostic_config.get('nocluster', False):  # This is needed for ECmean which uses multiprocessing
-        extra_args += f" --cluster {cluster}"
+        extra_args = tool_config.get('extra', "")
 
-    if catalog:
-        extra_args += f" --catalog {catalog}"
+        if regrid:
+            extra_args += f" --regrid {regrid}"
 
-    if realization:
-        extra_args += f" --realization {realization}"
+        if parallel:
+            nworkers = tool_config.get('nworkers')
+            if nworkers is not None:
+                extra_args += f" --nworkers {nworkers}"
 
-    if diagnostic_config.get('source_oce', False) and source_oce:  # pass source_oce only if allowed by the diagnostic config file
-        extra_args += f" --source_oce {source_oce}"
+        if cluster and not tool_config.get('nocluster', False):  # This is needed for ECmean which uses multiprocessing
+            extra_args += f" --cluster {cluster}"
 
-    outname = f"{output_dir}/{diagnostic_config.get('outname', diagnostic)}"
-    args = f"--model {model} --exp {exp} --source {source} --outputdir {outname} {extra_args}"
+        if catalog:
+            extra_args += f" --catalog {catalog}"
 
-    run_diagnostic(
-        diagnostic=diagnostic,
-        script_path=os.path.join(script_dir, diagnostic_config.get('script_path', f"{diagnostic}/cli/cli_{diagnostic}.py")),
-        extra_args=args,
-        loglevel=loglevel,
-        logger=logger,
-        logfile=logfile
-    )
+        if realization:
+            extra_args += f" --realization {realization}"
+
+        if tool_config.get('source_oce', False) and source_oce:  # pass source_oce only if allowed by the diagnostic config file
+            extra_args += f" --source_oce {source_oce}"
+
+        cfgs = to_list(tool_config.get('config'))
+        if not cfgs:
+            logger.error(f"Config for tool '{tool}' not found, skipping.")
+            continue
+
+        for cfg in cfgs:
+            args = f"--model {model} --exp {exp} --source {source} --outputdir {outname} {extra_args} --config {cfg}"
+
+            run_diagnostic(
+                diagnostic=diagnostic,
+                script_path=script_path,
+                extra_args=args,
+                loglevel=loglevel,
+                logger=logger,
+                logfile=logfile
+            )
 
 
 def get_aqua_paths(*, args, logger):
