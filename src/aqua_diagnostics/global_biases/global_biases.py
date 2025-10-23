@@ -210,7 +210,7 @@ class GlobalBiases(Diagnostic):
                 extra_keys = {k: v for k, v in [('var', var), ('plev', plev)] if v is not None}
                 super().save_netcdf(
                     data=self.seasonal_climatology,
-                    diagnostic='globalbiases',
+                    diagnostic=self.diagnostic,
                     diagnostic_product='seasonal_climatology',
                     outputdir=self.outputdir,
                     extra_keys=extra_keys
