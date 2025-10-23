@@ -109,7 +109,12 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
 
     for tool, tool_config in metadiagnostic_config.items():  # run individual tools in serial mode
 
-        script_path = os.path.join(script_dir, cli.get(tool))
+        cli_path = cli.get(tool)
+        if cli_path is None:
+            logger.error(f"CLI path for tool '{tool}' not found, skipping.")
+            continue
+
+        script_path = os.path.join(script_dir, cli_path)
         if not os.path.exists(script_path):
             logger.error(f"Script for tool '{tool}' not found at path: {script_path}, skipping")
             continue
