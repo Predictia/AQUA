@@ -20,7 +20,7 @@ references:
     model: 'BERKELEY-EARTH'
     exp: 'aqua-filled'
     source: 'r100-monthly'
-    regrid: null
+    regrid: 'r100'
     startdate: null
     enddate: null
 
@@ -50,7 +50,7 @@ diagnostics:
         startdate_data: null
         enddate_data: null
         startdate_ref: "1990-01-01"
-        enddate_ref: "2020-12-31
+        enddate_ref: "2020-12-31"
     plot_params:
       default: 
         projection: 'robinson'

@@ -14,7 +14,7 @@ references:
     model: 'ERA5'
     exp: 'era5'
     source: 'monthly'
-    regrid: null
+    regrid: 'r100'
     startdate: null
     enddate: null
 
