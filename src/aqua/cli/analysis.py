@@ -192,7 +192,6 @@ def analysis_execute(args):
                     output_dir=output_dir,
                     loglevel=loglevel,
                     logger=logger,
-                    aqua_path=aqua_path,
                     cluster=cluster_address
                 ))
 

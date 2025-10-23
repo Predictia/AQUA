@@ -95,7 +95,6 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
         output_dir (str): Directory to save output.
         loglevel (str): Log level for the diagnostic.
         logger: Logger instance for logging messages.
-        aqua_path (str): AQUA path.
         cluster: Dask cluster scheduler address.
     """
 
@@ -106,7 +105,8 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
     output_dir = os.path.expandvars(output_dir)
     create_folder(output_dir)
 
-    for tool, tool_config in diag_config.items():  # run individual tools in serial mode
+    # run individual tools in serial mode
+    for tool, tool_config in diag_config.items():
 
         logger.info(f"Running tool: {tool} for diagnostic: {diagnostic}")
         logfile = f"{output_dir}/{diagnostic}-{tool}.log"
@@ -120,7 +120,6 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
             continue
 
         outname = f"{output_dir}/{tool_config.get('outname', diagnostic)}"
-
         extra_args = tool_config.get('extra', "")
 
         if regrid:
