@@ -82,7 +82,7 @@ diagnostics:
       config: ["${AQUA_CONFIG}/diagnostics/atmosphere2d/config-atmosphere2d-berkeley.yaml",
                "${AQUA_CONFIG}/diagnostics/atmosphere2d/config-atmosphere2d-era5.yaml"]
     lat_lon_profiles:
-      config: "${AQUA_CONFIG}/diagnostics/lat_lon_profiles/config-atmosphere2d-berkeley.yaml"
+      config: "${AQUA_CONFIG}/diagnostics/atmosphere2d/config-atmosphere2d-berkeley.yaml"
 
   atmosphere3d:
     biases:
@@ -90,11 +90,11 @@ diagnostics:
 
   climate_metrics:
     ecmean:
-      config: "${AQUA_CONFIG}/diagnostics/ecmean/config-climate_metrics-ecmean.yaml"
+      config: "${AQUA_CONFIG}/diagnostics/climate_metrics/config-climate_metrics-ecmean.yaml"
       nocluster: true  # ECmean does not use the global dask cluster
       source_oce: true  # if a --source_oce argument was passed use it
     gregory:
-      config: "${AQUA_CONFIG}/diagnostics/timeseries/config-climate_metrics-gregory.yaml"
+      config: "${AQUA_CONFIG}/diagnostics/climate_metrics/config-climate_metrics-gregory.yaml"
 
   ocean2d:
     biases:
