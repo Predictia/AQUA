@@ -331,7 +331,7 @@ class AquaConsole():
         """
         Set the grids (and concurrently the weights and areas) paths in the config-aqua.yaml
         This will override the grids paths defined in the individual catalogs
-        
+
         Args:
             args (argparse.Namespace): arguments from the command line
         """
@@ -342,7 +342,7 @@ class AquaConsole():
 
         self.logger.info('Setting grids path to %s, weights path to %s and areas path to %s',
                          grids_path, weights_path, areas_path)
-        
+
         # Check if the paths exist and if not create them
         for path in [grids_path, areas_path, weights_path]:
             if not os.path.exists(path):
@@ -438,7 +438,7 @@ class AquaConsole():
     def _github_explore(self, repository=None):
         """
         Explore the remote GitHub repository
-        
+
         Args:
             repository (str): the repository to explore, if None it uses the default
                               DestinE-Climate-DT/Climate-DT-catalog
@@ -486,7 +486,7 @@ class AquaConsole():
     def avail(self, args):
         """
         Return the catalog available on the Github website
-        
+
         Args:
             args (argparse.Namespace): arguments from the command line
         """
@@ -495,13 +495,12 @@ class AquaConsole():
         print('Available ClimateDT catalogs at are:')
         print(available_catalog)
 
-
     def _add_catalog_github(self, catalog, repository=None):
         """
         Add a catalog from a remote Github repository.
         Default repository is the Climate-DT repository
         DestinE-Climate-DT/Climate-DT-catalog
-          
+
         Args:
             catalog (str): the catalog to be added
             repository (str): the repository from which to fetch the catalog, if None it uses the default
@@ -586,7 +585,7 @@ class AquaConsole():
                 self._copy_update_folder_file(os.path.join(self.aquapath, '..', directory),
                                          os.path.join(self.configpath, directory),
                                          update=True)
-                
+    
     def _update_catalog(self, catalog):
         """Update a catalog by copying it if not installed in editable mode
 
@@ -605,7 +604,6 @@ class AquaConsole():
         else:
             self.logger.error('%s does not appear to be installed, please consider `aqua add`', catalog)
             sys.exit(1)
-
 
     def _set_catalog(self, catalog):
         """Modify the config-aqua.yaml with the proper catalog
@@ -753,11 +751,11 @@ class AquaConsole():
                 self.logger.error("Existing files in the %s folder are not compatible", kind)
             self.logger.error(e)
             return False
-        
+
     def analysis(self, args):
         """
         Run the AQUA analysis
-        
+
         Args:
             args (argparse.Namespace): arguments from the command line
         """
@@ -768,7 +766,7 @@ class AquaConsole():
     def drop(self, args):
         """
         Run the Data Reduction OPerator
-        
+
         Args:
             args (argparse.Namespace): arguments from the command line
         """
@@ -779,13 +777,14 @@ class AquaConsole():
     def catgen(self, args):
         """
         Run the FDB catalog generator
-        
+
         Args:
             args (argparse.Namespace): arguments from the command line
         """
 
         print("Running the catalog generator")
-        catgen_execute(args)       
+        catgen_execute(args)
+
 
 def main():
     """AQUA main installation tool"""
