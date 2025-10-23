@@ -20,7 +20,7 @@ references:
     model: 'ESA-CCI-L4'
     exp: 'v3.0.1'
     source: 'r100-monthly'
-    regrid: null
+    regrid: 'r100'
     startdate: null
     enddate: null
 
