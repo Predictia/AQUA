@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.19.0):
 
 AQUA core complete list:
+- EC-EARTH4 ORCA2 and eORCA1 grids refactor (#2280)
+- Added PALEORCA2 support for the EC-EARTH4 low-resolution paleoclimate configuration (#2280)
 
 AQUA diagnostics complete list:
 
