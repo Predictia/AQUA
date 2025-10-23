@@ -99,30 +99,32 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
         cluster: Dask cluster scheduler address.
     """
 
+    # Internal naming scheme:
+    # diagnostics: the name of the wrapper metadiagnostic, e.g. atmosphere2d, climate_metrics, etc.
+    # tool: the name of the individual command-line tool being run, e.g. biases, ecmean, etc.
+
     script_dir = config.get('job', {}).get("script_path_base")  # we were not using this key
     if not script_dir:
         script_dir=os.path.join(aqua_path, "diagnostics")
 
-    metadiagnostic_config = config.get('diagnostics', {}).get(diagnostic)
-    if metadiagnostic_config is None:
-        logger.error(f"Diagnostic '{diagnostic}' not found in the configuration.")
+    tool_config = config.get('diagnostics', {}).get(diagnostic)
+    if tool_config is None:
+        logger.error("Diagnostic '%s' not found in the configuration.", diagnostic)
         return
 
     output_dir = os.path.expandvars(output_dir)
     create_folder(output_dir)
 
-    logfile = f"{output_dir}/{diagnostic}.log"
-
-    for tool, tool_config in metadiagnostic_config.items():  # run individual tools in serial mode
-
+    for tool, tool_config in tool_config.items():  # run individual tools in serial mode
+        logfile = f"{output_dir}/{diagnostic}-{tool}.log"
         cli_path = cli.get(tool)
         if cli_path is None:
-            logger.error(f"CLI path for tool '{tool}' not found, skipping.")
+            logger.error("CLI path for tool '%s' not found, skipping.", tool)
             continue
 
         script_path = os.path.join(script_dir, cli_path)
         if not os.path.exists(script_path):
-            logger.error(f"Script for tool '{tool}' not found at path: {script_path}, skipping")
+            logger.error("Script for tool '%s' not found at path: %s, skipping", tool, script_path)
             continue
 
         outname = f"{output_dir}/{tool_config.get('outname', diagnostic)}"
