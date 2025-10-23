@@ -90,7 +90,7 @@ diagnostics:
       tprate:
         regions: ['nh', 'sh', 'europe']
 
-  lat_lon_profiles:
+lat_lon_profiles:
     run: true
     diagnostic_name: 'water_cycle'
     mean_type: 'zonal'
@@ -99,6 +99,10 @@ diagnostics:
     box_brd: true
     seasonal: true
     longterm: true
+    params:
+      default:
+        std_startdate: '19900101'
+        std_enddate: '20201231'
     variables:
       - name: 'tprate'
         regions: [null, 'tropics']  # global and tropics
