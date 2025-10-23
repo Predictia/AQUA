@@ -5,6 +5,9 @@ datasets:
     source: null
     regrid: null
     freq: null # if the diagnostic supports it
+    reader_kwargs: null # it can be a dictionary with reader kwargs
+    startdate: null
+    enddate: null
   # Possible second/third/fourth datasets here, no present by default
   # - catalog: 'obs'
   #   model: 'ERA5'
@@ -29,12 +32,6 @@ output:
 
 diagnostics:
   teleconnections:
-    NAO:
-      run: false
-      diagnostic_name: 'nao'
-      months_window: 3
-      seasons: ['DJF']
-      cbar_range: [-5, 5]
     ENSO:
       run: true
       diagnostic_name: 'enso'
