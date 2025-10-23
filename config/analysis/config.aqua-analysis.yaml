@@ -47,8 +47,7 @@ cli:
   - boxplots: "boxplots/cli_boxplots.py"
   - drift: "ocean_drift/cli_ocean_drift.py"
   - ecmean: "ecmean/cli_ecmean.py"
-  - enso: "teleconnections/cli_teleconnections.py"
-  - nao: "teleconnections/cli_teleconnections.py"
+  - gregory: "timeseries/cli_timeseries.py"
   - seaice: "seaice/cli_seaice.py"
   - seasonal_cycles: "timeseries/cli_timeseries.py"
   - stratification: "ocean_stratification/cli_ocean_stratification.py"
@@ -93,7 +92,7 @@ diagnostics:
       config: "${AQUA_CONFIG}/diagnostics/ecmean/config-climate_metrics-ecmean.yaml"
       nocluster: true  # ECmean does not use the global dask cluster
       source_oce: true  # if a --source_oce argument was passed use it
-    timeseries:
+    gregory:
       config: "${AQUA_CONFIG}/diagnostics/timeseries/config-climate_metrics-gregory.yaml"
 
   ocean2d:
@@ -129,10 +128,9 @@ diagnostics:
       config: "${AQUA_CONFIG}/diagnostics/seaice/config-seaice.yaml"
 
   teleconnections:
-    nao:
-      config: "${AQUA_CONFIG}/diagnostics/teleconnections/config-teleconnections-nao.yaml"
-    enso:
-      config: "${AQUA_CONFIG}/diagnostics/teleconnections/config-teleconnections-enso.yaml"
+    teleconnections:
+      config: ["${AQUA_CONFIG}/diagnostics/teleconnections/config-teleconnections-nao.yaml", 
+        "${AQUA_CONFIG}/diagnostics/teleconnections/config-teleconnections-enso.yaml"]
 
   water_cycle:
     timeseries:
