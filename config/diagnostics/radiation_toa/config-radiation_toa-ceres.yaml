@@ -59,8 +59,8 @@ diagnostics:
         std_startdate: '20010101' 
         std_enddate: '20241231'
       tnlwrf+tnswrf:
-        standard_name: "net_top_radiation"
-        long_name: "Net top radiation"
+        standard_name: "top_net_radiation"
+        long_name: "Top net radiation"
 
   globalbiases:
     run: true
