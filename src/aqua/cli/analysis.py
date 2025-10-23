@@ -1,3 +1,5 @@
+"""AQUA analysis command line interface."""
+
 import os
 import sys
 import argparse
@@ -157,8 +159,9 @@ def analysis_execute(args):
     # read cli definitions and prepend script path
     cli = config.get('cli', {})
     script_dir = config.get('job', {}).get("script_path_base")  # we were not using this key
-    for diag in cli:
-        cli[diag] = os.path.join(script_dir, cli[diag])
+    if script_dir:
+        for diag in cli:
+            cli[diag] = os.path.join(script_dir, cli[diag])
 
     # Internal naming scheme:
     # diagnostic: the name of the wrapper metadiagnostic, e.g. atmosphere2d, climate_metrics, etc.
