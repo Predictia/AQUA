@@ -51,7 +51,7 @@ if __name__ == '__main__':
                                          loglevel=loglevel)
     config_dict = merge_config_args(config=config_dict, args=args, loglevel=loglevel)
 
-    regrid = False
+    regrid = None
     #regrid = get_arg(args, 'regrid', None)
     logger.info(f"Regrid option is set to {regrid}")
     realization = get_arg(args, 'realization', None)
@@ -96,7 +96,7 @@ if __name__ == '__main__':
                             logger.info(f'Running dataset: {dataset}, variable: {var}')
                             dataset_args = {'catalog': dataset['catalog'], 'model': dataset['model'],
                                             'exp': dataset['exp'], 'source': dataset['source'],
-                                            'regrid': regrid if regrid is not None else dataset.get('regrid', None)}
+                                            'regrid': regrid} # if regrid is not None else dataset.get('regrid', None)}
                             logger.debug(f"Dataset args: {dataset_args}")
                             ts[i] = Timeseries(**init_args, **dataset_args)
                             ts[i].run(**run_args, create_catalog_entry=create_catalog_entry,
@@ -119,7 +119,7 @@ if __name__ == '__main__':
                                                 'startdate': startdate, 'enddate': enddate,
                                                 'std_startdate': var_config.get('std_startdate'),
                                                 'std_enddate': var_config.get('std_enddate'),
-                                                'regrid': regrid if regrid is not None else reference.get('regrid', None)}
+                                                'regrid': regrid} # if regrid is not None else reference.get('regrid', None)}
                                 logger.info(f"Reference args: {reference_args}")
                                 ts_ref[i] = Timeseries(**init_args, **reference_args)
                                 ts_ref[i].run(**run_args, std=True, create_catalog_entry=False,
@@ -175,7 +175,7 @@ if __name__ == '__main__':
                             logger.info(f'Running dataset: {dataset}, variable: {var}')
                             dataset_args = {'catalog': dataset['catalog'], 'model': dataset['model'],
                                             'exp': dataset['exp'], 'source': dataset['source'],
-                                            'regrid': regrid if regrid is not None else dataset.get('regrid', None)}
+                                            'regrid': regrid} # if regrid is not None else dataset.get('regrid', None)}
                             ts[i] = Timeseries(**init_args, **dataset_args)
                             ts[i].run(**run_args, create_catalog_entry=create_catalog_entry,
                                       reader_kwargs=dataset.get('reader_kwargs') or reader_kwargs)
@@ -194,7 +194,7 @@ if __name__ == '__main__':
                                                 'startdate': startdate, 'enddate': enddate,
                                                 'std_startdate': var_config.get('std_startdate'),
                                                 'std_enddate': var_config.get('std_enddate'),
-                                                'regrid': regrid if regrid is not None else reference.get('regrid', None)}
+                                                'regrid': regrid} # if regrid is not None else reference.get('regrid', None)}
                                 ts_ref[i] = Timeseries(**init_args, **reference_args)
                                 ts_ref[i].run(**run_args, std=True, create_catalog_entry=False,
                                               reader_kwargs=reference.get('reader_kwargs') or {})
@@ -254,7 +254,7 @@ if __name__ == '__main__':
                             logger.info(f'Running dataset: {dataset}, variable: {var}')
                             dataset_args = {'catalog': dataset['catalog'], 'model': dataset['model'],
                                             'exp': dataset['exp'], 'source': dataset['source'],
-                                            'regrid': regrid if regrid is not None else dataset.get('regrid', None)}
+                                            'regrid': regrid} # if regrid is not None else dataset.get('regrid', None)}
                             sc[i] = SeasonalCycles(**init_args, **dataset_args)
                             sc[i].run(**run_args, create_catalog_entry=create_catalog_entry,
                                       reader_kwargs=dataset.get('reader_kwargs') or reader_kwargs)
@@ -273,7 +273,7 @@ if __name__ == '__main__':
                                                 'startdate': startdate, 'enddate': enddate,
                                                 'std_startdate': var_config.get('std_startdate'),
                                                 'std_enddate': var_config.get('std_enddate'),
-                                                'regrid': regrid if regrid is not None else reference.get('regrid', None)}
+                                                'regrid': regrid} # if regrid is not None else reference.get('regrid', None)}
                                 sc_ref[i] = SeasonalCycles(**init_args, **reference_args)
                                 sc_ref[i].run(**run_args, std=True, create_catalog_entry=False,
                                               reader_kwargs=reference.get('reader_kwargs') or {})
@@ -326,7 +326,7 @@ if __name__ == '__main__':
                     logger.info(f'Running dataset: {dataset}')
                     dataset_args = {'catalog': dataset['catalog'], 'model': dataset['model'],
                                     'exp': dataset['exp'], 'source': dataset['source'],
-                                    'regrid': regrid if regrid is not None else dataset.get('regrid', None)}
+                                    'regrid': regrid} # if regrid is not None else dataset.get('regrid', None)}
 
                     greg[i] = Gregory(**init_args, **dataset_args)
                     greg[i].run(**run_args, **model_args, reader_kwargs=dataset.get('reader_kwargs') or reader_kwargs)
