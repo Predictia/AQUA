@@ -154,10 +154,24 @@ def analysis_execute(args):
         cluster = None
         cluster_address = None
 
+    # read cli definitions and prepend script path
     cli = config.get('cli', {})
+    script_dir = config.get('job', {}).get("script_path_base")  # we were not using this key
+    for diag in cli:
+        cli[diag] = os.path.join(script_dir, cli[diag])
+
+    # Internal naming scheme:
+    # diagnostic: the name of the wrapper metadiagnostic, e.g. atmosphere2d, climate_metrics, etc.
+    # tool: the name of the individual command-line tool being run, e.g. biases, ecmean, etc.
 
     for diag_group in run:
         for diagnostic in diag_group:
+
+            logger.info("Starting diagnostic: %s", diagnostic)
+            diag_config = config.get('diagnostics', {}).get(diagnostic)
+            if diag_config is None:
+                logger.error("Diagnostic '%s' not found in the configuration, skipping.", diagnostic)
+                continue
             
             with ThreadPoolExecutor(max_workers=max_threads if max_threads > 0 else None) as executor:
                 futures = []
@@ -166,7 +180,7 @@ def analysis_execute(args):
                     run_diagnostic_func,
                     diagnostic=diagnostic,
                     parallel=args.parallel,
-                    config=config,
+                    diag_config=diag_config,
                     cli=cli,
                     catalog=catalog,
                     model=model,

@@ -73,10 +73,10 @@ def run_diagnostic(diagnostic: str, script_path: str, extra_args: str,
 
 
 def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = None, cli={},
-                        config=None, catalog=None, model='default_model', exp='default_exp',
+                        diag_config=None, catalog=None, model='default_model', exp='default_exp',
                         source='default_source', source_oce=None, realization=None,
                         output_dir='./output', loglevel='INFO',
-                        logger=None, aqua_path='', cluster=None):
+                        logger=None, cluster=None):
     """
     Run the diagnostic and log the output, handling parallel processing if required.
 
@@ -85,7 +85,7 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
         parallel (bool): Whether to run in parallel mode.
         regrid (str): Regrid option.
         cli (dict): CLI definitions for the tools.
-        config (dict): Configuration dictionary loaded from YAML.
+        diag_config (dict): Configuration dictionary loaded from YAML.
         catalog (str): Catalog name.
         model (str): Model name.
         exp (str): Experiment name.
@@ -100,31 +100,23 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
     """
 
     # Internal naming scheme:
-    # diagnostics: the name of the wrapper metadiagnostic, e.g. atmosphere2d, climate_metrics, etc.
+    # diagnostic: the name of the wrapper metadiagnostic, e.g. atmosphere2d, climate_metrics, etc.
     # tool: the name of the individual command-line tool being run, e.g. biases, ecmean, etc.
-
-    script_dir = config.get('job', {}).get("script_path_base")  # we were not using this key
-    if not script_dir:
-        script_dir=os.path.join(aqua_path, "diagnostics")
-
-    tool_config = config.get('diagnostics', {}).get(diagnostic)
-    if tool_config is None:
-        logger.error("Diagnostic '%s' not found in the configuration.", diagnostic)
-        return
 
     output_dir = os.path.expandvars(output_dir)
     create_folder(output_dir)
 
-    for tool, tool_config in tool_config.items():  # run individual tools in serial mode
+    for tool, tool_config in diag_config.items():  # run individual tools in serial mode
+
+        logger.info(f"Running tool: {tool} for diagnostic: {diagnostic}")
         logfile = f"{output_dir}/{diagnostic}-{tool}.log"
         cli_path = cli.get(tool)
         if cli_path is None:
             logger.error("CLI path for tool '%s' not found, skipping.", tool)
             continue
-
-        script_path = os.path.join(script_dir, cli_path)
-        if not os.path.exists(script_path):
-            logger.error("Script for tool '%s' not found at path: %s, skipping", tool, script_path)
+        
+        if not os.path.exists(cli_path):
+            logger.error("Script for tool '%s' not found at path: %s, skipping", tool, cli_path)
             continue
 
         outname = f"{output_dir}/{tool_config.get('outname', diagnostic)}"
@@ -162,7 +154,7 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
 
             run_diagnostic(
                 diagnostic=diagnostic,
-                script_path=script_path,
+                script_path=cli_path,
                 extra_args=args,
                 loglevel=loglevel,
                 logger=logger,
