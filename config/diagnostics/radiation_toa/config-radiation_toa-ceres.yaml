@@ -1,9 +1,22 @@
+# Template according to #1613
+# The first model in this block can be overridden
+# in the command line by using:
+# --model, --exp, --source, --outputdir, --catalog
 datasets:
   - catalog: null
     model: null
     exp: null
-    source: null
+    source: 'lra-r100-monthly'
     regrid: null
+    reader_kwargs: null # it can be a dictionary with reader kwargs
+    startdate: null
+    enddate: null
+  # Possible second/third/fourth datasets here, no present by default
+  # - catalog: 'obs'
+  #   model: 'ERA5'
+  #   exp: 'era5'
+  #   source: 'monthly'
+  #   regrid: r100
 
 references:
   - catalog: 'obs'
@@ -11,22 +24,47 @@ references:
     exp: 'ebaf-toa421'
     source: 'monthly'
     regrid: 'r100'
-  
-setup:
-  loglevel: 'WARNING'
+    reader_kwargs: null
+    startdate: '2001-01-01'
+    enddate: '2024-12-31'
+  - catalog: obs
+    model: 'ERA5'
+    exp: 'era5'
+    regrid: 'r100'
+    source: 'monthly'
+    startdate: '1990-01-01'
+    enddate: '2020-12-31'
 
 output:
   outputdir: "./"
   rebuild: true
-  save_netcdf: true
   save_pdf: true
   save_png: true
   dpi: 300
+  create_catalog_entry: true
 
 diagnostics:
+  timeseries:
+    run: true
+    diagnostic_name: 'radiation_toa'
+    variables: ['tnlwrf', 'tnswrf']
+    formulae: ['tnlwrf+tnswrf']
+    center_time: true
+    params:
+      default:
+        hourly: False
+        daily: False
+        monthly: True
+        annual: True
+        std_startdate: '20010101' 
+        std_enddate: '20241231'
+      tnlwrf+tnswrf:
+        standard_name: "net_top_radiation"
+        long_name: "Net top radiation"
+
   globalbiases:
     run: true
-    diagnostic_name: 'radiation'
+    diagnostic_name: 'radiation_toa'
     variables: ['tnlwrf', 'tnswrf']
     formulae: ['tnlwrf+tnswrf', 'tnlwrf-tnlwrfcs', 'tnswrf-tnswrfcs', 'tnlwrf+tnswrf-tnlwrfcs-tnswrfcs']
     params:
@@ -65,12 +103,19 @@ diagnostics:
         vmin: -30
         vmax: 30
       cre_toa_net:
-        vmin: -55
-        vmax: 55
+        vmin: -30
+        vmax: 30
       cre_toa_sw:
-        vmin: -55
-        vmax: 55
+        vmin: -30
+        vmax: 30
       cre_toa_lw:
-        vmin: -55
-        vmax: 55
-      
+        vmin: -30
+        vmax: 30
+
+  boxplots:
+    run: true
+    diagnostic_name: 'radiation_toa'
+    variables:
+      - vars: ['-tnlwrf', 'tnswrf']
+        add_mean_line: true
+        anomalies: true
