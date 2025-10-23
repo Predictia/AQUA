@@ -90,7 +90,7 @@ diagnostics:
       tprate:
         regions: ['nh', 'sh', 'europe']
 
-lat_lon_profiles:
+  lat_lon_profiles:
     run: true
     diagnostic_name: 'water_cycle'
     mean_type: 'zonal'
