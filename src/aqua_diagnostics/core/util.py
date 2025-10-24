@@ -115,6 +115,7 @@ def get_diagnostic_configpath(diagnostic: str, folder="diagnostics", loglevel='W
 
 
 def load_diagnostic_config(diagnostic: str, config: str = None,
+                           folder = "diagnostics",
                            default_config: str = "config.yaml",
                            loglevel: str = 'WARNING'):
     """
@@ -123,6 +124,7 @@ def load_diagnostic_config(diagnostic: str, config: str = None,
     Args:
         diagnostic (str): diagnostic name
         config (str): config argument can modify the default configuration file.
+        folder (str): folder name. Default is "diagnostics". Can be "tools" as well.
         default_config (str): default name configuration file (yaml format)
         loglevel (str): logging level. Default is 'WARNING'.
 
@@ -133,7 +135,7 @@ def load_diagnostic_config(diagnostic: str, config: str = None,
         filename = config
     else:
         filename = os.path.join(
-            get_diagnostic_configpath(diagnostic, loglevel=loglevel),
+            get_diagnostic_configpath(diagnostic, folder=folder, loglevel=loglevel),
             default_config
         )
 

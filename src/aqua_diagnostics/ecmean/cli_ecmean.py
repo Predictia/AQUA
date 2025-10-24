@@ -240,6 +240,7 @@ if __name__ == '__main__':
     # define the ecmean configuration file, using the default as a trick
     config = load_diagnostic_config(
         diagnostic='ecmean',
+        folder="tools",
         config=None,
         default_config=ecmean_config.get('config_file'),
         loglevel=loglevel
