@@ -114,12 +114,17 @@ def get_diagnostic_configpath(diagnostic: str, folder="diagnostics", loglevel='W
         str: path to the diagnostic configuration directory
     """
     configdir = ConfigPath(loglevel=loglevel).configdir
-    return os.path.join(configdir, folder, diagnostic)
+    if folder == "templates":
+        return os.path.join(configdir, folder, "diagnostics")
+    if folder in ["tools", "diagnostics"]:
+        return os.path.join(configdir, folder, diagnostic)
+    raise ValueError(f"Invalid folder name: {folder}. Must be 'diagnostics', 'tools', or 'templates'.")
 
 
-def load_diagnostic_config(diagnostic: str, config: str = None,
+def load_diagnostic_config(diagnostic: str,
+                           config: str = None,
+                           default_config: str = None,
                            folder = "diagnostics",
-                           default_config: str = "config.yaml",
                            loglevel: str = 'WARNING'):
     """
     Load the diagnostic configuration file and return the configuration dictionary.
@@ -127,20 +132,22 @@ def load_diagnostic_config(diagnostic: str, config: str = None,
     Args:
         diagnostic (str): diagnostic name
         config (str): config argument can modify the default configuration file.
-        folder (str): folder name. Default is "diagnostics". Can be "tools" as well.
-        default_config (str): default name configuration file (yaml format)
+        folder (str): folder name. Default is "diagnostics". Can be "tools" or "templates" as well.
         loglevel (str): logging level. Default is 'WARNING'.
 
     Returns:
         dict: configuration dictionary
     """
     if config:
-        filename = config
-    else:
-        filename = os.path.join(
-            get_diagnostic_configpath(diagnostic, folder=folder, loglevel=loglevel),
-            default_config
-        )
+        return load_yaml(config)
+
+    if not default_config:
+        default_config = f"config-{diagnostic}.yaml"
+
+    filename = os.path.join(
+        get_diagnostic_configpath(diagnostic, folder=folder, loglevel=loglevel),
+        default_config
+    )
 
     return load_yaml(filename)
 
