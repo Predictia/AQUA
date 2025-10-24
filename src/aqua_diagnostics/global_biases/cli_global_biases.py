@@ -57,6 +57,7 @@ if __name__ == '__main__':
     save_pdf = config_dict['output'].get('save_pdf', True)
     save_png = config_dict['output'].get('save_png', True)
     dpi = config_dict['output'].get('dpi', 300) 
+    create_catalog_entry = config_dict['output'].get('create_catalog_entry', True)
 
     # Global Biases diagnostic
     if 'globalbiases' in config_dict['diagnostics']:
@@ -130,8 +131,8 @@ if __name__ == '__main__':
                     logger.warning(f"Variable '{var}' not found in dataset. Skipping. ({e})")
                     continue  
 
-                biases_dataset.compute_climatology(seasonal=seasons, seasons_stat=seasons_stat)
-                biases_reference.compute_climatology(seasonal=seasons, seasons_stat=seasons_stat)
+                biases_dataset.compute_climatology(seasonal=seasons, seasons_stat=seasons_stat, create_catalog_entry=create_catalog_entry)
+                biases_reference.compute_climatology(seasonal=seasons, seasons_stat=seasons_stat, create_catalog_entry=create_catalog_entry)
 
                 if short_name is not None: 
                     var = short_name
