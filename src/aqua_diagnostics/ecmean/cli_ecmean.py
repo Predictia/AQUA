@@ -272,12 +272,12 @@ if __name__ == '__main__':
         else:
             reader_kwargs = {}
 
-        #setup the output saver
-        outputsaver = OutputSaver(diagnostic='ecmean',
+        for diagnostic in ['global_mean', 'performance_indices']:
+
+            diagnostic_name =  ecmean_config.get(diagnostic, 'ecmean').get('diagnostic_name', 'ecmean')
+            outputsaver = OutputSaver(diagnostic=diagnostic_name,
                                   catalog=catalog, model=model, exp=exp,
                                   outputdir=outputdir, loglevel=loglevel)
-
-        for diagnostic in ['global_mean', 'performance_indices']:
 
             # setting options from configuration files
             atm_vars = ecmean_config[diagnostic]['atm_vars']
