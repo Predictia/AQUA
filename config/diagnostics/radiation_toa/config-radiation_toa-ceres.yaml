@@ -99,16 +99,16 @@ diagnostics:
       tnswrf:
         vmin: -30
         vmax: 30
-      tnr:
+      tnlwrf+tnswrf:
         vmin: -30
         vmax: 30
-      cre_toa_net:
+      tnlwrf+tnswrf-tnlwrfcs-tnswrfcs:
         vmin: -30
         vmax: 30
-      cre_toa_sw:
+      tnswrf-tnswrfcs:
         vmin: -30
         vmax: 30
-      cre_toa_lw:
+      tnlwrf-tnlwrfcs:
         vmin: -30
         vmax: 30
 
