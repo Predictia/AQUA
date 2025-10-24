@@ -26,7 +26,7 @@ diagnostics:
       diagnostic_name: 'ocean3d'
       run: true
       var: ['thetao', 'so']
-      regions: ['io', 'ao', 'so', 'arc_o', 'po', 'go']
+      regions: ['go', 'io', 'ao', 'so', 'arc_o', 'po']
       dim_mean: ['lat', 'lon']
 
   ocean_trends:
