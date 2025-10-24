@@ -133,7 +133,7 @@ def load_diagnostic_config(diagnostic: str, config: str = None,
         filename = config
     else:
         filename = os.path.join(
-            get_diagnostic_configpath(diagnostic, loglevel), 
+            get_diagnostic_configpath(diagnostic, loglevel=loglevel),
             default_config
         )
 
