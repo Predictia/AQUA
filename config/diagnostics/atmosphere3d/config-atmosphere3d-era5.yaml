@@ -71,4 +71,4 @@ diagnostics:
         vmax: 0.002
         vmin_v: -0.002
         vmax_v: 0.002
-        cmap: 'BrBG_r'
+        cmap: 'BrBG'
