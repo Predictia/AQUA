@@ -42,13 +42,13 @@ filetype:
 # If a relative path is used this is attached to $ECEDIR/$basedir
 component:
   cmoratm:
-    maskfile: '../data/atm_mask_r100.nc'
+    maskfile: 'data/atm_mask_r100.nc'
     gridfile: ''
-    areafile: '../data/cell_area_r100.nc'
+    areafile: 'data/cell_area_r100.nc'
   cmoroce:
-    maskfile: '../data/oce_mask_r100.nc'
+    maskfile: 'data/oce_mask_r100.nc'
     gridfile: ''
-    areafile: '../data/cell_area_r100.nc'
+    areafile: 'data/cell_area_r100.nc'
 
 # Definition of individual variables
 variables:
