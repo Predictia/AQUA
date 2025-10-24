@@ -12,7 +12,7 @@ def common_setup(tmp_path):
     """Fixture to set up common configuration and data for tests."""
     Configurer = ConfigPath()
     loglevel = 'warning'
-    ecmeandir = os.path.join(Configurer.configdir, 'diagnostics', 'ecmean')
+    ecmeandir = os.path.join(Configurer.configdir, 'tools', 'ecmean')
     interface = os.path.join(ecmeandir, 'interface_AQUA_climatedt.yaml')
     config = os.path.join(ecmeandir, 'ecmean_config_climatedt.yaml')
     config = load_yaml(config)
