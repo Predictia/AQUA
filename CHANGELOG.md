@@ -34,6 +34,7 @@ AQUA diagnostics complete list:
 - Ocean Drift: timeseries plotting function with update in cli (#2322)
 - Implement `fldstat` methods in Seaice diagnostics (#2297)
 - Gregory: more detailed description and plot labels (#2306)
+- Ensemble: updated ensemble module to use realizations via Reader class (#2342)
 - Radiation: using CERES ebaf42 instead of ebaf41 (#2333)
 
 ## [v0.18.0]
