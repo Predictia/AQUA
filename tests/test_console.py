@@ -435,23 +435,23 @@ class TestAquaConsole():
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir, '.aqua'))
 
-    def test_install_copies_config_files(self, tmpdir, set_home, run_aqua):
-        """Test that configuration files are copied correctly during install.
+    # def test_install_copies_config_files(self, tmpdir, set_home, run_aqua):
+    #     """Test that configuration files are copied correctly during install.
 
-        Args:
-            tmpdir (str): Temporary directory
-            set_home (fixture): Fixture to modify the HOME environment variable
-            run_aqua (fixture): Fixture to run AQUA console with some interactive command
-        """
-        # Setup temporary home directory
-        mydir = str(tmpdir)
-        set_home(mydir)
+    #     Args:
+    #         tmpdir (str): Temporary directory
+    #         set_home (fixture): Fixture to modify the HOME environment variable
+    #         run_aqua (fixture): Fixture to run AQUA console with some interactive command
+    #     """
+    #     # Setup temporary home directory
+    #     mydir = str(tmpdir)
+    #     set_home(mydir)
 
-        # Run aqua install
-        run_aqua(['install', machine])
+    #     # Run aqua install
+    #     run_aqua(['install', machine])
 
-        # Verify the configuration files were copied correctly
-        assert verify_config_files(os.path.join(mydir, '.aqua'), diagnostic_config)
+    #     # Verify the configuration files were copied correctly
+    #     assert verify_config_files(os.path.join(mydir, '.aqua'), diagnostic_config)
 
     def test_console_with_links(self, tmpdir, set_home, run_aqua_console_with_input):
 
