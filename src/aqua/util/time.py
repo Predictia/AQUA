@@ -239,13 +239,7 @@ def time_to_string(time=None, format='%Y-%m-%d'):
 
     # if it's already a string, try to parse and reformat it
     if isinstance(time, str):
-        try:
-            dt = pd.to_datetime(time)
-        except Exception:
-            raise ValueError(f"Cannot parse string time: {time}")
-        return dt.strftime(format)
-    
-        return time
+        return pd.to_datetime(time).strftime(format)
     elif isinstance(time, pd.Timestamp):
         # if time is a pandas timestamp, we convert it to a string
         return time.strftime(format)
