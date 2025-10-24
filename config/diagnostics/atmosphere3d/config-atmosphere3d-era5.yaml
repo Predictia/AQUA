@@ -51,8 +51,8 @@ diagnostics:
         projection_params: {}
         cmap: 'PuOr_r'
       t:
-        vmin: -10
-        vmax: 10
+        vmin: -8
+        vmax: 8
         vmin_v: -20
         vmax_v: 20
         cmap: 'RdBu_r'
