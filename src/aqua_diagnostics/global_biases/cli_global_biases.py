@@ -132,7 +132,7 @@ if __name__ == '__main__':
                     continue  
 
                 biases_dataset.compute_climatology(seasonal=seasons, seasons_stat=seasons_stat, create_catalog_entry=create_catalog_entry)
-                biases_reference.compute_climatology(seasonal=seasons, seasons_stat=seasons_stat, create_catalog_entry=create_catalog_entry)
+                biases_reference.compute_climatology(seasonal=seasons, seasons_stat=seasons_stat)
 
                 if short_name is not None: 
                     var = short_name
