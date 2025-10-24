@@ -121,7 +121,7 @@ diagnostics:
     biases:
       config: "${AQUA_CONFIG}/diagnostics/radiation_surface/config-radiation_surface-ceres.yaml"
     boxplots:
-      config: "${AQUA_CONFIG}/diagnostics/radiation_surface/config-radiation_surface-ceres.yaml"
+      config: "${AQUA_CONFIG}/diagnostics/radiation_surface/config-radiation_surface-boxplots-ceres.yaml"
     timeseries:
       config: "${AQUA_CONFIG}/diagnostics/radiation_surface/config-radiation_surface-ceres.yaml"
 
