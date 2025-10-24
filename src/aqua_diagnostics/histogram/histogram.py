@@ -135,11 +135,23 @@ class Histogram(Diagnostic):
             data = self.reader.select_area(data, lon=self.lon_limits, 
                                           lat=self.lat_limits, box_brd=box_brd)
 
+        # If range is not specified, compute it from the data
+        hist_range = self.range
+        if hist_range is None:
+            self.logger.debug('Computing range from data')
+            # Compute min and max from data (this will trigger computation if using dask)
+            data_min = float(data.min().values)
+            data_max = float(data.max().values)
+            # Add small buffer to avoid edge effects
+            buffer = (data_max - data_min) * 0.01
+            hist_range = (data_min - buffer, data_max + buffer)
+            self.logger.debug(f'Computed range: {hist_range}')
+
         # Compute histogram using the histogram function directly
         hist_data = histogram(
             data,
             bins=self.bins,
-            range=self.range,
+            range=hist_range,
             weighted=self.weighted,
             density=density,
             loglevel=self.loglevel
