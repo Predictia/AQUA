@@ -26,7 +26,7 @@ diagnostics:
       diagnostic_name: 'ocean3d'
       run: true
       var: ['thetao', 'so']
-      regions: ['io', 'sss']
+      regions: ['io', 'ao', 'so', 'arc_o', 'po', 'go']
       dim_mean: ['lat', 'lon']
 
   ocean_trends:
@@ -38,4 +38,10 @@ diagnostics:
       # dim_mean: ['lat']
 
   ocean_stratification:
-    run: false
+    stratification:
+      diagnostic_name: 'ocean3d'
+      run: true
+      var: ['thetao', 'so']
+      regions: ['io', 'ao', 'so', 'arc_o', 'po', 'go']
+      climatology: 'January'
+      # dim_mean: ['lat', 'lon']
