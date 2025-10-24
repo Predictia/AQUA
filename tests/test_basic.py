@@ -7,12 +7,12 @@ approx_rel = 1e-4
 loglevel = "DEBUG"
 
 @pytest.fixture(scope='module')
-def reader_instance(fesom_test_pi_original_2d_r200_fF_reader):
-    return fesom_test_pi_original_2d_r200_fF_reader
+def reader_instance(fesom_test_pi_original_2d_r200_fixFalse_reader):
+    return fesom_test_pi_original_2d_r200_fixFalse_reader
 
 @pytest.fixture(scope='module')
-def data(fesom_test_pi_original_2d_r200_fF_data):
-    return fesom_test_pi_original_2d_r200_fF_data
+def data(fesom_test_pi_original_2d_r200_fixFalse_data):
+    return fesom_test_pi_original_2d_r200_fixFalse_data
 
 # aqua class for tests
 @pytest.mark.aqua

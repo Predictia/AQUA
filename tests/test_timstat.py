@@ -7,12 +7,12 @@ from aqua.histogram import histogram
 loglevel = "DEBUG"
 
 @pytest.fixture(scope='module')
-def reader(ifs_tco79_long_fF_reader):
-    return ifs_tco79_long_fF_reader
+def reader(ifs_tco79_long_fixFalse_reader):
+    return ifs_tco79_long_fixFalse_reader
 
 @pytest.fixture(scope='module')
-def data(ifs_tco79_long_fF_data):
-    return ifs_tco79_long_fF_data
+def data(ifs_tco79_long_fixFalse_data):
+    return ifs_tco79_long_fixFalse_data
 
 @pytest.mark.aqua
 class TestTimmean():

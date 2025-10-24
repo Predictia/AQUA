@@ -9,31 +9,6 @@ from aqua import Reader
 LOGLEVEL = "DEBUG"
 
 # =============================================================================
-# Fixtures for custom configurations
-# =============================================================================
-@pytest.fixture
-def custom_reader():
-    """
-    Fixture to create readers with custom kwargs.
-    Use this when you need special configurations like rebuild=True, 
-    different regrid options, or other kwargs that aren't covered by 
-    the standard session fixtures.
-    
-    Example usage in tests:
-        def test_something(custom_reader):
-            reader = custom_reader(model='IFS', exp='test-tco79', source='short',
-                                    regrid='r100', rebuild=True )
-            data = reader.retrieve(var='2t')
-            # ... test code
-    """
-    def _create_custom_reader(model=None, exp=None, source=None, catalog='ci', 
-                              loglevel=LOGLEVEL, **kwargs):
-        """Create a Reader instance with custom configuration"""
-        return Reader(catalog=catalog, model=model, exp=exp,
-                      source=source, loglevel=loglevel, **kwargs)
-    return _create_custom_reader
-
-# =============================================================================
 # IFS fixtures
 # =============================================================================
 @pytest.fixture(scope="session")
@@ -65,20 +40,12 @@ def ifs_tco79_short_r200_data(ifs_tco79_short_r200_reader):
     return ifs_tco79_short_r200_reader.retrieve()
 
 @pytest.fixture(scope="session")
-def ifs_tco79_intake_esm_reader():
-    return Reader(model="IFS", exp="test-tco79", source="intake-esm-test", areas=False, fix=False, loglevel=LOGLEVEL)
-
-@pytest.fixture(scope="session")
-def ifs_tco79_intake_esm_data(ifs_tco79_intake_esm_reader):
-    return ifs_tco79_intake_esm_reader.retrieve()
-
-@pytest.fixture(scope="session")
-def ifs_tco79_long_fF_reader():
+def ifs_tco79_long_fixFalse_reader():
     return Reader(model="IFS", exp="test-tco79", source="long", fix=False, loglevel=LOGLEVEL)
 
 @pytest.fixture(scope="session")
-def ifs_tco79_long_fF_data(ifs_tco79_long_fF_reader):
-    return ifs_tco79_long_fF_reader.retrieve(var=['2t', 'ttr'])
+def ifs_tco79_long_fixFalse_data(ifs_tco79_long_fixFalse_reader):
+    return ifs_tco79_long_fixFalse_reader.retrieve(var=['2t', 'ttr'])
 
 @pytest.fixture(scope="session")
 def ifs_tco79_long_reader():
@@ -87,7 +54,6 @@ def ifs_tco79_long_reader():
 @pytest.fixture(scope="session")
 def ifs_tco79_long_data(ifs_tco79_long_reader):
     return ifs_tco79_long_reader.retrieve()
-
 
 # =============================================================================
 # FESOM fixtures
@@ -101,13 +67,13 @@ def fesom_test_pi_original_2d_data(fesom_test_pi_original_2d_reader):
     return fesom_test_pi_original_2d_reader.retrieve(var='tos')
 
 @pytest.fixture(scope="session")
-def fesom_test_pi_original_2d_r200_fF_reader():
+def fesom_test_pi_original_2d_r200_fixFalse_reader():
     return Reader(model="FESOM", exp="test-pi", source="original_2d",
                   regrid="r200", fix=False, loglevel=LOGLEVEL)
 
 @pytest.fixture(scope="session")
-def fesom_test_pi_original_2d_r200_fF_data(fesom_test_pi_original_2d_r200_fF_reader):
-    return fesom_test_pi_original_2d_r200_fF_reader.retrieve()
+def fesom_test_pi_original_2d_r200_fixFalse_data(fesom_test_pi_original_2d_r200_fixFalse_reader):
+    return fesom_test_pi_original_2d_r200_fixFalse_reader.retrieve()
 
 # =============================================================================
 # ICON fixtures

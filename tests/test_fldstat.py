@@ -59,20 +59,20 @@ def data_ifs(ifs_tco79_short_data_2t):
 class TestFldModule():
     """Class for fldmean standalone"""
 
-    def test_fldmean_from_data(self, custom_reader):
+    def test_fldmean_from_data(self):
         """test Fldmean class native from data"""
-        reader = custom_reader(catalog='ci', model='IFS', exp='test-tco79',
-                               source='short', regrid='r100', rebuild=True)
+        reader = Reader(catalog='ci', model='IFS', exp='test-tco79',
+                        source='short', regrid='r100', rebuild=True)
         data = reader.retrieve(var='2t')
         fldmodule = FldStat(area=reader.src_grid_area.cell_area, loglevel=LOGLEVEL)
         assert fldmodule.fldstat(data, stat='mean')['2t'].size == 2
         fldmodule = FldStat(loglevel=LOGLEVEL)
         assert fldmodule.fldstat(data, stat='mean')['2t'].size == 2
 
-    def test_fldmean_from_data_selection(self, custom_reader):
+    def test_fldmean_from_data_selection(self):
         """test Fldmean class native from data with reversed lat"""
-        reader = custom_reader(catalog='ci', model='IFS', exp='test-tco79', 
-                               source='long', regrid='r100', rebuild=True)
+        reader = Reader(catalog='ci', model='IFS', exp='test-tco79',
+                        source='long', regrid='r100', rebuild=True)
         data = reader.retrieve(var='2t')
         reverted = data.reindex({'lat': list(reversed(data.coords['lat']))})
         reverted = reverted.isel(time=slice(0, 3))
@@ -92,9 +92,9 @@ class TestFldmean():
                              [('short', 285.75920, 2),
                              ('short_nn', 285.75920, 2),
                              ('long', 285.86724, 20)])
-    def test_fldmean_ifs(self, source, value, shape, custom_reader):
+    def test_fldmean_ifs(self, source, value, shape):
         """Fldmean test for IFS"""
-        reader = custom_reader(model="IFS", exp="test-tco79", source=source, loglevel=LOGLEVEL)
+        reader = Reader(model="IFS", exp="test-tco79", source=source, loglevel=LOGLEVEL)
         data = reader.retrieve(var='2t')
         if source == 'long':
             data = data.isel(time=slice(0, 20))
@@ -109,10 +109,10 @@ class TestFldmean():
         # assert avg[1] == pytest.approx(17.9806)
         assert avg[1] == pytest.approx(291.1306)
 
-    def test_fldmean_fesom_selection(self, custom_reader):
+    def test_fldmean_fesom_selection(self):
         """Fldmean test for FESOM"""
-        reader = custom_reader(model="FESOM", exp="test-pi", source='original_2d',
-                               regrid='r100', loglevel=LOGLEVEL)
+        reader = Reader(model="FESOM", exp="test-pi", source='original_2d',
+                        regrid='r100', loglevel=LOGLEVEL)
         data = reader.retrieve(var='tos')
         data = reader.regrid(data)
         avg = reader.fldmean(data['tos'], lon_limits=[50, 90], lat_limits=[10, 40]).values
@@ -126,10 +126,10 @@ class TestFldmean():
         assert avg.shape == (2,)
         assert avg[1] == pytest.approx(286.1479)
 
-    def test_fldmean_healpix_selection(self, custom_reader):
+    def test_fldmean_healpix_selection(self):
         """Fldmean test for ICON with area selection"""
-        reader = custom_reader(model="ICON", exp="test-healpix", source='short',
-                               regrid='r200', loglevel=LOGLEVEL)
+        reader = Reader(model="ICON", exp="test-healpix", source='short',
+                        regrid='r200', loglevel=LOGLEVEL)
         data = reader.retrieve(var='2t')
         data = reader.regrid(data)
         avg = reader.fldmean(data['2t'],  lon_limits=[-30, 50], lat_limits=[-30, -90])
@@ -137,10 +137,10 @@ class TestFldmean():
         assert avg.values.shape == (2,)
         assert avg.values[0] == pytest.approx(285.131484)
 
-    def test_fldmean_healpix_selection_lat_only(self, custom_reader):
+    def test_fldmean_healpix_selection_lat_only(self):
         """Fldmean test for ICON with area selection, only lat"""
-        reader = custom_reader(model="ICON", exp="test-healpix", source='short',
-                               regrid='r200', loglevel=LOGLEVEL)
+        reader = Reader(model="ICON", exp="test-healpix", source='short',
+                        regrid='r200', loglevel=LOGLEVEL)
         data = reader.retrieve(var='2t')
         data = reader.regrid(data)
         avg = reader.fldmean(data['2t'], lat_limits=[-30, 30]).values
@@ -153,10 +153,10 @@ class TestFldmean():
         assert avg.shape == (2, 90)
         assert avg[1, 1] == pytest.approx(214.4841)
 
-    def test_fldmean_regridded(self, custom_reader):
+    def test_fldmean_regridded(self):
         """Fldmean test for regridded data"""
-        reader = custom_reader(model='FESOM', exp='test-pi', source='original_2d',
-                               regrid='r250', loglevel=LOGLEVEL)
+        reader = Reader(model='FESOM', exp='test-pi', source='original_2d',
+                        regrid='r250', loglevel=LOGLEVEL)
         data = reader.retrieve(var='tos')
         avg = reader.fldmean(data['tos']).values
         assert avg.shape == (2,)
