@@ -28,7 +28,7 @@ CATPATH = 'catalogs'
 
 # directories to be installed in the AQUA config folder
 BASIC_DIRECTORIES = ['analysis', 'catgen', 'datachecker', 'data_model',
-                     'diagnostics', 'fixes', 'grids', 'styles']
+                     'diagnostics', 'fixes', 'grids', 'styles', 'tools']
 
 
 class AquaConsole():
