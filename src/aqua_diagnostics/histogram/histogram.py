@@ -1,17 +1,13 @@
 from aqua.logger import log_configure
-from aqua.util import to_list
 from aqua.fixer import EvaluateFormula
-from aqua.diagnostics.core import Diagnostic, start_end_dates
+from aqua.diagnostics.core import Diagnostic
 from aqua.histogram import histogram
 
 class Histogram(Diagnostic):
     """
     Class to compute histograms and probability density functions (PDFs) of a variable 
     over a specified region. Retrieves data from catalog, computes histograms/PDFs 
-    for the entire period (longterm only), and saves results to netcdf files.
-    
-    Unlike other diagnostics, this class focuses on longterm distributions rather 
-    than seasonal variations.
+    for the entire period, and saves results to netcdf files.
     """
     def __init__(self, model: str, exp: str, source: str,
                  catalog: str = None, regrid: str = None,
