@@ -9,7 +9,7 @@ from aqua.cli.main import AquaConsole, query_yes_no
 from aqua.util import dump_yaml, load_yaml
 from aqua import __version__ as version
 from aqua import __path__ as pypath
-from aqua.cli.diagnostic_config import diagnostic_config
+#from aqua.cli.diagnostic_config import diagnostic_config
 
 testfile = 'testfile.txt'
 machine = 'github'
@@ -64,14 +64,14 @@ def run_aqua_console_with_input(tmpdir):
             input_text (str): input text
         """
         set_args(args)
-        testfile = os.path.join(tmpdir, 'testfile')
-        with open(testfile, 'w') as f:
+        myfile = os.path.join(tmpdir, 'testfile')
+        with open(myfile, 'w', encoding='utf-8') as f:
             f.write(input_text)
-        sys.stdin = open(testfile)
+        sys.stdin = open(myfile, 'r', encoding='utf-8')
         aquacli = AquaConsole()
         aquacli.execute()
         sys.stdin.close()
-        os.remove(testfile)
+        os.remove(myfile)
     return _run_aqua_console
 
 
@@ -84,28 +84,28 @@ def run_aqua():
         aquacli.execute()
     return _run_aqua_console
 
-def verify_config_files(base_dir, diagnostic_config):
-    """
-    Verify that the configuration files were copied correctly.
+# def verify_config_files(base_dir, diagnostic_config):
+#     """
+#     Verify that the configuration files were copied correctly.
 
-    Args:
-        base_dir (str): The base directory where the files should be copied.
-        diagnostic_config (dict): The diagnostic configuration dictionary.
+#     Args:
+#         base_dir (str): The base directory where the files should be copied.
+#         diagnostic_config (dict): The diagnostic configuration dictionary.
 
-    Returns:
-        bool: True if all files are present, False otherwise.
-    """
-    all_files_present = True
-    for diagnostic, configs in diagnostic_config.items():
-        for config in configs:
-            target_path = os.path.join(base_dir, config['target_path'], config['config_file'])
-            print(f"Checking file: {target_path}")
-            if not os.path.isfile(target_path):
-                print(f"Missing file: {target_path}")
-                all_files_present = False
-            else:
-                print(f"File exists: {target_path}")
-    return all_files_present
+#     Returns:
+#         bool: True if all files are present, False otherwise.
+#     """
+#     all_files_present = True
+#     for diagnostic, configs in diagnostic_config.items():
+#         for config in configs:
+#             target_path = os.path.join(base_dir, config['target_path'], config['config_file'])
+#             print(f"Checking file: {target_path}")
+#             if not os.path.isfile(target_path):
+#                 print(f"Missing file: {target_path}")
+#                 all_files_present = False
+#             else:
+#                 print(f"File exists: {target_path}")
+#     return all_files_present
 
 
 @pytest.mark.aqua

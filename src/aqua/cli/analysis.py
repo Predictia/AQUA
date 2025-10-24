@@ -82,7 +82,10 @@ def analysis_execute(args):
         logger.error("Model, experiment, and source must be specified either in config or as command-line arguments.")
         sys.exit(1)
     else:
-        logger.info("Requested experiment: Model = %s, Experiment = %s, Source = %s. Source_oce = %s", model, exp, source, source_oce)
+        logger.info(
+            "Requested experiment: Model = %s, Experiment = %s, Source = %s. Source_oce = %s",
+            model, exp, source, source_oce
+        )
 
     catalog = args.catalog or config.get('job', {}).get('catalog')
     if catalog:
@@ -93,7 +96,10 @@ def analysis_execute(args):
             catalog = cat[0]
             logger.info("Automatically determined catalog: %s", catalog)
         else:
-            logger.error("Model = %s, Experiment = %s, Source = %s triplet not found in any installed catalog.", model, exp, source)
+            logger.error(
+                "Model = %s, Experiment = %s, Source = %s triplet not found in any installed catalog.",
+                model, exp, source
+            )
             sys.exit(1)
 
     outputdir = os.path.expandvars(args.outputdir or config.get('job', {}).get('outputdir', './output'))
@@ -103,7 +109,7 @@ def analysis_execute(args):
     logger.debug("max_threads: %d", max_threads)
 
     realization_folder = format_realization(realization)
-    output_dir = f"{outputdir}/{catalog}/{model}/{exp}/{realization_folder}"
+    output_dir = os.path.join(outputdir, catalog, model, exp, realization_folder)
     output_dir = os.path.expandvars(output_dir)
 
     os.environ["OUTPUT"] = output_dir
@@ -113,7 +119,6 @@ def analysis_execute(args):
 
     # expand the environment variables in the entire config
     config = expand_env_vars(config)
-
 
     run_checker = config.get('job', {}).get('run_checker', False)
     if run_checker:
@@ -153,8 +158,13 @@ def analysis_execute(args):
             nworkers = config.get('cluster', {}).get('workers', 64)
             mem_limit = config.get('cluster', {}).get('memory_limit', "3.1GiB")
 
-            cluster = LocalCluster(threads_per_worker=nthreads, n_workers=nworkers, memory_limit=mem_limit,
-                                   silence_logs=logging.ERROR)  # avoids excessive logging (see https://github.com/dask/dask/issues/9888)
+            # silence_logs to avoids excessive logging (see https://github.com/dask/dask/issues/9888)
+            cluster = LocalCluster(
+                threads_per_worker=nthreads,
+                n_workers=nworkers,
+                memory_limit=mem_limit,
+                silence_logs=logging.ERROR
+            )
             cluster_address = cluster.scheduler_address
             logger.info("Initialized global dask cluster %s providing %d workers.", cluster_address, len(cluster.workers))
     else:
@@ -172,7 +182,6 @@ def analysis_execute(args):
     # Internal naming scheme:
     # diagnostic: the name of the wrapper metadiagnostic, e.g. atmosphere2d, climate_metrics, etc.
     # tool: the name of the individual command-line tool being run, e.g. biases, ecmean, etc.
-
     for diag_group in run:
 
         with ThreadPoolExecutor(max_workers=max_threads if max_threads > 0 else None) as executor:
@@ -217,7 +226,6 @@ def analysis_execute(args):
         logger.info("Dask cluster closed.")
 
     logger.info("All diagnostics finished.")
-
 
 if __name__ == "__main__":
     args = analysis_parser().parse_args(sys.argv[1:])

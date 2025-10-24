@@ -72,7 +72,17 @@ def run_diagnostic(diagnostic: str, script_path: str, extra_args: str,
         logger.error(f"Failed to run diagnostic {diagnostic}: {e}")
 
 
-def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = None, cli={},
+def _build_extra_args(**kwargs):
+    """Build command line arguments from key-value pairs, skipping None values."""
+    args = ""
+    for flag, value in kwargs.items():
+        if value is not None:
+            args += f" --{flag} {value}"
+    return args
+
+
+def run_diagnostic_func(diagnostic: str, parallel: bool = False,
+                        regrid: str = None, cli: dict = None,
                         diag_config=None, catalog=None, model='default_model', exp='default_exp',
                         source='default_source', source_oce=None,
                         startdate=None, enddate=None, realization=None,
@@ -101,6 +111,10 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
         cluster: Dask cluster scheduler address.
     """
 
+    # safety check on clu
+    if cli is None:
+        cli = {}
+
     # Internal naming scheme:
     # diagnostic: the name of the wrapper metadiagnostic, e.g. atmosphere2d, climate_metrics, etc.
     # tool: the name of the individual command-line tool being run, e.g. biases, ecmean, etc.
@@ -125,6 +139,7 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
         outname = f"{output_dir}/{tool_config.get('outname', diagnostic)}"
         extra_args = tool_config.get('extra', "")
 
+        # Build conditional arguments
         if regrid:
             extra_args += f" --regrid {regrid}"
 
@@ -137,16 +152,13 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
         if cluster and not tool_config.get('nocluster', False):
             extra_args += f" --cluster {cluster}"
 
-        if catalog:
-            extra_args += f" --catalog {catalog}"
-
-        if realization:
-            extra_args += f" --realization {realization}"
-
-        if startdate:
-            extra_args += f" --startdate {startdate}"
-        if enddate:
-            extra_args += f" --enddate {enddate}"
+        # Add standard arguments using helper function
+        extra_args += _build_extra_args(
+            catalog=catalog,
+            realization=realization,
+            startdate=startdate,
+            enddate=enddate
+        )
 
         if tool_config.get('source_oce', False) and source_oce:  # pass source_oce only if allowed by the diagnostic config file
             extra_args += f" --source_oce {source_oce}"
@@ -167,7 +179,6 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False, regrid: str = N
                 logger=logger,
                 logfile=logfile
             )
-
 
 def get_aqua_paths(*, args, logger):
     """
