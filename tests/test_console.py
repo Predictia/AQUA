@@ -530,26 +530,31 @@ class TestAquaConsole():
         mydir = str(tmpdir)
         set_home(mydir)
 
+        # find the correct AQUA root and config paths
+        test_dir = os.path.dirname(os.path.abspath(__file__))  # /path/to/AQUA/tests
+        aqua_root = os.path.abspath(os.path.join(test_dir, '..'))  # /path/to/AQUA
+        config_dir = os.path.join(aqua_root, 'config')  # /path/to/AQUA/config
+
         # check unexesting installation
         with pytest.raises(SystemExit) as excinfo:
             run_aqua(['-vv', 'install', machine, '-e', '.'])
             assert excinfo.value.code == 1
 
         # install from path with grids
-        run_aqua(['-vv', 'install', machine, '--editable', 'config'])
+        run_aqua(['-vv', 'install', machine, '--editable', config_dir])
         assert os.path.exists(os.path.join(mydir, '.aqua'))
         for folder in ['fixes', 'data_model', 'grids']:
             assert os.path.islink(os.path.join(mydir, '.aqua', folder))
         assert os.path.isdir(os.path.join(mydir, '.aqua', 'catalogs'))
 
         # install from path in editable mode
-        run_aqua_console_with_input(['-vv', 'install', machine, '--editable', 'config',
+        run_aqua_console_with_input(['-vv', 'install', machine, '--editable', config_dir,
                                      '--path', os.path.join(mydir, 'vicesindaco2')], 'yes')
         assert os.path.islink(os.path.join(mydir, '.aqua'))
         run_aqua_console_with_input(['uninstall'], 'yes')
 
         # install from path in editable mode but withoyt aqua link
-        run_aqua_console_with_input(['-vv', 'install', machine, '--editable', 'config',
+        run_aqua_console_with_input(['-vv', 'install', machine, '--editable', config_dir,
                                      '--path', os.path.join(mydir, 'vicesindaco1')], 'no')
         assert not os.path.exists(os.path.join(mydir, '.aqua'))
         assert os.path.isdir(os.path.join(mydir, 'vicesindaco1', 'catalogs'))
