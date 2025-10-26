@@ -201,7 +201,7 @@ class LatLonProfiles(Diagnostic):
 				self.logger.error('No longterm data available')
 				return
 			
-		diagnostic_product = f"{self.mean_type}profile"
+		diagnostic_product = f"{self.mean_type}_profile"
 
 		# Handle seasonal data (list of seasons)
 		if freq == 'seasonal':
