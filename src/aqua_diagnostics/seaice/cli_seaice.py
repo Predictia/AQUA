@@ -345,7 +345,7 @@ if __name__ == '__main__':
                 # Compute 2D data for each region
                 clims_mod[i] = seaice.compute_seaice(method=method, var=mod_var, stat='mean', freq='monthly', reader_kwargs=reader_kwargs)
                 
-                seaice.save_netcdf(clims_mod[i], 'seaice', diagnostic_product='bias_2d',
+                seaice.save_netcdf(clims_mod[i], 'seaice', diagnostic_product='bias',
                                    extra_keys={'method': method, 'source':dataset['source'], 
                                    'exp':dataset['exp'], 'regions_domain': "_".join(regions)})
 
@@ -386,7 +386,7 @@ if __name__ == '__main__':
                     clims_ref[i] = seaice_ref.compute_seaice(method=method, var=reference.get('varname'), 
                                                              stat='mean', freq='monthly', reader_kwargs=reader_kwargs)
                     
-                    seaice_ref.save_netcdf(clims_ref[i], 'seaice', diagnostic_product='bias_2d',
+                    seaice_ref.save_netcdf(clims_ref[i], 'seaice', diagnostic_product='bias',
                                            extra_keys={'method': method, 'source':reference['source'], 
                                            'exp':reference['exp'], 'regions_domain': "_".join(regs_indomain)})
 
