@@ -1,4 +1,4 @@
-experiments:
+# Configuration file used by make_contents to determine dashboard grouping
 
 diagnostics:
     Climate metrics, Gregory plot: [climate_metrics.gregory, radiation.gregory., global_time_series_gregory, timeseries.gregory, gregory_plot_ifs, gregory_plot_icon]
