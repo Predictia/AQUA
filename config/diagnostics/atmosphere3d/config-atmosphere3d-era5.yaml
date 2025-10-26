@@ -66,9 +66,9 @@ diagnostics:
         vmax: 3
         vmin_v: -3
         vmax_v: 3
-      q:
-        vmin: -0.002
-        vmax: 0.002
-        vmin_v: -0.002
-        vmax_v: 0.002
-        cmap: 'BrBG'
+      #q:
+      #  vmin: -0.002
+      #  vmax: 0.002
+      #  vmin_v: -0.002
+      #  vmax_v: 0.002
+      #  cmap: 'BrBG'
