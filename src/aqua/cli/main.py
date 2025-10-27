@@ -167,13 +167,18 @@ class AquaConsole():
         if check:
             if 'HOME' in os.environ:
                 link = os.path.join(os.environ['HOME'], '.aqua')
-                if os.path.exists(link):
+                if os.path.exists(link) or os.path.islink(link):
                     self.logger.warning('Removing the content of %s', link)
-                    shutil.rmtree(link)
+                    if os.path.islink(link):
+                        os.unlink(link)
+                    elif os.path.isdir(link):
+                        shutil.rmtree(link)
+                    else:
+                        os.remove(link)
                 os.symlink(path, link)
             else:
                 self.logger.error('$HOME not found. Cannot create a link to the installation path')
-                self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable', path)  # noqa
+                self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable', path)
         else:
             self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable',
                                 path)
