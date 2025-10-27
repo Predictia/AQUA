@@ -223,11 +223,9 @@ class PlotTrends:
     def set_description(self):
         """
         Set the description metadata for the plot.
-
-        Args:
-            product (str): The type of product being plotted.
         """
-        self.description = f"{product} {self.region} region of {self.catalog} {self.model} {self.exp}"
+        self.description = {}
+        self.description["description"] = f"{self.diagnostic_product} {self.region} region of {self.catalog} {self.model} {self.exp} "
 
     def save_plot(self, fig, diagnostic_product: str, extra_keys: dict = {},
                   rebuild: bool = True,
