@@ -69,8 +69,8 @@ class Trends(Diagnostic):
             reader_kwargs (dict, optional): Additional keyword arguments for the data reader. Default is {}.
         """
         self.logger.info("Starting trend analysis workflow")
-        reader_kwargs.update({"chunks": {"level": 1, "time": 12}})
         super().retrieve(var=var, reader_kwargs=reader_kwargs)
+        # self.data = self.data.chunk(chunks={"time": 12, "level": 1})  # this is needed to avoid a too large graph
 
         # If a region is specified, apply area selection to self.data
         if region:
@@ -173,6 +173,10 @@ class Trends(Diagnostic):
         trend_data = xr.Dataset(trend_dict)
         trend_data.attrs["AQUA_region"] = self.region
         self.logger.info("Trend value calculated")
+
+        self.logger.info("Loading trend data in memory")
+        trend_data.load()
+        self.logger.info("Loaded trend data in memory")
         return trend_data
 
     def save_netcdf(

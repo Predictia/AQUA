@@ -54,11 +54,10 @@ if __name__ == '__main__':
     exp = get_arg(args, 'exp', config_dict['datasets'][0]['exp'])
     source = get_arg(args, 'source', config_dict['datasets'][0]['source'])
     regrid = get_arg(args, 'regrid', config_dict['datasets'][0]['regrid'])
+    reader_kwargs = config_dict['datasets'][0].get('reader_kwargs', {})
     realization = get_arg(args, 'realization', None)
     if realization:
-        reader_kwargs = {'realization': realization}
-    else:
-        reader_kwargs = config_dict['datasets'][0].get('reader_kwargs', {})
+        reader_kwargs.update({'realization': realization})
     logger.info(f"Catalog: {catalog}, Model: {model}, Experiment: {exp}, Source: {source}, Regrid: {regrid}")
 
     # Output options
@@ -104,6 +103,7 @@ if __name__ == '__main__':
                         # dim_mean=dim_mean,
                         outputdir=outputdir,
                         rebuild=rebuild,
+                        reader_kwargs=reader_kwargs
                     )
                     trends_plot = PlotTrends(
                         data=data_trends.trend_coef,
