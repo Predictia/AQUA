@@ -2,7 +2,7 @@
 """
 Command-line interface for Ocean stratification diagnostic.
 
-This CLI allows to run the stratification, OceanDrift diagnostics.
+This CLI allows to run the stratification, OceanStratification diagnostics.
 Details of the run are defined in a yaml configuration file for a
 single or multiple experiments.
 """
@@ -21,7 +21,7 @@ from aqua.diagnostics.ocean_stratification import PlotMLD
 
 
 def parse_arguments(args):
-    """Parse command-line arguments for OceanDrift diagnostic.
+    """Parse command-line arguments for OceanStratification diagnostic.
 
     Args:
         args (list): list of command-line arguments to parse.
@@ -35,8 +35,8 @@ if __name__ == "__main__":
     args = parse_arguments(sys.argv[1:])
 
     loglevel = get_arg(args, "loglevel", "WARNING")
-    logger = log_configure(log_level=loglevel, log_name="OceanDrift CLI")
-    logger.info(f"Running OceanDrift diagnostic with AQUA version {aqua_version}")
+    logger = log_configure(log_level=loglevel, log_name="OceanStratification CLI")
+    logger.info(f"Running OceanStratification diagnostic with AQUA version {aqua_version}")
 
     cluster = get_arg(args, "cluster", None)
     nworkers = get_arg(args, "nworkers", None)
