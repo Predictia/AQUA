@@ -35,9 +35,8 @@ diagnostics:
     Ocean 2D, seasonal bias: ocean2d.seasonal_bias
 
     Ocean 3D, time series: [ocean3d.timeseries, monthly_time_series_, Ocean_time_series, ea_time_series, _time_series_arctic_ocean, _time_series_atlantic_ocean, _time_series_global_ocean, _time_series_indian_ocean, _time_series_pacific_ocean, _time_series_southern_ocean]
-
     Ocean 3D, Hovmöller: [ocean3d.hovmoller, _hovmoller_plot]
-    Ocean 3D, trends: [ocean3d.multi_level, ocean3d.trend, zonal_mean_trend, multilevel_t_s_trend]
+    Ocean 3D, trends: [ocean3d.multilevel_trend, ocean3d.trend, zonal_mean_trend, multilevel_t_s_trend]
     Ocean 3D, stratification: [ocean3d.stratification,  _stratification_]
     Ocean 3D, zonal mean: [ocean3d.zonal_mean]
     Ocean 3D, mixed layer depth: [ocean3d.mld, MLD., MLD_]
@@ -45,7 +44,7 @@ diagnostics:
     SSH variability: ssh.
 
     Sea Ice, time series: [seaice.timeseries, PlotSeaIce.timeseries]
-    Sea Ice, seasonal cycle: [seaice.seasonalcycle, PlotSeaIce.seasonalcycle]
+    Sea Ice, seasonal cycle: [seaice.seasonalcycle, seaice.seasonal_cycles, PlotSeaIce.seasonalcycle]
     Sea Ice, bias: [seaice.bias, PlotSeaIce.bias]
 
     Global maps: [Statistics_maps, atmglobalmean.statistics_maps]  # these apply only to old results, not produced anymore by AQUA
