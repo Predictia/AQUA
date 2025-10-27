@@ -40,7 +40,7 @@ if __name__ == '__main__':
     cluster = get_arg(args, 'cluster', None)
     nworkers = get_arg(args, 'nworkers', None)
 
-    client, cluster, private_cluster, = open_cluster(nworkers=nworkers, cluster=cluster, loglevel=loglevel)
+    client, cluster, private_cluster = open_cluster(nworkers=nworkers, cluster=cluster, loglevel=loglevel)
 
     # Load the configuration file and then merge itTimeseries with the command-line arguments,
     # overwriting the configuration file values with the command-line arguments.
@@ -121,4 +121,4 @@ if __name__ == '__main__':
 
     close_cluster(client=client, cluster=cluster, private_cluster=private_cluster, loglevel=loglevel)
 
-    logger.info("OceanTrends diagnostic completed.")
+    logger.info("Ocean Trends diagnostic completed.")
