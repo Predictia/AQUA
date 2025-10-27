@@ -229,7 +229,8 @@ class PlotTrends:
             product (str): The type of product being plotted.
         """
         self.description = f"{product} {self.region} region of {self.catalog} {self.model} {self.exp}"
-        self.description += f" from {self.startdate} to {self.enddate}."
+        #if self.startdate and self.enddate:
+        #    self.description += f" from {self.startdate} to {self.enddate}."
 
     def save_plot(self, fig, diagnostic_product: str, extra_keys: dict = {},
                   rebuild: bool = True,
@@ -265,5 +266,5 @@ class PlotTrends:
         self.model = self.data[self.vars[0]].AQUA_model
         self.exp = self.data[self.vars[0]].AQUA_exp
         self.region = self.data.attrs.get("AQUA_region", "global")
-        self.startdate = time_to_string(self.data.attrs.get("AQUA_startdate"))
-        self.enddate = time_to_string(self.data.attrs.get("AQUA_enddate"))
+        #self.startdate = time_to_string(self.data.attrs.get("AQUA_startdate"), allow_none=True)
+        #self.enddate = time_to_string(self.data.attrs.get("AQUA_enddate"), allow_none=True)
