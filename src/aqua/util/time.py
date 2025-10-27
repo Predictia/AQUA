@@ -221,7 +221,7 @@ def check_chunk_completeness(xdataset, resample_frequency='1D', loglevel='WARNIN
     return boolean_mask
 
 
-def time_to_string(time=None, format='%Y-%m-%d', allow_none=True):
+def time_to_string(time=None, format='%Y-%m-%d'):
     """Convert a time object to a string in the format YYYY-MM-DD
 
     Args:
@@ -235,10 +235,7 @@ def time_to_string(time=None, format='%Y-%m-%d', allow_none=True):
         ValueError if time is None or if time is not a supported type
     """
     if time is None:
-        if allow_none:
-            return 'N.A.'
-        else:
-            raise ValueError('time_to_string() requires a time argument')
+        raise ValueError('time_to_string() requires a time argument')
 
     # Convert supported types into pandas.Timestamp
     if isinstance(time, (str, pd.Timestamp, np.datetime64)):

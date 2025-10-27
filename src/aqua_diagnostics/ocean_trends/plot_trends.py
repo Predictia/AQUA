@@ -4,7 +4,6 @@ from aqua.diagnostics.core import OutputSaver
 
 from .multiple_maps import plot_maps
 from .multivar_vertical_profiles import plot_multivars_vertical_profile
-from aqua.util import time_to_string
 
 xr.set_options(keep_attrs=True)
 
@@ -229,8 +228,6 @@ class PlotTrends:
             product (str): The type of product being plotted.
         """
         self.description = f"{product} {self.region} region of {self.catalog} {self.model} {self.exp}"
-        #if self.startdate and self.enddate:
-        #    self.description += f" from {self.startdate} to {self.enddate}."
 
     def save_plot(self, fig, diagnostic_product: str, extra_keys: dict = {},
                   rebuild: bool = True,
@@ -266,5 +263,3 @@ class PlotTrends:
         self.model = self.data[self.vars[0]].AQUA_model
         self.exp = self.data[self.vars[0]].AQUA_exp
         self.region = self.data.attrs.get("AQUA_region", "global")
-        #self.startdate = time_to_string(self.data.attrs.get("AQUA_startdate"), allow_none=True)
-        #self.enddate = time_to_string(self.data.attrs.get("AQUA_enddate"), allow_none=True)
