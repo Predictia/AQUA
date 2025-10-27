@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from aqua import Reader
 from aqua.util import extract_literal_and_numeric, file_is_complete, to_list, convert_data_units
-from aqua.util import format_realization, extract_attrs
+from aqua.util import format_realization, extract_attrs, time_to_string
 from aqua.util.string import strlist_to_phrase, lat_to_phrase
 from aqua.util.units import multiply_units
 
@@ -54,7 +54,6 @@ def test_convert_data_units():
 @pytest.mark.aqua
 class TestFileIsComplete:
     """The File is Complete testing class"""
-
 
     @pytest.fixture
     def sample_netcdf(self, tmp_path):
@@ -202,6 +201,13 @@ def test_lat_to_phrase():
     assert lat_to_phrase(-1) == "1°S"
     # Test 0 latitude
     assert lat_to_phrase(0) == "0°N"
+
+@pytest.mark.aqua
+def test_time_to_string():
+    """Test the time_to_string function"""
+    assert time_to_string('2024-01-15') == '2024-01-15' # valid case
+    assert time_to_string('wrongtimeformat') == 'N.A.'
+    assert time_to_string(np.datetime64('NaT', 'D')) == 'N.A.'
     
 # Uncomment this test if the flip_time function is uncommented in aqua/util/coord.py
 # def test_flip_time():
