@@ -231,7 +231,7 @@ if __name__ == '__main__':
                 monthly_mod[i] = seaice.compute_seaice(method=method, var=mod_var, 
                                                        get_seasonal_cycle=True, reader_kwargs=reader_kwargs)
 
-                seaice.save_netcdf(monthly_mod[i], 'seaice', diagnostic_product='seasonal_cycle', 
+                seaice.save_netcdf(monthly_mod[i], 'seaice', diagnostic_product='seasonalcycle', 
                                    extra_keys={'method': method, 'source': dataset['source'], 'regions_domain': "_".join(regions)})
             
             # Update the dict
@@ -277,14 +277,14 @@ if __name__ == '__main__':
                         monthly_ref[i], monthly_std_ref[i] = seaice_ref.compute_seaice(method=method, var=reference.get('varname'), 
                                                                                        calc_std_freq=calc_std_freq, 
                                                                                        get_seasonal_cycle=True, reader_kwargs=reader_kwargs)
-                        seaice_ref.save_netcdf(monthly_std_ref[i], 'seaice', diagnostic_product='seasonal_cycle_std',
+                        seaice_ref.save_netcdf(monthly_std_ref[i], 'seaice', diagnostic_product='seasonalcycle_std',
                                                extra_keys={'method': method, 'source': reference['source'], 'regions_domain': "_".join(regs_indomain)})
                     else:
                         monthly_ref[i] = seaice_ref.compute_seaice(method=method, var=reference.get('varname'), 
                                                                    get_seasonal_cycle=True, 
                                                                    reader_kwargs=reader_kwargs)
                                                                    
-                    seaice_ref.save_netcdf(monthly_ref[i], 'seaice', diagnostic_product='seasonal_cycle',
+                    seaice_ref.save_netcdf(monthly_ref[i], 'seaice', diagnostic_product='seasonalcycle',
                                            extra_keys={'method': method, 'source': reference['source'], 'regions_domain': "_".join(regs_indomain)})
 
                 # Update the dict
@@ -303,7 +303,7 @@ if __name__ == '__main__':
                              rebuild=rebuild,
                              **plot_ts_seaice)
 
-            psi.plot_seaice(plot_type='seasonal_cycle', save_pdf=save_pdf, save_png=save_png)
+            psi.plot_seaice(plot_type='seasonalcycle', save_pdf=save_pdf, save_png=save_png)
 
     # ================ Sea Ice diagnostic - 2D Bias Maps ================
     # ===================================================================

@@ -45,7 +45,7 @@ diagnostics:
     SSH variability: ssh.
 
     Sea Ice, time series: [seaice.timeseries, PlotSeaIce.timeseries]
-    Sea Ice, seasonal cycle: [seaice.seasonal_cycle, PlotSeaIce.seasonal_cycle]
+    Sea Ice, seasonal cycle: [seaice.seasonalcycle, PlotSeaIce.seasonalcycle]
     Sea Ice, bias: [seaice.bias, PlotSeaIce.bias]
 
     Global maps: [Statistics_maps, atmglobalmean.statistics_maps]  # these apply only to old results, not produced anymore by AQUA
