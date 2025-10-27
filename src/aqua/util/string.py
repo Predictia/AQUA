@@ -30,3 +30,16 @@ def lat_to_phrase(lat: int) -> str:
         return f"{lat}°N"
     if lat < 0:
         return f"{abs(lat)}°S"
+
+
+def check_filename(filename: str) -> str:
+    """
+    Check a filename by replacing spaces with '_' and forcing lowercase.
+    
+    Args:
+        filename (str): The filename (or part of filename) to check.
+        
+    Returns:
+        str: Filename with spaces replaced by '_' and forced lowercase.
+    """
+    return filename.replace(' ', '_').lower()

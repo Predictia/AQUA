@@ -12,7 +12,7 @@ from .projections import get_projection
 from .realizations import format_realization, DEFAULT_REALIZATION
 from .sci_util import lon_to_180, lon_to_360, check_coordinates
 from .sci_util import select_season, merge_attrs
-from .string import strlist_to_phrase, lat_to_phrase
+from .string import strlist_to_phrase, lat_to_phrase, check_filename
 from .units import multiply_units, normalize_units, convert_units, convert_data_units
 from .util import generate_random_string, get_arg, create_folder, to_list
 from .util import file_is_complete, files_exist, find_vert_coord
@@ -36,7 +36,7 @@ __all__ = ['replace_intake_vars', 'replace_urlpath_jinja', 'replace_urlpath_wild
            'format_realization', 'DEFAULT_REALIZATION',
            'lon_to_180', 'lon_to_360', 'check_coordinates',
            'select_season', 'merge_attrs',
-           'strlist_to_phrase', 'lat_to_phrase',
+           'strlist_to_phrase', 'lat_to_phrase', 'check_filename',
            'generate_random_string', 'get_arg', 'create_folder', 'to_list',
            'file_is_complete', 'files_exist', 'find_vert_coord',
            'extract_literal_and_numeric', 'extract_attrs', 'add_pdf_metadata', 'add_png_metadata',
