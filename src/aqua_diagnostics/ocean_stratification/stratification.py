@@ -145,6 +145,9 @@ class Stratification(Diagnostic):
             self.logger.info("Computing mixed layer depth (MLD).")
             self.compute_mld()
         self.compute_climatology(climatology=self.climatology)
+        self.logger.info("Loading data in memory.")
+        self.data.load()
+        self.logger.info("Loaded data in memory.")
         self.save_netcdf(outputdir=outputdir, rebuild=rebuild, region=self.region)
         self.logger.info("Stratification diagnostic saved to netCDF file.")
 
