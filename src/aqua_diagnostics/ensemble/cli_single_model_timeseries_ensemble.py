@@ -18,7 +18,7 @@ from aqua.diagnostics.core import (
     template_parse_arguments,
 )
 from aqua.logger import log_configure
-from aqua.util import get_arg
+from aqua.util import get_arg, ConfigPath
 
 
 def parse_arguments(args):
@@ -30,6 +30,34 @@ def parse_arguments(args):
     parser = argparse.ArgumentParser(description="EnsembleTimeseries CLI")
     parser = template_parse_arguments(parser)
     return parser.parse_args(args)
+
+
+def extract_realizations(catalog, model, exp, source):
+    """Extract the realizations available for a given catalog, model, exp and source.
+
+    Args:
+        catalog (str): Intake catalog name.
+        model (str): Model name.
+        exp (str): Experiment name.
+        source (str): Source name.
+
+    Returns:
+        list: List of available realizations.
+    """
+    configurer = ConfigPath(catalog=catalog, loglevel='WARNING')
+    cat, catalog_file, machine_file = configurer.deliver_intake_catalog(
+        catalog=catalog, model=model, exp=exp, source=source)
+
+    expcat = cat()[model][exp]
+    esmcat = expcat[source].describe().get('user_parameters', {})
+
+    for parameter in esmcat:
+        name = parameter.get('name')
+
+        if name == 'realization':
+            realization = parameter.get('allowed')
+            return realization
+    return None
 
 
 if __name__ == "__main__":
@@ -60,18 +88,17 @@ if __name__ == "__main__":
 
     # Output options
     outputdir = config_dict["output"].get("outputdir", "./")
-    # rebuild = config_dict['output'].get('rebuild', True)
+    rebuild = config_dict['output'].get('rebuild', True)
     save_netcdf = config_dict["output"].get("save_netcdf", True)
     save_pdf = config_dict["output"].get("save_pdf", True)
     save_png = config_dict["output"].get("save_png", True)
-    # dpi = config_dict['output'].get('dpi', 300)
+    dpi = config_dict['output'].get('dpi', 300)
 
     # EnsembleTimeseries diagnostic
     if "ensemble" in config_dict["diagnostics"]:
         if config_dict["diagnostics"]["ensemble"]["run"]:
             logger.info("EnsembleTimeseries module is used.")
 
-            reference = config_dict["references"][0]
             # Loop over all the variables in the config file
             for variable in config_dict["diagnostics"]["ensemble"].get("variable", None):
                 for region in config_dict["diagnostics"]["ensemble"].get("region") or []:
