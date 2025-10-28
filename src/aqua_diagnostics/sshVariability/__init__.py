@@ -1,6 +1,6 @@
 """ssh module"""
 
-#To enable: from ssh import class sshVariability
+# To enable: from ssh import class sshVariability
 
 from .plot_ssh_variability import sshVariabilityPlot
 from .ssh_variability import sshVariabilityCompute

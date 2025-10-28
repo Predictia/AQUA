@@ -8,13 +8,17 @@ defined in a yaml configuration file for multiple models.
 import argparse
 import sys
 from aqua.diagnostics import sshVariabilityCompute, sshVariabilityPlot
-from aqua.diagnostics.core import (close_cluster, load_diagnostic_config, merge_config_args,
-                                   open_cluster, template_parse_arguments)
+from aqua.diagnostics.core import (
+    close_cluster,
+    load_diagnostic_config,
+    merge_config_args,
+    open_cluster,
+    template_parse_arguments,
+)
 from aqua.logger import log_configure
 from aqua.util import get_arg
 from aqua.version import __version__ as aqua_version
 
-import cartopy.crs as ccrs
 
 def parse_arguments(args):
     """Parse command-line arguments for sshVariability diagnostic.
@@ -43,25 +47,25 @@ if __name__ == "__main__":
     ) = open_cluster(nworkers=nworkers, cluster=cluster, loglevel=loglevel)
 
     # Load the configuration file and then merge it with the command-line arguments
-    # If for development: config_ssh_dev.yaml 
+    # If for development: config_ssh_dev.yaml
     config_dict = load_diagnostic_config(
         diagnostic="sshVariability",
         config=args.config,
-        default_config="config_ssh_dev.yaml",
+        default_config="config_ssh.yaml",
         loglevel=loglevel,
     )
     config_dict = merge_config_args(config=config_dict, args=args, loglevel=loglevel)
 
-    realization = get_arg(args, 'realization', None)
+    realization = get_arg(args, "realization", None)
     if realization:
         logger.info(f"Realization option is set to {realization}")
-        reader_kwargs = {'realization': realization}
+        reader_kwargs = {"realization": realization}
     else:
         reader_kwargs = {}
 
     # Output options
     outputdir = config_dict["output"].get("outputdir", "./")
-    rebuild = config_dict['output'].get('rebuild', True)
+    rebuild = config_dict["output"].get("rebuild", True)
     save_netcdf = config_dict["output"].get("save_netcdf", True)
     save_pdf = config_dict["output"].get("save_pdf", True)
     save_png = config_dict["output"].get("save_png", True)
@@ -72,73 +76,111 @@ if __name__ == "__main__":
             logger.info("sshVariability module is used.")
 
             # Model data
-            dataset = config_dict["datasets"][0] 
+            dataset = config_dict["datasets"][0]
             if dataset is not None:
-                dataset_dict = {"catalog" : dataset["catalog"], "model" : dataset["model"], "exp" : dataset["exp"], "source" : dataset["source"], "regrid" : dataset["regrid"]}
+                dataset_dict = {
+                    "catalog": dataset["catalog"],
+                    "model": dataset["model"],
+                    "exp": dataset["exp"],
+                    "source": dataset["source"],
+                    "regrid": dataset["regrid"],
+                }
             if dataset["zoom"]:
-                reader_kwargs.update({'zoom': dataset["zoom"]})
-            
+                reader_kwargs.update({"zoom": dataset["zoom"]})
+
             # Reference data
             dataset_ref = config_dict["references"][0]
             if dataset_ref is not None:
-                dataset_dict_ref = {"catalog" : dataset_ref["catalog"], "model" : dataset_ref["model"], "exp" : dataset_ref["exp"], "source" : dataset_ref["source"], "regrid" : dataset_ref["regrid"]}
+                dataset_dict_ref = {
+                    "catalog": dataset_ref["catalog"],
+                    "model": dataset_ref["model"],
+                    "exp": dataset_ref["exp"],
+                    "source": dataset_ref["source"],
+                    "regrid": dataset_ref["regrid"],
+                }
 
             variable = config_dict["diagnostics"]["sshVariability"].get("variables", None)
             logger.info(f"Variable under consideration: {variable}")
-            startdate_data = config_dict['diagnostics']["sshVariability"]['params']['default'].get('startdate_data', None)
-            enddate_data = config_dict['diagnostics']["sshVariability"]['params']['default'].get('enddate_data', None)
-            startdate_ref = config_dict['diagnostics']["sshVariability"]['params']['default'].get('startdate_ref', None)
-            enddate_ref = config_dict['diagnostics']["sshVariability"]['params']['default'].get('enddate_ref', None)
+            startdate_data = config_dict["diagnostics"]["sshVariability"]["params"]["default"].get("startdate_data", None)
+            enddate_data = config_dict["diagnostics"]["sshVariability"]["params"]["default"].get("enddate_data", None)
+            startdate_ref = config_dict["diagnostics"]["sshVariability"]["params"]["default"].get("startdate_ref", None)
+            enddate_ref = config_dict["diagnostics"]["sshVariability"]["params"]["default"].get("enddate_ref", None)
 
-            proj = config_dict['diagnostics']["sshVariability"]['plot_params']['default'].get('projection', 'robinson')
-            proj_params = config_dict['diagnostics']["sshVariability"]['plot_params']['default'].get('projection_params', {})
+            proj = config_dict["diagnostics"]["sshVariability"]["plot_params"]["default"].get("projection", "robinson")
+            proj_params = config_dict["diagnostics"]["sshVariability"]["plot_params"]["default"].get("projection_params", {})
             logger.debug(f"Using projection: {proj} for variable: {variable}")
-            vmin = config_dict['diagnostics']["sshVariability"]['plot_params']['default'].get('vmin', None)  
-            vmax = config_dict['diagnostics']["sshVariability"]['plot_params']['default'].get('vmax', None)
+            vmin = config_dict["diagnostics"]["sshVariability"]["plot_params"]["default"].get("vmin", None)
+            vmax = config_dict["diagnostics"]["sshVariability"]["plot_params"]["default"].get("vmax", None)
+            # Regridder options for plots
+            tgt_grid_name = config_dict["diagnostics"]["sshVariability"]["plot_params"]["default"].get("tgt_grid_name", None)
+            regrid_method = config_dict["diagnostics"]["sshVariability"]["plot_params"]["default"].get("regrid_method", None)
 
-            region_name = config_dict['diagnostics']["sshVariability"]['plot_params']['sub_region'].get('name', None)
-            region_proj = config_dict['diagnostics']["sshVariability"]['plot_params']['sub_region'].get('projection', 'plate_carree')
-            region_proj_params = config_dict['diagnostics']["sshVariability"]['plot_params']['sub_region'].get('projection_params', {})
-             
-            lon_limits = config_dict['diagnostics']["sshVariability"]['plot_params']['sub_region'].get('lon_limits', None)
-            lat_limits = config_dict['diagnostics']["sshVariability"]['plot_params']['sub_region'].get('lat_limits', None)
+            # Sub region selection
+            region_name = config_dict["diagnostics"]["sshVariability"]["plot_params"]["sub_region"].get("name", None)
+            region_proj = config_dict["diagnostics"]["sshVariability"]["plot_params"]["sub_region"].get(
+                "projection", "plate_carree"
+            )
+            region_proj_params = config_dict["diagnostics"]["sshVariability"]["plot_params"]["sub_region"].get(
+                "projection_params", {}
+            )
 
-            mask_northern_boundary = config_dict['diagnostics']["sshVariability"]['plot_params']['mask_options'].get('mask_northern_boundary', None)
-            mask_southern_boundary = config_dict['diagnostics']["sshVariability"]['plot_params']['mask_options'].get('mask_southern_boundary', None)
-            northern_boundary_latitude = config_dict['diagnostics']["sshVariability"]['plot_params']['mask_options'].get('northern_boundary_latitude', None)
-            southern_boundary_latitude = config_dict['diagnostics']["sshVariability"]['plot_params']['mask_options'].get('southern_boundary_latitude', None)
+            lon_limits = config_dict["diagnostics"]["sshVariability"]["plot_params"]["sub_region"].get("lon_limits", None)
+            lat_limits = config_dict["diagnostics"]["sshVariability"]["plot_params"]["sub_region"].get("lat_limits", None)
 
+            mask_northern_boundary = config_dict["diagnostics"]["sshVariability"]["plot_params"]["mask_options"].get(
+                "mask_northern_boundary", None
+            )
+            mask_southern_boundary = config_dict["diagnostics"]["sshVariability"]["plot_params"]["mask_options"].get(
+                "mask_southern_boundary", None
+            )
+            northern_boundary_latitude = config_dict["diagnostics"]["sshVariability"]["plot_params"]["mask_options"].get(
+                "northern_boundary_latitude", None
+            )
+            southern_boundary_latitude = config_dict["diagnostics"]["sshVariability"]["plot_params"]["mask_options"].get(
+                "southern_boundary_latitude", None
+            )
 
             if dataset["zoom"]:
-                logger.info(f"zoom option is set to {zoom}")
-                reader_kwargs = {'zoom': dataset["zoom"]}
+                logger.info(f"zoom option is set to {dataset["zoom"]}")
+                reader_kwargs = {"zoom": dataset["zoom"]}
 
             # Initialize SSH Variability for model dataset
-            if (dataset_dict["catalog"] is not None) or (dataset_dict["model"] is not None) or (dataset_dict["exp"] is not None) or (dataset_dict["source"] is not None):  
+            if (
+                (dataset_dict["catalog"] is not None)
+                or (dataset_dict["model"] is not None)
+                or (dataset_dict["exp"] is not None)
+                or (dataset_dict["source"] is not None)
+            ):
                 ssh_dataset = sshVariabilityCompute(
                     **dataset_dict,
                     var=variable,
                     startdate=startdate_data,
                     enddate=enddate_data,
+                    reader_kwargs=reader_kwargs,
                 )
                 # Perform computation here for model dataset
                 ssh_dataset.run()
-            
+
             # Initialize SSH Variability for reference dataset
-            if (dataset_dict_ref["catalog"] is not None) or (dataset_dict_ref["model"] is not None) or (dataset_dict_ref["exp"] is not None) or (dataset_dict_ref["source"] is not None):
+            if (
+                (dataset_dict_ref["catalog"] is not None)
+                or (dataset_dict_ref["model"] is not None)
+                or (dataset_dict_ref["exp"] is not None)
+                or (dataset_dict_ref["source"] is not None)
+            ):
                 ssh_ref = sshVariabilityCompute(
                     **dataset_dict_ref,
                     var=variable,
                     startdate=startdate_ref,
                     enddate=enddate_ref,
-                    #reader_kwargs=reader_kwargs,
+                    # reader_kwargs=reader_kwargs,
                 )
                 # Perform computation here for reference dataset
                 ssh_ref.run()
-                 
+
             # Initialize plotting class
             plot_class = sshVariabilityPlot()
-            
+
             # Dictionary for dataset plot
             if ssh_dataset.data_std is not None:
                 plot_arguments_dataset = {
@@ -154,9 +196,10 @@ if __name__ == "__main__":
                     "proj_params": proj_params,
                     "vmin": vmin,
                     "vmax": vmax,
+                    "tgt_grid_name": tgt_grid_name,
+                    "regrid_method": regrid_method,
                 }
                 plot_class.plot(dataset_std=ssh_dataset.data_std, **plot_arguments_dataset)
-                
 
             # Dictionary for sub-region dataset plot
             if ssh_dataset.data_std is not None and region_name is not None:
@@ -180,9 +223,11 @@ if __name__ == "__main__":
                     "mask_southern_boundary": mask_southern_boundary,
                     "northern_boundary_latitude": northern_boundary_latitude,
                     "southern_boundary_latitude": southern_boundary_latitude,
+                    "tgt_grid_name": tgt_grid_name,
+                    "regrid_method": regrid_method,
                 }
                 plot_class.plot(dataset_std=ssh_dataset.data_std, **plot_arguments_dataset)
- 
+
             # Dictionary for reference plot
             if ssh_ref.data_std is not None:
                 plot_arguments_ref = {
@@ -198,6 +243,8 @@ if __name__ == "__main__":
                     "proj_params": proj_params,
                     "vmin": vmin,
                     "vmax": vmax,
+                    "tgt_grid_name": tgt_grid_name,
+                    "regrid_method": regrid_method,
                 }
                 plot_class.plot(dataset_std=ssh_ref.data_std, **plot_arguments_ref)
 
@@ -219,9 +266,11 @@ if __name__ == "__main__":
                     "proj_params": region_proj_params,
                     "vmin": vmin,
                     "vmax": vmax,
+                    "tgt_grid_name": tgt_grid_name,
+                    "regrid_method": regrid_method,
                 }
                 plot_class.plot(dataset_std=ssh_ref.data_std, **plot_arguments_ref)
-         
+
             # Dictionary for difference of sshVariability plot
             if ssh_dataset.data_std is not None or ssh_ref.data_std is not None:
                 plot_arguments_diff = {
@@ -238,13 +287,12 @@ if __name__ == "__main__":
                     "enddate": enddate_data,
                     "startdate_ref": startdate_ref,
                     "enddate_ref": enddate_ref,
-
+                    "tgt_grid_name": tgt_grid_name,
+                    "regrid_method": regrid_method,
                 }
                 plot_class.plot_diff(dataset_std=ssh_dataset.data_std, dataset_std_ref=ssh_ref.data_std, **plot_arguments_diff)
 
             logger.info(f"Finished SSH Variability diagnostic for {variable}.")
 
     # Close the Dask client and cluster
-    close_cluster(
-        client=client, cluster=cluster, private_cluster=private_cluster, loglevel=loglevel
-    )
+    close_cluster(client=client, cluster=cluster, private_cluster=private_cluster, loglevel=loglevel)

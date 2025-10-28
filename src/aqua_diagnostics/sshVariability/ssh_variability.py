@@ -1,20 +1,20 @@
 import gc
 import sys
-import pandas as pd
 import xarray as xr
-from aqua.exceptions import NoDataError, NoObservationError, NotEnoughDataError
-from aqua.logger import log_configure
-from aqua.util import coord_names, create_folder
-#from aqua.fldstat import AreaSelection
-
 from .base import BaseMixin
 
+# import pandas as pd
+# from aqua.fldstat import AreaSelection
+# from aqua.exceptions import NoDataError, NoObservationError, NotEnoughDataError
+
 xr.set_options(keep_attrs=True)
+
 
 class sshVariabilityCompute(BaseMixin):
     """
     SSH Computation
     """
+
     def __init__(
         self,
         diagnostic_name: str = "sshVariability",
@@ -29,7 +29,7 @@ class sshVariabilityCompute(BaseMixin):
         regrid: str = None,
         lon_limits: list[float] = None,
         lat_limits: list[float] = None,
-        var: str = 'zos',
+        var: str = "zos",
         long_name: str = None,
         short_name: str = None,
         units: str = None,
@@ -39,27 +39,26 @@ class sshVariabilityCompute(BaseMixin):
         reader_kwargs: dict = {},
         loglevel: str = "WARNING",
     ):
- 
         """
         Initialize the 'sshVariabilityCompute' class.
 
         This class is designed to load an xarray.Dataset and computes STD.
         Args:
-            diagnostic_name (str): Default is 'sshVariability'. 
+            diagnostic_name (str): Default is 'sshVariability'.
             catalog (str): catalog. It is Mandatory, if 'save_netcdf=True'.
             model (str): Name of the data
             exp (str): Name of the experiment
             source (str): the source.
-            It is important to give these dates and input. Otherwise the whole dataset is retrieved. 
-            startdate (str): Start date.  
+            It is important to give these dates and input. Otherwise the whole dataset is retrieved.
+            startdate (str): Start date.
             enddate  (str): End date.
             freq (str): Frequency of the data. In the TODO list. This becomes important when implementing the 'variance of the variances formula'.
             region (str): For subregion selection. Default is 'None'. In case of sub-region STD computation, this variable is mandatory.
-            regrid (str): Regrid option for the data. NOTE: the regridding will be applied before computing the STD. 
+            regrid (str): Regrid option for the data. NOTE: the regridding will be applied before computing the STD.
             If 'lon_limits' and 'lat_limits' are None, they are taken from region file in AQUA.
             lon_limits (list[float]): list of lon limits. Default is 'None'.
             lat_limits (list[float]): list of lat limits. Default is 'None'.
-            var (str): Variable name for ssh data. Default is 'zos'. 
+            var (str): Variable name for ssh data. Default is 'zos'.
             long_name (str): If not given extracted from the data.
             short_name (str): If not given extracted from the data.
             units (str): If not given extracted from the data.
@@ -69,20 +68,39 @@ class sshVariabilityCompute(BaseMixin):
             outputdir (str): output directory. Default is './'
             loglevel (str): Default WARNING.
 
-        Keyword Args: 
+        Keyword Args:
             zoom (int, optional): HEALPix grid zoom level (e.g. zoom=10 is h1024). Allows for multiple gridname definitions.
             realization (int, optional): The ensemble realization number, included in the output filename.
             **kwargs: Additional arbitrary keyword arguments to be passed as additional parameters to the intake catalog entry.
- 
+
         """
-        #TODO: 
+        # TODO:
         #   If the catalog entry of the output exists retrieve that data and check the regridding option for the data, i.e., Retrieve the data if the STD file already exits.
         #   Implement the technique: "Variance of Variances fomula" for computing STD.
         #   Include information about freq of the data.
         #   The STD is computed using xarray.std(dim="time"). Test if this works for the native grids.
- 
-        super().__init__(catalog=catalog,model=model,exp=exp,source=source,startdate=startdate,enddate=enddate,region=region,regrid=regrid,lon_limits=lon_limits,lat_limits=lat_limits,reader_kwargs=reader_kwargs,var=var,long_name=long_name,short_name=short_name,units=units,outputdir=outputdir,rebuild=rebuild,loglevel=loglevel)
-        
+
+        super().__init__(
+            catalog=catalog,
+            model=model,
+            exp=exp,
+            source=source,
+            startdate=startdate,
+            enddate=enddate,
+            region=region,
+            regrid=regrid,
+            lon_limits=lon_limits,
+            lat_limits=lat_limits,
+            reader_kwargs=reader_kwargs,
+            var=var,
+            long_name=long_name,
+            short_name=short_name,
+            units=units,
+            outputdir=outputdir,
+            rebuild=rebuild,
+            loglevel=loglevel,
+        )
+
         self.save_netcdf = save_netcdf
         self.freq = freq
         # To be assigned inside after STD computation run()
@@ -104,8 +122,7 @@ class sshVariabilityCompute(BaseMixin):
         super().retrieve()
         self.data = self.data.sel(time=slice(self.startdate, self.enddate))
         if self.data is None:
-            raise ValueError(f'Variable {self.var} not found in the data. '
-                                'Check the variable name and the data source.')
+            raise ValueError(f"Variable {self.var} not found in the data. " "Check the variable name and the data source.")
         try:
             # b)
             # Compute STD
@@ -113,7 +130,7 @@ class sshVariabilityCompute(BaseMixin):
             # Removing the reference and releasing the memory from the Object reference, which is no longer needed
             del self.data
             gc.collect()
-            
+
             # c)
             # Save STD as netcdf
             if self.save_netcdf:
@@ -124,4 +141,3 @@ class sshVariabilityCompute(BaseMixin):
         except Exception as e:
             self.logger.error(f"No model data found: {e}")
             sys.exit("SSH diagnostic terminated.")
-
