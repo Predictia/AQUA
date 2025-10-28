@@ -287,19 +287,24 @@ class PlotLatLonProfiles():
         else:
             description = f'{self.mean_type.capitalize()} profile '
         
+        # Variable name
         for name in [self.long_name, self.standard_name, self.short_name]:
             if name is not None:
                 description += f'of {name} '
                 break
 
+        # Units
         if self.units is not None:
             units = self.units.replace("**", r"\*\*")
             description += f'[{units}] '
+        
+        # Short name in parentheses
         if self.short_name is not None:
             description += f'({self.short_name}) '
 
-        if self.region is not None:
-            description += f'for region {self.region} '
+        # Region - only if not Global
+        if self.region is not None and self.region.lower() != 'global':
+            description += f'over {self.region} '
 
         # Dataset info
         num_items = min(len(self.catalogs), len(self.models), len(self.exps)) if hasattr(self, 'catalogs') else 0
@@ -331,12 +336,11 @@ class PlotLatLonProfiles():
             else:
                 description += ' with reference data'
         
-        # Standard deviation info
+        # Standard deviation info - more concise
         if self.ref_std_data is not None:
+            description += ' with ±2σ uncertainty bands'
             if self.std_startdate is not None and self.std_enddate is not None:
-                description += f'. Standard deviation bands (±2σ) calculated from {self.std_startdate} to {self.std_enddate}'
-            else:
-                description += '. Standard deviation bands (±2σ) shown'
+                description += f' computed over {self.std_startdate} to {self.std_enddate}'
         
         description += '.'
             
