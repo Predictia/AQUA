@@ -104,7 +104,7 @@ class PlotMLD:
             formats.append('png')
 
         for format in formats:
-            self.save_plot(fig, diagnostic_product=self.diagnostic_product, metadata={"description": self.description),
+            self.save_plot(fig, diagnostic_product=self.diagnostic_product, metadata={"description": self.description},
                            rebuild=rebuild, dpi=dpi, format=format, extra_keys={'region': self.region.replace(" ", "_").lower()})
 
     def set_figsize(self):
