@@ -336,7 +336,7 @@ class PlotLatLonProfiles():
             else:
                 description += ' with reference data'
         
-        # Standard deviation info - more concise
+        # Standard deviation info
         if self.ref_std_data is not None:
             description += ' with ±2σ uncertainty bands'
             if self.std_startdate is not None and self.std_enddate is not None:
