@@ -47,7 +47,7 @@ class Stratification(Diagnostic):
         regrid: str = None,
         startdate: str = None,
         enddate: str = None,
-        diagnostic_name: str = "oceandrift",
+        diagnostic_name: str = "stratification",
         loglevel: str = "WARNING",
     ):
         super().__init__(
@@ -129,6 +129,7 @@ class Stratification(Diagnostic):
             self.region = "global"
             self.lat_limits = None
             self.lon_limits = None
+        self.data.attrs["AQUA_region"] = self.region
         if dim_mean is not None:
             self.logger.debug(f"Computing fldmean over dimension: {dim_mean}")
             self.data = self.reader.fldmean(
