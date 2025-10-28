@@ -224,8 +224,8 @@ class PlotTrends:
         """
         Set the description metadata for the plot.
         """
-        self.description = {}
-        self.description["description"] = f"{self.diagnostic_product} {self.region} region of {self.catalog} {self.model} {self.exp} "
+        
+        self.description = f"{self.diagnostic_product} {self.region} region of {self.catalog} {self.model} {self.exp} "
 
     def save_plot(self, fig, diagnostic_product: str, extra_keys: dict = {},
                   rebuild: bool = True,

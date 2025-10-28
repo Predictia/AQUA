@@ -176,8 +176,8 @@ class PlotStratification:
         self.logger.debug("Title list set to: %s", self.title_list)
 
     def set_description(self):
-        self.description = {}
-        self.description["description"] = {
+        
+        self.description = {
             f"{self.diagnostic_product} {self.clim_time} climatology spatially averaged {self.region} {self.clim_time} region {self.diagnostic} of {self.catalog} {self.model} {self.exp}"
         }
 
