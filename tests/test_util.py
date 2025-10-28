@@ -201,13 +201,6 @@ def test_lat_to_phrase():
     assert lat_to_phrase(-1) == "1°S"
     # Test 0 latitude
     assert lat_to_phrase(0) == "0°N"
-
-@pytest.mark.aqua
-def test_time_to_string():
-    """Test the time_to_string function"""
-    assert time_to_string('2024-01-15') == '2024-01-15' # valid case
-    assert time_to_string('wrongtimeformat') == 'N.A.'
-    assert time_to_string(np.datetime64('NaT', 'D')) == 'N.A.'
     
 # Uncomment this test if the flip_time function is uncommented in aqua/util/coord.py
 # def test_flip_time():

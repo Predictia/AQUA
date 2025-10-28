@@ -57,10 +57,10 @@ if __name__ == '__main__':
     startdate = config_dict['datasets'][0].get('startdate', None)
     enddate = config_dict['datasets'][0].get('enddate', None)
     realization = get_arg(args, 'realization', None)
+    # This reader_kwargs will be used if the dataset corresponding value is None or not present
+    reader_kwargs = config_dict['datasets'][0].get('reader_kwargs') or {}
     if realization:
-        reader_kwargs = {'realization': realization}
-    else:
-        reader_kwargs = config_dict['datasets'][0].get('reader_kwargs') or {}
+        reader_kwargs['realization'] = realization
     logger.info(f"Catalog: {catalog}, Model: {model}, Experiment: {exp}, Source: {source}, Regrid: {regrid}")
 
     # Output options

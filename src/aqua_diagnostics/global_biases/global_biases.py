@@ -140,7 +140,9 @@ class GlobalBiases(Diagnostic):
         diagnostic_product (str): The product name to be used in the filename (e.g., 'annual_climatology').
         rebuild (bool): If True, rebuild the data from the original files.
         create_catalog_entry (bool): If True, create a catalog entry for the data. Default is False.
-        dict_catalog_entry (dict): A dictionary with catalog entry information. Default is {'jinjalist': ['freq', 'region', 'realization'], 'wildcardlist': ['var']}.
+        extra_keys (dict): Extra keys for filename generation.
+        dict_catalog_entry (dict): A dictionary with catalog entry information. 
+            Default is {'jinjalist': ['freq', 'region', 'realization'], 'wildcardlist': ['var']}.
         """
         super().save_netcdf(data=data,
                 diagnostic=self.diagnostic,
