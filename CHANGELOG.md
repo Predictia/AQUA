@@ -11,6 +11,8 @@ ClimateDT workflow modifications:
 - The configuration file of the catalog generator now requires `expid`
 
 AQUA core complete list:
+- Refactor of `aqua analysis` configuration file and structure to support flexible diagnostics CLI (#2371)
+- Cleaner distinction between `diagnostics` and `tools`, with correspondent changes in installation procedure (#2371)
 - `stardate` and `enddate` can be passed to DROP to limit the range of scan (#2325)
 - Chunking of netcdf sources is not filtered anymore (#2380)
 - Introduce `expid` into configuration file of the catalog generator (#2340)
