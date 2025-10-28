@@ -206,12 +206,12 @@ if __name__ == '__main__':
     logger = log_configure(log_level=loglevel, log_name='ECmean')
 
     # load the configuration files and override with command line arguments
-    configfile = load_diagnostic_config(
+    config_dict = load_diagnostic_config(
         diagnostic='ecmean',
         config=args.config,
         default_config='config_ecmean_cli.yaml',
         loglevel=loglevel)
-    configfile = merge_config_args(configfile, args)
+    config_dict = merge_config_args(config_dict, args)
 
     logger.info(
         'Running AQUA v%s Performance Indices diagnostic with ECmean4 v%s',
@@ -220,8 +220,8 @@ if __name__ == '__main__':
     )
 
     # set configuration
-    ecmean_config = configfile['diagnostics']['ecmean']
-    output_config = configfile['output']
+    ecmean_config = config_dict['diagnostics']['ecmean']
+    output_config = config_dict['output']
 
     # define the output properties
     outputdir = output_config.get('outputdir')
@@ -251,7 +251,7 @@ if __name__ == '__main__':
     logger.debug('Definitive interface file %s', interface)
 
     # loop on datasets
-    for dataset in configfile['datasets']:
+    for dataset in config_dict['datasets']:
         model = get_arg(args, 'model', dataset.get('model'))
         exp = get_arg(args, 'exp', dataset.get('exp'))
         source_atm = get_arg(args, 'source', dataset.get('source', 'lra-r100-monthly'))
@@ -268,7 +268,7 @@ if __name__ == '__main__':
         # activate override from command line
         realization = get_arg(args, 'realization', None)
         # This reader_kwargs will be used if the dataset corresponding value is None or not present
-        reader_kwargs = configfile['datasets'][0].get('reader_kwargs') or {}
+        reader_kwargs = config_dict['datasets'][0].get('reader_kwargs') or {}
         if realization:
             reader_kwargs['realization'] = realization
 
