@@ -64,11 +64,10 @@ if __name__ == '__main__':
     regrid = get_arg(args, 'regrid', None)
 
     realization = get_arg(args, 'realization', None)
+    # This reader_kwargs will be used if the dataset corresponding value is None or not present
+    reader_kwargs = config_dict['datasets'][0].get('reader_kwargs') or {}
     if realization:
-        logger.info(f"Realization option is set to: {realization}")
-        reader_kwargs = {'realization': realization}
-    else:
-        reader_kwargs = config_dict['datasets'][0].get('reader_kwargs') or {}
+        reader_kwargs['realization'] = realization
 
     # Output options
     outputdir = config_dict['output'].get('outputdir', './')
@@ -163,12 +162,12 @@ if __name__ == '__main__':
 
                     if conf_dict_ts['calc_ref_std']:
                         monthly_ref[i], monthly_std_ref[i] = seaice_ref.compute_seaice(method=method, var=reference.get('varname'), 
-                                                                                       calc_std_freq=calc_std_freq, reader_kwargs=reader_kwargs)
+                                                                                       calc_std_freq=calc_std_freq) #, reader_kwargs=reader_kwargs)
 
                         seaice_ref.save_netcdf(monthly_std_ref[i], 'seaice', diagnostic_product='timeseries_std',
                                                extra_keys={'method': method, 'source': reference['source'], 'regions_domain': "_".join(regs_indomain)})
                     else:
-                        monthly_ref[i] = seaice_ref.compute_seaice(method=method, var=reference.get('varname'), reader_kwargs=reader_kwargs)
+                        monthly_ref[i] = seaice_ref.compute_seaice(method=method, var=reference.get('varname')) #, reader_kwargs=reader_kwargs)
                     
                     seaice_ref.save_netcdf(monthly_ref[i], 'seaice', diagnostic_product='timeseries',
                                            extra_keys={'method': method, 'source': reference['source'], 'regions_domain': "_".join(regs_indomain)})
@@ -276,13 +275,13 @@ if __name__ == '__main__':
                     if conf_dict_ts['calc_ref_std']:
                         monthly_ref[i], monthly_std_ref[i] = seaice_ref.compute_seaice(method=method, var=reference.get('varname'), 
                                                                                        calc_std_freq=calc_std_freq, 
-                                                                                       get_seasonal_cycle=True, reader_kwargs=reader_kwargs)
+                                                                                       get_seasonal_cycle=True) #, reader_kwargs=reader_kwargs)
                         seaice_ref.save_netcdf(monthly_std_ref[i], 'seaice', diagnostic_product='seasonalcycle_std',
                                                extra_keys={'method': method, 'source': reference['source'], 'regions_domain': "_".join(regs_indomain)})
                     else:
                         monthly_ref[i] = seaice_ref.compute_seaice(method=method, var=reference.get('varname'), 
-                                                                   get_seasonal_cycle=True, 
-                                                                   reader_kwargs=reader_kwargs)
+                                                                   get_seasonal_cycle=True) # ,
+                                                                   # reader_kwargs=reader_kwargs)
                                                                    
                     seaice_ref.save_netcdf(monthly_ref[i], 'seaice', diagnostic_product='seasonalcycle',
                                            extra_keys={'method': method, 'source': reference['source'], 'regions_domain': "_".join(regs_indomain)})
@@ -384,7 +383,7 @@ if __name__ == '__main__':
                                         loglevel=config_dict['setup']['loglevel'])
 
                     clims_ref[i] = seaice_ref.compute_seaice(method=method, var=reference.get('varname'), 
-                                                             stat='mean', freq='monthly', reader_kwargs=reader_kwargs)
+                                                             stat='mean', freq='monthly') # , reader_kwargs=reader_kwargs)
                     
                     seaice_ref.save_netcdf(clims_ref[i], 'seaice', diagnostic_product='bias',
                                            extra_keys={'method': method, 'source':reference['source'], 

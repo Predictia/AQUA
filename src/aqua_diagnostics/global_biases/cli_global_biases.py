@@ -44,11 +44,10 @@ if __name__ == '__main__':
     if regrid:
         logger.info("Regrid option is set to %s", regrid)
     realization = get_arg(args, 'realization', None)
+    # This reader_kwargs will be used if the dataset corresponding value is None or not present
+    reader_kwargs = config_dict['datasets'][0].get('reader_kwargs') or {}
     if realization:
-        logger.info("Realization option is set to %s", realization)
-        reader_kwargs = {'realization': realization}
-    else:
-        reader_kwargs = {}
+        reader_kwargs['realization'] = realization
 
     # Output options
     outputdir = config_dict['output'].get('outputdir', './')
