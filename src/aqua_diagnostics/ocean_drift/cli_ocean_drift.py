@@ -107,6 +107,10 @@ if __name__ == '__main__':
                 except Exception as e:
                     logger.error(f"Error processing region {region}: {e}")
                 try:
+                    logger.info(f"Loading data in memory")
+                    for processed_data in data_hovmoller.processed_data_list:
+                        processed_data.load()
+                    logger.info(f"Loaded data in memory")
                     hov_plot = PlotHovmoller(
                         diagnostic_name=diagnostic_name,
                         data=data_hovmoller.processed_data_list,
