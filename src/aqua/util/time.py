@@ -239,14 +239,10 @@ def time_to_string(time=None, format='%Y-%m-%d'):
 
     # Convert supported types into pandas.Timestamp
     if isinstance(time, (str, pd.Timestamp, np.datetime64)):
-        ts = pd.to_datetime(time, errors='coerce')
+        ts = pd.to_datetime(time)
     else:
         raise ValueError('time_to_string() requires a time argument of type str, pd.Timestamp or np.datetime64')
-
-    if pd.isna(ts):
-        return 'N.A.'
-    else:
-        return ts.strftime(format)
+    return ts.strftime(format)
 
 
 def int_month_name(month, abbreviated=False):
