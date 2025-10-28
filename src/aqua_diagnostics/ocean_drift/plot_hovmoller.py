@@ -97,7 +97,7 @@ class PlotHovmoller:
             formats.append('png')
 
         for format in formats:
-            self.save_plot(fig, diagnostic_product="hovmoller", metadata=self.description,
+            self.save_plot(fig, diagnostic_product="hovmoller", metadata={"description": self.description),
                            rebuild=rebuild, dpi=dpi, format=format, extra_keys={'region': self.region.replace(" ", "_").lower()})
 
     def plot_timeseries(self,
@@ -152,7 +152,7 @@ class PlotHovmoller:
             formats.append('png')
 
         for format in formats:
-            self.save_plot(fig, diagnostic_product="timeseries", metadata=self.description,
+            self.save_plot(fig, diagnostic_product="timeseries", metadata={"description": self.description),
                            rebuild=rebuild, dpi=dpi, format=format, extra_keys={'region': self.region.replace(" ", "_").lower()})
 
     def set_levels(self):
