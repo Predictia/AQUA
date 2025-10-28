@@ -20,7 +20,7 @@ job:
 
     # Run a check analysis to test the configuration and the presence of needed data
     # This also rebuild the area files, to avoid error with corrupted files
-    run_checker: true
+    run_checker: false
     
     # Default output directory for the analysis. Can be overridden by the command line arguments
     outputdir: "./output"
@@ -59,9 +59,8 @@ cli:
   tropical_rainfall: "../../diagnostics/tropical_rainfall/cli/cli_tropical_rainfall.py"
 
 run: 
-   - ["teleconnections", "climate_metrics", "ocean2d"] # very fast ones first, a few min
-   - ["atmosphere2d", "atmosphere3d", "radiation-surface", "ocean3d", "seaice", "radiation-toa"] # about 15 min
-   - ["water_cycle-part1", "water_cycle-part2"]  # long ones, a lot of memory
+    - ["teleconnections", "climate_metrics", "ocean2d"] # very fast ones first, a few min
+    - ["atmosphere2d", "atmosphere3d", "radiation-surface", "ocean3d", "seaice", "radiation-toa", "water_cycle"] # about 15/30 min
 
   # List of diagnostics
 
@@ -135,7 +134,11 @@ diagnostics:
     enso:
       config: "${AQUA_CONFIG}/diagnostics/teleconnections/config-teleconnections-enso.yaml"
 
-  water_cycle-part1:
+  water_cycle:
+    tropical_rainfall:
+      config: "${AQUA_CONFIG}/diagnostics/water_cycle/config-water_cycle-tropical_rainfall.yaml"
+      extra: "--regrid=r100 --freq=M --xmax=75 --bufferdir=${OUTPUT}/tropical_rainfall/"
+      outname: water_cycle
     timeseries:
       config: "${AQUA_CONFIG}/diagnostics/water_cycle/config-water_cycle-mswep.yaml"
       outname: water_cycle
@@ -145,12 +148,6 @@ diagnostics:
     lat_lon_profiles:
       config: "${AQUA_CONFIG}/diagnostics/water_cycle/config-water_cycle-mswep.yaml"
       outname: water_cycle
-
-  water_cycle-part2:
     seasonal_cycles:
       config: "${AQUA_CONFIG}/diagnostics/water_cycle/config-water_cycle-mswep.yaml"
-      outname: water_cycle
-    tropical_rainfall:
-      config: "${AQUA_CONFIG}/diagnostics/water_cycle/config-water_cycle-tropical_rainfall.yaml"
-      extra: "--regrid=r100 --freq=M --xmax=75 --bufferdir=${OUTPUT}/tropical_rainfall/"
       outname: water_cycle
