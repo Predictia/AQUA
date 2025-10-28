@@ -19,6 +19,7 @@ AQUA core complete list:
 - AQUA analysis now can receive ``stardate`` and ``enddate`` (#2368)
 
 AQUA diagnostics complete list:
+- LatLonProfiles: figures description fix (#2388)
 - Stratification: MLD and vertical profiles diagnostic refactor (#2268)
 - ECmean Performance Indices replace EC23 climatology with the new EC24 (#2367)
 
