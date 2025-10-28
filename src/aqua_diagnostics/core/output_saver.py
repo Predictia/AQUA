@@ -165,7 +165,7 @@ class OutputSaver:
             parts_dict.update(extra_keys)
  
         # Remove None values and check selected parts
-        parts = [clean_filename(value) if key not in 
+        parts = [clean_filename(str(value)) if key not in 
                  ['catalog', 'model', 'exp', 'catalog_ref', 'model_ref', 'exp_ref'] 
                  else value for key, value in parts_dict.items() if value is not None]
 
