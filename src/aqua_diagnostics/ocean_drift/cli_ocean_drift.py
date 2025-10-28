@@ -79,8 +79,8 @@ if __name__ == '__main__':
             var = hovmoller_config.get('var', None)
             dim_mean = hovmoller_config.get('dim_mean', ['lat', 'lon'])
             # Add the global region if not present
-            if regions != [None]:
-                regions.append(None)
+            # if regions != [None]:
+            #    regions.append(None)
             for region in regions:
                 logger.info(f"Processing region: {region}")
                 try:

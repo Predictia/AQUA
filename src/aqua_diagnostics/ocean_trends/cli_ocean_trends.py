@@ -76,8 +76,8 @@ if __name__ == '__main__':
             var = trends_config.get('var', None)
             dim_mean = trends_config.get('dim_mean', None) 
             # Add the global region if not present
-            if regions != [None] or 'go' not in regions:
-                regions.append('go')
+            # if regions != [None] or 'go' not in regions:
+            #     regions.append('go')
             for region in regions:
                 logger.info(f"Processing region: {region}")
 

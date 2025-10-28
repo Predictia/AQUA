@@ -94,7 +94,6 @@ if __name__ == "__main__":
         stratification_config = config_dict["diagnostics"]["ocean_stratification"][
             "stratification"
         ]
-        regions = stratification_config.get("regions", None)
         logger.info(
             f"Stratification diagnostic is set to {stratification_config['run']}"
         )
@@ -104,137 +103,138 @@ if __name__ == "__main__":
                 "diagnostic_name", "ocean_stratification"
             )
             climatologies = stratification_config.get("climatology", None)
-            for region, climatology in zip(regions, climatologies):
-                logger.info(f"Processing region: {region}, climatology: {climatology}")
-                var = stratification_config.get("var", None)
-                # dim_mean = stratification_config.get("dim_mean", ["lat", "lon"])
-                dim_mean = ["lat", "lon"]
-                # Stratification instance
-                # Model data
-                model_stratification = Stratification(
-                    diagnostic_name=diagnostic_name,
-                    catalog=catalog,
-                    model=model,
-                    exp=exp,
-                    source=source,
-                    regrid=regrid,
-                    startdate=startdate,
-                    enddate=enddate,
-                    loglevel=loglevel,
-                )
-                model_stratification.run(
-                    region=region,
-                    var=var,
-                    dim_mean=dim_mean,
-                    mld=True,
-                    climatology=climatology,
-                    outputdir=outputdir,
-                    reader_kwargs=reader_kwargs,
-                    rebuild=rebuild,
-                )
-                # Reference data
-                if references:
-                    if model_ref and exp_ref and source_ref:
-                        logger.info(
-                            f"Processing reference data for model: {model_ref}, exp: {exp_ref}, source: {source_ref}"
-                        )
-                        obs_stratification = Stratification(
-                            diagnostic_name=diagnostic_name,
-                            catalog=catalog_ref,
-                            model=model_ref,
-                            exp=exp_ref,
-                            source=source_ref,
-                            regrid=regrid_ref,
-                            loglevel=loglevel,
-                        )
-                        obs_stratification.run(
-                            region=region,
-                            var=var,
-                            dim_mean=dim_mean,
-                            mld=False,
-                            climatology=climatology,
-                            outputdir=outputdir,
-                            rebuild=rebuild,
-                        )
-                    else:
-                        obs_stratification = None
-                # Plotting Stratification
-                strat_plot = PlotStratification(
-                    data=model_stratification.data[["thetao", "so", "rho"]],
-                    obs=(
-                        obs_stratification.data[["thetao", "so", "rho"]]
-                        if obs_stratification is not None
-                        else None
-                    ),
-                    diagnostic_name=diagnostic_name,
-                    outputdir=outputdir,
-                    loglevel=loglevel,
-                )
-                strat_plot.plot_stratification(
-                    save_pdf=save_pdf, save_png=save_png, dpi=dpi
-                )
-                # Mixed Layer Depth instance
-                # Model data
-                model_stratification = Stratification(
-                    diagnostic_name=diagnostic_name,
-                    catalog=catalog,
-                    model=model,
-                    exp=exp,
-                    source=source,
-                    regrid=regrid,
-                    startdate=startdate,
-                    enddate=enddate,
-                    loglevel=loglevel,
-                )
-                model_stratification.run(
-                    region=region,
-                    var=var,
-                    # dim_mean=dim_mean,
-                    mld=True,
-                    climatology=climatology,
-                    outputdir=outputdir,
-                    reader_kwargs=reader_kwargs,
-                    rebuild=rebuild,
-                )
-                # Reference data
-                if references:
-                    if model_ref and exp_ref and source_ref:
-                        logger.info(
-                            f"Processing reference data for model: {model_ref}, exp: {exp_ref}, source: {source_ref}"
-                        )
-                        obs_stratification = Stratification(
-                            diagnostic_name=diagnostic_name,
-                            catalog=catalog_ref,
-                            model=model_ref,
-                            exp=exp_ref,
-                            source=source_ref,
-                            regrid=regrid_ref,
-                            loglevel=loglevel,
-                        )
-                        obs_stratification.run(
-                            region=region,
-                            var=var,
-                            # dim_mean=dim_mean,
-                            mld=True,
-                            climatology=climatology,
-                            outputdir=outputdir,
-                            rebuild=rebuild,
-                        )
-                    else:
-                        obs_stratification = None
-                # Plotting MLD
-                mld_plot = PlotMLD(
-                    data=model_stratification.data[["mld"]],
-                    obs=(
-                        obs_stratification.data[["mld"]]
-                        if obs_stratification is not None
-                        else None
-                    ),
-                    diagnostic_name=diagnostic_name,
-                    outputdir=outputdir,
-                    loglevel=loglevel,
-                )
-                mld_plot.plot_mld(save_pdf=save_pdf, save_png=save_png, dpi=dpi)
+            for region in regions:
+                for climatology in climatologies:
+                    logger.info(f"Processing region: {region}, climatology: {climatology}")
+                    var = stratification_config.get("var", None)
+                    # dim_mean = stratification_config.get("dim_mean", ["lat", "lon"])
+                    dim_mean = ["lat", "lon"]
+                    # Stratification instance
+                    # Model data
+                    model_stratification = Stratification(
+                        diagnostic_name=diagnostic_name,
+                        catalog=catalog,
+                        model=model,
+                        exp=exp,
+                        source=source,
+                        regrid=regrid,
+                        startdate=startdate,
+                        enddate=enddate,
+                        loglevel=loglevel,
+                    )
+                    model_stratification.run(
+                        region=region,
+                        var=var,
+                        dim_mean=dim_mean,
+                        mld=True,
+                        climatology=climatology,
+                        outputdir=outputdir,
+                        reader_kwargs=reader_kwargs,
+                        rebuild=rebuild,
+                    )
+                    # Reference data
+                    if references:
+                        if model_ref and exp_ref and source_ref:
+                            logger.info(
+                                f"Processing reference data for model: {model_ref}, exp: {exp_ref}, source: {source_ref}"
+                            )
+                            obs_stratification = Stratification(
+                                diagnostic_name=diagnostic_name,
+                                catalog=catalog_ref,
+                                model=model_ref,
+                                exp=exp_ref,
+                                source=source_ref,
+                                regrid=regrid_ref,
+                                loglevel=loglevel,
+                            )
+                            obs_stratification.run(
+                                region=region,
+                                var=var,
+                                dim_mean=dim_mean,
+                                mld=False,
+                                climatology=climatology,
+                                outputdir=outputdir,
+                                rebuild=rebuild,
+                            )
+                        else:
+                            obs_stratification = None
+                    # Plotting Stratification
+                    strat_plot = PlotStratification(
+                        data=model_stratification.data[["thetao", "so", "rho"]],
+                        obs=(
+                            obs_stratification.data[["thetao", "so", "rho"]]
+                            if obs_stratification is not None
+                            else None
+                        ),
+                        diagnostic_name=diagnostic_name,
+                        outputdir=outputdir,
+                        loglevel=loglevel,
+                    )
+                    strat_plot.plot_stratification(
+                        save_pdf=save_pdf, save_png=save_png, dpi=dpi
+                    )
+                    # Mixed Layer Depth instance
+                    # Model data
+                    model_stratification = Stratification(
+                        diagnostic_name=diagnostic_name,
+                        catalog=catalog,
+                        model=model,
+                        exp=exp,
+                        source=source,
+                        regrid=regrid,
+                        startdate=startdate,
+                        enddate=enddate,
+                        loglevel=loglevel,
+                    )
+                    model_stratification.run(
+                        region=region,
+                        var=var,
+                        # dim_mean=dim_mean,
+                        mld=True,
+                        climatology=climatology,
+                        outputdir=outputdir,
+                        reader_kwargs=reader_kwargs,
+                        rebuild=rebuild,
+                    )
+                    # Reference data
+                    if references:
+                        if model_ref and exp_ref and source_ref:
+                            logger.info(
+                                f"Processing reference data for model: {model_ref}, exp: {exp_ref}, source: {source_ref}"
+                            )
+                            obs_stratification = Stratification(
+                                diagnostic_name=diagnostic_name,
+                                catalog=catalog_ref,
+                                model=model_ref,
+                                exp=exp_ref,
+                                source=source_ref,
+                                regrid=regrid_ref,
+                                loglevel=loglevel,
+                            )
+                            obs_stratification.run(
+                                region=region,
+                                var=var,
+                                # dim_mean=dim_mean,
+                                mld=True,
+                                climatology=climatology,
+                                outputdir=outputdir,
+                                rebuild=rebuild,
+                            )
+                        else:
+                            obs_stratification = None
+                    # Plotting MLD
+                    mld_plot = PlotMLD(
+                        data=model_stratification.data[["mld"]],
+                        obs=(
+                            obs_stratification.data[["mld"]]
+                            if obs_stratification is not None
+                            else None
+                        ),
+                        diagnostic_name=diagnostic_name,
+                        outputdir=outputdir,
+                        loglevel=loglevel,
+                    )
+                    mld_plot.plot_mld(save_pdf=save_pdf, save_png=save_png, dpi=dpi)
 
         close_cluster(client=client, cluster=cluster, private_cluster=private_cluster, loglevel=loglevel)
 
