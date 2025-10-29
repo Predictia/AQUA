@@ -20,7 +20,7 @@ job:
 
     # Run a check analysis to test the configuration and the presence of needed data
     # This also rebuild the area files, to avoid error with corrupted files
-    run_checker: false
+    run_checker: true
     
     # Default output directory for the analysis. Can be overridden by the command line arguments
     outputdir: "./output"
@@ -60,7 +60,7 @@ cli:
 
 run: 
     - ["teleconnections", "climate_metrics", "ocean2d"] # very fast ones first, a few min
-    - ["atmosphere2d", "atmosphere3d", "radiation-surface", "ocean3d", "seaice", "radiation-toa", "water_cycle"] # about 15/30 min
+    - ["atmosphere2d", "atmosphere3d", "radiation-surface", "ocean3d", "seaice", "radiation-toa", "water_cycle-part1", "water_cycle-part2"]
 
   # List of diagnostics
 
@@ -134,20 +134,19 @@ diagnostics:
     enso:
       config: "${AQUA_CONFIG}/diagnostics/teleconnections/config-teleconnections-enso.yaml"
 
-  water_cycle:
+  water_cycle-part1:
+    timeseries:
+      config: "${AQUA_CONFIG}/diagnostics/water_cycle/config-water_cycle-mswep.yaml"
+      outname: water_cycle
+
+  water_cycle-part2:
     tropical_rainfall:
       config: "${AQUA_CONFIG}/diagnostics/water_cycle/config-water_cycle-tropical_rainfall.yaml"
       extra: "--regrid=r100 --freq=M --xmax=75 --bufferdir=${OUTPUT}/tropical_rainfall/"
-      outname: water_cycle
-    timeseries:
-      config: "${AQUA_CONFIG}/diagnostics/water_cycle/config-water_cycle-mswep.yaml"
       outname: water_cycle
     biases:
       config: "${AQUA_CONFIG}/diagnostics/water_cycle/config-water_cycle-mswep.yaml"
       outname: water_cycle
     lat_lon_profiles:
-      config: "${AQUA_CONFIG}/diagnostics/water_cycle/config-water_cycle-mswep.yaml"
-      outname: water_cycle
-    seasonal_cycles:
       config: "${AQUA_CONFIG}/diagnostics/water_cycle/config-water_cycle-mswep.yaml"
       outname: water_cycle
