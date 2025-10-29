@@ -19,13 +19,11 @@ datasets:
   #   regrid: r100
 
 references:
-  - catalog: 'obs'
-    model: 'CERES'
-    exp: 'ebaf-sfc41'
+  - catalog: obs
+    model: 'ERA5'
+    exp: 'era5'
     source: 'monthly'
-    regrid: 'r100'
-    reader_kwargs: null
-    startdate: '2000-01-01'
+    startdate: '1990-01-01'
     enddate: '2020-12-31'
 
 output:
@@ -40,7 +38,7 @@ diagnostics:
   timeseries:
     run: true
     diagnostic_name: 'radiation_surface'
-    variables: ['snlwrf', 'snswrf']
+    variables: ['slhtf', 'ishf']
     center_time: true
     params:
       default:
@@ -54,7 +52,7 @@ diagnostics:
   globalbiases:
     run: true
     diagnostic_name: 'radiation_surface'
-    variables: ['snlwrf', 'snswrf']
+    variables: ['slhtf', 'ishf']
     params:
       default:
         plev: null # Level plot for 2D bias map if variable 3d

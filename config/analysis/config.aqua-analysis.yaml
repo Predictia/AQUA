@@ -118,11 +118,13 @@ diagnostics:
 
   radiation-surface:
     biases:
-      config: "${AQUA_CONFIG}/diagnostics/radiation_surface/config-radiation_surface-ceres.yaml"
+      config: ["${AQUA_CONFIG}/diagnostics/radiation_surface/config-radiation_surface-ceres.yaml",
+               "${AQUA_CONFIG}/diagnostics/radiation_surface/config-radiation_surface-era5.yaml"]
     boxplots:
       config: "${AQUA_CONFIG}/diagnostics/radiation_surface/config-radiation_surface-boxplots-ceres.yaml"
     timeseries:
-      config: "${AQUA_CONFIG}/diagnostics/radiation_surface/config-radiation_surface-ceres.yaml"
+      config: ["${AQUA_CONFIG}/diagnostics/radiation_surface/config-radiation_surface-ceres.yaml",
+               "${AQUA_CONFIG}/diagnostics/radiation_surface/config-radiation_surface-era5.yaml"]
 
   seaice:
     seaice:
