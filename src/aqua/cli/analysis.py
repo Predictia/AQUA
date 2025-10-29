@@ -99,8 +99,12 @@ def analysis_execute(args):
     logger.debug(f"outputdir: {outputdir}")
     logger.debug(f"max_threads: {max_threads}")
 
-    realization_folder = format_realization(realization)
-    output_dir = f"{outputdir}/{catalog}/{model}/{exp}/{realization_folder}"
+    # Format the realization string by prepending 'r' if it is a digit.
+    if str(realization).isdigit():
+        logger.info(f"Realization '{realization}' converted to 'r{realization}'.")
+        realization = format_realization(realization)
+        
+    output_dir = f"{outputdir}/{catalog}/{model}/{exp}/{realization}"
     output_dir = os.path.expandvars(output_dir)
 
     os.environ["OUTPUT"] = output_dir
@@ -154,12 +158,6 @@ def analysis_execute(args):
         logger.info("Running diagnostics without a dask cluster.")
         cluster = None
         cluster_address = None
-
-    # Format the realization string by prepending 'r' if it is a digit.
-    if str(realization).isdigit():
-        logger.info(f"Realization '{realization}' converted to 'r{realization}'.")
-        realization = format_realization(realization)
-        
     with ThreadPoolExecutor(max_workers=max_threads if max_threads > 0 else None) as executor:
         futures = []
         for diagnostic in diagnostics:
