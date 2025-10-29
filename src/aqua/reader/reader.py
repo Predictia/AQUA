@@ -82,7 +82,7 @@ class Reader():
 
         Keyword Args: 
             zoom (int, optional): HEALPix grid zoom level (e.g. zoom=10 is h1024). Allows for multiple gridname definitions.
-            realization (int, optional): The ensemble realization number, included in the output filename.
+            realization (int, optional): The ensemble realization number.
             **kwargs: Additional arbitrary keyword arguments to be passed as additional parameters to the intake catalog entry.
 
         Returns:
@@ -610,13 +610,13 @@ class Reader():
         intake_vars_list = list(intake_vars.keys())
         for param in params:
             if param not in filtered_list and param not in intake_vars_list:
-                self.logger.warning('%s parameter is required but is missing, setting to default %s',
+                self.logger.info('%s parameter is required but is missing, setting to default %s',
                                     param, esm_dict[params.index(param)]['default'])
                 allowed = esm_dict[params.index(param)].get('allowed', None)
                 # It is possible to have intake_vars which are not specified for the machine,
                 # so that we still need to check whether there is an allowed list
                 if allowed is not None:
-                    self.logger.warning('Available values for %s are: %s', param, allowed)
+                    self.logger.info('Available values for %s are: %s', param, allowed)
                 filtered_kwargs[param] = esm_dict[params.index(param)]['default']
 
         if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
