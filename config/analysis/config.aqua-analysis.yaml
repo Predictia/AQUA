@@ -60,7 +60,7 @@ cli:
 
 run: 
     - ["teleconnections", "climate_metrics", "ocean2d"] # very fast ones first, a few min
-    - ["atmosphere2d", "atmosphere3d", "radiation-surface", "ocean3d", "seaice", "radiation-toa", "water_cycle"]
+    - ["atmosphere2d", "atmosphere3d", "radiation-surface", "ocean3d-part1",  "ocean3d-part2", "seaice", "radiation-toa", "water_cycle"]
 
   # List of diagnostics
 
@@ -100,13 +100,18 @@ diagnostics:
     biases:
       config: "${AQUA_CONFIG}/diagnostics/ocean2d/config-ocean2d-esacci.yaml"
 
-  ocean3d:
+  ocean3d-part1:
     trends:
       config: "${AQUA_CONFIG}/diagnostics/ocean3d/config-ocean3d-en4.yaml"
+      outname: "ocean3d"
     drift:
       config: "${AQUA_CONFIG}/diagnostics/ocean3d/config-ocean3d-en4.yaml"
+      outname: "ocean3d"
+
+  ocean3d-part2:
     stratification:
       config: "${AQUA_CONFIG}/diagnostics/ocean3d/config-ocean3d-en4.yaml"
+      outname: "ocean3d"
 
   radiation-toa:
     biases:
