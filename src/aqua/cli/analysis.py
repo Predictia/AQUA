@@ -155,6 +155,11 @@ def analysis_execute(args):
         cluster = None
         cluster_address = None
 
+    # Format the realization string by prepending 'r' if it is a digit.
+    if str(realization).isdigit():
+        logger.info(f"Realization '{realization}' converted to 'r{realization}'.")
+        realization = format_realization(realization)
+        
     with ThreadPoolExecutor(max_workers=max_threads if max_threads > 0 else None) as executor:
         futures = []
         for diagnostic in diagnostics:
