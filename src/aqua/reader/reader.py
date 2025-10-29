@@ -158,9 +158,8 @@ class Reader():
         self.intake_user_parameters = self.esmcat.describe().get('user_parameters', {})
 
         self.kwargs = self._filter_kwargs(intake_vars, kwargs, engine=engine)
-        self.logger.error("Using kwargs: %s", self.kwargs)
         self.kwargs = self._format_realization_reader_kwargs(self.kwargs)
-        self.logger.error("Using formatted kwargs: %s", self.kwargs)
+        self.logger.debug("Using filtered kwargs: %s", self.kwargs)
         self.esmcat = self.expcat[self.source](**self.kwargs)
 
         # Manual safety check for netcdf sources (see #943), we output a more meaningful error message
@@ -597,7 +596,6 @@ class Reader():
 
         realization = kwargs.get('realization')
         if realization is None:
-            self.logger.debug("No 'realization' specified by the user — using catalog default.")
             return kwargs
 
         param_types = {p['name']: p['type'] for p in self.intake_user_parameters}
@@ -608,7 +606,6 @@ class Reader():
             kwargs.pop('realization', None)
             return kwargs
 
-  
         # if type is string, return as is
         if realization_type == 'str':
             self.logger.info('realization parameter is of type string, will use it is as is: %s', str(realization))
@@ -621,7 +618,7 @@ class Reader():
                 kwargs['realization'] = int(realization[1:])
                 self.logger.info('realization parameter converted from rXXX format to int: %d', kwargs['realization'])
                 return kwargs
-            elif isinstance(realization, int):
+            if isinstance(realization, int):
                 return kwargs  # already an int
 
         raise ValueError(f"Realization {kwargs['realization']} format not recognized for type {realization_type}")
