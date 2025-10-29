@@ -53,7 +53,7 @@ class PlotStratification:
     ):
         self.diagnostic_product = "stratification"
         self.clim_time = self.data.attrs.get("AQUA_stratification_climatology", "Total")
-        self.data_list = [self.data, self.obs] if self.obs else [self.data]
+        # self.data_list = [self.data, self.obs] if self.obs else [self.data]
         self.set_data_list()
         self.set_suptitle()
         self.set_title()
@@ -63,7 +63,8 @@ class PlotStratification:
         # self.set_cbar_labels(var= 'rho')
         self.set_label_line_plot()
         fig = plot_multi_vertical_lines(
-            maps=self.data_list,
+            data_list=self.data_list,
+            ref_data_list=self.ref_data_list if self.obs else None,
             nrows=self.nrows,
             ncols=self.ncols,
             variables=self.vars,
@@ -113,7 +114,7 @@ class PlotStratification:
     def set_data_list(self):
         self.data_list = [self.data]
         if self.obs:
-            self.obs_data_list = [self.obs]
+            self.ref_data_list = [self.obs]
         # for data in self.data:
         #     for var in self.vars:
         #         data_var = data[[var]]
