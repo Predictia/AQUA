@@ -171,6 +171,10 @@ class LatLonProfiles(Diagnostic):
 			seasonal_std.attrs['std_enddate'] = time_to_string(self.std_enddate)
 			self.std_seasonal = seasonal_std
 
+			self.logger.debug("Loading data in memory")
+			self.std_seasonal.load()
+			self.logger.debug("Loaded data in memory")
+
 		elif freq == 'longterm':
 			# Group by year and compute std across years
 			annual_data = monthly_data.groupby('time.year').mean('time')
@@ -178,6 +182,10 @@ class LatLonProfiles(Diagnostic):
 			annual_std.attrs['std_startdate'] = time_to_string(self.std_startdate)
 			annual_std.attrs['std_enddate'] = time_to_string(self.std_enddate)
 			self.std_annual = annual_std
+
+			self.logger.debug("Loading data in memory")
+			self.std_annual.load()
+			self.logger.debug("Loaded data in memory")
                 
 	def save_netcdf(self, freq: str, outputdir: str = './', rebuild: bool = True):
 		"""
@@ -298,6 +306,10 @@ class LatLonProfiles(Diagnostic):
 					season_data.attrs['AQUA_region'] = self.region
 			for season_data in seasonal_data:
 				season_data.attrs['AQUA_mean_type'] = self.mean_type
+				self.logger.debug("Loading data in memory")
+				season_data.load()
+				self.logger.debug("Loaded data in memory")
+
 			self.seasonal = seasonal_data
 
 		elif freq == 'longterm':
@@ -311,6 +323,10 @@ class LatLonProfiles(Diagnostic):
 				longterm_data.attrs['AQUA_region'] = self.region
 			longterm_data.attrs['AQUA_mean_type'] = self.mean_type
 			self.longterm = longterm_data
+
+			self.logger.debug("Loading data in memory")
+			self.longterm.load()
+			self.logger.debug("Loaded data in memory")
 
 	def run(self, var: str, formula: bool = False, long_name: str = None,
 			units: str = None, standard_name: str = None, std: bool = False,
