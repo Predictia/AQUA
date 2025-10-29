@@ -398,8 +398,11 @@ class Reader():
         info_metadata = {'AQUA_model': self.model, 'AQUA_exp': self.exp,
                          'AQUA_source': self.source, 'AQUA_catalog': self.catalog,
                          'AQUA_version': aqua_version}
+        for kwarg in self.kwargs:
+            info_metadata[f'AQUA_{kwarg}'] = str(self.kwargs[kwarg])
+
         data = set_attrs(data, info_metadata)
-        
+
         return data
 
     def _add_index(self, data):
