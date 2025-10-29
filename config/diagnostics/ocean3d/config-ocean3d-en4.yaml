@@ -8,7 +8,7 @@ datasets:
     exp: hpz3
     source: monthly-3d
     regrid: null
-    reader_kwargs: {chunks: {"time": 12, "level": null}}  # This is essential for trends!
+    reader_kwargs: {chunks: {"time": 12, "level": 1}}  # This is essential for trends!
     # startdate: 1990-01
     # enddate: 1990-12
 
@@ -53,7 +53,6 @@ diagnostics:
       run: true
       var: ['thetao', 'so']
       # Note: region and climatology are zipped together, so if you want the same region with different climatologies, you need to repeat it
-      regions: ['ls', 'is', 'ws', 'gs']  # 'ros'
-      climatology: ['DJF', 'DJF', 'JJA', 'JJA', 'DJF']
-
+      regions: ['ls', 'is', 'ws', 'gs']  # removed ros/DJF
+      climatology: ['DJF', 'JJA', 'JJA', 'DJF']
       # dim_mean: ['lat', 'lon']
