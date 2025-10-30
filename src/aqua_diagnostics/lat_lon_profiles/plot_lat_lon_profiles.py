@@ -219,17 +219,17 @@ class PlotLatLonProfiles():
         
         # Build diagnostic_product with data_type info
         if self.data_type == 'seasonal':
-            diagnostic_product = f"{base_diagnostic}_seasonal_{self.mean_type}"
+            diagnostic_product = f"seasonal_{self.mean_type}_profile"
         else:  # longterm
-            diagnostic_product = f"{base_diagnostic}_{self.mean_type}"
+            diagnostic_product = f"{self.mean_type}_profile"
            
         # Save based on format
         if format == 'png':
             outputsaver.save_png(fig, diagnostic_product, extra_keys=extra_keys, 
-                            metadata={'Description': description, 'dpi': dpi}, rebuild=rebuild)
+                            metadata={'description': description, 'dpi': dpi}, rebuild=rebuild)
         else:
             outputsaver.save_pdf(fig, diagnostic_product, extra_keys=extra_keys, 
-                            metadata={'Description': description, 'dpi': dpi}, rebuild=rebuild)
+                            metadata={'description': description, 'dpi': dpi}, rebuild=rebuild)
 
     def _check_data_length(self):
         """
