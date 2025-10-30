@@ -38,7 +38,9 @@ jobs:
       # github token: this is a personal access token (PAT) with read access to the repository.
       # It is used to download the AQUA catalog and is available also to dependabot.
       GITHUB_TOKEN: ${{ secrets.AQUA_GITHUB_PAT }}
-
+    
+    # This job runs on a Ubuntu machine with 4 cores 
+    # see https://docs.github.com/en/actions/reference/runners/github-hosted-runners.
     runs-on: ubuntu-latest
     # This option applies to the individual job of a matrix.
     continue-on-error: false
@@ -191,19 +193,44 @@ jobs:
       - name: Install pytest-xdist
         run: |
           python -m pip install pytest-xdist
-      - name: Run parallel tests with pytest-xdist (4 cores)
+      - name: Run parallel tests with pytest-xdist (4 parallel cores + sequential for dask clusters)
         run: |
           cd AQUA
-          # Run tests in parallel using 4 cores (ubuntu-latest provides 4 cores)
-          # Exclude tests that use dask clusters/workers to avoid conflicts with pytest-xdist
+          
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "Running parallel tests (4 cores, excluding dask tests)"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           pytest -n 4 \
             --ignore=tests/test_drop.py \
             --ignore=tests/test_gsv.py \
-            --cov-report=xml \
-            --junitxml=junit.xml \
-            -o junit_family=legacy \
-            -m "aqua or slow or gsv or graphics or catgen or diagnostics or ensemble" \
-            2>&1 | tee aqua_pytest.log
+            --cov \
+            -m "aqua or slow or gsv or graphics or catgen or diagnostics or ensemble" || PARALLEL_EXIT=$?
+          
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "Running dask tests sequentially"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          pytest \
+            tests/test_drop.py \
+            tests/test_gsv.py \
+            --cov --cov-append \
+            -m "aqua or slow or gsv or graphics or catgen or diagnostics or ensemble" || DASK_EXIT=$?
+          
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "Generating coverage reports"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          coverage xml
+          coverage report
+          
+          # Generate JUnit XML for the combined results
+          pytest --collect-only --quiet 2>&1 | head -1
+          
+          # Exit with error if either run failed
+          if [ ! -z "$PARALLEL_EXIT" ] || [ ! -z "$DASK_EXIT" ]; then
+            echo "Tests failed!"
+            exit 1
+          fi
       - name: Upload coverage reports to Codecov
         if: ${{ github.actor != 'dependabot[bot]' && !cancelled() }}
         uses: codecov/codecov-action@v5
