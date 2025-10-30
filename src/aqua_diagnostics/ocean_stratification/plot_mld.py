@@ -225,9 +225,9 @@ class PlotMLD:
         self.logger.debug("Title list set to: %s", self.title_list)
 
     def set_description(self):
-        
         self.description = f"Mixed layer depth plot of {self.region} region of {self.clim_time} climatology  {self.catalog} {self.model} {self.exp}"
-
+        if self.obs:
+            self.description = self.description + (f" with the reference data of {self.obs.attrs['catalog']} {self.obs.attrs['model']} {self.obs.attrs['exp']}")
     def save_plot(self, fig, diagnostic_product: str = None, extra_keys: dict = None,
                   rebuild: bool = True,
                   dpi: int = 300, format: str = 'png', metadata: dict = None):
