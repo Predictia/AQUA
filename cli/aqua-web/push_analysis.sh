@@ -13,7 +13,7 @@ rsync_with_mkdir() {
     local remote_path="${rsync_target#*:}"
 
     # Run rsync
-    rsync -avz "$local_path/" "$rsync_target/" --relative
+    rsync -avz "$local_path/" "$rsync_target/" --relative --chmod=D775,F664
     exit_code=$?
     if [ $exit_code -ne 0 ]; then
         log_message ERROR "Rsync failed with exit code $exit_code"
