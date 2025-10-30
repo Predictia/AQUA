@@ -107,9 +107,9 @@ class PlotStratification:
                         self.ytext.append(None)
 
     def set_label_line_plot(self):
-        self.data_label = "Model"
+        self.data_label = self.model
         if self.obs:
-            self.obs_label = "Obs"
+            self.obs_label = self.obs.attrs.get("model", "Observation")
 
     def set_data_list(self):
         self.data_list = [self.data]
