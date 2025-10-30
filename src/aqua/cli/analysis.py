@@ -110,9 +110,9 @@ def analysis_execute(args):
 
     # Format the realization string by prepending 'r' if it is a digit.
     if str(realization).isdigit():
-        logger.info(f"Realization '{realization}' converted to 'r{realization}'.")
         realization = format_realization(realization)
-        
+        logger.info(f"Input realization formatted to: {realization}")
+
     output_dir = os.path.join(outputdir, catalog, model, exp, realization)
     output_dir = os.path.expandvars(output_dir)
 
