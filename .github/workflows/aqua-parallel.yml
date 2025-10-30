@@ -199,7 +199,6 @@ jobs:
           pytest -n 4 \
             --ignore=tests/test_drop.py \
             --ignore=tests/test_gsv.py \
-            --ignore=tests/test_histogram.py \
             --cov-report=xml \
             --junitxml=junit.xml \
             -o junit_family=legacy \
