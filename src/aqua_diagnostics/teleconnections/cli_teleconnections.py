@@ -322,4 +322,4 @@ if __name__ == '__main__':
 
     close_cluster(client=client, cluster=cluster, private_cluster=private_cluster, loglevel=loglevel)
 
-    logger.info('Teleconnections diagnostic finished.')
+    logger.info('Teleconnections diagnostic completed.')
