@@ -44,7 +44,7 @@ diagnostics:
       diagnostic_name: 'ocean3d'
       run: true
       var: ['thetao', 'so']
-      regions: ['go', 'io', 'ao', 'so', 'arc_o', 'po']
+      regions: ['go', 'io', 'ao', 'so', 'arc_o']  # 'po'
       # dim_mean: ['lat']
 
   ocean_stratification:
@@ -53,7 +53,6 @@ diagnostics:
       run: true
       var: ['thetao', 'so']
       # Note: region and climatology are zipped together, so if you want the same region with different climatologies, you need to repeat it
-      regions: ['ls', 'ros', 'is', 'ws', 'gs']
-      climatology: ['DJF', 'DJF', 'JJA', 'JJA', 'DJF']
-
+      regions: ['ls', 'is', 'ws', 'gs']  # removed ros/DJF
+      climatology: ['DJF', 'JJA', 'JJA', 'DJF']
       # dim_mean: ['lat', 'lon']

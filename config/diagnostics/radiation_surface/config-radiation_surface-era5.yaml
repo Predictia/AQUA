@@ -74,9 +74,9 @@ diagnostics:
         vmin: -30
         vmax: 30
       slhtf:
-        vmin: -10
-        vmax: 10
+        vmin: -30
+        vmax: 30
       ishf:
-        vmin: -10
-        vmax: 10
+        vmin: -30
+        vmax: 30
     

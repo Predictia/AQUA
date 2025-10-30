@@ -117,7 +117,7 @@ regions:
     lat_limits: [5, 25]
   ros:
     longname: Ross Sea
-    lon_limits: [-150, 160]
+    lon_limits: [160, -150]
     lat_limits: [-78, -60]
   sss:
     longname: Sargasso Sea

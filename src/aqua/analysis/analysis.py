@@ -82,7 +82,7 @@ def _build_extra_args(**kwargs):
 
 
 def run_diagnostic_func(diagnostic: str, parallel: bool = False,
-                        regrid: str = None, cli: dict = None,
+                        regrid: str = None, cli: dict = {},
                         diag_config=None, catalog=None, model='default_model', exp='default_exp',
                         source='default_source', source_oce=None,
                         startdate=None, enddate=None, realization=None,
@@ -110,10 +110,6 @@ def run_diagnostic_func(diagnostic: str, parallel: bool = False,
         logger: Logger instance for logging messages.
         cluster: Dask cluster scheduler address.
     """
-
-    # safety check on clu
-    if cli is None:
-        cli = {}
 
     # Internal naming scheme:
     # diagnostic: the name of the wrapper metadiagnostic, e.g. atmosphere2d, climate_metrics, etc.
