@@ -157,12 +157,9 @@ class Reader():
         # intake parameters
         self.intake_user_parameters = self.esmcat.describe().get('user_parameters', {})
 
-        if kwargs:
-            self.kwargs = self._filter_kwargs(intake_vars, kwargs, engine=engine)
-            self.kwargs = self._format_realization_reader_kwargs(self.kwargs)
-            self.logger.debug("Using filtered kwargs: %s", self.kwargs)
-        else:
-            self.kwargs = {}
+        self.kwargs = self._filter_kwargs(intake_vars, kwargs, engine=engine)
+        self.kwargs = self._format_realization_reader_kwargs(self.kwargs)
+        self.logger.debug("Using filtered kwargs: %s", self.kwargs)
         self.esmcat = self.expcat[self.source](**self.kwargs)
 
         # Manual safety check for netcdf sources (see #943), we output a more meaningful error message
@@ -670,6 +667,7 @@ class Reader():
 
         # HACK: Keep chunking info if present as reader kwarg
         if self.chunks is not None:
+            self.logger.warning('Keeping chunks=%s in the filtered kwargs', self.chunks)
             filtered_kwargs.update({'chunks': self.chunks})
 
         return filtered_kwargs
