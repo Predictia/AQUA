@@ -91,7 +91,6 @@ class TestAqua:
                         chunks={"time": 1}, loglevel=loglevel)
         data = reader.retrieve()
         assert set(data['2t'].chunksizes['time']) == {1}
-        
 
     def test_catalog_override(self):
         """
