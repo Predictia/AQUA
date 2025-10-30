@@ -196,41 +196,41 @@ jobs:
       - name: Run parallel tests with pytest-xdist (4 parallel cores + sequential for dask clusters)
         run: |
           cd AQUA
-        
-          echo "Running parallel tests (4 cores, excluding dask tests)"
+          
+          echo "Running parallel tests (4 cores, excluding dask and file-conflict tests)"
           pytest -n 4 \
             --ignore=tests/test_drop.py \
             --ignore=tests/test_gsv.py \
+            --ignore=tests/test_ocean3d/test_stratification.py \
             --cov \
-            --junitxml=junit_parallel.xml \
             -m "aqua or slow or gsv or graphics or catgen or diagnostics or ensemble" \
             2>&1 | tee aqua_pytest_parallel.log
           PARALLEL_EXIT=$?
           
           echo ""
-          echo "Running dask tests sequentially"
+          echo "Running sequential tests (dask + file-conflict tests)"
           pytest \
             tests/test_drop.py \
             tests/test_gsv.py \
+            tests/test_ocean3d/test_stratification.py \
             --cov --cov-append \
-            --junitxml=junit_dask.xml \
             -m "aqua or slow or gsv or graphics or catgen or diagnostics or ensemble" \
             2>&1 | tee aqua_pytest_dask.log
           DASK_EXIT=$?
           
-          # Generate combined reports
+          # Generate coverage reports
           coverage xml
           coverage report
           
           # Combine logs
           cat aqua_pytest_parallel.log aqua_pytest_dask.log > aqua_pytest.log
           
-          # Merge JUnit XMLs (or just use one)
-          cp junit_parallel.xml junit.xml
+          # Generate JUnit XML
+          cp junit_parallel.xml junit.xml || true
           
           # Check if tests passed
           if [ $PARALLEL_EXIT -ne 0 ] || [ $DASK_EXIT -ne 0 ]; then
-            echo "Tests failed! Parallel: $PARALLEL_EXIT, Dask: $DASK_EXIT"
+            echo "Tests failed! Parallel: $PARALLEL_EXIT, Sequential: $DASK_EXIT"
             exit 1
           fi
       - name: Upload coverage reports to Codecov
