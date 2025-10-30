@@ -9,6 +9,9 @@ Unreleased in the current development version (target v0.19.0):
 
 ClimateDT workflow modifications:
 - The configuration file of the catalog generator now requires `expid`
+- Aqua analysis config file organized differently with diagnostic groups
+- Diagnostic and cli tool config files grouped differently in `$AQUA/config/diagnostics` and `$AQUA/config/tools`
+- New position for push_analysis ``config.grouping.yaml` in `$AQUA/config/analysis`
 
 AQUA core complete list:
 - Refactor of `aqua analysis` configuration file and structure to support flexible diagnostics CLI (#2371)
@@ -21,6 +24,7 @@ AQUA core complete list:
 - AQUA analysis now can receive ``stardate`` and ``enddate`` (#2368)
 
 AQUA diagnostics complete list:
+- Refactoring of aqua analysis to allow config file with diagnostic groups and reorganization of diagnostic config files. Optimizations of diagnostic parallel execution. Including minor fixes to output filenames, figure descriptions and color ranges. (#2371)
 - LatLonProfiles: figures description fix (#2388)
 - Stratification: MLD and vertical profiles diagnostic refactor (#2268)
 - ECmean Performance Indices replace EC23 climatology with the new EC24 (#2367)
