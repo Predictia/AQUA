@@ -1,4 +1,6 @@
 name: AQUA parallel tests (pytest-xdist)
+# This workflow uses pytest-xdist to run tests in parallel across 4 cores
+# Excludes dask-based tests to avoid worker conflicts
 
 on:
   pull_request:
