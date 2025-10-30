@@ -176,9 +176,8 @@ class PlotStratification:
                 #     self.title_list.append(" ")
         self.logger.debug("Title list set to: %s", self.title_list)
 
-    def set_description(self):
-        
-        self.description = f"{self.diagnostic_product} {self.clim_time} climatology spatially averaged {self.region} {self.clim_time} region {self.diagnostic} of {self.catalog} {self.model} {self.exp}"
+    def set_description(self, ):
+        self.description = f"Stratification plot of spatially averaged {self.region} region of {self.clim_time} climatology  {self.catalog} {self.model} {self.exp}"
 
     def save_plot(self, fig, diagnostic_product: str = None, extra_keys: dict = None,
                   rebuild: bool = True,

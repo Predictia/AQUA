@@ -226,7 +226,7 @@ class PlotMLD:
 
     def set_description(self):
         
-        self.description = f"{self.diagnostic_product} {self.clim_time} climatology over {self.region} region {self.diagnostic} of {self.catalog} {self.model} {self.exp}"
+        self.description = f"Mixed layer depth plot of {self.region} region of {self.clim_time} climatology  {self.catalog} {self.model} {self.exp}"
 
     def save_plot(self, fig, diagnostic_product: str = None, extra_keys: dict = None,
                   rebuild: bool = True,
