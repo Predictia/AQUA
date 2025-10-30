@@ -118,7 +118,7 @@ class TestPlotSeaIce:
             model=self.model, exp=self.exp, source=self.source,
             catalog=self.catalog, loglevel=self.loglevel, dpi=50
         )
-        psi.plot_seaice(plot_type="seasonal_cycle", save_pdf=False, save_png=False)
+        psi.plot_seaice(plot_type="seasonalcycle", save_pdf=False, save_png=False)
 
     def test_plot_seascycle_multi(self):
         """Test the seasonal cycle path with multiple datasets."""
