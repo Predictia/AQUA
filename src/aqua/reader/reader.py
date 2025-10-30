@@ -157,9 +157,12 @@ class Reader():
         # intake parameters
         self.intake_user_parameters = self.esmcat.describe().get('user_parameters', {})
 
-        self.kwargs = self._filter_kwargs(intake_vars, kwargs, engine=engine)
-        self.kwargs = self._format_realization_reader_kwargs(self.kwargs)
-        self.logger.debug("Using filtered kwargs: %s", self.kwargs)
+        if kwargs:
+            self.kwargs = self._filter_kwargs(intake_vars, kwargs, engine=engine)
+            self.kwargs = self._format_realization_reader_kwargs(self.kwargs)
+            self.logger.debug("Using filtered kwargs: %s", self.kwargs)
+        else:
+            self.kwargs = {}
         self.esmcat = self.expcat[self.source](**self.kwargs)
 
         # Manual safety check for netcdf sources (see #943), we output a more meaningful error message
@@ -660,12 +663,12 @@ class Reader():
                 # so that we still need to check whether there is an allowed list
                 if allowed is not None:
                     self.logger.info('Available values for %s are: %s', param, allowed)
-                filtered_kwargs[param] = element['default']
+                filtered_kwargs.update({param: element['default']})
 
         if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
             # If the engine is fdb, we need to add the engine parameter
             if 'engine' not in filtered_kwargs:
-                filtered_kwargs['engine'] = engine
+                filtered_kwargs.update({'engine': engine})
                 self.logger.debug('Adding engine=%s to the filtered kwargs', engine)
 
         # HACK: Keep chunking info if present as reader kwarg
