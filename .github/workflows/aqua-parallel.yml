@@ -191,12 +191,18 @@ jobs:
           python -m pip install pytest-xdist
       - name: Run parallel tests with pytest-xdist (4 cores)
         run: |
-          # Produce the XML report
           cd AQUA
           # Run tests in parallel using 4 cores (ubuntu-latest provides 4 cores)
-          # -n 4 runs tests across 4 CPU cores using pytest-xdist
-          # produce a xml report and a junit report to be used by codecov. Please notice other options are set in pyproject.toml
-          pytest -n 4 --cov-report=xml --junitxml=junit.xml -o junit_family=legacy -m "aqua or slow or gsv or graphics or catgen or diagnostics or ensemble" 2>&1 | tee aqua_pytest.log
+          # Exclude tests that use dask clusters/workers to avoid conflicts with pytest-xdist
+          pytest -n 4 \
+            --ignore=tests/test_drop.py \
+            --ignore=tests/test_gsv.py \
+            --ignore=tests/test_histogram.py \
+            --cov-report=xml \
+            --junitxml=junit.xml \
+            -o junit_family=legacy \
+            -m "aqua or slow or gsv or graphics or catgen or diagnostics or ensemble" \
+            2>&1 | tee aqua_pytest.log
       - name: Upload coverage reports to Codecov
         if: ${{ github.actor != 'dependabot[bot]' && !cancelled() }}
         uses: codecov/codecov-action@v5
