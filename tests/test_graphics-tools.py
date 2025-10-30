@@ -122,7 +122,7 @@ def test_pdf_metadata(tmp_path):
     fig, _ = plot_single_map(da, title='Test', filename='test', format='pdf',
                              return_fig=True, loglevel=loglevel)
 
-    fig.savefig(tmp_path / 'test.pdf')
+    fig.savefig(tmp_path / 'test.pdf', dpi=50)
     filename = str(tmp_path / 'test.pdf')
     # Test the function
     add_pdf_metadata(filename=filename, metadata_value='Test',

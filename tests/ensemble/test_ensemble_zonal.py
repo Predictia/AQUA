@@ -77,6 +77,7 @@ def test_ensemble_zonal():
 
     plot_arguments = {
         "var": var,
+        "dpi": 50,
         "save_pdf": True,
         "save_png": True,
         "title_mean": "Test data",
@@ -85,7 +86,6 @@ def test_ensemble_zonal():
         "dataset_mean": zonalmean_ens.dataset_mean,
         "dataset_std": zonalmean_ens.dataset_std,
     }
-
 
     plot_dict = ens_zonal_plot.plot(**plot_arguments)
     
