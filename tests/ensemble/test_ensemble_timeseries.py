@@ -79,7 +79,6 @@ def test_ensemble_timeseries():
     )
     plot_arguments = {
         "var": var,
-        "dpi": 50,
         "save_pdf": True,
         "save_png": True,
         "plot_ensemble_members": True,

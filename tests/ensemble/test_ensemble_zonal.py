@@ -77,7 +77,6 @@ def test_ensemble_zonal():
 
     plot_arguments = {
         "var": var,
-        "dpi": 50,
         "save_pdf": True,
         "save_png": True,
         "title_mean": "Test data",

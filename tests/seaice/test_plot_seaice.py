@@ -124,7 +124,7 @@ class TestPlotSeaIce:
         """Test the seasonal cycle path with multiple datasets."""
         psi = PlotSeaIce(monthly_models=self.siext_seas,
                          monthly_ref=[self.siext_seas_ref], dpi=50)
-        psi.plot_seaice(plot_type="seasonal_cycle", save_pdf=False, save_png=False)
+        psi.plot_seaice(plot_type="seasonalcycle", save_pdf=False, save_png=False)
 
     def test_invalid_plot_type_raises(self):
         """Test that invalid plot type raises ValueError."""
