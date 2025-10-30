@@ -590,7 +590,6 @@ class Reader():
     #                             name, list(drop_coords))
     #     return data.drop_vars(drop_coords)
 
-
     def _format_realization_reader_kwargs(self, kwargs: dict):
         """
         Reformats the realization string for the access to the reader
@@ -625,7 +624,6 @@ class Reader():
                 return kwargs  # already an int
 
         raise ValueError(f"Realization {kwargs['realization']} format not recognized for type {realization_type}")
-
 
     def _filter_kwargs(self, intake_vars: dict={}, kwargs: dict={}, engine: str = 'fdb'):
         """
@@ -743,7 +741,6 @@ class Reader():
         final = data.interp({vert_coord: levels}, method=method)
 
         return final
-
 
     def reader_esm(self, esmcat, var):
         """
@@ -1109,7 +1106,6 @@ class Reader():
         Field area wrapper which is calling the fldstat module.
         """
         return self.fldstat(data, stat='areasum', **kwargs)
-
 
     def timstat(self, data, stat, freq=None, exclude_incomplete=False,
              time_bounds=False, center_time=False, **kwargs):
