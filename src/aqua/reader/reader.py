@@ -595,14 +595,13 @@ class Reader():
         Reformats the realization string for the access to the reader
         If realization is in the format rXX and the intake type is int, it converts to int XX.
         """
-
         realization = kwargs.get('realization')
         if realization is None:
             return kwargs
 
         param_types = {p['name']: p['type'] for p in self.intake_user_parameters}
         realization_type = param_types.get('realization')
-    
+
         if realization_type is None:
             self.logger.info("'realization' not in intake parameters %s — removing it.", list(param_types))
             kwargs.pop('realization', None)
@@ -610,10 +609,10 @@ class Reader():
 
         # if type is string, return as is
         if realization_type == 'str':
-            self.logger.info('realization parameter is of type string, will use it is as is: %s', str(realization))
+            self.logger.debug('realization parameter is of type string, will use it is as is: %s', str(realization))
             kwargs['realization'] = str(realization)
             return kwargs
-        
+
         # if it is in the rXX format and the type is int, convert to int
         if realization_type == 'int':
             if isinstance(realization, str) and realization.startswith('r') and realization[1:].isdigit():
