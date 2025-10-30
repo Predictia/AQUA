@@ -74,7 +74,7 @@ class PlotHovmoller:
         """
         self.set_suptitle()
         self.set_title()
-        self.set_description()
+        self.set_description(content="Hovmoller plot of spatially averaged")
         self.set_data_type()
         self.set_texts()
         self.set_vmax_vmin()
@@ -126,7 +126,7 @@ class PlotHovmoller:
         self.set_data_for_levels()
         self.set_suptitle()
         self.set_title()
-        self.set_description()
+        self.set_description(content="Timeseries of spatially averaged")
         self.set_data_type()
         self.set_texts()
         self.set_vmax_vmin()
@@ -214,10 +214,10 @@ class PlotHovmoller:
                 self.title_list.append(title)
         self.logger.debug("Title list set to: %s", self.title_list)
 
-    def set_description(self):
+    def set_description(self, content: str = None):
         """Set the description for the Hovmoller plot."""
 
-        self.description = f'Spatially averaged {self.region} region {self.diagnostic} of {self.catalog} {self.model} {self.exp}'
+        self.description = f'{content} {self.region} region of {self.catalog} {self.model} {self.exp}'
 
     def set_vmax_vmin(self):
         """
