@@ -64,7 +64,7 @@ class PlotMLD:
         dpi: int = 300,
     ):
         self.diagnostic_product = "mld"
-        self.clim_time = self.data.attrs.get("AQUA_mld_climatology", "Total")
+        self.clim_time = self.data.attrs.get("AQUA_stratification_climatology", "Total")
         self.data = self.set_convert_lon(data=self.data)
         if self.obs:
             self.obs = self.set_convert_lon(data=self.obs)
