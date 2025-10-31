@@ -15,9 +15,13 @@ ClimateDT workflow modifications:
 
 AQUA core complete list:
 - Use grid with explicit grid file for lat-lon-r100 (#2410)
+- Realization formatting correctly processed by the Reader (#2392) 
+- Realization (and other intake kwargs) are an attribute of the Reader (#2392)
+- Refactoring of aqua analysis to allow config file with diagnostic groups and reorganization of diagnostic config files (#2371)
+- Optimizations of diagnostic parallel execution (#2371) 
+- Including minor fixes to output filenames, figure descriptions and color ranges (#2371)
 - Enumerate aqua analysis log file for multiple config files (#2407)
 - Fix push_analysis.sh rsync functionality to not use ssh (#2403)
-- Refactoring of aqua analysis to allow config file with diagnostic groups and reorganization of diagnostic config files. Optimizations of diagnostic parallel execution. Cleaner distinction between `diagnostics` and `tools` (#2371)
 - Minor fixes to output filenames, figure descriptions and color ranges (#2371)
 - `stardate` and `enddate` can be passed to DROP to limit the range of scan (#2325)
 - Chunking of netcdf sources is not filtered anymore (#2380)
