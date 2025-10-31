@@ -2,8 +2,7 @@
 
 import pytest
 from aqua import Reader, FldStat
-
-LOGLEVEL = "DEBUG"
+from conftest import LOGLEVEL
 
 # Aliases with module scope for fixtures
 @pytest.fixture(scope='module')
