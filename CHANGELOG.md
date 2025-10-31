@@ -14,6 +14,7 @@ ClimateDT workflow modifications:
 - New position for push_analysis ``config.grouping.yaml` in `$AQUA/config/analysis`
 
 AQUA core complete list:
+- Use grid with explicit grid file for lat-lon-r100 (#2410)
 - Enumerate aqua analysis log file for multiple config files (#2407)
 - Fix push_analysis.sh rsync functionality to not use ssh (#2403)
 - Refactoring of aqua analysis to allow config file with diagnostic groups and reorganization of diagnostic config files. Optimizations of diagnostic parallel execution. Cleaner distinction between `diagnostics` and `tools` (#2371)
