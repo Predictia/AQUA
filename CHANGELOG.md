@@ -14,6 +14,7 @@ ClimateDT workflow modifications:
 - New position for push_analysis ``config.grouping.yaml` in `$AQUA/config/analysis`
 
 AQUA core complete list:
+- Fix optimal chunking for Ocean3D diagnostics (#2409)
 - Fix push_analysis.sh rsync functionality to not use ssh (#2403)
 - Refactoring of aqua analysis to allow config file with diagnostic groups and reorganization of diagnostic config files. Optimizations of diagnostic parallel execution. Cleaner distinction between `diagnostics` and `tools` (#2371)
 - Minor fixes to output filenames, figure descriptions and color ranges (#2371)
