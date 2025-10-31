@@ -19,6 +19,7 @@ AQUA core complete list:
 - Refactoring of aqua analysis to allow config file with diagnostic groups and reorganization of diagnostic config files (#2371)
 - Optimizations of diagnostic parallel execution (#2371) 
 - Including minor fixes to output filenames, figure descriptions and color ranges (#2371)
+- Enumerate aqua analysis log file for multiple config files (#2407)
 - Fix push_analysis.sh rsync functionality to not use ssh (#2403)
 - Minor fixes to output filenames, figure descriptions and color ranges (#2371)
 - `stardate` and `enddate` can be passed to DROP to limit the range of scan (#2325)
