@@ -14,7 +14,7 @@ ClimateDT workflow modifications:
 - New position for push_analysis ``config.grouping.yaml` in `$AQUA/config/analysis`
 
 AQUA core complete list:
-- Use grid with explicit grid file for lat-lon-r100 (#2410)
+- New grid lat-lon-r100 with explicit grid file, new default in DROP catgen (#2410)
 - Realization formatting correctly processed by the Reader (#2392) 
 - Realization (and other intake kwargs) are an attribute of the Reader (#2392)
 - Refactoring of aqua analysis to allow config file with diagnostic groups and reorganization of diagnostic config files (#2371)
