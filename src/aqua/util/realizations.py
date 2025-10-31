@@ -16,7 +16,7 @@ def format_realization(realization: Optional[str | int | list | None] = None) ->
     Returns:
         str | list: Formatted realization string or list of formatted strings.
     """
-    if realization is None:
+    if not realization:
         return DEFAULT_REALIZATION
     if isinstance(realization, list):
         for i, r in enumerate(realization):
