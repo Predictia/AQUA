@@ -14,7 +14,6 @@ ClimateDT workflow modifications:
 - New position for push_analysis ``config.grouping.yaml` in `$AQUA/config/analysis`
 
 AQUA core complete list:
-- Fix optimal chunking for Ocean3D diagnostics (#2409)
 - New grid lat-lon-r100 with explicit grid file, new default in DROP catgen (#2410)
 - Realization formatting correctly processed by the Reader (#2392) 
 - Realization (and other intake kwargs) are an attribute of the Reader (#2392)
@@ -32,6 +31,8 @@ AQUA core complete list:
 - AQUA analysis now can receive ``stardate`` and ``enddate`` (#2368)
 
 AQUA diagnostics complete list:
+- Ocean3D diagnostics: improve description, titles and notebook (#2397)
+- Ocean3D diagnostics config files: fix optimal chunking (#2409)
 - Boxplots: improve title and description (#2411)
 - LatLonProfiles: figures description fix (#2388)
 - Stratification: MLD and vertical profiles diagnostic refactor (#2268)
