@@ -7,11 +7,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 Unreleased in the current development version (target v0.19.0):
 
+ClimateDT workflow modifications:
+- The configuration file of the catalog generator now requires `expid`
+- Aqua analysis config file organized differently with diagnostic groups
+- Diagnostic and cli tool config files grouped differently in `$AQUA/config/diagnostics` and `$AQUA/config/tools`
+- New position for push_analysis ``config.grouping.yaml` in `$AQUA/config/analysis`
+
 AQUA core complete list:
+- New grid lat-lon-r100 with explicit grid file, new default in DROP catgen (#2410)
+- Realization formatting correctly processed by the Reader (#2392) 
+- Realization (and other intake kwargs) are an attribute of the Reader (#2392)
+- Refactoring of aqua analysis to allow config file with diagnostic groups and reorganization of diagnostic config files (#2371)
+- Optimizations of diagnostic parallel execution (#2371) 
+- Including minor fixes to output filenames, figure descriptions and color ranges (#2371)
+- Enumerate aqua analysis log file for multiple config files (#2407)
+- Fix push_analysis.sh rsync functionality to not use ssh (#2403)
+- Minor fixes to output filenames, figure descriptions and color ranges (#2371)
+- `stardate` and `enddate` can be passed to DROP to limit the range of scan (#2325)
+- Chunking of netcdf sources is not filtered anymore (#2380)
+- Introduce `expid` into configuration file of the catalog generator (#2340)
 - EC-EARTH4 ORCA2 and eORCA1 grids refactor (#2280)
 - Added PALEORCA2 support for the EC-EARTH4 low-resolution paleoclimate configuration (#2280)
+- AQUA analysis now can receive ``stardate`` and ``enddate`` (#2368)
 
 AQUA diagnostics complete list:
+- Ocean3D diagnostics: improve description, titles and notebook (#2397)
+- Ocean3D diagnostics config files: fix optimal chunking (#2409)
+- Boxplots: improve title and description (#2411)
+- LatLonProfiles: figures description fix (#2388)
+- Stratification: MLD and vertical profiles diagnostic refactor (#2268)
 - ECmean Performance Indices replace EC23 climatology with the new EC24 (#2367)
 
 ## [v0.18.1]
@@ -32,6 +56,7 @@ AQUA diagnostics complete list:
 - Ocean Drift: timeseries plotting function with update in cli (#2322)
 - Implement `fldstat` methods in Seaice diagnostics (#2297)
 - Gregory: more detailed description and plot labels (#2306)
+- Ensemble: updated ensemble module to use realizations via Reader class (#2342)
 - Radiation: using CERES ebaf42 instead of ebaf41 (#2333)
 
 ## [v0.18.0]

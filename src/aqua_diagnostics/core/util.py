@@ -3,10 +3,9 @@ Utility functions for the CLI
 """
 import argparse
 import os
-import xarray as xr
 from dask.distributed import Client, LocalCluster
-from aqua.logger import log_configure, log_history
-from aqua.util import load_yaml, get_arg, convert_units
+from aqua.logger import log_configure
+from aqua.util import load_yaml, get_arg
 from aqua.util import ConfigPath
 
 
@@ -42,6 +41,10 @@ def template_parse_arguments(parser: argparse.ArgumentParser):
                         required=False, help="target regrid resolution")
     parser.add_argument("--outputdir", type=str,
                         required=False, help="output directory")
+    parser.add_argument("--startdate", type=str,
+                        required=False, help="start date (YYYY-MM-DD)")
+    parser.add_argument("--enddate", type=str,
+                        required=False, help="end date (YYYY-MM-DD)")
 
     return parser
 
@@ -98,23 +101,30 @@ def close_cluster(client, cluster, private_cluster, loglevel: str = 'WARNING'):
         cluster.close()
         logger.debug("Dask cluster closed.")
 
-def get_diagnostic_configpath(diagnostic: str, loglevel='WARNING') -> str:
+def get_diagnostic_configpath(diagnostic: str, folder="diagnostics", loglevel='WARNING') -> str:
     """
     Get the path to the diagnostic configuration directory.
 
     Args:
         diagnostic (str): diagnostic name
+        folder (str): folder name. Default is "diagnostics". Can be "tools" as well.
         loglevel (str): logging level. Default is 'WARNING'.
 
     Returns:
         str: path to the diagnostic configuration directory
     """
     configdir = ConfigPath(loglevel=loglevel).configdir
-    return os.path.join(configdir, "diagnostics", diagnostic)
+    if folder == "templates":
+        return os.path.join(configdir, folder, "diagnostics")
+    if folder in ["tools", "diagnostics"]:
+        return os.path.join(configdir, folder, diagnostic)
+    raise ValueError(f"Invalid folder name: {folder}. Must be 'diagnostics', 'tools', or 'templates'.")
 
 
-def load_diagnostic_config(diagnostic: str, config: str = None,
-                           default_config: str = "config.yaml",
+def load_diagnostic_config(diagnostic: str,
+                           config: str = None,
+                           default_config: str = None,
+                           folder = "diagnostics",
                            loglevel: str = 'WARNING'):
     """
     Load the diagnostic configuration file and return the configuration dictionary.
@@ -122,19 +132,22 @@ def load_diagnostic_config(diagnostic: str, config: str = None,
     Args:
         diagnostic (str): diagnostic name
         config (str): config argument can modify the default configuration file.
-        default_config (str): default name configuration file (yaml format)
+        folder (str): folder name. Default is "diagnostics". Can be "tools" or "templates" as well.
         loglevel (str): logging level. Default is 'WARNING'.
 
     Returns:
         dict: configuration dictionary
     """
     if config:
-        filename = config
-    else:
-        filename = os.path.join(
-            get_diagnostic_configpath(diagnostic, loglevel), 
-            default_config
-        )
+        return load_yaml(config)
+
+    if not default_config:
+        default_config = f"config-{diagnostic}.yaml"
+
+    filename = os.path.join(
+        get_diagnostic_configpath(diagnostic, folder=folder, loglevel=loglevel),
+        default_config
+    )
 
     return load_yaml(filename)
 
