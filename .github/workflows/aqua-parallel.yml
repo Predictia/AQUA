@@ -197,42 +197,25 @@ jobs:
         run: |
           cd AQUA
           
-          echo "Running parallel tests (4 cores, excluding dask and file-conflict tests)"
+          echo "=========================================="
+          echo "Running all tests with pytest-xdist (4 cores)"
+          echo "Tests with xdist_group markers will run on dedicated workers"
+          echo "=========================================="
+          
           pytest -n 4 \
-            --ignore=tests/test_drop.py \
-            --ignore=tests/test_gsv.py \
-            --ignore=tests/test_regrid.py \
-            --ignore=tests/test_ocean3d/test_stratification.py \
             --cov \
             -m "aqua or slow or gsv or graphics or catgen or diagnostics or ensemble" \
-            2>&1 | tee aqua_pytest_parallel.log
-          PARALLEL_EXIT=$?
+            2>&1 | tee aqua_pytest.log
           
-          echo ""
-          echo "Running sequential tests (dask + file-conflict tests)"
-          pytest \
-            tests/test_drop.py \
-            tests/test_gsv.py \
-            tests/test_ocean3d/test_stratification.py \
-            tests/test_regrid.py \
-            --cov --cov-append \
-            -m "aqua or slow or gsv or graphics or catgen or diagnostics or ensemble" \
-            2>&1 | tee aqua_pytest_dask.log
-          DASK_EXIT=$?
+          TEST_EXIT=$?
           
           # Generate coverage reports
           coverage xml
           coverage report
           
-          # Combine logs
-          cat aqua_pytest_parallel.log aqua_pytest_dask.log > aqua_pytest.log
-          
-          # Generate JUnit XML
-          cp junit_parallel.xml junit.xml || true
-          
           # Check if tests passed
-          if [ $PARALLEL_EXIT -ne 0 ] || [ $DASK_EXIT -ne 0 ]; then
-            echo "Tests failed! Parallel: $PARALLEL_EXIT, Sequential: $DASK_EXIT"
+          if [ $TEST_EXIT -ne 0 ]; then
+            echo "Tests failed with exit code: $TEST_EXIT"
             exit 1
           fi
       - name: Upload coverage reports to Codecov

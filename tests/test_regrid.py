@@ -6,6 +6,12 @@ from aqua.regridder.griddicthandler import GridDictHandler
 LOGLEVEL = "DEBUG"
 approx_rel = 1e-4
 
+# pytestmark groups tests that run sequentially on the same worker to avoid conflicts
+pytestmark = [
+    pytest.mark.aqua,
+    pytest.mark.xdist_group(name="weight_generation")
+]
+
 @pytest.fixture(
     params=[
         ("IFS", "test-tco79", "short", "2t", 0),
@@ -40,7 +46,6 @@ cfg_dict = {
 }
 
 
-@pytest.mark.aqua
 class TestRegridder():
     """class for regridding test"""
 
@@ -240,7 +245,6 @@ class TestRegridder():
         assert val == pytest.approx(274.9045)
 
 
-@pytest.mark.aqua
 def test_non_latlon_interpolation():
     """
     Test interpolation to a non regular grid,
@@ -254,7 +258,7 @@ def test_non_latlon_interpolation():
     assert data.shape == (160, 320)
     assert data.values[0, 0] == pytest.approx(246.71156470963325)
 
-@pytest.mark.aqua
+
 def test_regrid_method():
     """Test different regridding method from the grid file"""
     reader = Reader(model="ERA5", exp="era5-hpz3", source="monthly-nn", regrid="r100",

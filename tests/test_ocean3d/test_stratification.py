@@ -5,7 +5,12 @@ from conftest import LOGLEVEL
 loglevel = LOGLEVEL
 approx_rel = 1e-3
 
-@pytest.mark.diagnostics
+# pytestmark groups tests that run sequentially on the same worker to avoid conflicts
+pytestmark = [
+    pytest.mark.diagnostics,
+    pytest.mark.xdist_group(name="dask_operations")
+]
+
 def test_stratification():
     """Test the stratification class."""
     # Create an instance of the stratification class

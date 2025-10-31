@@ -12,6 +12,12 @@ from conftest import LOGLEVEL
 if not gsv_available:
     pytest.skip('Skipping GSV tests: FDB5 libraries not available', allow_module_level=True)
 
+# pytestmark groups tests that run sequentially on the same worker to avoid conflicts
+pytestmark = [
+    pytest.mark.gsv,
+    pytest.mark.xdist_group(name="dask_operations")
+]
+
 """Tests for GSV in AQUA. Requires FDB library installed and an FDB repository."""
 
 # Used to create the ``GSVSource`` if no request provided.
@@ -37,6 +43,7 @@ DEFAULT_GSV_PARAMS = {
 
 loglevel = LOGLEVEL
 FDB_HOME = '/app'
+
 # to enable for local testing on Lumi
 if ConfigPath().machine == 'lumi':
     FDB_HOME = '/pfs/lustrep3/projappl/project_465000454/padavini/FDB-TEST'
@@ -52,7 +59,6 @@ def gsv(request) -> GSVSource:
     return GSVSource(**request, metadata={'fdb_home': FDB_HOME})
 
 
-@pytest.mark.gsv
 class TestGsv():
     """Pytest marked class to test GSV."""
 
@@ -269,8 +275,6 @@ class TestGsv():
         cluster.close()
 
 # Additional tests for the GSVSource class
-
-@pytest.mark.gsv
 def test_fdb_home_bridge_logs(capsys):
     # Prepare test metadata ensuring we have fdbhome_bridge
     metadata = {
