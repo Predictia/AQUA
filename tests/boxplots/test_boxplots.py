@@ -9,7 +9,13 @@ from conftest import DPI, LOGLEVEL
 approx_rel = 1e-4
 loglevel = LOGLEVEL
 
-@pytest.mark.diagnostics
+# pytestmark groups tests that run sequentially on the same worker to avoid conflicts
+# These tests use setup_class with shared resources (data fetching, tmp files)
+pytestmark = [
+    pytest.mark.diagnostics,
+    pytest.mark.xdist_group(name="diagnostic_setup_class")
+]
+
 class TestBoxplots:
     @classmethod
     def setup_class(cls):

@@ -14,7 +14,13 @@ model = 'FESOM'
 exp = 'hpz3'
 source = 'monthly-2d'
 
-@pytest.mark.diagnostics
+# pytestmark groups tests that run sequentially on the same worker to avoid conflicts
+# These tests repeatedly call SeaIce.compute_seaice() which accesses shared data
+pytestmark = [
+    pytest.mark.diagnostics,
+    pytest.mark.xdist_group(name="diagnostic_setup_class")
+]
+
 class TestSeaIce:
     """Test the SeaIce class."""
     
