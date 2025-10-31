@@ -117,7 +117,7 @@ diagnostics:
     biases:
       config: "${AQUA_CONFIG}/diagnostics/radiation_toa/config-radiation_toa-ceres.yaml"
     boxplots:
-      config: "${AQUA_CONFIG}/diagnostics/radiation_toa/config-radiation_toa-ceres.yaml"
+      config: "${AQUA_CONFIG}/diagnostics/radiation_toa/config-radiation_toa-boxplots.yaml"
     timeseries:
       config: "${AQUA_CONFIG}/diagnostics/radiation_toa/config-radiation_toa-ceres.yaml"
 
@@ -126,7 +126,7 @@ diagnostics:
       config: ["${AQUA_CONFIG}/diagnostics/radiation_surface/config-radiation_surface-ceres.yaml",
                "${AQUA_CONFIG}/diagnostics/radiation_surface/config-radiation_surface-era5.yaml"]
     boxplots:
-      config: "${AQUA_CONFIG}/diagnostics/radiation_surface/config-radiation_surface-boxplots-ceres.yaml"
+      config: "${AQUA_CONFIG}/diagnostics/radiation_surface/config-radiation_surface-boxplots.yaml"
     timeseries:
       config: ["${AQUA_CONFIG}/diagnostics/radiation_surface/config-radiation_surface-ceres.yaml",
                "${AQUA_CONFIG}/diagnostics/radiation_surface/config-radiation_surface-era5.yaml"]
