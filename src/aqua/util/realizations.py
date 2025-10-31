@@ -1,3 +1,4 @@
+"""utilities for formatting realizations."""
 from typing import Optional, Union
 
 DEFAULT_REALIZATION = 'r1'  # Default realization if not specified
@@ -15,11 +16,11 @@ def format_realization(realization: Optional[str | int | list | None] = None) ->
     Returns:
         str | list: Formatted realization string or list of formatted strings.
     """
-    if not realization:
+    if realization is None:
         return DEFAULT_REALIZATION
     if isinstance(realization, list):
         for i, r in enumerate(realization):
-            if not r:
+            if r is None:
                 realization[i] = DEFAULT_REALIZATION
             else:
                 realization[i] = f'r{r}' if str(r).isdigit() else str(r)

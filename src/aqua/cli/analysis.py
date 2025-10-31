@@ -64,12 +64,12 @@ def analysis_execute(args):
     model = args.model or config.get('job', {}).get('model')
     exp = args.exp or config.get('job', {}).get('exp')
     source = args.source or config.get('job', {}).get('source', 'lra-r100-monthly')
-    source_oce = args.source_oce or config.get('job', {}).get('source_oce', None)
-    realization = args.realization if args.realization else config.get('job', {}).get('realization', 'r1')
+    source_oce = args.source_oce or config.get('job', {}).get('source_oce')
+    realization = args.realization if args.realization else config.get('job', {}).get('realization')
 
     # startdate and enddate
-    startdate = args.startdate or config.get('job', {}).get('startdate', None)
-    enddate = args.enddate or config.get('job', {}).get('enddate', None)
+    startdate = args.startdate or config.get('job', {}).get('startdate')
+    enddate = args.enddate or config.get('job', {}).get('enddate')
     # We get regrid option and then we set it to None if it is False
     # This avoids to add the --regrid argument to the command line
     # if it is not needed
@@ -107,10 +107,9 @@ def analysis_execute(args):
     logger.debug("outputdir: %s", outputdir)
     logger.debug("max_threads: %d", max_threads)
 
-    # Format the realization string by prepending 'r' if it is a digit.
-    if str(realization).isdigit():
-        realization = format_realization(realization)
-        logger.info("Input realization formatted to: %s", realization)
+    # Format the realization string by prepending 'r' if it is a digit or setting a default `r1`.
+    realization = format_realization(realization)
+    logger.info("Input realization formatted to: %s", realization)
 
     output_dir = os.path.join(outputdir, catalog, model, exp, realization)
     output_dir = os.path.expandvars(output_dir)
