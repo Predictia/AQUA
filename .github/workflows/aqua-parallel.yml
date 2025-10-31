@@ -193,7 +193,7 @@ jobs:
       - name: Install pytest-xdist
         run: |
           python -m pip install pytest-xdist
-      - name: Run tests (4 parallel cores, then sequential runs for dask and file-conflicts)
+      - name: Run tests (4 parallel cores with xdist groups)
         run: |
           cd AQUA
           
@@ -203,6 +203,7 @@ jobs:
           echo "=========================================="
           
           pytest -n 4 \
+            --max-worker-restart=3 \
             --cov \
             -m "aqua or slow or gsv or graphics or catgen or diagnostics or ensemble" \
             2>&1 | tee aqua_pytest.log
