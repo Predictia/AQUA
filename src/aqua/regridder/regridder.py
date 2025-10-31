@@ -301,7 +301,6 @@ class Regridder():
         # clean if necessary
         if os.path.exists(area_filename):
             self.logger.info("%s areas file %s exists. Regenerating.", area_type, area_filename)
-            os.remove(area_filename)
 
         self.logger.info("Generating %s area for %s", area_type, grid_name)
 
