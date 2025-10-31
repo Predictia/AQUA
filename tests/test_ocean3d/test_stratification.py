@@ -1,6 +1,8 @@
 import pytest
 from aqua.diagnostics.ocean_stratification.stratification import Stratification
+from conftest import LOGLEVEL
 
+loglevel = LOGLEVEL
 approx_rel = 1e-3
 
 @pytest.mark.diagnostics
@@ -9,7 +11,7 @@ def test_stratification():
     # Create an instance of the stratification class
     strat = Stratification(catalog='ci', model='FESOM',
                           exp='hpz3', source='monthly-3d',
-                          regrid='r100', loglevel='DEBUG')
+                          regrid='r100', loglevel=loglevel)
 
     strat.run(
         dim_mean=["lat","lon"],

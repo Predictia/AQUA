@@ -11,8 +11,9 @@ from aqua.util import cbar_get_label, evaluate_colorbar_limits, add_pdf_metadata
 from aqua.util import get_nside, get_npix, healpix_resample
 from aqua.util import coord_names, set_map_title
 from aqua.graphics import plot_single_map
+from conftest import DPI, LOGLEVEL
 
-loglevel = 'DEBUG'
+loglevel = LOGLEVEL
 
 
 @pytest.fixture()
@@ -122,7 +123,7 @@ def test_pdf_metadata(tmp_path):
     fig, _ = plot_single_map(da, title='Test', filename='test', format='pdf',
                              return_fig=True, loglevel=loglevel)
 
-    fig.savefig(tmp_path / 'test.pdf', dpi=50)
+    fig.savefig(tmp_path / 'test.pdf', dpi=DPI)
     filename = str(tmp_path / 'test.pdf')
     # Test the function
     add_pdf_metadata(filename=filename, metadata_value='Test',

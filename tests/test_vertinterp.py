@@ -2,8 +2,10 @@
 
 import pytest
 from aqua import Reader
+from conftest import LOGLEVEL
 
-loglevel = "DEBUG"
+loglevel = LOGLEVEL
+
 @pytest.fixture(scope='module')
 def reader():
     return Reader(model='FESOM', exp='test-pi', source='original_3d', loglevel=loglevel)

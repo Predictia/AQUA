@@ -10,8 +10,9 @@ from aqua.graphics import plot_timeseries, plot_seasonalcycle
 from aqua.graphics import plot_maps, plot_maps_diff, plot_hovmoller
 from aqua.graphics import plot_vertical_lines
 from aqua.graphics import plot_lat_lon_profiles, plot_seasonal_lat_lon_profiles
+from conftest import DPI, LOGLEVEL
 
-loglevel = "DEBUG"
+loglevel = LOGLEVEL
 
 # Aliases with module scope for fixtures
 @pytest.fixture(scope='module')
@@ -70,7 +71,7 @@ class TestMaps:
                                   transform_first=False,
                                   title='Test plot',
                                   cbar_label='Sea surface temperature [°C]',
-                                  dpi=50,
+                                  dpi=DPI,
                                   nxticks=5,
                                   nyticks=5,
                                   ticks_rounding=1,
@@ -105,7 +106,7 @@ class TestMaps:
                                        return_fig=True,
                                        title='Test plot',
                                        cbar_label='Sea surface temperature [°C]',
-                                       dpi=50,
+                                       dpi=DPI,
                                        nxticks=5,
                                        nyticks=5,
                                        gridlines=True,
@@ -148,7 +149,7 @@ class TestMaps:
                         return_fig=True, loglevel=loglevel)
         assert fig is not None
 
-        fig.savefig(tmp_path / 'test_plot_maps.png', dpi=50)
+        fig.savefig(tmp_path / 'test_plot_maps.png', dpi=DPI)
         assert os.path.exists(tmp_path / 'test_plot_maps.png')
 
         fig2 = plot_maps_diff(maps=[plot_data, plot_data],
@@ -166,7 +167,7 @@ class TestMaps:
 
         assert fig2 is not None
 
-        fig2.savefig(tmp_path / 'test_plot_maps_diff.png', dpi=50)
+        fig2.savefig(tmp_path / 'test_plot_maps_diff.png', dpi=DPI)
         assert os.path.exists(tmp_path / 'test_plot_maps_diff.png')
 
     def test_maps_error(self):
@@ -201,7 +202,7 @@ class TestVerticalProfiles:
         assert fig is not None
         assert ax is not None
 
-        fig.savefig(tmp_path / 'test_plot_vertical_profile.png', dpi=50)
+        fig.savefig(tmp_path / 'test_plot_vertical_profile.png', dpi=DPI)
 
         # Check the file was created
         assert os.path.exists(tmp_path / 'test_plot_vertical_profile.png')
@@ -223,7 +224,7 @@ class TestVerticalProfiles:
         assert fig is not None
         assert ax is not None
 
-        fig.savefig(tmp_path / 'test_plot_vertical_profile_diff.png', dpi=50)
+        fig.savefig(tmp_path / 'test_plot_vertical_profile_diff.png', dpi=DPI)
 
         # Check the file was created
         assert os.path.exists(tmp_path / 'test_plot_vertical_profile_diff.png')
@@ -265,7 +266,7 @@ class TestTimeseries:
         assert fig is not None
         assert ax is not None
 
-        fig.savefig(tmp_path / 'test_plot_timeseries.png', dpi=50)
+        fig.savefig(tmp_path / 'test_plot_timeseries.png', dpi=DPI)
 
         # Check the file was created
         assert os.path.exists(tmp_path / 'test_plot_timeseries.png')
@@ -286,7 +287,7 @@ class TestTimeseries:
         assert fig is not None
         assert ax is not None
 
-        fig.savefig(tmp_path / 'test_seasonalcycle.png', dpi=50)
+        fig.savefig(tmp_path / 'test_seasonalcycle.png', dpi=DPI)
 
         # Check the file was created
         assert os.path.exists(tmp_path / 'test_seasonalcycle.png')
@@ -322,7 +323,7 @@ class TestTimeseries:
         assert fig is not None
         assert ax is not None
 
-        fig.savefig(tmp_path / 'test_plot_ensemble.png', dpi=50)
+        fig.savefig(tmp_path / 'test_plot_ensemble.png', dpi=DPI)
 
         # Check the file was created
         assert os.path.exists(tmp_path / 'test_plot_ensemble.png')
@@ -357,7 +358,7 @@ class TestHovmoller:
         assert fig2 is not None
         assert ax2 is not None
 
-        fig2.savefig(tmp_path / 'test_hovmoller2.png', dpi=50)
+        fig2.savefig(tmp_path / 'test_hovmoller2.png', dpi=DPI)
         assert os.path.exists(tmp_path / 'test_hovmoller2.png')
 
         fig, _ = plot_hovmoller(data=self.data,
@@ -369,7 +370,7 @@ class TestHovmoller:
 
         assert fig is not None
 
-        fig.savefig(tmp_path / 'test_hovmoller3.png', dpi=50)
+        fig.savefig(tmp_path / 'test_hovmoller3.png', dpi=DPI)
 
         assert os.path.exists(tmp_path / 'test_hovmoller3.png')
 
@@ -403,7 +404,7 @@ class TestVerticalLines:
         assert fig is not None
         assert ax is not None
 
-        fig.savefig(tmp_path / 'test_plot_vertical_lines.png', dpi=50)
+        fig.savefig(tmp_path / 'test_plot_vertical_lines.png', dpi=DPI)
 
         # Check the file was created
         assert os.path.exists(tmp_path / 'test_plot_vertical_lines.png')
@@ -432,7 +433,7 @@ class TestLatLonProfiles:
         assert fig is not None
         assert ax is not None
         
-        fig.savefig(tmp_path / 'test_lat_profile.png', dpi=50)
+        fig.savefig(tmp_path / 'test_lat_profile.png', dpi=DPI)
         assert os.path.exists(tmp_path / 'test_lat_profile.png')
 
     def test_plot_lat_lon_profiles_multiple(self, tmp_path):
@@ -449,7 +450,7 @@ class TestLatLonProfiles:
         assert fig is not None
         assert ax is not None
         
-        fig.savefig(tmp_path / 'test_lat_profiles_multiple.png', dpi=50)
+        fig.savefig(tmp_path / 'test_lat_profiles_multiple.png', dpi=DPI)
         assert os.path.exists(tmp_path / 'test_lat_profiles_multiple.png')
 
     def test_plot_lat_lon_profiles_with_ref(self, tmp_path):
@@ -470,7 +471,7 @@ class TestLatLonProfiles:
         assert fig is not None
         assert ax is not None
         
-        fig.savefig(tmp_path / 'test_lat_profile_with_ref.png', dpi=50)
+        fig.savefig(tmp_path / 'test_lat_profile_with_ref.png', dpi=DPI)
         assert os.path.exists(tmp_path / 'test_lat_profile_with_ref.png')
 
     def test_plot_lon_profile(self, tmp_path):
@@ -483,7 +484,7 @@ class TestLatLonProfiles:
         assert fig is not None
         assert ax is not None
         
-        fig.savefig(tmp_path / 'test_lon_profile.png', dpi=50)
+        fig.savefig(tmp_path / 'test_lon_profile.png', dpi=DPI)
         assert os.path.exists(tmp_path / 'test_lon_profile.png')
 
     def test_plot_lat_lon_profiles_no_spatial_coords(self, tmp_path):
@@ -507,7 +508,7 @@ class TestLatLonProfiles:
             # The plot should be empty (no lines plotted)
             assert len(ax.lines) == 0
             
-            fig.savefig(tmp_path / 'test_lat_profile_no_coords.png', dpi=50)
+            fig.savefig(tmp_path / 'test_lat_profile_no_coords.png', dpi=DPI)
             assert os.path.exists(tmp_path / 'test_lat_profile_no_coords.png')
 
 @pytest.mark.graphics
@@ -542,7 +543,7 @@ class TestSeasonalMeans:
         assert axs is not None
         assert len(axs) == 4
         
-        fig.savefig(tmp_path / 'test_seasonal_profiles.png', dpi=50)
+        fig.savefig(tmp_path / 'test_seasonal_profiles.png', dpi=DPI)
         assert os.path.exists(tmp_path / 'test_seasonal_profiles.png')
 
     def test_plot_seasonal_lat_lon_profiles_with_ref(self, tmp_path):
@@ -566,7 +567,7 @@ class TestSeasonalMeans:
         assert fig is not None
         assert axs is not None
         
-        fig.savefig(tmp_path / 'test_seasonal_profiles_with_ref.png', dpi=50)
+        fig.savefig(tmp_path / 'test_seasonal_profiles_with_ref.png', dpi=DPI)
         assert os.path.exists(tmp_path / 'test_seasonal_profiles_with_ref.png')
 
     def test_plot_seasonal_lat_lon_profiles_multiple(self, tmp_path):
@@ -589,7 +590,7 @@ class TestSeasonalMeans:
         assert fig is not None
         assert axs is not None
         
-        fig.savefig(tmp_path / 'test_seasonal_profiles_multiple.png', dpi=50)
+        fig.savefig(tmp_path / 'test_seasonal_profiles_multiple.png', dpi=DPI)
         assert os.path.exists(tmp_path / 'test_seasonal_profiles_multiple.png')
 
     def test_plot_seasonal_lat_lon_profiles_error(self):
@@ -624,5 +625,5 @@ class TestSeasonalMeans:
         assert fig is not None
         assert axs is not None
         
-        fig.savefig(tmp_path / 'test_seasonal_none_ref_std.png', dpi=50)
+        fig.savefig(tmp_path / 'test_seasonal_none_ref_std.png', dpi=DPI)
         assert os.path.exists(tmp_path / 'test_seasonal_none_ref_std.png')

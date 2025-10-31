@@ -1,10 +1,11 @@
 import pytest
 import numpy as np
 from aqua import Reader, catalog
+from conftest import LOGLEVEL
 
 # pytest approximation, to bear with different machines
 approx_rel = 1e-4
-loglevel = "DEBUG"
+loglevel = LOGLEVEL
 
 @pytest.fixture(scope='module')
 def reader_instance(fesom_test_pi_original_2d_r200_fixFalse_reader):

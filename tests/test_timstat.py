@@ -3,8 +3,9 @@ import pytest
 import numpy as np
 from aqua import Reader
 from aqua.histogram import histogram
+from conftest import LOGLEVEL
 
-loglevel = "DEBUG"
+loglevel = LOGLEVEL
 
 @pytest.fixture(scope='module')
 def reader(ifs_tco79_long_fixFalse_reader):

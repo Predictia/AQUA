@@ -2,11 +2,12 @@ import pytest
 import xarray as xr
 from aqua.diagnostics import SeaIce
 from aqua.exceptions import NoDataError
+from conftest import LOGLEVEL
 
 # pytest approximation, to bear with different machines
 approx_rel = 1e-4
 abs_rel = 1e-4
-loglevel = 'DEBUG'
+loglevel = LOGLEVEL
 
 catalog = 'ci'
 model = 'FESOM'

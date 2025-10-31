@@ -7,6 +7,7 @@ from dask.distributed import LocalCluster, Client
 from aqua.gsv.intake_gsv import GSVSource, gsv_available
 from aqua.util import ConfigPath
 from aqua import Reader
+from conftest import LOGLEVEL
 
 if not gsv_available:
     pytest.skip('Skipping GSV tests: FDB5 libraries not available', allow_module_level=True)
@@ -34,7 +35,7 @@ DEFAULT_GSV_PARAMS = {
     'timestyle': 'date'
 }
 
-loglevel = 'DEBUG'
+loglevel = LOGLEVEL
 FDB_HOME = '/app'
 # to enable for local testing on Lumi
 if ConfigPath().machine == 'lumi':
@@ -278,7 +279,7 @@ def test_fdb_home_bridge_logs(capsys):
     }
 
     source = GSVSource(DEFAULT_GSV_PARAMS['request'], data_start_date='20080101T1200', data_end_date='20080101T1200',
-                        metadata=metadata, loglevel='DEBUG')
+                        metadata=metadata, loglevel=loglevel)
 
     # No assert in the following because we cannot check the stderr logs. This is just for coverage.
 
@@ -293,7 +294,7 @@ def test_fdb_home_bridge_logs(capsys):
         'fdb_path': FDB_HOME+'/etc/fdb/config.yaml'
     }
     source = GSVSource(DEFAULT_GSV_PARAMS['request'], data_start_date='20080101T1200', data_end_date='20080101T1200',
-                        metadata=metadata, loglevel='DEBUG')
+                        metadata=metadata, loglevel=loglevel)
     
     source.chk_type = [1]
     source._get_partition(ii=0)

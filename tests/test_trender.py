@@ -2,8 +2,9 @@
 
 import pytest
 from aqua import Reader
+from conftest import LOGLEVEL
 
-loglevel = "DEBUG"
+loglevel = LOGLEVEL
 
 @pytest.mark.aqua
 class TestTrender:
@@ -11,7 +12,7 @@ class TestTrender:
 
     @pytest.fixture(scope='class')
     def reader(self):
-        return Reader(model="IFS", exp="test-tco79", source='long', loglevel='DEBUG')
+        return Reader(model="IFS", exp="test-tco79", source='long', loglevel=loglevel)
 
     @pytest.fixture(scope='class')
     def data(self, reader):
