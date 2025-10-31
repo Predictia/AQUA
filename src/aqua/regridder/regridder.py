@@ -236,8 +236,15 @@ class Regridder():
             data (xr.Dataset or xr.DataArray): Data to save.
             filename (str): Destination file path.
         """
- 
-        with TemporaryDirectory() as tmpdirname:
+        # Ensure parent directory exists
+        dest_dir = os.path.dirname(os.path.abspath(filename))
+        if dest_dir:  # Handle edge case where filename has no directory component
+            os.makedirs(dest_dir, exist_ok=True)
+        else:
+            dest_dir = '.'  # Use current directory
+        
+        # Create temp file in same directory as destination (same filesystem)
+        with TemporaryDirectory(dir=dest_dir) as tmpdirname:
             tmp_file = os.path.join(tmpdirname, "temp.nc")
             data.to_netcdf(tmp_file)
             os.replace(tmp_file, filename)
