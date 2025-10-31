@@ -6,12 +6,13 @@ Reference: https://docs.pytest.org/en/stable/reference/fixtures.html
 import pytest
 from aqua import Reader
 
+# Centralized setting for all tests
 LOGLEVEL = "DEBUG"
-DPI = 50  # Centralized DPI setting for all tests
+DPI = 50
 
-# =============================================================================
+# ======================================================================
 # IFS fixtures
-# =============================================================================
+# ======================================================================
 @pytest.fixture(scope="session")
 def ifs_tco79_short_reader():
     return Reader(model="IFS", exp="test-tco79", source="short", loglevel=LOGLEVEL)
@@ -56,9 +57,9 @@ def ifs_tco79_long_reader():
 def ifs_tco79_long_data(ifs_tco79_long_reader):
     return ifs_tco79_long_reader.retrieve()
 
-# =============================================================================
+# ======================================================================
 # FESOM fixtures
-# =============================================================================
+# ======================================================================
 @pytest.fixture(scope="session")
 def fesom_test_pi_original_2d_reader():
     return Reader(model="FESOM", exp="test-pi", source="original_2d", loglevel=LOGLEVEL)
@@ -76,9 +77,9 @@ def fesom_test_pi_original_2d_r200_fixFalse_reader():
 def fesom_test_pi_original_2d_r200_fixFalse_data(fesom_test_pi_original_2d_r200_fixFalse_reader):
     return fesom_test_pi_original_2d_r200_fixFalse_reader.retrieve()
 
-# =============================================================================
+# ======================================================================
 # ICON fixtures
-# =============================================================================
+# ======================================================================
 @pytest.fixture(scope="session")
 def icon_test_healpix_short_reader():
     return Reader(model="ICON", exp="test-healpix", source="short", loglevel=LOGLEVEL)
@@ -95,9 +96,9 @@ def icon_test_r2b0_short_reader():
 def icon_test_r2b0_short_data(icon_test_r2b0_short_reader):
     return icon_test_r2b0_short_reader.retrieve(var='t')
 
-# =============================================================================
+# ======================================================================
 # NEMO fixtures
-# =============================================================================
+# ======================================================================
 @pytest.fixture(scope="session")
 def nemo_test_eORCA1_long_2d_reader():
     return Reader(model="NEMO", exp="test-eORCA1", source="long-2d", loglevel=LOGLEVEL)
@@ -114,9 +115,9 @@ def nemo_test_eORCA1_short_3d_reader():
 def nemo_test_eORCA1_short_3d_data(nemo_test_eORCA1_short_3d_reader):
     return nemo_test_eORCA1_short_3d_reader.retrieve(var='so')
 
-# =============================================================================
+# ======================================================================
 # ERA5 fixtures
-# =============================================================================
+# ======================================================================
 @pytest.fixture(scope="session")
 def era5_hpz3_monthly_reader():
     return Reader(model="ERA5", exp='era5-hpz3', source='monthly', loglevel=LOGLEVEL)

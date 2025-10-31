@@ -193,7 +193,7 @@ jobs:
       - name: Install pytest-xdist
         run: |
           python -m pip install pytest-xdist
-      - name: Run parallel tests with pytest-xdist (4 parallel cores + sequential for dask clusters)
+      - name: Run tests (4 parallel cores, then sequential runs for dask and file-conflicts)
         run: |
           cd AQUA
           
@@ -201,6 +201,7 @@ jobs:
           pytest -n 4 \
             --ignore=tests/test_drop.py \
             --ignore=tests/test_gsv.py \
+            --ignore=tests/test_regrid.py \
             --ignore=tests/test_ocean3d/test_stratification.py \
             --cov \
             -m "aqua or slow or gsv or graphics or catgen or diagnostics or ensemble" \
@@ -213,6 +214,7 @@ jobs:
             tests/test_drop.py \
             tests/test_gsv.py \
             tests/test_ocean3d/test_stratification.py \
+            tests/test_regrid.py \
             --cov --cov-append \
             -m "aqua or slow or gsv or graphics or catgen or diagnostics or ensemble" \
             2>&1 | tee aqua_pytest_dask.log
