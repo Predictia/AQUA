@@ -217,7 +217,7 @@ class PlotHovmoller:
     def set_description(self, content: str = None):
         """Set the description for the Hovmoller plot."""
 
-        self.description = f'{content} {self.region} region of {self.catalog} {self.model} {self.exp}'
+        self.description = f'{content} {self.region} region for experiment {self.catalog} {self.model} {self.exp}'
 
     def set_vmax_vmin(self):
         """
