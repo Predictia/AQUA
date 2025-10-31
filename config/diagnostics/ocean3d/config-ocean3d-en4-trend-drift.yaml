@@ -46,13 +46,3 @@ diagnostics:
       var: ['thetao', 'so']
       regions: ['go', 'io', 'ao', 'so', 'arc_o']  # 'po'
       # dim_mean: ['lat']
-
-  ocean_stratification:
-    stratification:
-      diagnostic_name: 'ocean3d'
-      run: true
-      var: ['thetao', 'so']
-      # Note: region and climatology are zipped together, so if you want the same region with different climatologies, you need to repeat it
-      regions: ['ls', 'is', 'ws', 'gs']  # removed ros/DJF
-      climatology: ['DJF', 'JJA', 'JJA', 'DJF']
-      # dim_mean: ['lat', 'lon']

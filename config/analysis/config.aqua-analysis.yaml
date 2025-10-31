@@ -102,15 +102,15 @@ diagnostics:
 
   ocean3d-part1:
     trends:
-      config: "${AQUA_CONFIG}/diagnostics/ocean3d/config-ocean3d-en4-chunk.yaml"  # these diagnostics need a different chunking
+      config: "${AQUA_CONFIG}/diagnostics/ocean3d/config-ocean3d-en4-trend-drift.yaml"  # these diagnostics need a different chunking
       outname: "ocean3d"
     drift:
-      config: "${AQUA_CONFIG}/diagnostics/ocean3d/config-ocean3d-en4-chunk.yaml"  # these diagnostics need a different chunking
+      config: "${AQUA_CONFIG}/diagnostics/ocean3d/config-ocean3d-en4-trend-drift.yaml"  # these diagnostics need a different chunking
       outname: "ocean3d"
 
   ocean3d-part2:
     stratification:
-      config: "${AQUA_CONFIG}/diagnostics/ocean3d/config-ocean3d-en4.yaml"
+      config: "${AQUA_CONFIG}/diagnostics/ocean3d/config-ocean3d-en4-stratifications.yaml"
       outname: "ocean3d"
 
   radiation-toa:

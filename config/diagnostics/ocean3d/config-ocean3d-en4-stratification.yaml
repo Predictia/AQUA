@@ -31,22 +31,6 @@ output:
   dpi: 300
 
 diagnostics:
-  ocean_drift:
-    hovmoller:
-      diagnostic_name: 'ocean3d'
-      run: true
-      var: ['thetao', 'so']
-      regions: ['go', 'io', 'ao', 'so', 'arc_o', 'po']
-      dim_mean: ['lat', 'lon']
-
-  ocean_trends:
-    multilevel:
-      diagnostic_name: 'ocean3d'
-      run: true
-      var: ['thetao', 'so']
-      regions: ['go', 'io', 'ao', 'so', 'arc_o']  # 'po'
-      # dim_mean: ['lat']
-
   ocean_stratification:
     stratification:
       diagnostic_name: 'ocean3d'
