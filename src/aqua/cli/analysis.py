@@ -114,6 +114,9 @@ def analysis_execute(args):
     output_dir = os.path.join(outputdir, catalog, model, exp, realization)
     output_dir = os.path.expandvars(output_dir)
 
+    os.environ["DASK_DISTRIBUTED__COMM__TIMEOUTS__CONNECT"] = "120s"  # increase timeout (certainly needed on lumi, possibly good anyway)
+    os.environ["DASK_DISTRIBUTED__COMM__TIMEOUTS__TCP"] = "60s"  # optional, might be good
+
     os.environ["OUTPUT"] = output_dir
     os.environ["AQUA"] = aqua_path
     os.environ["AQUA_CONFIG"] = aqua_configdir if 'AQUA_CONFIG' not in os.environ else os.environ["AQUA_CONFIG"]
