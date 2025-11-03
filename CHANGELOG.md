@@ -14,12 +14,14 @@ ClimateDT workflow modifications:
 - New position for push_analysis ``config.grouping.yaml` in `$AQUA/config/analysis`
 
 AQUA core complete list:
+- Parallelise tests execution using `pytest-xdist` module (#2402)
+- Reduce calls to retrieve using common fixtures to speed up tests execution time (#2361)
 - Safe parallel creation of area and weight files (#2412)
 - New grid lat-lon-r100 with explicit grid file, new default in DROP catgen (#2410, #2413)
-- Realization formatting correctly processed by the Reader (#2392) 
+- Realization formatting correctly processed by the Reader (#2392)
 - Realization (and other intake kwargs) are an attribute of the Reader (#2392)
 - Refactoring of aqua analysis to allow config file with diagnostic groups and reorganization of diagnostic config files (#2371)
-- Optimizations of diagnostic parallel execution (#2371) 
+- Optimizations of diagnostic parallel execution (#2371)
 - Including minor fixes to output filenames, figure descriptions and color ranges (#2371)
 - Enumerate aqua analysis log file for multiple config files (#2407)
 - Fix push_analysis.sh rsync functionality to not use ssh (#2403)
@@ -42,7 +44,6 @@ AQUA diagnostics complete list:
 ## [v0.18.1]
 
 AQUA core complete list:
-- Reduce calls to retrieve to speed up tests execution time (#2361)
 - Handle unknown activity names in catgen (#2351)
 - Update Data Portfolio to v2.1.0 (#2356)
 - Updated target grib codes for cpr and snvol (#2346)
