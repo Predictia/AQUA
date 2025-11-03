@@ -22,7 +22,6 @@ dependencies:
   - xesmf # for ECmean
   - intake-esm
   - imagemagick
-  - pytest-xdist # for parallel test execution
   - pip:
     - -e ./diagnostics/ocean3d/ # pip install -e of ocean3d
     - -e ./diagnostics/tropical_cyclones/ # pip install -e of tropical cyclones
