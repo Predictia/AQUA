@@ -190,9 +190,6 @@ jobs:
             "user_key": "${{ secrets.POLYTOPE_KEY }}"
           }
           EOF
-      - name: Install pytest-xdist
-        run: |
-          python -m pip install pytest-xdist
       - name: Run tests (4 parallel cores with xdist groups)
         run: |
           cd AQUA
