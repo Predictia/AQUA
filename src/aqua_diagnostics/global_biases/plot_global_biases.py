@@ -78,7 +78,7 @@ class PlotGlobalBiases:
                                  extra_keys=extra_keys, metadata=metadata)
         elif format == 'png':
             outputsaver.save_png(fig, diagnostic_product=diagnostic_product,
-                                 extra_keys=extra_keys, metadata=metadata)
+                                 extra_keys=extra_keys, metadata=metadata, dpi=self.dpi)
         else:
             raise ValueError(f'Format {format} not supported. Use png or pdf.')
 
