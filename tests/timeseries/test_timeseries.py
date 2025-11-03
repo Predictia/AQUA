@@ -3,7 +3,7 @@ import pytest
 import xarray as xr
 from aqua import Reader
 from aqua.diagnostics.timeseries import Timeseries, PlotTimeseries
-from conftest import LOGLEVEL
+from conftest import LOGLEVEL, DPI
 
 # pytest approximation, to bear with different machines
 approx_rel = 1e-4
@@ -79,7 +79,7 @@ class TestTimeseries:
                              std_monthly_data = ts.std_monthly, std_annual_data = ts.std_annual,
                              loglevel=loglevel)
         
-        plt.run(outputdir=tmp_path)
+        plt.run(outputdir=tmp_path, dpi=DPI)
 
         filename = f'{self.diagnostic_name}.timeseries.{self.catalog}.{self.model}.{self.exp}.r1.{self.catalog}.{self.model}.{self.exp}.{self.var}.{self.region}.png'
         file = os.path.join(tmp_path, 'png', filename)

@@ -55,14 +55,14 @@ class TestPlotSeaIce:
 
     def test_check_as_datasets_list_valid_input(self):
         """Validate the _check_as_datasets_list utility with valid input."""
-        plot_seaice = PlotSeaIce()
+        plot_seaice = PlotSeaIce(dpi=DPI)
         result = plot_seaice._check_as_datasets_list(self.siext)
         assert isinstance(result, list)
         assert result and isinstance(result[0], xr.Dataset)
 
     def test_check_as_datasets_list_invalid_input(self):
         """Validate the _check_as_datasets_list utility rejects invalid input."""
-        plot_seaice = PlotSeaIce()
+        plot_seaice = PlotSeaIce(dpi=DPI)
         
         with pytest.raises(ValueError):
             plot_seaice._check_as_datasets_list('string')
@@ -75,7 +75,7 @@ class TestPlotSeaIce:
 
     def test_repack_datasetlists_all_regions(self):
         """Ensure repacking preserves structure for all regions."""
-        psi = PlotSeaIce(monthly_models=self.siext, regions_to_plot=None)
+        psi = PlotSeaIce(monthly_models=self.siext, regions_to_plot=None, dpi=DPI)
         repacked = psi.repacked_dict
 
         assert 'extent' in repacked     # method key
@@ -88,7 +88,7 @@ class TestPlotSeaIce:
 
     def test_repack_datasetlists_filtered_regions(self):
         """Ensure repacking obeys region filtering."""
-        psi = PlotSeaIce(monthly_models=self.siext, regions_to_plot=['Arctic'])
+        psi = PlotSeaIce(monthly_models=self.siext, regions_to_plot=['Arctic'], dpi=DPI)
         repacked = psi.repacked_dict
 
         assert 'extent' in repacked     # method key
@@ -141,20 +141,20 @@ class TestPlotSeaIce:
 
     def test_get_region_name_from_attrs(self):
         """Test region name extraction from DataArray attributes."""
-        psi = PlotSeaIce()
+        psi = PlotSeaIce(dpi=DPI)
         da = xr.DataArray([0, 1, 2], dims="time", attrs={"AQUA_region": "CustomReg"}, name="dummy")
         assert psi._get_region_name_in_datarray(da) == "CustomReg"
 
     def test_get_region_name_from_name(self):
         """Test region name extraction from DataArray name."""
-        psi = PlotSeaIce()
+        psi = PlotSeaIce(dpi=DPI)
         da = xr.DataArray([5, 6], dims="time", name="siext_Antarctic")
         assert psi._get_region_name_in_datarray(da) == "Antarctic"
 
     def test_get_region_name_missing_raises(self):
         """Test that missing region information raises KeyError."""
         da = xr.DataArray([7, 8], dims="time")  # no attrs, no region in name
-        psi = PlotSeaIce()
+        psi = PlotSeaIce(dpi=DPI)
         with pytest.raises(KeyError):
             psi._get_region_name_in_datarray(da)
 
@@ -169,34 +169,34 @@ class TestPlotSeaIce:
 
     def test_gen_labelname_single(self):
         """Test label generation for single DataArray."""
-        psi = PlotSeaIce()
+        psi = PlotSeaIce(dpi=DPI)
         da = self._dummy_da("m1")
         assert psi._gen_labelname(da) == "m1 e s"
 
     def test_gen_labelname_list(self):
         """Test label generation for list of DataArrays."""
-        psi = PlotSeaIce()
+        psi = PlotSeaIce(dpi=DPI)
         da_list = [self._dummy_da("m1"), self._dummy_da("m2")]
         labels = psi._gen_labelname(da_list)
         assert labels == ["m1 e s", "m2 e s"]
 
     def test_getdata_fromdict_single(self):
         """Test data extraction from dict with single item."""
-        psi = PlotSeaIce()
+        psi = PlotSeaIce(dpi=DPI)
         dct = {"key": [xr.DataArray([0], dims="t")]}
         out = psi._getdata_fromdict(dct, "key")
         assert isinstance(out, xr.DataArray)
 
     def test_getdata_fromdict_multiple(self):
         """Test data extraction from dict with multiple items."""
-        psi = PlotSeaIce()
+        psi = PlotSeaIce(dpi=DPI)
         dct = {"key": [xr.DataArray([0], dims="t"), xr.DataArray([1], dims="t")]}
         out = psi._getdata_fromdict(dct, "key")
         assert isinstance(out, list)
 
     def test_getdata_fromdict_missing(self):
         """Test data extraction from dict with missing key."""
-        psi = PlotSeaIce()
+        psi = PlotSeaIce(dpi=DPI)
         dct = {}
         out = psi._getdata_fromdict(dct, "key")
         assert out is None

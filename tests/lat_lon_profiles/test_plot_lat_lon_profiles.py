@@ -200,7 +200,8 @@ class TestPlotLatLonProfilesIntegration:
         plotter.run(
             outputdir=str(tmp_path),
             rebuild=True,
-            format=format
+            format=format,
+            dpi=DPI
         )
         
         files = list(tmp_path.rglob(f'*.{format}'))
@@ -219,7 +220,7 @@ class TestPlotLatLonProfilesIntegration:
             loglevel=loglevel
         )
         
-        plotter.run(outputdir=str(tmp_path), rebuild=True, format='png')
+        plotter.run(outputdir=str(tmp_path), rebuild=True, format='png', dpi=DPI)
         
         png_files = list(tmp_path.rglob('*.png'))
         assert len(png_files) > 0
