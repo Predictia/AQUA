@@ -16,7 +16,7 @@ try:
 except ModuleNotFoundError:
     print("The module tropical_rainfall.py is not found.")
 
-from tests.conftest import DPI, LOGLEVEL
+from conftest import DPI, LOGLEVEL
 
 
 @pytest.mark.diagnostics
