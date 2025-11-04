@@ -16,6 +16,7 @@ ClimateDT workflow modifications:
 AQUA core complete list:
 - Parallelise tests execution using `pytest-xdist` module (#2402)
 - Reduce calls to retrieve using common fixtures to speed up tests execution time (#2361)
+- Allow longer time default for connection to dask cluster (#2420)
 - Safe parallel creation of area and weight files (#2412)
 - New grid lat-lon-r100 with explicit grid file, new default in DROP catgen (#2410, #2413)
 - Realization formatting correctly processed by the Reader (#2392)
