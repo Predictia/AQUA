@@ -21,10 +21,9 @@ from tests.conftest import DPI, LOGLEVEL
 
 @pytest.mark.diagnostics
 @pytest.fixture
-def retrieved_dataarray():
+def retrieved_dataarray(ifs_tco79_long_data):
     if os.getenv('INPUT_ARG') is None:
-        data = Reader(model="IFS", exp="test-tco79", source="long")
-        retrieved = data.retrieve()
+        retrieved = ifs_tco79_long_data
         try:
             retrieved_array = retrieved['tprate']*86400
         except KeyError:
