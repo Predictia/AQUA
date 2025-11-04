@@ -34,7 +34,7 @@ AQUA core complete list:
 
 AQUA diagnostics complete list:
 - AQUA_realization management for LatLonProfiles (#2421)
-- Ocean3D diagnostics: improve description, titles and notebook (#2397)
+- Ocean3D diagnostics: improve description, titles and notebook (#2397, #2414)
 - Ocean3D diagnostics config files: fix optimal chunking (#2409)
 - Boxplots: improve title and description (#2411)
 - LatLonProfiles: figures description fix (#2388)
