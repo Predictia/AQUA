@@ -5,6 +5,7 @@ import xarray
 import os
 import re
 
+from os import listdir, remove
 from os.path import isfile, join
 
 from aqua import Reader
@@ -245,8 +246,8 @@ def test_coordinates_of_histogram(histogram_output):
     """ Testing the coordinates of histogram
     """
     hist = histogram_output
-    'center_of_bin' in hist.coords
-    'width' in hist.coords
+    assert 'center_of_bin' in hist.coords
+    assert 'width' in hist.coords
 
 
 @pytest.mark.diagnostics
