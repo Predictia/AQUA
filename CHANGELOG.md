@@ -5,13 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ## [Unreleased]
 
-Unreleased in the current development version (target v0.19.0):
+Unreleased in the current development version (target v0.20.0):
+
+## [v0.19.0]
 
 ClimateDT workflow modifications:
 - The configuration file of the catalog generator now requires `expid`
 - Aqua analysis config file organized differently with diagnostic groups
 - Diagnostic and cli tool config files grouped differently in `$AQUA/config/diagnostics` and `$AQUA/config/tools`
-- New position for push_analysis ``config.grouping.yaml` in `$AQUA/config/analysis`
+- New position for push_analysis `config.grouping.yaml` in `$AQUA/config/analysis`
 
 AQUA core complete list:
 - Allow longer time default for connection to dask cluster (#2420)
@@ -33,6 +35,8 @@ AQUA core complete list:
 - AQUA analysis now can receive ``startdate`` and ``enddate`` (#2368)
 
 AQUA diagnostics complete list:
+- Cleanup diagnostic code, remove lower() and replace() for regions (#2422)
+- Radiation surface and Gregory: update to CERES EBAF 4.2.1 (#2424)
 - Ocean3D diagnostics: improve description, titles and notebook (#2397, #2414)
 - Ocean3D diagnostics config files: fix optimal chunking (#2409)
 - Boxplots: improve title and description (#2411)
@@ -1177,7 +1181,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.18.1...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.19.0...HEAD
+[v0.19.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.18.1...v0.19.0
 [v0.18.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.18.0...v0.18.1
 [v0.18.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.17.0...v0.18.0
 [v0.17.0]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.16.0...v0.17.0
