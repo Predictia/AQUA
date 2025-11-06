@@ -131,7 +131,7 @@ class TimStat():
         # Add a variable to create time_bounds
         if time_bounds:
             resampled = data.time.resample(time=resample_freq)
-            time_bnds = xr.concat([resampled.min(), resampled.max()], dim='bnds').transpose()
+            time_bnds = xr.concat([resampled.min(), resampled.max()], dim='bnds', coords='different').transpose()
             time_bnds['time'] = out.time
             time_bnds.name = 'time_bnds'
             out = xr.merge([out, time_bnds])
