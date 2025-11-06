@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ClimateDT workflow modifications:
 
-Unreleased in the current development version (target v0.20.0):
+Unreleased in the current development version (target v0.19.1):
 - Parallelise tests execution using `pytest-xdist` module, centralise common fixtures to speed up tests execution time (#2402)
 
 ## [v0.19.0]
