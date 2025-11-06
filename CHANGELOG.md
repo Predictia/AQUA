@@ -10,6 +10,11 @@ ClimateDT workflow modifications:
 Unreleased in the current development version (target v0.19.1):
 - Parallelise tests execution using `pytest-xdist` module, centralise common fixtures to speed up tests execution time (#2402)
 
+AQUA core complete list:
+- Area selection full support for regions across the dateline (#2430, #2434)
+
+AQUA diagnostics complete list:
+
 ## [v0.19.0]
 
 ClimateDT workflow modifications:
