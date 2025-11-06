@@ -5,16 +5,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ## [Unreleased]
 
-Unreleased in the current development version (target v0.19.0):
+ClimateDT workflow modifications:
+
+Unreleased in the current development version (target v0.20.0):
+- Parallelise tests execution using `pytest-xdist` module, centralise common fixtures to speed up tests execution time (#2402)
+
+## [v0.19.0]
 
 ClimateDT workflow modifications:
 - The configuration file of the catalog generator now requires `expid`
 - Aqua analysis config file organized differently with diagnostic groups
 - Diagnostic and cli tool config files grouped differently in `$AQUA/config/diagnostics` and `$AQUA/config/tools`
-- New position for push_analysis ``config.grouping.yaml` in `$AQUA/config/analysis`
+- New position for push_analysis `config.grouping.yaml` in `$AQUA/config/analysis`
 
 AQUA core complete list:
-- Parallelise tests execution using `pytest-xdist` module, centralise common fixtures to speed up tests execution time (#2402)
 - Allow longer time default for connection to dask cluster (#2420)
 - Safe parallel creation of area and weight files (#2412)
 - New grid lat-lon-r100 with explicit grid file, new default in DROP catgen (#2410, #2413)
