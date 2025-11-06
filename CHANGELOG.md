@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 Unreleased in the current development version (target v0.20.0):
 
+AQUA core complete list:
+
+AQUA diagnostics complete list:
+- AQUA_realization management for LatLonProfiles (#2421)
+
 ## [v0.19.0]
 
 ClimateDT workflow modifications:
@@ -35,7 +40,6 @@ AQUA core complete list:
 - AQUA analysis now can receive ``startdate`` and ``enddate`` (#2368, #2423)
 
 AQUA diagnostics complete list:
-- AQUA_realization management for LatLonProfiles (#2421)
 - Cleanup diagnostic code, remove lower() and replace() for regions (#2422)
 - Radiation surface and Gregory: update to CERES EBAF 4.2.1 (#2424)
 - Ocean3D diagnostics: improve description, titles and notebook (#2397, #2414)
