@@ -214,6 +214,7 @@ class Plot2DSeaIce:
             )
         self._save_plots(fig=fig, data=monmod, data_ref=monref, diagnostic_product='bias', 
                          description=description, extra_keys={'method': self.method, 'region': region})
+        plt.close(fig)
 
 
     def _plot_var_map(self, region, **kwargs):
@@ -604,3 +605,4 @@ class Plot2DSeaIce:
         if self.save_png:
             self._save_figure(fig=fig, format='png', data=data, data_ref=data_ref, 
                               diagnostic_product=diagnostic_product, description=description, extra_keys=extra_keys)
+        plt.close(fig)
