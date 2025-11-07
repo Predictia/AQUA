@@ -12,7 +12,7 @@ loglevel = LOGLEVEL
 approx_rel = 1e-4
 
 @pytest.fixture
-def common_setup(tmp_path):
+def common_setup_drift(tmp_path):
     """Fixture to set up common configuration and test data."""
     catalog = 'ci'
     exp = 'hpz3'
@@ -37,9 +37,9 @@ def common_setup(tmp_path):
     }
 
 @pytest.mark.diagnostics
-def test_check_variable_name(common_setup):
+def test_check_variable_name(common_setup_drift):
     """Test variable name checking and transformations."""
-    setup = common_setup
+    setup = common_setup_drift
     data = check_variable_name(setup["data"], loglevel=setup["loglevel"])
     # Ensure required variables exist
     assert 'so' in data, "Variable 'so' not found in dataset"
@@ -48,9 +48,9 @@ def test_check_variable_name(common_setup):
     assert 'lev' in data.dims, "Dimension 'lev' missing in dataset"
 
 @pytest.fixture
-def diagnostics_instances(common_setup):
+def diagnostics_instances(common_setup_drift):
     """Initialize all diagnostics instances at once."""
-    setup = common_setup
+    setup = common_setup_drift
     setup["data"] = check_variable_name(setup["data"], loglevel=setup["loglevel"])
     
     return {
