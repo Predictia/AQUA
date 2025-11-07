@@ -11,7 +11,6 @@ ClimateDT workflow modifications:
 
 AQUA core complete list:
 - Add filelock when modifying catalog sources (#2432)
-- Area selection full support for regions across the dateline (#2430, #2434)
 
 AQUA diagnostics complete list:
 - AQUA_realization management for LatLonProfiles (#2421)
