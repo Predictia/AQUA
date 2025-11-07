@@ -66,12 +66,14 @@ class PlotGlobalBiases:
         )
 
         metadata = {"Description": description}
-        extra_keys = {}
 
-        if var is not None:
-            extra_keys.update({'var': var})
-        if plev is not None:
-            extra_keys.update({'plev': plev})
+        extra_keys = {
+            k: v for k, v in {
+                'var': var,
+                'plev': plev,
+                'realization': data.realization
+            }.items() if v is not None
+        }
 
         if format == 'pdf':
             outputsaver.save_pdf(fig, diagnostic_product=diagnostic_product,
