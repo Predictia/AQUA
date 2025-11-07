@@ -16,6 +16,7 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import xarray as xr
 
+from aqua.exceptions import NotEnoughDataError
 from aqua.logger import log_configure
 from aqua.reader import Reader
 from aqua.util import load_yaml
@@ -46,6 +47,11 @@ class Rollout:
         self.figure_format = self._normalise_extension(
             self.config.get("figure_format", "pdf")
         )
+        annual_cfg = self.config.get("annual", False)
+        if isinstance(annual_cfg, dict):
+            self.plot_annual = bool(annual_cfg.get("plot", True))
+        else:
+            self.plot_annual = bool(annual_cfg)
 
         os.makedirs(self.outputdir_fig, exist_ok=True)
         if self.outputdir_data:
@@ -327,7 +333,135 @@ class Rollout:
 
             plt.close(fig)
 
+            if self.plot_annual:
+                try:
+                    annual_result = self._compute_annual_timeseries(
+                        ts_target,
+                        ts_exp,
+                        base_var,
+                        level,
+                        config_data,
+                        config_data_ref,
+                        key,
+                        save_fig,
+                        save_data,
+                    )
+                except NotEnoughDataError as exc:
+                    self.logger.warning(
+                        "Skipping annual rollout for %s: %s", key, exc
+                    )
+                except Exception as exc:  # pragma: no cover - safeguard against unexpected failures
+                    self.logger.error(
+                        "Failed to compute annual rollout for %s: %s",
+                        key,
+                        exc,
+                        exc_info=True,
+                    )
+                else:
+                    if annual_result is not None:
+                        results[f"{key}_annual"] = annual_result
+
         return results
+
+    def _compute_annual_timeseries(
+        self,
+        ts_target: xr.Dataset,
+        ts_exp: xr.Dataset,
+        base_var: str,
+        level: Optional[int],
+        config_data: Dict[str, Any],
+        config_data_ref: Dict[str, Any],
+        processed_key: str,
+        save_fig: bool,
+        save_data: bool,
+    ) -> Optional[xr.Dataset]:
+        target_ds = ts_target[[base_var]] if base_var in ts_target else ts_target
+        exp_ds = ts_exp[[base_var]] if base_var in ts_exp else ts_exp
+
+        try:
+            annual_target = self.reader_data_ref.timmean(
+                target_ds, freq="annual", exclude_incomplete=True
+            )
+            annual_exp = self.reader_data.timmean(
+                exp_ds, freq="annual", exclude_incomplete=True
+            )
+        except Exception as exc:  # pragma: no cover - relies on timmean implementation
+            raise RuntimeError(
+                f"Failed to compute annual means for {processed_key}: {exc}"
+            ) from exc
+
+        da_target = annual_target[base_var]
+        da_exp = annual_exp[base_var]
+
+        da_target = da_target.dropna("time", how="all")
+        da_exp = da_exp.dropna("time", how="all")
+
+        if da_target.sizes.get("time", 0) == 0:
+            raise NotEnoughDataError(
+                f"Not enough target data to compute a full annual mean for {processed_key}."
+            )
+        if da_exp.sizes.get("time", 0) == 0:
+            raise NotEnoughDataError(
+                f"Not enough experiment data to compute a full annual mean for {processed_key}."
+            )
+
+        da_target, da_exp = xr.align(da_target, da_exp, join="inner")
+        if da_target.sizes.get("time", 0) == 0:
+            raise NotEnoughDataError(
+                f"No overlapping annual periods between target and experiment for {processed_key}."
+            )
+
+        fig, ax = plt.subplots(figsize=(12, 6))
+        ax.plot(
+            da_target["time"].values,
+            da_target.values,
+            label=config_data_ref.get("label", "Target"),
+            color="black",
+            linewidth=2,
+        )
+        ax.plot(
+            da_exp["time"].values,
+            da_exp.values,
+            label=config_data.get("label", "Experiment"),
+            color="blue",
+        )
+
+        ax.set_xlabel("Time")
+        units = da_target.attrs.get("units") or da_exp.attrs.get("units")
+        ylabel = f"{base_var} ({units})" if units else base_var
+        ax.set_ylabel(ylabel)
+
+        base_title = self._build_title(base_var, level, config_data, config_data_ref).rstrip()
+        if base_title:
+            title = f"{base_title} (Annual Mean)"
+        else:
+            title = "Annual Mean"
+        ax.set_title(title)
+        ax.legend()
+        ax.grid(True)
+
+        ax.xaxis.set_major_locator(mdates.YearLocator())
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
+        fig.autofmt_xdate()
+        fig.tight_layout()
+
+        combined = xr.Dataset({
+            "target": da_target,
+            "experiment": da_exp,
+        })
+        combined.attrs["variable"] = base_var
+        combined.attrs["aggregation"] = "annual"
+        if level is not None:
+            combined.attrs["level"] = level
+
+        if save_fig:
+            self._save_figure(fig, f"{processed_key}_annual")
+        if save_data:
+            self._save_data(combined, f"{processed_key}_annual")
+
+        plt.close(fig)
+
+        return combined
 
     def _build_title(
         self,

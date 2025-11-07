@@ -16,6 +16,8 @@ data:
   regrid: False
   fix: True
 
+annual: True
+
 dates:
   startdate: '1945-08-01'
   enddate: '1945-08-15'
