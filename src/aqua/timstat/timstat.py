@@ -102,7 +102,7 @@ class TimStat():
         else:  # we can safely assume that it is a callable function now
             self.logger.info(f'Resampling to %s frequency and computing custom function...', str(resample_freq))
             if resample_freq is not None:
-                out = resample_data.apply(partial(stat, **func_kwargs, **kwargs))
+                out = resample_data.map(partial(stat, **func_kwargs, **kwargs))
             else:
                 out = stat(resample_data, **func_kwargs, **kwargs)
 
