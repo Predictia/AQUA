@@ -14,6 +14,7 @@ AQUA core complete list:
 - Area selection full support for regions across the dateline (#2430, #2434)
 
 AQUA diagnostics complete list:
+- Adjustments on lines plotting order (#2431)
 
 ## [v0.19.0]
 
@@ -48,7 +49,7 @@ AQUA diagnostics complete list:
 - Ocean3D diagnostics: improve description, titles and notebook (#2397, #2414)
 - Ocean3D diagnostics config files: fix optimal chunking (#2409)
 - Boxplots: improve title and description (#2411)
-- LatLonProfiles: figures description fix (#2388) and adjustments on lines plotting order (#2431)
+- LatLonProfiles: figures description fix (#2388)
 - Stratification: MLD and vertical profiles diagnostic refactor (#2268)
 - ECmean Performance Indices replace EC23 climatology with the new EC24 (#2367)
 
