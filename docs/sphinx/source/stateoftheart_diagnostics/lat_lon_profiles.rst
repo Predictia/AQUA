@@ -48,7 +48,7 @@ Getting Started
 
 **Supported variables:**
 
-The diagnostic works with climate variables on regular latitude-longitude grids.
+The diagnostic works with climate variables on regular latitude-longitude grids:
 
 * **Direct variables**: ``2t`` (temperature), ``tprate`` (precipitation), ``psl`` (pressure), etc.
 * **Derived variables**: Using ``EvaluateFormula`` syntax (e.g., ``2t - 273.15`` for °C)
