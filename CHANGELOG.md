@@ -10,6 +10,7 @@ Unreleased in the current development version (target v0.20.0):
 ClimateDT workflow modifications:
 
 AQUA core complete list:
+- Safe dumping yaml with a temporary file (#2443)
 - Add filelock when modifying catalog sources (#2432)
 - Area selection full support for regions across the dateline (#2430, #2434)
 
