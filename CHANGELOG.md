@@ -14,6 +14,7 @@ AQUA core complete list:
 - Area selection full support for regions across the dateline (#2430, #2434)
 
 AQUA diagnostics complete list:
+- LatLonProfiles: Documentation (#2442)
 
 ## [v0.19.0]
 
