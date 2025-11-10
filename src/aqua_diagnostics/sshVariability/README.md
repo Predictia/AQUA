@@ -1,9 +1,9 @@
 # Sea Surface Height (SSH) Variability Diagnostics Application
 
-Author(s):
-- Maqsood Mubarak Rajput (AWI, maqsoodmubarak.rajput@awi.de) (v0.18.1)
-- Tanvi Sharma (AWI, tanvi.sharma@awi.de) (Author) (before v0.18.1)
-- Jaleena Sunny (AWI, jaleena.sunny@awi.de) (Contributor, before v0.18.1)
+Author:
+- Maqsood Mubarak Rajput (AWI, maqsoodmubarak.rajput@awi.de) (Author and maintainer v0.19.1)
+- Tanvi Sharma (AWI, tanvi.sharma@awi.de) (Author older version)
+- Jaleena Sunny (AWI, jaleena.sunny@awi.de) (Contributor older version)
 
 ## Description
 

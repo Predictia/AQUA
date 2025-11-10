@@ -16,6 +16,7 @@ AQUA core complete list:
 
 AQUA diagnostics complete list:
 - LatLonProfiles: Documentation (#2442)
+- Updated SSH diagnotic (#1842)
 
 ## [v0.19.0]
 
