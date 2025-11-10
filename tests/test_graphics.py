@@ -433,7 +433,7 @@ class TestLatLonProfiles:
                                         title='Latitude profile test',
                                         data_labels=['Test data'],
                                         loglevel=loglevel)
-        
+
         assert fig is not None
         assert ax is not None
         self._save_and_check(fig, tmp_path, 'test_lat_profile.png')
@@ -487,11 +487,11 @@ class TestLatLonProfiles:
             dims=['time'],
             coords={'time': range(10)}
         )
-        
+
         fig, ax = plot_lat_lon_profiles(data=data_no_coords,
                                         title='No spatial coordinates test',
                                         loglevel=loglevel)
-        
+
         assert fig is not None
         assert ax is not None
         assert len(ax.lines) == 0  # No lines should be plotted
