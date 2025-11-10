@@ -12,11 +12,10 @@ ClimateDT workflow modifications:
 AQUA core complete list:
 - Safe dumping yaml with a temporary file and SoftFileLock (#2445)
 - Add filelock when modifying catalog sources (#2432)
-- Area selection full support for regions across the dateline (#2430, #2434)
 
 AQUA diagnostics complete list:
-- LatLonProfiles: Adjustments on lines plotting order (#2431)
-- LatLonProfiles: Documentation (#2442)
+- Area selection full support for regions across the dateline (#2430, #2434)
+- LatLonProfiles: Documentation (#2442), adjustments on lines plotting order (#2431) and AQUA_realization management (#2421)
 
 ## [v0.19.0]
 
