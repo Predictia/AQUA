@@ -81,7 +81,7 @@ def plot_histogram(data: xr.DataArray | list[xr.DataArray],
             y = _smooth_data(y, window_size=smooth_window)
         
         label = data_labels[i] if data_labels and i < len(data_labels) else None
-        ax.plot(x, y, label=label, linewidth=2)
+        ax.plot(x, y, label=label, linewidth=2, zorder=3)
 
     # Handle reference data
     if ref_data is not None:
@@ -95,7 +95,7 @@ def plot_histogram(data: xr.DataArray | list[xr.DataArray],
             
             ax.plot(x_ref, y_ref, 
                    label=ref_label if ref_label else 'Reference',
-                   color='black', linestyle='-', linewidth=2, alpha=1.0)
+                   color='black', linestyle='-', linewidth=2, alpha=1.0, zorder=1)
 
     # Set scales
     if xlogscale:
