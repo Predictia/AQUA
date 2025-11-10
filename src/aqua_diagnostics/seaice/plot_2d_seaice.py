@@ -290,7 +290,8 @@ class Plot2DSeaIce:
         )
         self._save_plots(fig=fig, data=mondat, data_ref=None, 
                          diagnostic_product='varmap', description=description, extra_keys={'method': self.method, 'region': region})
-
+        plt.close(fig)
+        
     def _get_colorbar_ticks(self, data, vmin=None, vmax=None, norm=None,
                             boundaries=None, sym=False, ticks_rounding=1):
         """
