@@ -214,7 +214,7 @@ class PlotLatLonProfiles():
         }
         
         # Add realization
-        if hasattr(self, 'realizations') and self.realizations:
+        if self.realizations:
             metadata['realization'] = self.realizations[0]
             self.logger.debug(f'Using realization for plot filename: {self.realizations[0]}')
                 
