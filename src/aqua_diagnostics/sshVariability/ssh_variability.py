@@ -139,5 +139,5 @@ class sshVariabilityCompute(BaseMixin):
             else:
                 self.logger.info("Output in netcdf is not saved.")
         except Exception as e:
-            self.logger.error(f"No model data found: {e}")
+            raise RuntimeError(f"No model data found: {e}")
             sys.exit("SSH diagnostic terminated.")

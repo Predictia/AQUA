@@ -379,7 +379,7 @@ class PlotBaseMixin:
         )
         if description is None:
             description = "sshVariability difference"
-        description = description + f" model time: ({startdate}-{enddate}) and reference time: ({startdate}-{enddate})"
+        description = description + f" model time: ({startdate}-{enddate}) and reference time: ({startdate_ref}-{enddate_ref})"
         metadata = {"Description": description, "dpi": dpi}
         extra_keys = {"diagnostic_product": diagnostic_product}
 
