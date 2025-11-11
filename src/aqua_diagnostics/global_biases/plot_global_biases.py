@@ -37,6 +37,15 @@ class PlotGlobalBiases:
 
         self.logger = log_configure(log_level=loglevel, log_name='Global Biases')
 
+    def _extract_realization(self, data):
+        """Extract realization info from dataset or use default."""
+        if hasattr(data, 'AQUA_realization'):
+            realization = data.AQUA_realization
+            self.logger.debug(f'Extracted realization: {realization}')
+        else:
+            realization = DEFAULT_REALIZATION
+            self.logger.debug(f'No realization found in data, using default: {DEFAULT_REALIZATION}')
+        return realization
 
     def _save_figure(self, fig, diagnostic_product,
                      data, description, var, data_ref=None,
@@ -110,15 +119,8 @@ class PlotGlobalBiases:
         data = handle_pressure_level(data, var, plev, loglevel=self.loglevel)
         if data is None:
             return None
-        
-        # Extract realization if available
-        if hasattr(data, 'AQUA_realization'):
-            self.realization = data.AQUA_realization
-            self.logger.debug(f'Extracted realization: {data.AQUA_realization}')
-        else:
-            self.realization = DEFAULT_REALIZATION
-            self.logger.debug(f'No realization found in data, using default: {DEFAULT_REALIZATION}')
 
+        realization = self._extract_realization(data)
         proj = get_projection(proj, **proj_params)
         
         title = (f"Climatology of {data[var].attrs.get('long_name', var)} for {data.AQUA_model} {data.AQUA_exp}" 
@@ -148,10 +150,10 @@ class PlotGlobalBiases:
 
         if self.save_pdf:
             self._save_figure(fig=fig, format='pdf', data=data, diagnostic_product='annual_climatology', 
-                              description=description, var=var, plev=plev, realization = self.realization,)
+                              description=description, var=var, plev=plev, realization=realization,)
         if self.save_png:
             self._save_figure(fig=fig, format='png', data=data, diagnostic_product='annual_climatology',
-                              description=description, var=var, plev=plev, realization = self.realization)
+                              description=description, var=var, plev=plev, realization=realization)
 
 
     def plot_bias(self, data, data_ref, var, plev=None, proj='robinson', proj_params={}, vmin=None, vmax=None, cbar_label=None):
@@ -174,13 +176,7 @@ class PlotGlobalBiases:
         data = handle_pressure_level(data, var, plev, loglevel=self.loglevel)
         data_ref = handle_pressure_level(data_ref, var, plev, loglevel=self.loglevel)
 
-        # Extract realization if available
-        if hasattr(data, 'AQUA_realization'):
-            self.realization = data.AQUA_realization
-            self.logger.debug(f'Extracted realization: {data.AQUA_realization}')
-        else:
-            self.realization = DEFAULT_REALIZATION
-            self.logger.debug(f'No realization found in data, using default: {DEFAULT_REALIZATION}')
+        realization = self._extract_realization(data)
 
         sym = vmin is None or vmax is None
 
@@ -218,10 +214,10 @@ class PlotGlobalBiases:
 
         if self.save_pdf:
             self._save_figure(fig=fig, format='pdf', data=data, data_ref=data_ref, diagnostic_product='bias', 
-                              description=description, var=var, plev=plev, realization=self.realization)
+                              description=description, var=var, plev=plev, realization=realization)
         if self.save_png:
             self._save_figure(fig=fig, format='png', data=data, data_ref=data_ref, diagnostic_product='bias',
-                              description=description, var=var, plev=plev, realization=self.realization)
+                              description=description, var=var, plev=plev, realization=srealization)
 
 
     def plot_seasonal_bias(self, data, data_ref, var, plev=None, proj='robinson', proj_params={}, vmin=None, vmax=None, cbar_label=None):
@@ -247,14 +243,7 @@ class PlotGlobalBiases:
         data = handle_pressure_level(data, var, plev, loglevel=self.loglevel)
         data_ref = handle_pressure_level(data_ref, var, plev, loglevel=self.loglevel)
 
-        # Extract realization if available
-        if hasattr(data, 'AQUA_realization'):
-            self.realization = data.AQUA_realization
-            self.logger.debug(f'Extracted realization: {data.AQUA_realization}')
-        else:
-            self.realization = DEFAULT_REALIZATION
-            self.logger.debug(f'No realization found in data, using default: {DEFAULT_REALIZATION}')
-
+        realization = self._extract_realization(data)
 
         season_list = ['DJF', 'MAM', 'JJA', 'SON']
         sym = vmin is None or vmax is None
@@ -297,10 +286,10 @@ class PlotGlobalBiases:
 
         if self.save_pdf:
             self._save_figure(fig=fig, format='pdf', data=data, data_ref=data_ref, diagnostic_product='seasonal_bias', 
-                              description=description, var=var, plev=plev, realization=self.realization)
+                              description=description, var=var, plev=plev, realization=realization)
         if self.save_png:
             self._save_figure(fig=fig, format='png', data=data, data_ref=data_ref, diagnostic_product='seasonal_bias',
-                              description=description, var=var, plev=plev, realization=self.realization)
+                              description=description, var=var, plev=plev, realization=realization)
 
 
     def plot_vertical_bias(self, data, data_ref, var, plev_min=None, plev_max=None, vmin=None, vmax=None, nlevels=18):
@@ -319,15 +308,7 @@ class PlotGlobalBiases:
         """
         self.logger.info('Plotting vertical biases for variable: %s', var)
 
-
-        # Extract realization if available
-        if hasattr(data, 'AQUA_realization'):
-            self.realization = data.AQUA_realization
-            self.logger.debug(f'Extracted realization: {data.AQUA_realization}')
-        else:
-            self.realization = DEFAULT_REALIZATION
-            self.logger.debug(f'No realization found in data, using default: {DEFAULT_REALIZATION}')
-
+        realization = self._extract_realization(data)
 
         title = (
             f"Vertical bias of {data[var].attrs.get('long_name', var)} for {data.AQUA_model} {data.AQUA_exp}\n"
@@ -362,9 +343,9 @@ class PlotGlobalBiases:
 
         if self.save_pdf:
             self._save_figure(fig=fig, format='pdf', data=data, data_ref=data_ref, diagnostic_product='vertical_bias', 
-                              description=description, var=var, realization=self.realization)
+                              description=description, var=var, realization=realization)
         if self.save_png:
             self._save_figure(fig=fig, format='png', data=data, data_ref=data_ref, diagnostic_product='vertical_bias',
-                              description=description, var=var, realization=self.realization)
+                              description=description, var=var, realization=realization)
 
         self.logger.info("Vertical bias plot completed successfully.")
