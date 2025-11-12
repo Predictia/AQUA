@@ -6,7 +6,7 @@ from aqua.diagnostics.histogram import PlotHistogram
 loglevel = "DEBUG"
 
 
-@pytest.mark.histogram
+@pytest.mark.diagnostics
 class TestPlotHistogram:
     """Basic tests for the PlotHistogram class"""
 
