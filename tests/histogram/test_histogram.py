@@ -115,3 +115,36 @@ class TestHistogram:
         assert self.hist.histogram_data.name == 'histogram'
         assert self.hist.histogram_data.attrs['units'] == 'counts'
         assert 'Histogram of' in self.hist.histogram_data.attrs.get('long_name', '')
+
+    def test_histogram_auto_dates(self):
+        """Test histogram with automatic date detection"""
+        hist_auto_dates = Histogram(
+            model='IFS',
+            exp='test-tco79',
+            source='teleconnections',
+            startdate=None,  # Will use data min
+            enddate=None,    # Will use data max
+            bins=40,
+            loglevel=loglevel
+        )
+        
+        hist_auto_dates.retrieve(var='skt')
+        
+        # Check that dates were set from data
+        assert hist_auto_dates.startdate is not None
+        assert hist_auto_dates.enddate is not None
+        
+        hist_auto_dates.compute_histogram()
+        assert hist_auto_dates.histogram_data is not None
+
+    def test_error_invalid_variable(self):
+        """Test error handling for invalid variable"""
+        with pytest.raises(ValueError, match='not found'):
+            self.hist.retrieve(var='nonexistent_var')
+
+    def test_save_netcdf_without_data(self, tmp_path):
+        """Test save_netcdf error when no data computed"""
+        # Don't run retrieve/compute
+        self.hist.save_netcdf(outputdir=str(tmp_path))
+        # Should log error and return without raising exception
+        assert self.hist.histogram_data is None
