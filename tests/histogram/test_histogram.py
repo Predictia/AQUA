@@ -139,7 +139,7 @@ class TestHistogram:
 
     def test_error_invalid_variable(self):
         """Test error handling for invalid variable"""
-        with pytest.raises(ValueError, match='not found'):
+        with pytest.raises(ValueError, match='nonexistent_var'):
             self.hist.retrieve(var='nonexistent_var')
 
     def test_save_netcdf_without_data(self, tmp_path):
