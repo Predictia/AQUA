@@ -217,7 +217,7 @@ class PlotGlobalBiases:
                               description=description, var=var, plev=plev, realization=realization)
         if self.save_png:
             self._save_figure(fig=fig, format='png', data=data, data_ref=data_ref, diagnostic_product='bias',
-                              description=description, var=var, plev=plev, realization=srealization)
+                              description=description, var=var, plev=plev, realization=realization)
 
 
     def plot_seasonal_bias(self, data, data_ref, var, plev=None, proj='robinson', proj_params={}, vmin=None, vmax=None, cbar_label=None):
