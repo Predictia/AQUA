@@ -298,6 +298,14 @@ class ConfigPath():
 
 
     def scan_catalog(self, cat, model=None, exp=None, source=None):
+        """
+        Check if the model, experiment and source are in the catalog.
+
+        Returns:
+            status (bool): True if the triplet is found
+            level (str): The level at which the triplet is failing
+            info (str): The available catalog entries at the level of the triplet
+        """
         status = False
         avail = None
         level = None
