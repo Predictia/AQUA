@@ -39,7 +39,7 @@ class PlotGlobalBiases:
 
     def _save_figure(self, fig, diagnostic_product, 
                      data, description, var, data_ref=None, 
-                     plev=None,):
+                     plev=None, **kwargs):
         """
         Handles the saving of a figure using OutputSaver.
 
@@ -67,6 +67,7 @@ class PlotGlobalBiases:
         )
 
         metadata = {"Description": description}
+        extra_keys = {}
 
         if var is not None:
             extra_keys.update({'var': var})
