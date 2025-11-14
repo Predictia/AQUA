@@ -7,7 +7,55 @@ from .yaml import load_yaml
 from .util import to_list
 
 
-class ConfigPath():
+class ConfigLocator:
+    """
+    Helper to resolve AQUA configuration directories/files.
+    """
+
+    def __init__(self, filename='config-aqua.yaml', configdir=None, logger=None):
+        self.filename = filename
+        self._configdir = configdir
+        self.logger = logger
+
+    @property
+    def configdir(self):
+        if self._configdir is None:
+            self._configdir = self._discover_config_dir()
+        return self._configdir
+
+    @property
+    def config_file(self):
+        return os.path.join(self.configdir, self.filename)
+
+    def _discover_config_dir(self):
+        """
+        Return the path to the configuration directory,
+        searching in a list of pre-defined directories.
+
+        Raises:
+            FileNotFoundError: if no config file is found in the predefined folders
+        """
+
+        configdirs = []
+
+        aquaconfigdir = os.environ.get('AQUA_CONFIG')
+        if aquaconfigdir:
+            configdirs.append(aquaconfigdir)
+
+        homedir = os.environ.get('HOME')
+        if homedir:
+            configdirs.append(os.path.join(homedir, '.aqua'))
+
+        for configdir in configdirs:
+            if os.path.exists(os.path.join(configdir, self.filename)):
+                if self.logger:
+                    self.logger.debug('AQUA installation found in %s', configdir)
+                return configdir
+
+        raise FileNotFoundError(f"No config file {self.filename} found in {configdirs}")
+
+
+class CatalogConfig():
     """
     A class to manage the configuration path and directory robustly, including 
     handling and browsing across multiple catalogs.
@@ -21,18 +69,18 @@ class ConfigPath():
     """
 
     def __init__(self, configdir=None, filename='config-aqua.yaml',
-                 catalog=None, loglevel='warning'):
+                 catalog=None, loglevel='warning', locator=None):
 
         # set up logger
-        self.logger = log_configure(log_level=loglevel, log_name='ConfigPath')
+        self.logger = log_configure(log_level=loglevel, log_name='CatalogConfig')
 
         # get the configuration directory and its file
         self.filename = filename
-        if configdir is None:
-            self.configdir = self.get_config_dir()
-        else:
-            self.configdir = configdir
-        self.config_file = os.path.join(self.configdir, self.filename)
+        if locator is None:
+            locator = ConfigLocator(filename=filename, configdir=configdir, logger=self.logger)
+        self.locator = locator
+        self.configdir = self.locator.configdir
+        self.config_file = self.locator.config_file
         self.logger.debug('Configuration file found in %s', self.config_file)
         self.config_dict = load_yaml(self.config_file)
 
@@ -61,37 +109,13 @@ class ConfigPath():
 
     def get_config_dir(self):
         """
-        Return the path to the configuration directory,
-        searching in a list of pre-defined directories.
+        Return the path to the configuration directory.
 
-        Generalized to work for config files with different names.
-
-        Returns:
-            configdir (str): the dir of the catalog file and other config files
-
-        Raises:
-            FileNotFoundError: if no config file is found in the predefined folders
+        Notes:
+            This method delegates to `ConfigLocator` and is kept for backward
+            compatibility.
         """
-
-        configdirs = []
-
-        # Check first if AQUA_CONFIG is defined
-        aquaconfigdir = os.environ.get('AQUA_CONFIG')
-        if aquaconfigdir:
-            configdirs.append(aquaconfigdir)
-
-        # Then if the home is defined
-        homedir = os.environ.get('HOME')
-        if homedir:
-            configdirs.append(os.path.join(homedir, '.aqua'))
-
-        # Autosearch for the config folder
-        for configdir in configdirs:
-            if os.path.exists(os.path.join(configdir, self.filename)):
-                self.logger.debug('AQUA installation found in %s', configdir)
-                return configdir
-
-        raise FileNotFoundError(f"No config file {self.filename} found in {configdirs}")
+        return self.locator.configdir
 
     def get_catalog(self):
         """
@@ -344,3 +368,7 @@ def scan_catalog(cat, model=None, exp=None, source=None):
         avail = list(cat.keys())
 
     return status, level, avail
+
+
+# Backwards compatibility alias
+ConfigPath = CatalogConfig
