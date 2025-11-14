@@ -37,9 +37,9 @@ class PlotGlobalBiases:
 
         self.logger = log_configure(log_level=loglevel, log_name='Global Biases')
 
-    def _save_figure(self, fig, diagnostic_product,
-                     data, description, var, data_ref=None,
-                     plev=None, format='png', **kwargs):
+    def _save_figure(self, fig, diagnostic_product, 
+                     data, description, var, data_ref=None, 
+                     plev=None,):
         """
         Handles the saving of a figure using OutputSaver.
 
@@ -51,8 +51,6 @@ class PlotGlobalBiases:
             description (str): Description of the figure.
             var (str): Variable name.
             plev (float, optional): Pressure level.
-            format (str): Format to save the figure ('png' or 'pdf').
-
         Keyword Args:
             **kwargs: Additional keyword arguments to be passed to the OutputSaver.
         """
@@ -70,22 +68,15 @@ class PlotGlobalBiases:
 
         metadata = {"Description": description}
 
-        extra_keys = {
-            k: v for k, v in {
-                'var': var,
-                'plev': plev,
-            }.items() if v is not None
-        }
-
-        if format == 'pdf':
-            outputsaver.save_pdf(fig, diagnostic_product=diagnostic_product,
-                                 extra_keys=extra_keys, metadata=metadata)
-        elif format == 'png':
-            outputsaver.save_png(fig, diagnostic_product=diagnostic_product,
-                                 extra_keys=extra_keys, metadata=metadata)
-        else:
-            raise ValueError(f'Format {format} not supported. Use png or pdf.')
-
+        if var is not None:
+            extra_keys.update({'var': var})
+        if plev is not None:
+            extra_keys.update({'plev': plev})
+        
+        outputsaver.save_figure(fig, diagnostic_product,
+                                extra_keys=extra_keys, metadata=metadata,
+                                save_pdf=self.save_pdf, save_png=self.save_png,
+                                dpi=self.dpi)
 
     def plot_climatology(self, data, var, plev=None, proj='robinson', proj_params={}, vmin=None, vmax=None, cbar_label=None):
         """
@@ -138,12 +129,8 @@ class PlotGlobalBiases:
             f"for the {data.AQUA_model} model, experiment {data.AQUA_exp}."
         )
 
-        if self.save_pdf:
-            self._save_figure(fig=fig, format='pdf', data=data, diagnostic_product='annual_climatology', 
-                              description=description, var=var, plev=plev, realization=realization,)
-        if self.save_png:
-            self._save_figure(fig=fig, format='png', data=data, diagnostic_product='annual_climatology',
-                              description=description, var=var, plev=plev, realization=realization)
+        self._save_figure(fig=fig, diagnostic_product='annual_climatology',
+                          data=data, description=description, var=var, plev=plev, realization=realization)
 
 
     def plot_bias(self, data, data_ref, var, plev=None, proj='robinson', proj_params={}, vmin=None, vmax=None, cbar_label=None):
@@ -202,12 +189,8 @@ class PlotGlobalBiases:
             f" from {data_ref.startdate} to {data_ref.enddate} used as reference data."
         )
 
-        if self.save_pdf:
-            self._save_figure(fig=fig, format='pdf', data=data, data_ref=data_ref, diagnostic_product='bias', 
-                              description=description, var=var, plev=plev, realization=realization)
-        if self.save_png:
-            self._save_figure(fig=fig, format='png', data=data, data_ref=data_ref, diagnostic_product='bias',
-                              description=description, var=var, plev=plev, realization=realization)
+        self._save_figure(fig=fig, diagnostic_product='bias', data=data, data_ref=data_ref,
+                          description=description, var=var, plev=plev, realization=realization)
 
 
     def plot_seasonal_bias(self, data, data_ref, var, plev=None, proj='robinson', proj_params={}, vmin=None, vmax=None, cbar_label=None):
@@ -274,12 +257,8 @@ class PlotGlobalBiases:
             f" and from {data_ref.startdate} to {data_ref.enddate} for the reference data."
         )
 
-        if self.save_pdf:
-            self._save_figure(fig=fig, format='pdf', data=data, data_ref=data_ref, diagnostic_product='seasonal_bias', 
-                              description=description, var=var, plev=plev, realization=realization)
-        if self.save_png:
-            self._save_figure(fig=fig, format='png', data=data, data_ref=data_ref, diagnostic_product='seasonal_bias',
-                              description=description, var=var, plev=plev, realization=realization)
+        self._save_figure(fig=fig, diagnostic_product='seasonal_bias', data=data, data_ref=data_ref,
+                          description=description, var=var, plev=plev, realization=realization)
 
 
     def plot_vertical_bias(self, data, data_ref, var, plev_min=None, plev_max=None, vmin=None, vmax=None, nlevels=18):
@@ -331,11 +310,7 @@ class PlotGlobalBiases:
             loglevel=self.loglevel
         )
 
-        if self.save_pdf:
-            self._save_figure(fig=fig, format='pdf', data=data, data_ref=data_ref, diagnostic_product='vertical_bias', 
-                              description=description, var=var, realization=realization)
-        if self.save_png:
-            self._save_figure(fig=fig, format='png', data=data, data_ref=data_ref, diagnostic_product='vertical_bias',
-                              description=description, var=var, realization=realization)
+        self._save_figure(fig=fig, diagnostic_product='vertical_bias', data=data, data_ref=data_ref,
+                          description=description, var=var, realization=realization)
 
         self.logger.info("Vertical bias plot completed successfully.")
