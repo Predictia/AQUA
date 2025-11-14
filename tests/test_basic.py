@@ -1,10 +1,9 @@
 import pytest
 import numpy as np
 from aqua import Reader, catalog
-from conftest import LOGLEVEL
+from conftest import APPROX_REL, LOGLEVEL
 
-# pytest approximation, to bear with different machines
-approx_rel = 1e-4
+approx_rel = APPROX_REL
 loglevel = LOGLEVEL
 
 @pytest.fixture(scope='module')

@@ -2,9 +2,9 @@
 import pytest
 from aqua import Reader, Regridder
 from aqua.regridder.griddicthandler import GridDictHandler
-from conftest import LOGLEVEL
+from conftest import APPROX_REL, LOGLEVEL
 
-approx_rel = 1e-4
+approx_rel = APPROX_REL
 
 
 @pytest.fixture(

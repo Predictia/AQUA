@@ -3,10 +3,10 @@
 import pytest
 import numpy as np
 from aqua import Reader
-from conftest import LOGLEVEL
+from conftest import APPROX_REL, LOGLEVEL
 
+approx_rel = APPROX_REL
 loglevel = LOGLEVEL
-approx_rel = 1e-4
 
 @pytest.fixture(
     params=[

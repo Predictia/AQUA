@@ -2,10 +2,10 @@ import os
 import matplotlib
 import pytest
 from aqua.diagnostics.teleconnections import NAO, PlotNAO
-from conftest import LOGLEVEL, DPI
+from conftest import APPROX_REL, LOGLEVEL, DPI
 
 # pytest approximation, to bear with different machines
-approx_rel = 1e-4
+approx_rel = APPROX_REL
 loglevel = LOGLEVEL
 
 

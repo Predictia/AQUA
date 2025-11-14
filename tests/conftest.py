@@ -13,8 +13,9 @@ import pytest
 from aqua import Reader
 
 # Centralized setting for all tests
-LOGLEVEL = "DEBUG"
 DPI = 50
+APPROX_REL = 1e-4
+LOGLEVEL = "DEBUG"
 
 # ======================================================================
 # IFS fixtures

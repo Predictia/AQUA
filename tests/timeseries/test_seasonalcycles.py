@@ -2,10 +2,10 @@ import os
 import pytest
 import xarray as xr
 from aqua.diagnostics.timeseries import SeasonalCycles, PlotSeasonalCycles
-from conftest import LOGLEVEL, DPI
+from conftest import APPROX_REL, DPI, LOGLEVEL
 
 # pytest approximation, to bear with different machines
-approx_rel = 1e-4
+approx_rel = APPROX_REL
 loglevel = LOGLEVEL
 
 

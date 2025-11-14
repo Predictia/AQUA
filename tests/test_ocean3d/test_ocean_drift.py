@@ -6,10 +6,10 @@ from ocean3d import multilevel_trend
 from ocean3d import zonal_mean_trend
 
 from aqua import Reader
-from conftest import LOGLEVEL
+from conftest import APPROX_REL, LOGLEVEL
 
+approx_rel = APPROX_REL
 loglevel = LOGLEVEL
-approx_rel = 1e-4
 
 @pytest.fixture
 def common_setup_drift(tmp_path):

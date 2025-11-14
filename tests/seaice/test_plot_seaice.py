@@ -4,9 +4,9 @@ import numpy as np
 import xarray as xr
 from aqua.diagnostics import SeaIce, PlotSeaIce
 from aqua.diagnostics.core import OutputSaver
-from conftest import DPI, LOGLEVEL
+from conftest import APPROX_REL, DPI, LOGLEVEL
 
-approx_rel = 1e-4
+approx_rel = APPROX_REL
 loglevel = LOGLEVEL
 
 # pytestmark groups tests that run sequentially on the same worker to avoid conflicts
