@@ -232,16 +232,18 @@ class Drop():
     @staticmethod
     def _validate_date(startdate, enddate):
         """Validate date format for startdate and enddate"""
+        
         if startdate is not None:
             try:
-                pd.to_datetime(startdate, format='%Y-%m-%d')
-            except ValueError:
-                raise ValueError('startdate must be in YYYY-MM-DD format')
+                pd.to_datetime(startdate)
+            except (ValueError, TypeError):
+                raise ValueError('startdate must be a valid date string (YYYY-MM-DD or YYYYMMDD)')
+        
         if enddate is not None:
             try:
-                pd.to_datetime(enddate, format='%Y-%m-%d')
-            except ValueError:
-                raise ValueError('enddate must be in YYYY-MM-DD format')
+                pd.to_datetime(enddate)
+            except (ValueError, TypeError):
+                raise ValueError('enddate must be a valid date string (YYYY-MM-DD or YYYYMMDD)')
 
     def _issue_info_warning(self):
         """
