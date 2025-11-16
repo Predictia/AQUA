@@ -109,23 +109,19 @@ class TestAqua:
         result = reader_instance.retrieve(var="nonexistent_variable")
         assert len(result.data_vars) == 0
 
-    def test_time_selection_with_dates(self, reader_instance):
+    def test_time_selection(self):
         """
-        Test that time selection is applied when both startdate and enddate are provided
+        Test that time selection works correctly
         """
-        full_data = reader_instance.retrieve()
-
-        if len(full_data.time) < 2:
-            pytest.skip("Not enough timesteps to test")
+        reader = Reader(model="IFS", exp="test-tco79", source="long",
+                        loglevel=loglevel)
         
-        startdate = str(full_data.time[0].values)[:10]
-        enddate = str(full_data.time[-1].values)[:10]
-    
-        selected_data = reader_instance.retrieve(startdate=startdate, enddate=enddate)
+        data = reader.retrieve(startdate='2020-03-01', enddate='2020-03-31')
         
-        # Verify time selection was applied
-        assert len(selected_data.time) == len(full_data.time)
-        assert selected_data.time[0].values == full_data.time[0].values
+        assert len(data.time) > 0
+        assert '2t' in data
+        
+        assert all(data.time.dt.month == 3)
 
     @pytest.fixture(
         params=[
