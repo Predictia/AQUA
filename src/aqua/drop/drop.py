@@ -617,6 +617,11 @@ class Drop():
             temp_data = self.reader.timstat(temp_data, self.stat, freq=self.frequency,
                                             exclude_incomplete=self.exclude_incomplete)
 
+        # temp_data could be empty after time statistics if everything was excluded
+        if 'time' in temp_data.coords and len(temp_data.time) == 0:
+            self.logger.warning('No data available for variable %s after time statistics, skipping...', var)
+            return
+        
         # regrid
         if self.resolution:
             temp_data = self.reader.regrid(temp_data)
