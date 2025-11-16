@@ -54,7 +54,6 @@ def drop_parser(parser = None):
     parser.add_argument('--rebuild', action="store_true", help="Rebuild Reader areas and weights")
     parser.add_argument('--realization', type=str,
                         help='realization to be processed. Use with coherence with --model, --exp and --source')
-    parser.add_argument('--region', type=str, help="Region to be processed.")
     parser.add_argument('--stat', type=str,
                         help="statistic to be computed. Can be one of ['min', 'max', 'mean', 'std'].")
     parser.add_argument('--frequency', type=str,
