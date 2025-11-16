@@ -81,7 +81,7 @@ class Drop():
         Initialize the DROP class
 
         Args:
-            catalog (string):        The catalog you want to reader. If None, guessed by the reader.
+            catalog (string):        The catalog you want to read. If None, guessed by the reader.
             model (string):          The model name from the catalog
             exp (string):            The experiment name from the catalog
             source (string):         The sourceid name from the catalog
