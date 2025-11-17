@@ -15,6 +15,7 @@ AQUA core complete list:
 - Add filelock when modifying catalog sources (#2432)
 
 AQUA diagnostics complete list:
+- Tropical Cyclones: restore TC diagnostic functionality (#2206)
 - Add unique random key to dask graph tokens for each CLI (#2462)
 - Ocean3D: removed old diagnostic files (#2467)
 - Teleconnections: ENSO better vmin/vmax for regression plots (#2453)
@@ -382,7 +383,6 @@ AQUA core complete list:
 - Multiple updates to allow for AQUA open source, including Dockerfiles, actions, dependencies and containers (#1574)
 
 AQUA diagnostics complete list:
-- Tropical Cyclones: restore TC diagnostic functionality (#2206)
 - Ensemble: config file structure and tests (#1630)
 - Ocean3d: Tests for the Ocean3d diagnostic (#1780)
 - Diagnostic core: A common function to check and convert variable units is provided as `convert_data_units()` (#1806)
