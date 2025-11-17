@@ -15,6 +15,7 @@ AQUA core complete list:
 - Add filelock when modifying catalog sources (#2432)
 
 AQUA diagnostics complete list:
+- Tropical Cyclones: restore TC diagnostic functionality (#2206)
 - Add unique random key to dask graph tokens for each CLI (#2462)
 - Ocean3D: removed old diagnostic files (#2467)
 - Teleconnections: ENSO better vmin/vmax for regression plots (#2453)
