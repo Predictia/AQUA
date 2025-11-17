@@ -421,7 +421,7 @@ class ConfigPath():
                     sources = list(exp_cat.keys())
 
                     if not sources:
-                        logger.warning('\tExperiment %s has no sources in model %s', exp_name, model_name)
+                        self.logger.warning('\tExperiment %s has no sources in model %s', exp_name, model_name)
                         continue
 
                     try:
