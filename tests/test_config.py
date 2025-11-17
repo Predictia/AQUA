@@ -25,3 +25,18 @@ def test_config_paths():
 
     # Remove the copied file
     os.system(f'rm {configdir}/config-aqua-custom.yaml')
+
+@pytest.mark.aqua
+def test_show_catalog_content_basic():
+    """Test show_catalog_content with no filters."""
+    config = ConfigPath()
+    results = config.show_catalog_content()
+    
+    assert isinstance(results, dict)
+    # Check structure: catalog -> model -> exp -> list of sources
+    for catalog_name, catalog_data in results.items():
+        assert isinstance(catalog_data, dict)
+        for model_name, model_data in catalog_data.items():
+            assert isinstance(model_data, dict)
+            for exp_name, sources in model_data.items():
+                assert isinstance(sources, list)
