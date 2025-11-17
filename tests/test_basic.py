@@ -14,6 +14,10 @@ def reader_instance(fesom_test_pi_original_2d_r200_fixFalse_reader):
 def data(fesom_test_pi_original_2d_r200_fixFalse_data):
     return fesom_test_pi_original_2d_r200_fixFalse_data
 
+@pytest.fixture(scope='module')
+def reader_ifs_tco79_long(ifs_tco79_long_reader):
+    return ifs_tco79_long_reader
+
 # aqua class for tests
 @pytest.mark.aqua
 class TestAqua:
@@ -108,12 +112,11 @@ class TestAqua:
         assert len(result.data_vars) == 0
 
 
-    def test_time_selection(self):
+    def test_time_selection(self, reader_ifs_tco79_long):
         """
         Test that time selection works correctly
         """
-        reader = Reader(model="IFS", exp="test-tco79", source="long",
-                        loglevel=loglevel)
+        reader = reader_ifs_tco79_long
         
         data = reader.retrieve(startdate='2020-03-01', enddate='2020-03-31')
         
