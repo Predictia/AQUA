@@ -325,3 +325,116 @@ class ConfigPath():
             avail = list(cat.keys())
 
         return status, level, avail
+
+
+    def show_catalog_content(self, catalog=None, model=None, exp=None, source=None):
+        """
+        Scan catalog(s) by reading YAML files directly and display the model/exp/source structure.
+        Uses intake to handle path resolution automatically.
+
+        Args:
+            catalog (str | list | None): Specific catalog(s) to scan. If None, loops over all available catalogs.
+            model (str | None): Optional model filter. If provided, only shows entries for this model.
+            exp (str | None): Optional experiment filter. If provided, only shows entries for this exp.
+            source (str | None): Optional source filter. If provided, only shows entries for this source.
+
+        Returns:
+            dict: Dictionary with catalog names as keys and nested dict structure as values.
+        """
+        self.logger = log_configure(log_level='info', log_name='ShowCatalog')
+
+        results = {}
+        catalogs_to_scan = to_list(catalog) if catalog else self.catalog_available
+
+        if not catalogs_to_scan:
+            self.logger.warning('No catalogs available to scan')
+            return results
+        else:
+            self.logger.info(f"Catalogs to show: {catalogs_to_scan}")
+
+        for cat_name in catalogs_to_scan:
+            self.logger.info(f"Catalog: {cat_name}")
+
+            try:
+                catalog_file, _ = self.get_catalog_filenames(catalog=cat_name)
+            except (KeyError, FileNotFoundError) as e:
+                self.logger.warning('Cannot scan catalog: %s', e)
+                continue
+
+            # Use intake to open the catalog
+            try:
+                cat = intake.open_catalog(catalog_file)
+            except Exception as e:
+                self.logger.warning('Error opening catalog %s: %s', cat_name, e)
+                continue
+
+            catalog_structure = {}
+
+            # Get models from the catalog
+            models = list(cat.keys())
+            
+            # Filter by model if provided
+            if model:
+                if model not in models:
+                    self.logger.warning('Model %s not found', model)
+                    continue
+                models = [model]
+
+            for model_name in models:
+                self.logger.info(f"   {model_name}")
+
+                try:
+                    model_cat = cat[model_name]
+                except KeyError:
+                    self.logger.warning('Model %s not accessible in catalog %s', model_name, cat_name)
+                    continue
+
+                catalog_structure[model_name] = {}
+
+                # Get experiments from the model
+                try:
+                    experiments = list(model_cat.keys())
+                except (AttributeError, TypeError):
+                    self.logger.warning('Model %s has no experiments in catalog %s', model_name, cat_name)
+                    continue
+                
+                if not experiments:
+                    self.logger.warning('Model %s has no experiments in catalog %s', model_name, cat_name)
+                    continue
+
+                # Filter by experiment if provided
+                if exp:
+                    if exp not in experiments:
+                        self.logger.warning('Experiment %s not found in model %s, catalog %s', exp, model_name, cat_name)
+                        continue
+                    experiments = [exp]
+
+                for exp_name in experiments:
+                    try:
+                        exp_cat = model_cat[exp_name]
+                        self.logger.info('\tExp: %s', exp_name)
+                    except KeyError:
+                        self.logger.warning('\tExp: %s not accessible in model %s', exp_name, model_name)
+                        continue
+
+                    # Get sources from the experiment
+                    sources = list(exp_cat.keys())
+
+                    if not sources:
+                        logger.warning('\tExperiment %s has no sources in model %s', exp_name, model_name)
+                        continue
+
+                    try:
+                        catalog_structure[model_name][exp_name] = sources
+                    except (AttributeError, TypeError):
+                        self.logger.warning('Experiment %s has no sources in model %s', exp_name, model_name)
+                        continue
+                    
+                    for src in sources:
+                        if not source or src == source:
+                            self.logger.info(f"\t   - {src}")
+
+            if catalog_structure:
+                results[cat_name] = catalog_structure
+
+        return results
