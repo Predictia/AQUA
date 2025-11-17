@@ -567,6 +567,9 @@ class Plot2DSeaIce:
         # Ensure data is not None
         if data is None:
             raise ValueError("Data cannot be None for saving figures")
+
+        if not self.save_pdf and not self.save_png:
+            return
         
         outputsaver = OutputSaver(
             diagnostic='seaice',
