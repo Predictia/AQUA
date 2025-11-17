@@ -6,7 +6,9 @@ import numpy as np
 import pandas as pd
 from aqua import Reader
 from aqua.util import extract_literal_and_numeric, file_is_complete, to_list, convert_data_units
-from aqua.util import format_realization, extract_attrs
+from aqua.util import format_realization, extract_attrs, time_to_string
+from aqua.util.string import strlist_to_phrase, lat_to_phrase
+from aqua.util.units import multiply_units
 
 @pytest.fixture
 def test_text():
@@ -52,7 +54,6 @@ def test_convert_data_units():
 @pytest.mark.aqua
 class TestFileIsComplete:
     """The File is Complete testing class"""
-
 
     @pytest.fixture
     def sample_netcdf(self, tmp_path):
@@ -160,6 +161,7 @@ def test_format_realization():
     assert format_realization("test") == "test"
     assert format_realization("") == "r1"
     assert format_realization(None) == "r1"
+    assert format_realization(["1", "2", "test", 3, None]) == ["r1", "r2", "test", "r3", "r1"]
 
 @pytest.mark.aqua
 def test_extract_attrs():
@@ -172,7 +174,34 @@ def test_extract_attrs():
     result = extract_attrs([ds_with_attr, ds_without_attr], "attr") 
     assert result == ["value1", None] # List of datasets
 
+@pytest.mark.aqua
+def test_strlist_to_phrase():
+    """Test the strlist_to_phrase function"""
+    # Test empty list
+    assert strlist_to_phrase([]) == ""
+    # Test single item
+    assert strlist_to_phrase(["A"]) == "A"
+    assert strlist_to_phrase(["Hello"]) == "Hello"
+    # Test two items
+    assert strlist_to_phrase(["A", "B"]) == "A and B"
+    assert strlist_to_phrase(["Hello", "World"]) == "Hello and World"
+    # Test more than three items
+    assert strlist_to_phrase(["A", "B", "C", "D"]) == "A, B, C and D"
+    assert strlist_to_phrase(["A", "B", "C", "D"], oxford_comma=True) == "A, B, C, and D"
+    # Test with mixed content
+    assert strlist_to_phrase(["Mod", "Exp", "Source"]) == "Mod, Exp and Source"
+    assert strlist_to_phrase(["Mod", "Exp", "Source"], oxford_comma=True) == "Mod, Exp, and Source"
 
+@pytest.mark.aqua
+def test_lat_to_phrase():
+    """Test the lat_to_phrase function"""
+    # Test northern latitudes
+    assert lat_to_phrase(90) == "90°N"
+    # Test southern latitudes
+    assert lat_to_phrase(-1) == "1°S"
+    # Test 0 latitude
+    assert lat_to_phrase(0) == "0°N"
+    
 # Uncomment this test if the flip_time function is uncommented in aqua/util/coord.py
 # def test_flip_time():
 #     """Test the flip_time function"""
@@ -182,3 +211,29 @@ def test_extract_attrs():
 #     flipped_data = flip_time(data)
 #     assert flipped_data.time.values[0] == 9
 #     assert flipped_data.time.values[-1] == 0
+
+@pytest.mark.aqua
+@pytest.mark.parametrize("unit1, unit2, expected", [
+    ("m", "m2", "meter ** 3"),                         # Basic area × length = volume
+    ("m", "m", "meter ** 2"),                          # Length × length = area
+    ("kg", "m/s2", "kilogram * meter / second ** 2"),  # Mass × acceleration = force
+    ("m/s", "s", "meter"),                             # Velocity × time = distance
+    ("1", "m", "meter"),                               # Dimensionless × length
+    ("kg/m3", "m3", "kilogram"),                       # Density × volume = mass
+])
+def test_multiply_units(unit1, unit2, expected):
+    """Test the multiply_units function with various unit combinations"""
+    result = multiply_units(unit1, unit2)
+    assert result == expected
+
+@pytest.mark.aqua
+def test_multiply_units_no_base_conversion():
+    """Test multiply_units without converting to base units"""
+    result = multiply_units("km", "km", to_base_units=False)
+    assert result == "kilometer ** 2"
+
+@pytest.mark.aqua
+def test_multiply_units_no_normalization():
+    """Test multiply_units without normalization"""
+    result = multiply_units("m", "m", normalise_units=False)
+    assert result == "meter ** 2"

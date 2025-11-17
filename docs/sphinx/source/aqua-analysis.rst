@@ -51,6 +51,10 @@ so that the script can be used in a batch job or in a workflow. These override c
 
     The source to use.
 
+.. option:: --source_oce <source_oce>
+
+    Additional ocean source to use for diagnostics accepting it (currently only ECmean).
+
 .. option:: -f <config>, --config <source>
 
     The config file to use.
@@ -64,6 +68,18 @@ so that the script can be used in a batch job or in a workflow. These override c
 
     The realization to use. If not specified or set to ``None``,
     no realization argument will be passed to the diagnostics.
+
+.. option:: --startdate <YYYY-MM-DD>
+
+    Start date to limit the time range for the analysis.
+    If not specified, all available data from the beginning will be used.
+    Can be specified in the format YYYY-MM-DD.
+
+.. option:: --enddate <YYYY-MM-DD>
+
+    End date to limit the time range for the analysis.
+    If not specified, all available data until the end will be used.
+    Can be specified in the format YYYY-MM-DD.
 
 .. option:: -d <dir>, --outputdir <dir>
 
@@ -128,6 +144,8 @@ The job section contains the following keys:
 - ``source``: the source to use. Default is ``lra-r100-monthly``
 - ``regrid``: the target grid to use for regridding the data. Default is ``null``, which means no regridding will be applied.
 - ``script_path_base``: the base path for the diagnostic scripts. Default is ``${AQUA}/diagnostics``, but it is going to be updated.
+- ``startdate``: the start date to limit the time range for the analysis. Default is ``null``.
+- ``enddate``: the end date to limit the time range for the analysis. Default is ``null``.
 
 .. note::
 
@@ -141,6 +159,12 @@ The cluster section contains the following keys:
 - ``workers``: the number of workers to use. Default is ``32``.
 - ``threads``: the number of threads per worker. Default is ``2``.
 - ``memory_limit``: the memory per worker. Default is ``7GiB``.
+- ``reconnect_timeout``: the timeout in seconds to wait for client to connect to the cluster.
+                        Default is ``120``.
+                        Can be overridden also setting an environment variable: ``DASK_DISTRIBUTED__COMM__TIMEOUTS__CONNECT=120s``.
+- ``ftp_timeout``: the timeout in seconds for ftp connections.
+                        Default is ``60``.
+                        Can be overridden also setting an environment variable: ``DASK_DISTRIBUTED__COMM__TIMEOUTS__FTP=60s``
 
 .. note::
 
@@ -157,5 +181,7 @@ The diagnostics are specified as a dictionary with the following keys:
 - ``nworkers``: the number of workers to use for this diagnostic.
 - ``script_path``: the relative path to the diagnostic script with respect to ``script_path_base``. 
 - ``config``: the configuration file for the diagnostic.
+- ``nocluster``: a boolean flag to disable the use of the global dask cluster for this diagnostic (used by ECmean)
+- ``source_oce``: a boolean flag to pass the additional ocean source to the diagnostic (currently only ECmean). Defaults to False.
 - ``extra``: a string with extra arguments to pass to the diagnostic script.
 - ``outname``: the name of the output folder if different from the diagnostic name.

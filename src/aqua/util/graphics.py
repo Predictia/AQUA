@@ -239,22 +239,24 @@ def coord_names(data: xr.DataArray):
         data (xarray.DataArray): Input data array.
 
     Returns:
-        lon_name (str): Name of the longitude coordinate.
-        lat_name (str): Name of the latitude coordinate.
+        tuple: (lon_name, lat_name) - Names of longitude and latitude coordinates, 
+               or (None, None) if not found.
     """
-    try:
-        lon_name = 'lon'
-        data.lon
-    except AttributeError:
-        lon_name = 'longitude'
-        data.longitude
-    try:
-        lat_name = 'lat'
-        data.lat
-    except AttributeError:
-        lat_name = 'latitude'
-        data.latitude
-
+    lon_name = None
+    lat_name = None
+    
+    # Find longitude coordinate
+    for lon_candidate in ['lon', 'longitude']:
+        if lon_candidate in data.coords:
+            lon_name = lon_candidate
+            break
+    
+    # Find latitude coordinate  
+    for lat_candidate in ['lat', 'latitude']:
+        if lat_candidate in data.coords:
+            lat_name = lat_candidate
+            break
+    
     return lon_name, lat_name
 
 
@@ -314,10 +316,11 @@ def set_ticks(data: xr.DataArray,
         lon_min = data[lon_name].values.min()
         lon_max = data[lon_name].values.max()
         (lon_min, lon_max), _ = check_coordinates(lon=(lon_min, lon_max),
-                                                  default={"lon_min": -180,
-                                                           "lon_max": 180,
-                                                           "lat_min": -90,
-                                                           "lat_max": 90},)
+                                                  lat=None,
+                                                  default_coords={"lon_min": -180,
+                                                                  "lon_max": 180,
+                                                                  "lat_min": -90,
+                                                                  "lat_max": 90},)
         logger.debug("Setting longitude ticks from %s to %s", lon_min, lon_max)
     except KeyError:
         logger.critical("No longitude coordinate found, setting default values")
@@ -337,10 +340,11 @@ def set_ticks(data: xr.DataArray,
         lat_min = data[lat_name].values.min()
         lat_max = data[lat_name].values.max()
         _, (lat_min, lat_max) = check_coordinates(lat=(lat_min, lat_max),
-                                                  default={"lon_min": -180,
-                                                           "lon_max": 180,
-                                                           "lat_min": -90,
-                                                           "lat_max": 90},)
+                                                  lon=None,
+                                                  default_coords={"lon_min": -180,
+                                                                  "lon_max": 180,
+                                                                  "lat_min": -90,
+                                                                  "lat_max": 90},)
         logger.debug("Setting latitude ticks from %s to %s", lat_min, lat_max)
     except KeyError:
         logger.critical("No latitude coordinate found, setting default values")

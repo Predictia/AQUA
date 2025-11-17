@@ -78,6 +78,19 @@ class TestAqua:
                                                       rel=approx_rel)
         assert global_mean.values[1] == pytest.approx(17.98060367,
                                                       rel=approx_rel)
+        
+    def test_chunks(self):
+        """
+        Test that the Reader class correctly handles chunking
+        """
+        reader = Reader(model="IFS", exp="test-tco79", source="long",
+                        chunks={"time": 12}, loglevel=loglevel)
+        data = reader.retrieve()
+        assert set(data['2t'].chunksizes['time']) == {12}
+        reader = Reader(model="IFS", exp="test-tco79", source="long",
+                        chunks={"time": 1}, loglevel=loglevel)
+        data = reader.retrieve()
+        assert set(data['2t'].chunksizes['time']) == {1}
 
     def test_catalog_override(self):
         """
@@ -90,10 +103,11 @@ class TestAqua:
 
     def test_empty_dataset_error(self, reader_instance):
         """
-        Test that NoDataError is raised when empty dataset is retrieved
+        Test that an empty dataset is returned when nonexistent variable is retrieved
+        Check that we get an empty dataset (not None)
         """
-        with pytest.raises(Exception):
-            reader_instance.retrieve(var="nonexistent_variable")
+        result = reader_instance.retrieve(var="nonexistent_variable")
+        assert len(result.data_vars) == 0
 
     def test_time_selection_with_dates(self, reader_instance):
         """
@@ -137,3 +151,35 @@ class TestAqua:
             assert data.time.values[0].dtype == 'datetime64[s]'
 
         assert len(data) > 0
+
+    @pytest.mark.parametrize(
+        "realization_input, expected_output, expected_exception",
+        [
+            ('r2', 2, None),
+            (3, 3, None),
+            (10, None, ValueError),  # invalid -> expect ValueError
+            ('rX', None, ValueError),  # invalid -> expect ValueError
+        ],
+    )
+    def test_realization_formatting_int(self, realization_input, expected_output, expected_exception):
+        """
+        Test that the realization parameter is correctly formatted or raises for bad input.
+        """
+        # If the Reader raises during __init__, wrap the constructor in the context manager.
+        if expected_exception is not None:
+            with pytest.raises(expected_exception):
+                Reader(model="ICON", exp="test-healpix", source="fake-ensemble-int",
+                    loglevel=loglevel, areas=False, realization=realization_input)
+        else:
+            reader = Reader(model="ICON", exp="test-healpix", source="fake-ensemble-int",
+                            loglevel=loglevel, areas=False, realization=realization_input)
+            assert reader.kwargs['realization'] == expected_output
+
+    def test_realization_formatting_str(self):
+        """
+        Test that the realization parameter is correctly formatted from string.
+        """
+        reader = Reader(model="ICON", exp="test-healpix", source="fake-ensemble-str",
+                        loglevel=loglevel, areas=False, realization='r2i1p1')
+        assert reader.kwargs['realization'] == 'r2i1p1'
+        
