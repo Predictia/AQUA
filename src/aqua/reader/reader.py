@@ -353,7 +353,7 @@ class Reader():
         ffdb = False
         # If this is an ESM-intake catalog use first dictionary value,
         if isinstance(self.esmcat, intake_esm.core.esm_datastore):
-            data = self.reader_esm(self.esmcat, loadvar, startdate=startdate, enddate=enddate)
+            data = self.reader_esm(self.esmcat, loadvar)
         # If this is an fdb entry
         elif isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
             data = self.reader_fdb(self.esmcat, loadvar, startdate, enddate,
@@ -739,15 +739,13 @@ class Reader():
 
         return final
 
-    def reader_esm(self, esmcat, var, startdate=None, enddate=None):
+    def reader_esm(self, esmcat, var):
         """
         Read intake-esm entry. Returns a dataset.
 
         Args:
             esmcat (intake_esm.core.esm_datastore): The intake-esm catalog datastore to read from.
             var (str or list): Variable(s) to retrieve. If None, uses the query from catalog metadata.
-            startdate (str, optional): starting date for slicing
-            enddate (str, optional): ending date for slicing
 
         Returns:
             xarray.Dataset: The dataset retrieved from the intake-esm catalog.
@@ -765,16 +763,7 @@ class Reader():
                                       # use_cftime=True)
                                       progressbar=False
                                       )
-        
-        data = list(data.values())[0]
-
-        if startdate or enddate:
-            if 'time' in data.coords:
-                data = data.sel(time=slice(startdate, enddate))
-            else:
-                self.logger.warning("startdate/enddate specified but no time coordinate found in data!")
-
-        return data
+        return list(data.values())[0]
 
     def reader_fdb(self, esmcat, var, startdate, enddate, dask=False, level=None):
         """
