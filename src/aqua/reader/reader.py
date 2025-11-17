@@ -360,8 +360,7 @@ class Reader():
                                    dask=True, level=level)
             ffdb = True  # These data have been read from fdb
         else:
-            data = self.reader_intake(self.esmcat, var, loadvar,
-                                      startdate=startdate, enddate=enddate)
+            data = self.reader_intake(self.esmcat, var, loadvar)
 
         # if retrieve history is required (disable for retrieve_plain)
         if history:
@@ -922,7 +921,7 @@ class Reader():
 
         return data
 
-    def reader_intake(self, esmcat, var, loadvar, keep="first", startdate=None, enddate=None):
+    def reader_intake(self, esmcat, var, loadvar, keep="first"):
         """
         Read regular intake entry. Returns dataset.
 
@@ -931,8 +930,6 @@ class Reader():
             var (list or str): Variable to load
             loadvar (list of str): List of variables to load
             keep (str, optional): which duplicate entry to keep ("first" (default), "last" or None)
-            startdate (str, optional): starting date for slicing
-            enddate (str, optional): ending date for slicing
 
         Returns:
             Dataset
@@ -976,12 +973,6 @@ class Reader():
             data = data.drop_duplicates(dim='time', keep=keep)
             if len(data.time) != len0:
                 self.logger.warning("Duplicate entries found along the time axis, keeping the %s one.", keep)
-
-        if startdate or enddate:
-            if 'time' in data.coords:
-                data = data.sel(time=slice(startdate, enddate))
-            else:
-                self.logger.warning("startdate/enddate specified but no time coordinate found in data!")
 
         return data
 
