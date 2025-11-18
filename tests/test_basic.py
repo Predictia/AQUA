@@ -14,6 +14,10 @@ def reader_instance(fesom_test_pi_original_2d_r200_fixFalse_reader):
 def data(fesom_test_pi_original_2d_r200_fixFalse_data):
     return fesom_test_pi_original_2d_r200_fixFalse_data
 
+@pytest.fixture(scope='module')
+def reader_ifs_tco79_long(ifs_tco79_long_reader):
+    return ifs_tco79_long_reader
+
 # aqua class for tests
 @pytest.mark.aqua
 class TestAqua:
@@ -107,22 +111,19 @@ class TestAqua:
         result = reader_instance.retrieve(var="nonexistent_variable")
         assert len(result.data_vars) == 0
 
-    def test_time_selection_with_dates(self, data):
-        """
-        Test that time selection is applied when both startdate and enddate are provided
-        """
 
-        if len(data.time) < 2:
-            pytest.skip("Not enough timesteps to test")
+    def test_time_selection(self, reader_ifs_tco79_long):
+        """
+        Test that time selection works correctly
+        """
+        reader = reader_ifs_tco79_long
         
-        startdate = str(data.time[0].values)[:10]
-        enddate = str(data.time[-1].values)[:10]
-    
-        selected_data = data.sel(time=slice(startdate, enddate))
+        data = reader.retrieve(startdate='2020-03-01', enddate='2020-03-31')
         
-        # Verify time selection was applied
-        assert len(selected_data.time) == len(data.time)
-        assert selected_data.time[0].values == data.time[0].values
+        assert len(data.time) > 0
+        assert '2t' in data
+        
+        assert all(data.time.dt.month == 3)
 
     @pytest.fixture(
         params=[
