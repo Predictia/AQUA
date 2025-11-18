@@ -87,7 +87,7 @@ You can also filter by specific catalog(s), model, experiment, or source:
 .. code-block:: python
 
     # Scan specific catalog(s)
-    results = show_catalog_content(catalog=['ci'])
+    results = show_catalog_content(catalog=['ci','obs'])
     
     # Filter by model
     results = show_catalog_content(model='IFS-NEMO')
@@ -98,7 +98,7 @@ You can also filter by specific catalog(s), model, experiment, or source:
     
     .. code-block:: python
     
-        from aqua.util.config import ConfigPath
+        from aqua.configurer import ConfigPath
         config = ConfigPath(loglevel='info')
         results = config.show_catalog_content()
 

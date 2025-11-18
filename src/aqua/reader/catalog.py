@@ -1,7 +1,7 @@
 """Simple catalog utility"""
 
 import intake
-from aqua.util import ConfigPath
+from aqua.configurer import ConfigPath
 
 def catalog(verbose=True, configdir=None, catalog_name=None):
     """

@@ -1,7 +1,8 @@
 import os
 import xarray as xr
 from aqua.logger import log_configure
-from aqua.util import ConfigPath, load_yaml, select_season, to_list, convert_data_units
+from aqua.configurer import ConfigPath
+from aqua.util import load_yaml, select_season, to_list, convert_data_units
 from aqua.diagnostics.core import Diagnostic, OutputSaver
 
 xr.set_options(keep_attrs=True)

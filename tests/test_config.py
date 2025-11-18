@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from aqua.util import ConfigPath
+from aqua.configurer import ConfigPath
 
 @pytest.mark.aqua
 def test_config_plain():

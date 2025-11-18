@@ -3,8 +3,8 @@ import os
 import platform
 import intake
 
-from .util import to_list
-from .yaml import load_yaml
+from aqua.util.util import to_list
+from aqua.util.yaml import load_yaml
 from .locator import ConfigLocator
 from aqua.logger import log_configure
 

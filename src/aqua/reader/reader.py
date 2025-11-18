@@ -8,8 +8,8 @@ from metpy.units import units
 
 from smmregrid import GridInspector
 
-from aqua.util import load_multi_yaml, files_exist, to_list
-from aqua.util import ConfigPath, find_vert_coord
+from aqua.util import load_multi_yaml, files_exist, to_list, find_vert_coord
+from aqua.configurer import ConfigPath
 from aqua.logger import log_configure, log_history
 from aqua.exceptions import NoDataError, NoRegridError
 from aqua.version import __version__ as aqua_version
