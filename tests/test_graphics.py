@@ -616,7 +616,7 @@ class TestSeasonalMeans:
         assert fig is not None
         assert axs is not None
         
-        fig.savefig(tmp_path / 'test_seasonal_none_ref_std.png')
+        fig.savefig(tmp_path / 'test_seasonal_none_ref_std.png', dpi=DPI)
         plt.close(fig)
         assert os.path.exists(tmp_path / 'test_seasonal_none_ref_std.png')
 
@@ -647,7 +647,8 @@ class TestHistogram:
         assert fig is not None
         assert ax is not None
         
-        fig.savefig(tmp_path / 'test_histogram_basic.png')
+        fig.savefig(tmp_path / 'test_histogram_basic.png', dpi=DPI)
+        plt.close(fig)
         assert os.path.exists(tmp_path / 'test_histogram_basic.png')
 
     def test_plot_histogram_multiple_with_ref(self, tmp_path):
@@ -668,7 +669,8 @@ class TestHistogram:
         assert ax is not None
         assert len(ax.lines) == 3  # 2 data + 1 ref
         
-        fig.savefig(tmp_path / 'test_histogram_multi_ref.png')
+        fig.savefig(tmp_path / 'test_histogram_multi_ref.png', dpi=DPI)
+        plt.close(fig)
         assert os.path.exists(tmp_path / 'test_histogram_multi_ref.png')
 
     def test_plot_histogram_no_center_of_bin(self, tmp_path):
@@ -681,5 +683,6 @@ class TestHistogram:
         assert ax is not None
         assert len(ax.lines) == 0  # No lines plotted
         
-        fig.savefig(tmp_path / 'test_histogram_no_bins.png')
+        fig.savefig(tmp_path / 'test_histogram_no_bins.png', dpi=DPI)
+        plt.close(fig)
         assert os.path.exists(tmp_path / 'test_histogram_no_bins.png')
