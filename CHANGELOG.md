@@ -10,9 +10,8 @@ ClimateDT workflow modifications:
 Unreleased in the current development version (target v0.20.0):
 - Parallelise tests execution using `pytest-xdist` module, centralise common fixtures to speed up tests execution time (#2402)
 
-ClimateDT workflow modifications:
-
 AQUA core complete list:
+- Remove some warnings and adapt the code to the incoming standards (#2436)
 - eORCA025 nested grid for o25.1 and o26.1 support (#2459)
 - Safe dumping yaml with a temporary file and SoftFileLock (#2445)
 - Add filelock when modifying catalog sources (#2432)
