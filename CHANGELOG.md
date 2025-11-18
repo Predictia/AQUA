@@ -15,6 +15,7 @@ AQUA core complete list:
 - Add filelock when modifying catalog sources (#2432)
 
 AQUA diagnostics complete list:
+- Include the correct realization in output names for all diagnostics (#2457)
 - Ocean3D: removed old diagnostic files (#2467)
 - Teleconnections: ENSO better vmin/vmax for regression plots (#2453)
 - Ocean Stratification and Ocean Trend: full support for regions across the dateline (#2433)
