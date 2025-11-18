@@ -120,7 +120,6 @@ class sshVariabilityCompute(BaseMixin):
         """
 
         super().retrieve()
-        self.data = self.data.sel(time=slice(self.startdate, self.enddate))
         if self.data is None:
             raise ValueError(f"Variable {self.var} not found in the data. " "Check the variable name and the data source.")
         try:

@@ -142,7 +142,7 @@ if __name__ == "__main__":
 
             if dataset["zoom"]:
                 logger.info(f"zoom option is set to {dataset["zoom"]}")
-                reader_kwargs = {"zoom": dataset["zoom"]}
+                reader_kwargs.update({"zoom": dataset["zoom"]})
 
             # Initialize SSH Variability for model dataset
             if (
@@ -272,7 +272,7 @@ if __name__ == "__main__":
                 plot_class.plot(dataset_std=ssh_ref.data_std, **plot_arguments_ref)
 
             # Dictionary for difference of sshVariability plot
-            if ssh_dataset.data_std is not None or ssh_ref.data_std is not None:
+            if ssh_dataset.data_std is not None and ssh_ref.data_std is not None:
                 plot_arguments_diff = {
                     "var": variable,
                     "catalog": dataset["catalog"],

@@ -53,6 +53,7 @@ class sshVariabilityPlot(PlotBaseMixin):
         ax_pos: tuple = (1, 1, 1),
         vmin=None,
         vmax=None,
+        gridlines=True,
         proj="robinson",
         proj_params={},
         save_png=True,
@@ -67,10 +68,10 @@ class sshVariabilityPlot(PlotBaseMixin):
         mask_southern_boundary=True,
         northern_boundary_latitude=70,
         southern_boundary_latitude=-62,
-        diagnostic_product="sshVariabililty",
+        diagnostic_product="sshVariability",
         rebuild: bool = True,
         description=None,
-        tgt_grid_name="r1440x720",
+        tgt_grid_name="r1440x721",
         regrid_method="ycon",
     ):
         """
@@ -107,7 +108,7 @@ class sshVariabilityPlot(PlotBaseMixin):
             mask_southern_boundary (bool, optional): If ``True``, mask latitudes south of ``southern_boundary_latitude``.
             northern_boundary_latitude (float, optional): Latitude above which data will be masked. Default is ``70``.
             southern_boundary_latitude (float, optional): Latitude below which data will be masked. Default is ``-62``.
-            diagnostic_product (str, optional): Diagnostic type, e.g., ``'sshVariabililty'``. Default is ``'sshVariabililty'``.
+            diagnostic_product (str, optional): Diagnostic type, e.g., ``'sshVariability'``. Default is ``'sshVariability'``.
             rebuild (bool, optional): If ``True``, rebuild the data from the original files. Default is ``True``.
             description (str, optional): Additional description to include in the plot or metadata.
             tgt_grid_name='r1440x720',
@@ -126,6 +127,7 @@ class sshVariabilityPlot(PlotBaseMixin):
 
         if dataset_std is None:
             self.logger.error("Please provide the data to the plot function")
+            raise RuntimeError(f"No model data found")
 
         if isinstance(dataset_std, xr.Dataset):
             dataset_std = dataset_std[var]
@@ -194,8 +196,10 @@ class sshVariabilityPlot(PlotBaseMixin):
                 return_fig=True,
                 title=title,
                 proj=proj,
-                cyclic_lon=False,
+                #cyclic_lon=False,
                 add_land=True,
+                #transform_first=True,
+                gridlines=gridlines,
                 loglevel=self.loglevel,
                 **plot_options,
             )
@@ -209,8 +213,10 @@ class sshVariabilityPlot(PlotBaseMixin):
                 vmin=vmin,
                 vmax=vmax,
                 proj=proj,
-                cyclic_lon=False,
+                #cyclic_lon=False,
                 add_land=True,
+                #transform_first=True,
+                gridlines=gridlines,
                 loglevel=self.loglevel,
                 **plot_options,
             )
@@ -277,6 +283,7 @@ class sshVariabilityPlot(PlotBaseMixin):
         plot_options={},
         vmin_diff=None,
         vmax_diff=None,
+        gridlines=True,
         proj="robinson",
         proj_params={},
         save_png=True,
@@ -291,10 +298,10 @@ class sshVariabilityPlot(PlotBaseMixin):
         mask_southern_boundary=True,
         northern_boundary_latitude=70,
         southern_boundary_latitude=-62,
-        diagnostic_product="sshVariabililty_Difference",
+        diagnostic_product="sshVariability_Difference",
         description=None,
         rebuild: bool = True,
-        tgt_grid_name="r1440x720",
+        tgt_grid_name="r1440x721",
         regrid_method="ycon",
     ):
         """
@@ -335,7 +342,7 @@ class sshVariabilityPlot(PlotBaseMixin):
             mask_southern_boundary (bool, optional): Mask latitudes below southern_boundary_latitude. Default is True.
             northern_boundary_latitude (float, optional): Latitude above which data is masked. Default is 70.
             southern_boundary_latitude (float, optional): Latitude below which data is masked. Default is -62.
-            diagnostic_product (str, optional): Diagnostic product identifier. Default is 'sshVariabililty_Difference'.
+            diagnostic_product (str, optional): Diagnostic product identifier. Default is 'sshVariability_Difference'.
             description (str, optional): Additional description for the plot metadata or title.
             rebuild (bool, optional): If ``True``, rebuild the data from the original files. Default is ``True``.
             tgt_grid_name='r1440x720',
@@ -393,7 +400,7 @@ class sshVariabilityPlot(PlotBaseMixin):
 
             regrid_data_ref = Regridder(data=dataset_std_ref, loglevel=self.loglevel)
             regrid_data_ref.weights(tgt_grid_name=tgt_grid_name, regrid_method=regrid_method)
-            dataset_std_ref = regrid_data.regrid(dataset_std_ref)
+            dataset_std_ref = regrid_data_ref.regrid(dataset_std_ref)
 
         if startdate is None or enddate is None:
             self.logger.error("Please specify the time period of the data")
@@ -454,7 +461,11 @@ class sshVariabilityPlot(PlotBaseMixin):
                 contour=False,
                 return_fig=True,
                 title=title,
+                #cyclic_lon=False,
+                add_land=True,
+                #transform_first=True,
                 proj=proj,
+                gridlines=gridlines,
                 loglevel=self.loglevel,
                 # cbar_label=cbar_label
             )
@@ -467,10 +478,15 @@ class sshVariabilityPlot(PlotBaseMixin):
                 title=title,
                 vmin=vmin_diff,
                 vmax=vmax_diff,
+                #cyclic_lon=False,
+                add_land=True,
+                #transform_first=True,
                 proj=proj,
+                gridlines=gridlines,
                 loglevel=self.loglevel,
                 # cbar_label=cbar_label
             )
+
         ax.set_xlabel("Longitude")
         ax.set_ylabel("Latitude")
 

@@ -271,10 +271,6 @@ fixer_name:
     ssh-adt:
         data_model: false  # Do not attempt to fix coordinates
         vars:
-            lat:
-              source: latitude
-            lon:
-              source: longitude
             zos:
                 source: adt 
     

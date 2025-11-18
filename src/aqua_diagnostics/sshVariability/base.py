@@ -65,7 +65,7 @@ class BaseMixin(Diagnostic):
             **kwargs: Additional arbitrary keyword arguments to pass to the intake catalog entry.
         """
 
-        super().__init__(catalog=catalog, model=model, exp=exp, source=source, regrid=regrid, loglevel=loglevel)
+        super().__init__(catalog=catalog, model=model, exp=exp, source=source, startdate=startdate, enddate=enddate, regrid=regrid, loglevel=loglevel)
 
         # Log name is the diagnostic name with the first letter capitalized
         self.logger = log_configure(log_level=loglevel, log_name=diagnostic_name.capitalize())
@@ -107,14 +107,13 @@ class BaseMixin(Diagnostic):
         """
         Retrieve the data for the given variable.
         """
-
+        
         super().retrieve(var=self.var, reader_kwargs=self.reader_kwargs)
 
         if self.data is None:
             raise ValueError(f"Variable {self.var} not found in the data. " "Check the variable name and the data source.")
         # Get the xr.DataArray to be aligned with the formula code
         self.data = self.data[self.var]
-        self.data = self.data.sel(time=slice(self.startdate, self.enddate))
 
         # Customization of the data, expecially needed for formula
         if self.units is not None:
@@ -187,6 +186,8 @@ class BaseMixin(Diagnostic):
         # In order to have a catalog entry we want to have a key region even in the global case
         region = self.region.replace(" ", "").lower() if self.region is not None else "global"
         extra_keys.update({"region": region})
+        extra_keys.update({"startdate": self.startdate})
+        extra_keys.update({"enddate": self.enddate})
 
         # self.logger.info('Saving %s data for %s to netcdf in %s', str_freq, diagnostic_product, outputdir)
         self.logger.info("Saving output data for %s to netcdf in %s", diagnostic_product, self.outputdir)
