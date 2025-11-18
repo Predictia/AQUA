@@ -1,10 +1,11 @@
 import pytest
 import xarray as xr
 import numpy as np
+import matplotlib.pyplot as plt
 from aqua.diagnostics.histogram import PlotHistogram
+from conftest import DPI, LOGLEVEL
 
-loglevel = "DEBUG"
-
+loglevel = LOGLEVEL
 
 @pytest.mark.diagnostics
 class TestPlotHistogram:
@@ -100,6 +101,7 @@ class TestPlotHistogram:
         assert fig is not None
         assert ax is not None
         assert len(ax.lines) == 1
+        plt.close(fig)
 
     def test_plot_with_ref_and_smooth(self):
         """Test plotting with reference and smoothing"""
@@ -119,6 +121,7 @@ class TestPlotHistogram:
         assert fig is not None
         assert ax is not None
         assert len(ax.lines) == 2  # data + ref
+        plt.close(fig)
 
     def test_run_complete(self, tmp_path):
         """Test complete run method"""
@@ -132,7 +135,7 @@ class TestPlotHistogram:
         plotter.run(
             outputdir=str(tmp_path),
             rebuild=True,
-            dpi=100,
+            dpi=DPI,
             format='png',
             smooth=True
         )
