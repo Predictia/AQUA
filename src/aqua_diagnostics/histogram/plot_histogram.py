@@ -1,6 +1,6 @@
 from aqua.graphics import plot_histogram
 from aqua.logger import log_configure
-from aqua.util import to_list
+from aqua.util import to_list, DEFAULT_REALIZATION
 from aqua.diagnostics.core import OutputSaver
 
 
@@ -37,6 +37,7 @@ class PlotHistogram():
     def get_data_info(self):
         """Extract metadata from data arrays."""
         self.catalogs, self.models, self.exps = [], [], []
+        self.realizations = []
         self.region = None
         self.short_name = None
         self.standard_name = None
@@ -49,6 +50,14 @@ class PlotHistogram():
                 self.catalogs.append(data_item.AQUA_catalog)
                 self.models.append(data_item.AQUA_model)
                 self.exps.append(data_item.AQUA_exp)
+
+                # Extract realization if available
+                if hasattr(data_item, 'AQUA_realization'):
+                    self.realizations.append(data_item.AQUA_realization)
+                    self.logger.debug(f'Extracted realization: {data_item.AQUA_realization}')
+                else:
+                    self.realizations.append(DEFAULT_REALIZATION)
+                    self.logger.debug(f'No realization found in data, using default: {DEFAULT_REALIZATION}')
 
                 # Extract region if not already set
                 if self.region is None and hasattr(data_item, 'AQUA_region'):
@@ -65,6 +74,7 @@ class PlotHistogram():
                     self.units = getattr(data_item.center_of_bin, 'units', None)
         
         self.logger.debug(f'Extracted metadata for {len(self.models)} datasets: {list(zip(self.models, self.exps))}')
+        self.logger.debug(f'Extracted realizations: {self.realizations}')
         self.logger.debug(f'Extracted region: {self.region}')
 
     def set_data_labels(self):
@@ -202,6 +212,12 @@ class PlotHistogram():
             'exp': getattr(self, 'exps', ['unknown_exp'])[0]
         }
         
+        # Add realization
+        if self.realizations:
+            metadata['realization'] = self.realizations[0]
+            self.logger.debug(f'Using realization for plot filename: {self.realizations[0]}')
+
+        # Use class attributes
         var = getattr(self, 'short_name', None) or getattr(self, 'standard_name', None)
         region = self.region
 
