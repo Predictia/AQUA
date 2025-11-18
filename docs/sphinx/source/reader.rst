@@ -70,15 +70,16 @@ This will return a list of all the sources available in the catalog, listed by m
     Both the ``inspect_catalog()`` and the ``catalog()`` functions will scan automatically the last catalog installed.
     If you want to target a specific catalog, you can pass the ``catalog_name`` keyword.
 
-For more extensive catalog exploration, you can use the ``show_catalog_content()`` method from the ``ConfigPath`` class.
-This method scans catalog(s) by reading YAML files directly and displays the model/exp/source structure.
+For more extensive catalog exploration, you can use the ``show_catalog_content()`` function.
+This function scans catalog(s) by reading YAML files directly and displays the model/exp/source structure.
 It uses intake to handle path resolution automatically and provides more control over which catalogs and entries to display.
+
+The simplest way to use it is:
 
 .. code-block:: python
 
-    from aqua.util.config import ConfigPath
-    config = ConfigPath()
-    results = config.show_catalog_content()
+    from aqua import show_catalog_content
+    results = show_catalog_content()
 
 This will scan all available catalogs and output at the info level a dictionary with catalog names and nested values.
 You can also filter by specific catalog(s), model, experiment, or source:
@@ -86,10 +87,20 @@ You can also filter by specific catalog(s), model, experiment, or source:
 .. code-block:: python
 
     # Scan specific catalog(s)
-    results = config.show_catalog_content(catalog=['ci'])
+    results = show_catalog_content(catalog=['ci'])
     
     # Filter by model
-    results = config.show_catalog_content(model='IFS-NEMO')
+    results = show_catalog_content(model='IFS-NEMO')
+
+.. note::
+    The ``show_catalog_content()`` function is a convenience wrapper that handles ``ConfigPath`` initialization internally.
+    If you need more control over the configuration, you can still use the method directly from the ``ConfigPath`` class:
+    
+    .. code-block:: python
+    
+        from aqua.util.config import ConfigPath
+        config = ConfigPath(loglevel='info')
+        results = config.show_catalog_content()
 
 Reader basic usage
 ^^^^^^^^^^^^^^^^^^
