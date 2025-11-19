@@ -22,6 +22,7 @@ AQUA core complete list:
 - Updated SSH diagnotic (#1842)
 
 AQUA diagnostics complete list:
+- Biases: results are stored in memory before netcdf saving and plotting (#2481)
 - LatLonProfiles: Documentation (#2442)
 - Include the correct realization in output names for all diagnostics (#2457)
 - Histogram: new Histogram diagnostic tool (#2372)
