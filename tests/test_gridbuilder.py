@@ -8,8 +8,12 @@ from aqua.gridbuilder.gridentrymanager import GridEntryManager
 from aqua.configurer import ConfigPath
 from aqua.util import load_yaml
 
+pytestmark = [
+    pytest.mark.aqua,
+    pytest.mark.xdist_group(name="gridbuilder")
+]
 
-@pytest.mark.aqua
+
 class TestGridBuilder:
     """Test the GridBuilder class."""
     grid_dir = f'{ConfigPath().configdir}/grids'
@@ -72,7 +76,6 @@ class TestGridBuilder:
         subprocess.run(command, check=True)
 
 
-@pytest.mark.aqua
 class TestGridEntryManager:
     """Test the GridEntryManager class."""
     @pytest.mark.parametrize(
@@ -123,9 +126,3 @@ class TestGridEntryManager:
         assert block['cdo_options'] == '-f nc'
         assert block['remap_method'] == 'bil'
         assert block['path']['depth'] == 'orca2_oce_depth_v1.nc'
-
-        
-
-
-
-
