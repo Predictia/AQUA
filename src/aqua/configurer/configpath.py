@@ -1,29 +1,34 @@
 """Catalog configuration helpers for AQUA."""
 import os
-import platform
+#import platform
 import intake
 
 from aqua.util.util import to_list
 from aqua.util.yaml import load_yaml
-from .locator import ConfigLocator
 from aqua.logger import log_configure
+from .locator import ConfigLocator
+
 
 
 class ConfigPath():
     """
     A class to manage the configuration path and directory robustly, including
     handling and browsing across multiple catalogs.
-
-    Attributes:
-        filename (str): The name of the configuration file. Defaults to 'config-aqua.yaml'.
-        configdir (str): The directory where the configuration file is located.
-                         If not provided, it is determined by the `get_config_dir` method.
-        catalog (str): The first catalog from the list of available catalogs, or None if
-                       no catalogs are available.
     """
 
     def __init__(self, configdir=None, filename='config-aqua.yaml',
                  catalog=None, loglevel='warning', locator=None):
+        """
+        Initialize the ConfigPath instance.
+        Args:
+            configdir (str | None): The directory where the configuration file is located.
+                                        If None, it is determined by the `get_config_dir` method.
+            filename (str): The name of the configuration file. Defaults to 'config-aqua.yaml'.
+            catalog (str | list | None): Specific catalog(s) to use. If None,
+                                        all available catalogs are considered.
+            loglevel (str): The logging level. Defaults to 'warning'.
+            locator (ConfigLocator | None): An optional ConfigLocator instance.
+        """
 
         # set up logger
         self.logger = log_configure(log_level=loglevel, log_name='ConfigPath')
@@ -38,11 +43,10 @@ class ConfigPath():
         self.logger.debug('Configuration file found in %s', self.config_file)
         self.config_dict = load_yaml(self.config_file)
 
-        # get all the available installed catalogs
+        # if no catalog are provided, get all available
         if catalog is None:
-            self.catalog_available = to_list(self.get_catalog())
-        else:
-            self.catalog_available = to_list(catalog)
+            catalog = self.get_catalog()
+        self.catalog_available = to_list(catalog)
         self.logger.debug('Available catalogs are %s', self.catalog_available)
 
         # set the catalog as the first available and get all configurations
@@ -212,40 +216,43 @@ class ConfigPath():
 
         base = load_yaml(self.config_file)
         # if we do not know the machine we assume is "unknown"
-        self.machine = 'unknown'
+        machine = 'unknown'
         # if the configuration file has a machine entry, use it
         if 'machine' in base:
-            self.machine = base['machine']
-            self.logger.debug('Machine found in configuration file, set to %s', self.machine)
+            self.logger.debug('Machine found in configuration file, set to %s', machine)
+            return base['machine']
+        
+        # warning for unknown machine
+        self.logger.warning('No machine entry found in configuration file, set to %s', machine)
+        return machine
+    
         # if the entry is auto, or the machine unknown, try autodetection
-        if self.machine in ['auto', 'unknown']:
-            self.logger.debug('Machine is %s, trying to self detect', self.machine)
-            self.machine = self._auto_detect_machine()
-        return self.machine
+        # if self.machine in ['auto', 'unknown']:
+        #     self.logger.debug('Machine is %s, trying to self detect', self.machine)
+        #     self.machine = self._auto_detect_machine()
 
+    # def _auto_detect_machine(self):
+    #     """Tentative method to identify the machine from the hostname"""
 
-    def _auto_detect_machine(self):
-        """Tentative method to identify the machine from the hostname"""
+    #     platform_name = platform.node()
 
-        platform_name = platform.node()
+    #     if os.getenv('GITHUB_ACTIONS'):
+    #         self.logger.debug('GitHub machine identified!')
+    #         return 'github'
 
-        if os.getenv('GITHUB_ACTIONS'):
-            self.logger.debug('GitHub machine identified!')
-            return 'github'
+    #     platform_dict = {
+    #         'uan': 'lumi',
+    #         'levante': 'levante',
+    #     }
 
-        platform_dict = {
-            'uan': 'lumi',
-            'levante': 'levante',
-        }
+    #     # Search for the dictionary key in the key_string
+    #     for key, value in platform_dict.items():
+    #         if key in platform_name:
+    #             self.logger.debug('%s machine identified!', value)
+    #             return value
 
-        # Search for the dictionary key in the key_string
-        for key, value in platform_dict.items():
-            if key in platform_name:
-                self.logger.debug('%s machine identified!', value)
-                return value
-
-        self.logger.debug('No machine identified, still unknown and set to None!')
-        return None
+    #     self.logger.debug('No machine identified, still unknown and set to None!')
+    #     return None
 
     def get_catalog_filenames(self, catalog=None):
         """
@@ -349,8 +356,8 @@ class ConfigPath():
         if not catalogs_to_scan:
             self.logger.warning('No catalogs available to scan')
             return results
-        else:
-            self.logger.info(f"Catalogs to show: {catalogs_to_scan}")
+        
+        self.logger.info(f"Catalogs to show: {catalogs_to_scan}")
 
         for cat_name in catalogs_to_scan:
             self.logger.info(f"Catalog: {cat_name}")
