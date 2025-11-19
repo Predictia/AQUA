@@ -341,13 +341,14 @@ class ConfigPath():
 
         Args:
             catalog (str | list | None): Specific catalog(s) to scan. If None, loops over all available catalogs.
-            model (str | None): Optional model filter. If provided, only shows entries for this model.
-            exp (str | None): Optional experiment filter. If provided, only shows entries for this exp.
-            source (str | None): Optional source filter. If provided, only shows entries for this source.
+            model (str | None): Optional model filter.
+            exp (str | None): Optional experiment filter.
+            source (str | None): Optional source filter.
 
         Returns:
             dict: Dictionary with catalog names as keys and nested dict structure as values.
         """
+
         self.logger = log_configure(log_level='info', log_name='ShowCatalog')
 
         results = {}
@@ -357,11 +358,10 @@ class ConfigPath():
             self.logger.warning('No catalogs available to scan')
             return results
         
-        self.logger.info(f"Catalogs to show: {catalogs_to_scan}")
+        self.logger.debug("Catalogs to show: %s", catalogs_to_scan)
 
         for cat_name in catalogs_to_scan:
-            self.logger.info(f"Catalog: {cat_name}")
-
+            # Open catalog (skip if fails)
             try:
                 catalog_file, _ = self.get_catalog_filenames(catalog=cat_name)
             except (KeyError, FileNotFoundError) as e:
@@ -371,77 +371,66 @@ class ConfigPath():
             # Use intake to open the catalog
             try:
                 cat = intake.open_catalog(catalog_file)
-            except Exception as e:
-                self.logger.warning('Error opening catalog %s: %s', cat_name, e)
+            except (KeyError, FileNotFoundError, Exception) as e:
+                self.logger.warning('Cannot open catalog %s: %s', cat_name, e)
                 continue
 
             catalog_structure = {}
-
-            # Get models from the catalog
-            models = list(cat.keys())
-            
-            # Filter by model if provided
-            if model:
-                if model not in models:
-                    self.logger.warning('Model %s not found', model)
-                    continue
-                models = [model]
+            models = [model] if model else list(cat.keys())
 
             for model_name in models:
-                self.logger.info(f"   {model_name}")
-
-                try:
-                    model_cat = cat[model_name]
-                except KeyError:
-                    self.logger.warning('Model %s not accessible in catalog %s', model_name, cat_name)
+                if model_name not in cat:
+                    self.logger.warning('Model %s not found in catalog %s', model_name, cat_name)
+                    self.logger.warning('Available models are: %s', list(cat.keys()))
                     continue
 
-                catalog_structure[model_name] = {}
-
-                # Get experiments from the model
-                try:
-                    experiments = list(model_cat.keys())
-                except (AttributeError, TypeError):
-                    self.logger.warning('Model %s has no experiments in catalog %s', model_name, cat_name)
-                    continue
-                
-                if not experiments:
-                    self.logger.warning('Model %s has no experiments in catalog %s', model_name, cat_name)
-                    continue
-
-                # Filter by experiment if provided
-                if exp:
-                    if exp not in experiments:
-                        self.logger.warning('Experiment %s not found in model %s, catalog %s', exp, model_name, cat_name)
-                        continue
-                    experiments = [exp]
+                model_cat = cat[model_name]
+                experiments = [exp] if exp else list(model_cat.keys())
 
                 for exp_name in experiments:
-                    try:
-                        exp_cat = model_cat[exp_name]
-                        self.logger.info('\tExp: %s', exp_name)
-                    except KeyError:
-                        self.logger.warning('\tExp: %s not accessible in model %s', exp_name, model_name)
+                    if exp_name not in model_cat:
+                        self.logger.warning('Experiment %s not found in model %s', exp_name, model_name)
+                        self.logger.warning('Available experiments are: %s', list(model_cat.keys()))
                         continue
 
-                    # Get sources from the experiment
+                    exp_cat = model_cat[exp_name]
                     sources = list(exp_cat.keys())
 
-                    if not sources:
-                        self.logger.warning('\tExperiment %s has no sources in model %s', exp_name, model_name)
-                        continue
-
-                    try:
-                        catalog_structure[model_name][exp_name] = sources
-                    except (AttributeError, TypeError):
-                        self.logger.warning('Experiment %s has no sources in model %s', exp_name, model_name)
-                        continue
+                    # Apply source filter if provided
+                    if source:
+                        sources = [s for s in sources if s == source]
                     
-                    for src in sources:
-                        if not source or src == source:
-                            self.logger.info(f"\t   - {src}")
+                    if sources:
+                        if model_name not in catalog_structure:
+                            catalog_structure[model_name] = {}
+                        catalog_structure[model_name][exp_name] = sources
 
             if catalog_structure:
                 results[cat_name] = catalog_structure
+                formatted_output = self.format_catalog_structure(catalog_structure, cat_name)
+                print(formatted_output)
 
         return results
+
+    @staticmethod
+    def format_catalog_structure(structure, catalog_name):
+        """Format catalog structure as a nicely aligned tree."""
+        lines = [f"\n{'='*80}", f"📁 Catalog: {catalog_name}", f"{'='*80}"]
+        
+        for model_name, experiments in sorted(structure.items()):
+            lines.append(f"\n   Model: {model_name}")
+            
+            for exp_name, sources in sorted(experiments.items()):
+                lines.append(f"     └─ Experiment: {exp_name}")
+                
+                # Format sources in columns for better readability
+                if sources:
+                    sorted_sources = sorted(sources)
+                    # Group sources in rows of 3 for compact display
+                    for i in range(0, len(sorted_sources), 3):
+                        source_group = sorted_sources[i:i+3]
+                        formatted_sources = "  ".join(f"{s:<25}" for s in source_group)
+                        lines.append(f"        ├─ {formatted_sources}")
+        
+        lines.append(f"{'='*80}\n")
+        return "\n".join(lines)
