@@ -22,7 +22,6 @@ AQUA core complete list:
 
 AQUA diagnostics complete list:
 - LatLonProfiles: Documentation (#2442)
-- Updated SSH diagnotic (#1842)
 - Include the correct realization in output names for all diagnostics (#2457)
 - Histogram: new Histogram diagnostic tool (#2372)
 - Tropical Cyclones: restore TC diagnostic functionality (#2206)
@@ -32,7 +31,7 @@ AQUA diagnostics complete list:
 - Ocean Stratification and Ocean Trend: full support for regions across the dateline (#2433)
 - Area selection full support for regions across the dateline (#2430, #2434)
 - LatLonProfiles: Documentation (#2442), adjustments on lines plotting order (#2431) and AQUA_realization management (#2421)
-
+- Updated SSH diagnotic (#1842)
 
 ## [v0.19.0]
 
