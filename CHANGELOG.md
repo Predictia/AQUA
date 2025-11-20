@@ -9,6 +9,7 @@ ClimateDT workflow modifications:
 
 Unreleased in the current development version (target v0.20.0):
 AQUA core complete list:
+- Add `console` marker (#2490)
 - The big repository split (in aqua-core and aqua-diagnostics) (#2487)
 - Parallelise tests execution using `pytest-xdist` module, centralise common fixtures to speed up tests execution time (#2402)
 - Expose `ConfigPath`and separate the resolver `ConfigLocator`. Add catalog utility `show_catalog_content` (#2469)
