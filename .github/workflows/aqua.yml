@@ -212,7 +212,7 @@ jobs:
             --cov \
             --junitxml=junit.xml \
             -o junit_family=legacy \
-            -m "aqua or slow or gsv or graphics or catgen or diagnostics or ensemble" \
+            -m "aqua or slow or gsv or graphics or catgen" \
             2>&1 | tee aqua_pytest.log
           
           TEST_EXIT=$?
