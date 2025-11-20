@@ -6,10 +6,10 @@ AQUA command line parser
 import argparse
 from aqua import __version__ as version
 from aqua import __path__ as pypath
-from aqua.cli.analysis import analysis_parser
-from aqua.cli.drop import drop_parser
-from aqua.cli.catgen import catgen_parser
-from aqua.cli.builder import builder_parser
+from aqua.console.analysis import analysis_parser
+from aqua.console.drop import drop_parser
+from aqua.console.catgen import catgen_parser
+from aqua.console.builder import builder_parser
 
 
 def parse_arguments():
