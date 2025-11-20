@@ -90,7 +90,7 @@ all = [
 ]
 
 [project.scripts]
-aqua = "aqua.cli.main:main"
+aqua = "aqua.console.main:main"
 
 [project.urls]
 homepage = "https://github.com/DestinE-Climate-DT/AQUA/"

@@ -4,12 +4,12 @@
 AQUA command line parser
 '''
 import argparse
+from importlib import resources as pypath
 from aqua import __version__ as version
-from aqua import __path__ as pypath
-from aqua.cli.analysis import analysis_parser
-from aqua.cli.drop import drop_parser
-from aqua.cli.catgen import catgen_parser
-from aqua.cli.builder import builder_parser
+from aqua.console.analysis import analysis_parser
+from aqua.console.drop import drop_parser
+from aqua.console.catgen import catgen_parser
+from aqua.console.builder import builder_parser
 
 
 def parse_arguments():
@@ -21,7 +21,7 @@ def parse_arguments():
     # Parser for the aqua main command
     parser.add_argument('--version', action='version',
                         version=f'%(prog)s v{version}', help="show AQUA version number and exit.")
-    parser.add_argument('--path', action='version', version=f'{pypath[0]}',
+    parser.add_argument('--path', action='version', version=f'{pypath.files("aqua")}',
                         help="show AQUA installation path and exit")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='Increase verbosity of the output to INFO loglevel')
