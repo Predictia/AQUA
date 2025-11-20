@@ -5,7 +5,7 @@ import os
 import pytest
 import logging
 from aqua.util import load_yaml, dump_yaml
-from aqua.cli.catgen import AquaFDBGenerator
+from aqua.console.catgen import AquaFDBGenerator
 from conftest import LOGLEVEL
 
 loglevel = LOGLEVEL

@@ -5,11 +5,10 @@ import shutil
 import sys
 import subprocess
 import pytest
-from aqua.cli.main import AquaConsole, query_yes_no
+from aqua.console.main import AquaConsole, query_yes_no
 from aqua.util import dump_yaml, load_yaml
 from aqua import __version__ as version
 from aqua import __path__ as pypath
-#from aqua.cli.diagnostic_config import diagnostic_config
 
 TESTFILE = 'testfile.txt'
 MACHINE = 'github'
