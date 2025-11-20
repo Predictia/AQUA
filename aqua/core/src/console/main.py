@@ -9,10 +9,10 @@ import shutil
 import sys
 from urllib.error import HTTPError
 import fsspec
+from importlib import resources as pypath
 
 from aqua.lock import SafeFileLock
 
-from aqua import __path__ as pypath
 from aqua import catalog as print_catalog
 from aqua.util import load_yaml, dump_yaml, load_multi_yaml
 from aqua.util import create_folder
@@ -20,19 +20,21 @@ from aqua.configurer import ConfigPath
 from aqua.logger import log_configure
 from aqua.util.util import HiddenPrints, to_list
 
-from aqua.cli.parser import parse_arguments
-from aqua.cli.analysis import analysis_execute
-from aqua.cli.drop import drop_execute
-from aqua.cli.catgen import catgen_execute
-from aqua.cli.builder import builder_execute
+from aqua.console.parser import parse_arguments
+from aqua.console.analysis import analysis_execute
+from aqua.console.drop import drop_execute
+from aqua.console.catgen import catgen_execute
+from aqua.console.builder import builder_execute
 
 
 # folder used for reading/storing catalogs
 CATPATH = 'catalogs'
 
 # directories to be installed in the AQUA config folder
-BASIC_DIRECTORIES = ['analysis', 'catgen', 'datachecker', 'data_model',
-                     'diagnostics', 'fixes', 'grids', 'styles', 'tools']
+CORE_DIRECTORIES = ['analysis', 'catgen', 'data_model',
+                    'fixes', 'grids', 'styles']
+
+DIAGNOSTIC_DIRECTORIES = ['diagnostics', 'tools']
 
 
 class AquaConsole():
@@ -42,10 +44,9 @@ class AquaConsole():
     def __init__(self):
         """The main AQUA command line interface"""
 
-        self.pypath = pypath[0]
-        # NOTE: the aqua src code is in the src/aqua folder, so we need to go up one level
-        #       to find the config folder
-        self.aquapath = os.path.join(os.path.dirname(self.pypath), '../config')
+        # NOTE: self.pypath points to $AQUA/aqua folder
+        self.pypath = pypath.files('aqua')
+        self.aquapath = os.path.join(os.path.dirname(self.pypath), 'core/config')
         self.configpath = None
         self.configfile = 'config-aqua.yaml'
         self.grids = None
@@ -194,7 +195,7 @@ class AquaConsole():
         for file in ['config-aqua.tmpl']:
             target_file = os.path.splitext(file)[0] + '.yaml'  # replace the tmpl with yaml
             self._copy_update_folder_file(f'{self.aquapath}/{file}', f'{self.configpath}/{target_file}')
-        for directory in BASIC_DIRECTORIES:
+        for directory in CORE_DIRECTORIES:
             self._copy_update_folder_file(os.path.join(self.aquapath, directory),
                                      os.path.join(self.configpath, directory))
         for directory in ['templates']:
@@ -219,7 +220,7 @@ class AquaConsole():
                 self.logger.error('%s folder does not include AQUA configuration files. Please use AQUA/config', editable)
                 os.rmdir(self.configpath)
                 sys.exit(1)
-        for directory in BASIC_DIRECTORIES:
+        for directory in CORE_DIRECTORIES:
             self._copy_update_folder_file(f'{editable}/{directory}', f'{self.configpath}/{directory}', link=True)
 
         for directory in ['templates']:
@@ -273,7 +274,7 @@ class AquaConsole():
         self._list_folder(cdir)
 
         if args.all:
-            for content in BASIC_DIRECTORIES:
+            for content in CORE_DIRECTORIES:
                 print(f'AQUA current installed {content} in {self.configpath}:')
                 self._list_folder(os.path.join(self.configpath, content))
 
@@ -588,7 +589,7 @@ class AquaConsole():
                 self._update_catalog(args.catalog)
         else:
             self.logger.info('Updating AQUA installation...')
-            for directory in BASIC_DIRECTORIES:
+            for directory in CORE_DIRECTORIES:
                 self._copy_update_folder_file(os.path.join(self.aquapath, directory),
                                          os.path.join(self.configpath, directory),
                                          update=True)
