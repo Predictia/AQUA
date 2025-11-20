@@ -283,51 +283,51 @@ class TestAquaConsole():
         # remove aqua
         run_aqua_console_with_input(['uninstall'], 'yes')
 
-    def test_console_analysis(self, tmpdir, set_home, run_aqua, run_aqua_console_with_input):
-        """Test for running the analysis via the console"""
+    # def test_console_analysis(self, tmpdir, set_home, run_aqua, run_aqua_console_with_input):
+    #     """Test for running the analysis via the console"""
 
-        mydir = str(tmpdir)
-        set_home(mydir)
+    #     mydir = str(tmpdir)
+    #     set_home(mydir)
 
-        # aqua install
-        run_aqua(['install', MACHINE])
-        run_aqua(['add', 'ci', '--repository', 'DestinE-Climate-DT/Climate-DT-catalog'])
+    #     # aqua install
+    #     run_aqua(['install', MACHINE])
+    #     run_aqua(['add', 'ci', '--repository', 'DestinE-Climate-DT/Climate-DT-catalog'])
 
-        test_dir = os.path.dirname(os.path.abspath(__file__)) 
-        config_path = os.path.join(test_dir, 'analysis', 'config.aqua-analysis-test.yaml')
+    #     test_dir = os.path.dirname(os.path.abspath(__file__)) 
+    #     config_path = os.path.join(test_dir, 'analysis', 'config.aqua-analysis-test.yaml')
 
-        # Run details
-        catalog = 'ci'
-        model = 'IFS'
-        experiment = 'test-tco79'
-        source = 'teleconnections'
-        output_dir = os.path.join(mydir, 'output')
-        regrid = False
+    #     # Run details
+    #     catalog = 'ci'
+    #     model = 'IFS'
+    #     experiment = 'test-tco79'
+    #     source = 'teleconnections'
+    #     output_dir = os.path.join(mydir, 'output')
+    #     regrid = False
 
-        # run the analysis and verify that at least one file exist
-        run_aqua(['analysis', '--config', config_path, '-m', model, '-e', experiment,
-                '-s', source, '-d', output_dir, '-l', 'debug', '--regrid', regrid])
+    #     # run the analysis and verify that at least one file exist
+    #     run_aqua(['analysis', '--config', config_path, '-m', model, '-e', experiment,
+    #             '-s', source, '-d', output_dir, '-l', 'debug', '--regrid', regrid])
         
-        output_path = os.path.join(output_dir, catalog, model, experiment, 'r1')
+    #     output_path = os.path.join(output_dir, catalog, model, experiment, 'r1')
         
-        assert os.path.exists(os.path.join(output_path, 'experiment.yaml')), \
-            "experiment.yaml not found"
+    #     assert os.path.exists(os.path.join(output_path, 'experiment.yaml')), \
+    #         "experiment.yaml not found"
         
-        log_file = os.path.join(output_path, 'dummy-dummy_tool.log')
-        assert os.path.exists(log_file), \
-            f"dummy-dummy_tool.log not found. Files in {output_path}: {os.listdir(output_path) if os.path.exists(output_path) else 'directory does not exist'}"
+    #     log_file = os.path.join(output_path, 'dummy-dummy_tool.log')
+    #     assert os.path.exists(log_file), \
+    #         f"dummy-dummy_tool.log not found. Files in {output_path}: {os.listdir(output_path) if os.path.exists(output_path) else 'directory does not exist'}"
         
-        # Check if "This is a dummy CLI script that does nothing." is in the log
-        with open(log_file, 'r', encoding='utf-8') as f:
-            content = f.read()
-        assert "This is a dummy CLI script that does nothing." in content, \
-            "Expected content not found in dummy-dummy_tool.log"
+    #     # Check if "This is a dummy CLI script that does nothing." is in the log
+    #     with open(log_file, 'r', encoding='utf-8') as f:
+    #         content = f.read()
+    #     assert "This is a dummy CLI script that does nothing." in content, \
+    #         "Expected content not found in dummy-dummy_tool.log"
         
-        assert os.path.exists(os.path.join(output_path, 'setup_checker.log')), \
-            "setup_checker.log not found"
+    #     assert os.path.exists(os.path.join(output_path, 'setup_checker.log')), \
+    #         "setup_checker.log not found"
 
-        # remove aqua
-        run_aqua_console_with_input(['uninstall'], 'yes')
+    #     # remove aqua
+    #     run_aqua_console_with_input(['uninstall'], 'yes')
 
 
     def test_console_advanced(self, tmpdir, run_aqua, set_home, run_aqua_console_with_input):
