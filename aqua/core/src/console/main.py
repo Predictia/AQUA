@@ -218,8 +218,6 @@ class AquaConsole():
         print("Installing AQUA with a link from ", editable, " to ", self.configpath)
         for file in ['config-aqua.tmpl']:
             target_file = os.path.splitext(file)[0] + '.yaml'
-            print(f'Target file: {target_file}')
-            print(f'Checking for file: {os.path.join(editable, file)}')
             if os.path.isfile(os.path.join(editable, file)):
                 self._copy_update_folder_file(f'{self.aquapath}/{file}', f'{self.configpath}/{target_file}')
             else:
