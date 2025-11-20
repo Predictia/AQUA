@@ -31,10 +31,10 @@ from aqua.console.builder import builder_execute
 CATPATH = 'catalogs'
 
 # directories to be installed in the AQUA config folder
-CORE_DIRECTORIES = ['analysis', 'catgen', 'data_model',
+CORE_DIRECTORIES = ['catgen', 'data_model',
                     'fixes', 'grids', 'styles']
 
-DIAGNOSTIC_DIRECTORIES = ['diagnostics', 'tools']
+DIAGNOSTIC_DIRECTORIES = ['analysis', 'diagnostics', 'tools']
 
 
 class AquaConsole():
@@ -46,7 +46,7 @@ class AquaConsole():
 
         # NOTE: self.pypath points to $AQUA/aqua folder
         self.pypath = pypath.files('aqua')
-        self.aquapath = os.path.join(os.path.dirname(self.pypath), 'core/config')
+        self.aquapath = os.path.join(os.path.dirname(self.pypath), 'config')
         self.configpath = None
         self.configfile = 'config-aqua.yaml'
         self.grids = None
