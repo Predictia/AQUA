@@ -8,11 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 ClimateDT workflow modifications:
 
 Unreleased in the current development version (target v0.20.0):
-
+AQUA core complete list:
 - The big repository split (in aqua-core and aqua-diagnostics) (#2487)
 - Parallelise tests execution using `pytest-xdist` module, centralise common fixtures to speed up tests execution time (#2402)
-
-AQUA core complete list:
 - Expose `ConfigPath`and separate the resolver `ConfigLocator`. Add catalog utility `show_catalog_content` (#2469)
 - Simplify grid files by removing `vert_coord` which is detected from the path dictionary (#2276)
 - Remove some warnings and adapt the code to the incoming standards (#2436)
