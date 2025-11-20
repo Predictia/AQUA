@@ -14,6 +14,7 @@ DROP_PATH_DAILY = 'ci/IFS/test-tco79/r1/r100/daily/mean/europe'
 # pytestmark groups tests that run sequentially on the same worker to avoid conflicts
 pytestmark = [
     pytest.mark.aqua,
+    pytest.mark.console,
     pytest.mark.xdist_group(name="dask_operations")
 ]
 
