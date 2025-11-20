@@ -9,7 +9,7 @@ on:
   #     - v*
 
 env:
-  IMAGE_NAME: aqua
+  IMAGE_NAME: aqua-core
 jobs:
   build:
     runs-on: ubuntu-latest
