@@ -120,6 +120,7 @@ markers = [
     "graphics: tests which deal with graphics",
     "gsv: mark test that requires ECMWF FDB libraries",
     "catgen: mark test for catalog generator",
+    "console: mark test for console",
 ]
 
 [tool.coverage.run]

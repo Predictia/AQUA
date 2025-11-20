@@ -13,6 +13,11 @@ from aqua import __path__ as pypath
 TESTFILE = 'testfile.txt'
 MACHINE = 'github'
 
+pytestmark = [
+    pytest.mark.aqua,
+    pytest.mark.console
+]
+
 def set_args(args):
     """Helper function to simulate command line arguments"""
     sys.argv = ['aqua'] + args
