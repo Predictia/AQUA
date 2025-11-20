@@ -204,20 +204,26 @@ class AquaConsole():
         os.makedirs(f'{self.configpath}/{CATPATH}', exist_ok=True)
 
     def _install_editable(self, editable):
-        """Linking the installation file in editable
+        """
+        Linking the installation file in editable mode.
+        The editable folder must be the main level of the AQUA repository.
 
         Args:
             editable (str): the path where to link the AQUA installation files
         """
 
         editable = os.path.abspath(editable)
+        self.logger.info('Installing AQUA in editable mode from %s', editable)
+        editable = os.path.join(editable, 'aqua', 'core', 'config')
         print("Installing AQUA with a link from ", editable, " to ", self.configpath)
         for file in ['config-aqua.tmpl']:
             target_file = os.path.splitext(file)[0] + '.yaml'
+            print(f'Target file: {target_file}')
+            print(f'Checking for file: {os.path.join(editable, file)}')
             if os.path.isfile(os.path.join(editable, file)):
                 self._copy_update_folder_file(f'{self.aquapath}/{file}', f'{self.configpath}/{target_file}')
             else:
-                self.logger.error('%s folder does not include AQUA configuration files. Please use AQUA/config', editable)
+                self.logger.error('%s folder does not include AQUA configuration files. Please use AQUA', editable)
                 os.rmdir(self.configpath)
                 sys.exit(1)
         for directory in CORE_DIRECTORIES:
