@@ -9,6 +9,7 @@ Unreleased in the current development version (target v0.21.0):
 
 AQUA core complete list:
 - Lumi install for core only (#2502)
+- Introducing preliminary support for aqua-diagnostics installation with console (#2503)
 - Restructuring the folder structure of core removing the src (#2499) 
 - The big repository split (in aqua-core and aqua-diagnostics) (#2487)
 
