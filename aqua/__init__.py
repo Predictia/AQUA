@@ -3,7 +3,6 @@
 # Extend namespace to allow aqua-diagnostics to contribute
 __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
-# Import core functionality for backward compatibility
 from .core import *
 from .core import __version__, __all__
 
