@@ -5,5 +5,3 @@ __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
 from .core import *
 from .core import __version__, __all__
-
-__all__ = __all__  # Re-export from core
