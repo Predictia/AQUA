@@ -18,3 +18,4 @@ dependencies:
   - hdf5 #explicit to avoid issues with pypi
   - intake-esm
   - imagemagick
+  - healpy
