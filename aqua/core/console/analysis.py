@@ -11,7 +11,7 @@ from aqua.core.util import load_yaml, create_folder, format_realization
 from aqua.core.configurer import ConfigPath
 from aqua.core.util import expand_env_vars
 from aqua.core.logger import log_configure
-from aqua import __path__ as aqua_pkg_path
+from importlib import resources as pypath
 
 
 def analysis_parser(parser=None):
@@ -137,7 +137,7 @@ def analysis_execute(args):
     run_checker = config.get('job', {}).get('run_checker', False)
     if run_checker:
         logger.info("Running setup checker")
-        checker_script_path = os.path.join(aqua_pkg_path[0], "core", "analysis", "cli_checker.py")
+        checker_script_path = os.path.join(pypath.files('aqua.core'), 'analysis', 'cli_checker.py')
         output_log_path = os.path.expandvars(f"{output_dir}/setup_checker.log")
         command = f"python {checker_script_path} --model {model} --exp {exp} --source {source} -l {loglevel} --yaml {output_dir}"
         if regrid:
