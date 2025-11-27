@@ -20,9 +20,6 @@ Welcome to AQUA's documentation!
    graphics
    other_components
    container
-   stateoftheart_diagnostics/index
-   frontier_diagnostics/index
-   new_diagnostics/index
    adding_data
    catalog_generator
    drop
