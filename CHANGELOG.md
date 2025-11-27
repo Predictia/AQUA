@@ -6,10 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 ## [Unreleased]
 
 Unreleased in the current development version (target v0.21.0):
-
 - Re-usable workflow to be shared across multiple github actions (#2519)
 - Lumi install for core only (#2502)
-- AQUA-core and AQUA-diagnostic coupling (#2504)
+- AQUA-core and AQUA-diagnostic coupling (#2504, #2511)
 - Introducing preliminary support for aqua-diagnostics installation with console (#2503, #2507)
 - Unpacking of console class in multiple smaller mixin classes (#2507)
 - Restructuring the folder structure of core removing the src (#2499) 
