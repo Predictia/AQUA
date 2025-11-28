@@ -59,11 +59,12 @@ jobs:
     
     - name: Verify version matches tag
       run: |
-        # Install package locally to get dynamic version
-        pip install -e .
+        # Debug: show current directory and files
+        pwd
+        ls -la aqua/core/version.py || echo "File not found!"
         
-        # Extract version from installed package
-        PACKAGE_VERSION=$(python -c "import aqua; print(aqua.__version__)")
+        # Extract version from version.py
+        PACKAGE_VERSION=$(python -c "exec(open('aqua/core/version.py').read()); print(__version__)")
         TAG_VERSION=${{ inputs.tag }}
         
         # Remove 'v' prefix if present
