@@ -57,12 +57,11 @@ In a production environment instead, AQUA can be used to retrieve only variables
 
   Data are retrieved as an xarray object, specifically a ``xarray.Dataset``, even in the case we asked for a single variable.
 
-We can now interpolate the data to a 1°x1° grid and plot a timestep of it, all with AQUA tools.
+We can plot the data to see what we have directly from the Healpix grid.
 
 .. code-block:: python
 
-    data_2t_r = reader.regrid(data['2t']) # This is an xarray.DataArray
-    data_2t_r.isel(time=0).aqua.plot_single_map()
+    data['2t'].isel(time=0).aqua.plot_single_map()
 
 We obtain as image:
 
@@ -70,20 +69,37 @@ We obtain as image:
     :width: 500
     :align: center
 
+We can also interpolate the data to a 1°x1° grid and plot a timestep of it, all with AQUA tools.
+
+.. code-block:: python
+
+    data_2t_r = reader.regrid(data['2t']) # This is an xarray.DataArray
+    data_2t_r.isel(time=0).aqua.plot_single_map()
+
 We used the regrid method to interpolate the data to a 1°x1° grid, with preprocessing of the weights already done
 while initializating the Reader.
 We then used the ``plot_single_map()`` function to plot the first timestep of the data.
 This function has been used as accessor but can also be called as a standalone function.
 See :ref:`accessors` for more information.
 
+.. note::
+
+    The regridding requires the download of auxiliary files containing the grids.
+    Please refer to :ref:`dvc` for more information on how to manage these files.
+
 We can now calculate the mean global temperature time series on the original grid.
-We will then go back to use the original data, without regridding them,
+We will use the original data, without regridding them,
 to show area evaluation capabilities of AQUA.
 
 .. code-block:: python
 
     global_mean = reader.fldmean(data['2t'].isel(time=slice(100,200)))
     global_mean.plot()
+
+.. note ::
+
+    Also for area evaluations, AQUA uses precomputed auxiliary files containing the area cells values.
+    Please refer to :ref:`dvc` for more information on how to manage these files.
 
 We obtain as image:
 
