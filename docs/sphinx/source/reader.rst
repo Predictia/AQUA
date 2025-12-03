@@ -44,34 +44,8 @@ specifically an ``xarray.Dataset``, where only the metadata are loaded in memory
 Catalog exploration
 ^^^^^^^^^^^^^^^^^^^^^
 
-To check what is available in the catalog, we can use the ``inspect_catalog()`` function.
-Three hierarchical layer structures (e.g AQUA triplet) describe each dataset.
-At the top level, there are *models* (keyword ``model``) (e.g., ICON, IFS-NEMO, IFS-FESOM, etc.). 
-Each model has different *experiments* (keyword ``exp``) and each experiment can have different *sources* (keyword ``source``).
-
-Calling, for example:
-
-.. code-block:: python
-
-    from aqua import inspect_catalog
-    inspect_catalog(model='CERES')
-
-will return experiments available in the catalog for model CERES.
-
-.. warning::
-    The ``inspect_catalog()`` and the ``Reader`` are based on the catalog and AQUA path configuration.
-    If you don't find a source you're expecting, please check these are correctly set (see :ref:`getting_started`).
-
-If you want to have a complete overview of the sources available in the catalog, you can use the ``catalog()`` function.
-This will return a list of all the sources available in the catalog, listed by model and experiment.
-
-.. note::
-    Both the ``inspect_catalog()`` and the ``catalog()`` functions will scan automatically the last catalog installed.
-    If you want to target a specific catalog, you can pass the ``catalog_name`` keyword.
-
-For more extensive catalog exploration, you can use the ``show_catalog_content()`` function.
+For an extensive catalog exploration, you can use the ``show_catalog_content()`` function.
 This function scans catalog(s) by reading YAML files directly and displays the model/exp/source structure.
-It uses intake to handle path resolution automatically and provides more control over which catalogs and entries to display.
 
 The simplest way to use it is:
 
@@ -101,6 +75,12 @@ You can also filter by specific catalog(s), model, experiment, or source:
         config = ConfigPath(loglevel='info')
         results = config.show_catalog_content()
 
+.. note::
+    Other two functions are available for catalog exploration:
+    ``catalog()``: to get the full catalog as a nested dictionary;
+    ``inspect_catalog()``: to get a list of the matching entries for a specific model/exp/source triplet.
+    Both will be soon deprecated in favour of the ``show_catalog_content()`` function.
+
 Reader basic usage
 ^^^^^^^^^^^^^^^^^^
 
@@ -115,26 +95,18 @@ The basic call to the ``Reader`` is:
 
 This will return a ``Reader`` object that can be used to access the data.
 The ``retrieve()`` method will return an ``xarray.Dataset`` to be used for further processing.
+The ``catalog``, differently from the ``model``, ``exp`` and ``source`` arguments, is optional.
+However, if the triplet is not unique across catalogs, the ``Reader`` will guess the correct catalog,
+so it is suggested to always specify it when possible.
 
-.. note::
-    The basic call enables fixer, area and time average functionalities, but no regridding or streaming.
-    To have a complete overview of the available options, please check the :doc:`api_reference`.
+The basic call enables fixer, area and time average functionalities, but no regridding or streaming.
+To have a complete overview of the available options, please check the :doc:`api_reference`.
 
 If some information about the data is needed, it is possible to use the ``info()`` method of the ``Reader`` class.
 
 .. warning::
     Every ``Reader`` instance carries information about the grids and fixes of the retrieved data.
     If you're retrieving data from many sources, please instantiate a new ``Reader`` for each source.
-
-
-Since version v0.10, multiple catalogs are supported. AQUA is designed to browse all the sources to match the triplet requested
-by the users, but things can be speed up if we target a specific catalog. This can be done by passing the ``catalog`` kwargs. 
-
-.. code-block:: python
-
-    from aqua import Reader
-    reader = Reader(model='IFS-NEMO', exp='historical-1990', source='lra-r100-monthly', catalog='climatedt-phase1')
-    data = reader.retrieve()
 
 Dask and streaming capabilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
