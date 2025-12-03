@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from smmregrid import GridInspector
-from smmregrid import GridInspector
 from aqua.logger import log_configure
 from aqua.util import load_yaml
 from aqua.reader import Reader
@@ -17,17 +16,17 @@ class RMSE:
         """Initialize the RMSE diagnostic class.
 
         Args:
-            config: Configuration for the RMSE diagnostic. Can be either a path to a YAML file
-                   or a dictionary containing the configuration.
-            loglevel (str, optional): Logging level. Defaults to 'WARNING'.
+            config: Configuration for the RMSE diagnostic.
+            loglevel (str): Logging level. Defaults to 'WARNING'.
 
         Raises:
-            ValueError: If startdate or enddate are not provided in the configuration.
+            ValueError: If required configuration sections or keys are missing.
         """
         # Configure logger
         self.loglevel = loglevel
         self.logger = log_configure(self.loglevel, 'RMSE')
 
+        # Load configuration
         if isinstance(config, str):
             self.logger.debug("Reading configuration file %s", config)
             self.config = load_yaml(config)
@@ -35,34 +34,31 @@ class RMSE:
             self.logger.debug("Configuration is a dictionary")
             self.config = config 
 
-        # Check if startdate and enddate are provided
+        # Get start and end dates
         self.startdate = self.config.get('dates', {}).get('startdate')
         self.enddate = self.config.get('dates', {}).get('enddate')
 
+        # Check if start and end dates are provided
         if self.startdate is None or self.enddate is None:
             self.logger.error("Both startdate and enddate must be provided")
             raise ValueError("Both startdate and enddate must be provided")
 
         # Initialize the Reader class
-        self._reader() 
+        self._reader()
 
     def _reader(self):
-        """
-        The reader method. This method initializes the Reader class for both reference
-        and main data.
-        """
-
-        # Get the data configs
+        """Initializes the Reader class for both reference and main data."""
+        # Get the data configuration
         config_data_ref = self.config.get('data_ref', {})
         config_data = self.config.get('data', {})
 
-        # Check if necessary keys exist within the data configs
+        # Check if necessary keys exist within the data configuration
         if not all(k in config_data_ref for k in ['catalog', 'model', 'exp', 'source', 'regrid', 'fix']):
              self.logger.warning("Reference data configuration ('data_ref') might be incomplete.")
         if not all(k in config_data for k in ['catalog', 'model', 'exp', 'source', 'regrid', 'fix']):
              self.logger.warning("Main data configuration ('data') might be incomplete.")
 
-        # Pass only existing keys
+        # Initialize the Reader class for reference data
         self.reader_data_ref = Reader(
             catalog=config_data_ref.get('catalog'),
             model=config_data_ref.get('model'),
@@ -74,6 +70,7 @@ class RMSE:
             enddate=self.enddate,
             loglevel=self.loglevel
         )
+
         self.reader_data = Reader(
             catalog=config_data.get('catalog'),
             model=config_data.get('model'),
@@ -85,29 +82,30 @@ class RMSE:
             enddate=self.enddate,
             loglevel=self.loglevel
         )
+
         self.logger.debug('Reader classes initialized for data_ref and data')
 
     def retrieve(self):
         """
         Retrieves data for all variables specified in the configuration
-        from both the reference and main data sources using the initialized readers.
+        from both the reference and main data sources using the initialized Reader classes.
         Stores retrieved data in self.retrieved_data_ref and self.retrieved_data dictionaries.
         Handles single levels, lists of levels, and surface variables.
         
         If regridding is configured in the Reader instances (via the 'regrid' parameter),
         the data will be automatically regridded to the target grid after retrieval.
         """
-
         self.retrieved_data_ref = {}
         self.retrieved_data = {}
         variables_to_process = self.config.get('variables', [])
 
         if not variables_to_process:
-            self.logger.warning("No 'variables' section found in the configuration. Nothing to retrieve.")
-            return # Exit if no variables are defined
+            self.logger.warning("No variables section found in the configuration. Nothing to retrieve.")
+            return
 
         self.logger.info("Starting data retrieval...")
 
+        # Process each variable
         for var_info in variables_to_process:
             var_name = var_info.get('name')
             if not var_name:
@@ -128,24 +126,28 @@ class RMSE:
                 continue
 
             for level in levels_to_iterate:
-                # Determine the key for storing data (e.g., 'q_85000' or '2t')
+                # Determine the key (e.g., 'q_85000' or '2t')
                 data_key = f"{var_name}_{level}" if level is not None else var_name
                 log_msg_suffix = f" at level {level}" if level is not None else " (surface)"
 
-                # Arguments for reader.retrieve
+                # Arguments for Reader.retrieve
                 retrieve_args = {'var': var_name}
                 if level is not None:
                     retrieve_args['level'] = level
 
-                # Retrieve Reference Data
+                # Retrieve reference data
                 try:
                     self.logger.debug(f"Retrieving reference data for {var_name}{log_msg_suffix}")
                     data_ref = self.reader_data_ref.retrieve(**retrieve_args)
 
+                    # TODO: Generalize this to handle other pressure levels naming conventions
+                    # This works now under the assumption that the pressure level is in the coordinates
+                    # (Now I fullfill this assumption by mapping the level to plev in the fixer if necessary)
                     if level is not None and 'plev' in data_ref.coords:
                         data_ref = data_ref.isel(plev=0, drop=True)
 
                     # Apply regridding if configured
+                    # If regrid=False AQUA sets tgt_grid_name to None
                     if self.reader_data_ref.tgt_grid_name is not None:
                         self.logger.debug(f"Applying regridding to reference data for {var_name}{log_msg_suffix}")
                         data_ref = self.reader_data_ref.regrid(data_ref)
@@ -165,6 +167,7 @@ class RMSE:
                         data = data.isel(plev=0, drop=True)
 
                     # Apply regridding if configured
+                    # If regrid=False AQUA sets tgt_grid_name to None
                     if self.reader_data.tgt_grid_name is not None:
                         self.logger.debug(f"Applying regridding to main data for {var_name}{log_msg_suffix}")
                         data = self.reader_data.regrid(data)
@@ -182,7 +185,7 @@ class RMSE:
         if not self.retrieved_data_ref and not self.retrieved_data:
              self.logger.warning("No data was successfully retrieved for any variable.")
         else:
-             # Log the keys which now include levels
+             # Log the keys
              self.logger.info(f"Retrieved reference data for keys: {list(self.retrieved_data_ref.keys())}")
              self.logger.info(f"Retrieved main data for keys: {list(self.retrieved_data.keys())}")
              
@@ -193,7 +196,7 @@ class RMSE:
                  self.logger.info(f"Main data regridded to: {self.reader_data.tgt_grid_name}")
 
     @staticmethod
-    def check_and_convert_coords(data, data_ref, base_var_name): # Renamed arg for clarity
+    def check_and_convert_coords(data, data_ref, base_var_name):
         """
         Checks if latitude and longitude coordinates are of the same type between datasets.
         Converts them to float32 if they differ.
@@ -201,18 +204,18 @@ class RMSE:
         Args:
             data (xr.Dataset): First dataset to check
             data_ref (xr.Dataset): Reference dataset to check
-            base_var_name (str): The actual variable name within the datasets (e.g., 'q', '2t')
+            base_var_name (str): The variable name within the datasets (e.g., 'q', '2t')
 
         Returns:
             tuple: Processed datasets with matching coordinate types
         """
         # Check if the base variable exists in both datasets before proceeding
         if base_var_name not in data or base_var_name not in data_ref:
-             # Log or raise an error, depending on desired behavior
              print(f"Warning: Base variable '{base_var_name}' not found in one or both datasets during coordinate check.")
              return data, data_ref # Return original data if var not found
 
-        # Get coordinate names for lat/lon using the base variable name
+        # Get coordinate names for lat and lon using the base variable name
+        # TODO: Generalize this to handle other coordinate names
         try:
             lat_name = [dim for dim in data[base_var_name].dims if 'lat' in dim.lower()][0]
             lon_name = [dim for dim in data[base_var_name].dims if 'lon' in dim.lower()][0]
@@ -220,25 +223,21 @@ class RMSE:
              print(f"Warning: Could not determine lat/lon dimension names for variable '{base_var_name}'.")
              return data, data_ref
 
-
         # Check if types match
         if data[lat_name].dtype != data_ref[lat_name].dtype or data[lon_name].dtype != data_ref[lon_name].dtype:
-            # Convert both to float32
-            data = data.assign_coords({
-                lat_name: data[lat_name].astype('float32'),
-                lon_name: data[lon_name].astype('float32')
-            })
-            data_ref = data_ref.assign_coords({
-                lat_name: data_ref[lat_name].astype('float32'),
-                lon_name: data_ref[lon_name].astype('float32')
-            })
-
+            # Convert both coordinates to float32
+            data = data.assign_coords({lat_name: data[lat_name].astype('float32'),
+                                        lon_name: data[lon_name].astype('float32')})
+            data_ref = data_ref.assign_coords({lat_name: data_ref[lat_name].astype('float32'),
+                                               lon_name: data_ref[lon_name].astype('float32')})
         return data, data_ref
 
-    def _sanitize_filename_part(self, part):
+    @staticmethod
+    def _sanitize_filename_part(part):
         """Sanitizes a string part for use in a filename."""
         if not isinstance(part, str):
-            part = str(part) # Ensure it's a string
+            part = str(part)
+
         # Replace potentially problematic characters with underscores
         invalid_chars = [' ', '/', '\\', ':', '*', '?', '"', '<', '>', '|', '.'] 
         for char in invalid_chars:
@@ -264,10 +263,10 @@ class RMSE:
 
         model = self._sanitize_filename_part(data_cfg.get('model', 'model'))
         exp = self._sanitize_filename_part(data_cfg.get('exp', 'exp'))
-        source = self._sanitize_filename_part(data_cfg.get('source', 'src')) # Shorten 'source' label if needed
+        source = self._sanitize_filename_part(data_cfg.get('source', 'src'))
         model_ref = self._sanitize_filename_part(ref_cfg.get('model', 'refmodel'))
-        
         exp_ref = self._sanitize_filename_part(ref_cfg.get('exp', 'refexp'))
+
         startdate = self._sanitize_filename_part(dates_cfg.get('startdate', 'nodate'))
         enddate = self._sanitize_filename_part(dates_cfg.get('enddate', 'nodate'))
 
@@ -279,6 +278,7 @@ class RMSE:
             processed_key,
             suffix
         ]
+
         # Filter out any empty strings that might result from missing config values
         base_filename = '_'.join(filter(None, base_name_parts))
 
@@ -291,22 +291,20 @@ class RMSE:
             extension = '.nc'
         else:
             self.logger.error(f"Unknown output_type requested for filename generation: {output_type}")
-            # Return a fallback path or raise an error
-            return os.path.join('.', f"{processed_key}_{suffix}_unknown_type") # Basic fallback
+            return os.path.join('.', f"{processed_key}_{suffix}_unknown_type")
 
         # Ensure the output directory exists
         try:
             os.makedirs(output_dir, exist_ok=True)
         except OSError as e:
             self.logger.error(f"Could not create output directory {output_dir}: {e}")
-            # Fallback to current directory? Or re-raise? For now, log and continue path creation
             output_dir = '.'
 
         full_path = os.path.join(output_dir, f"{base_filename}{extension}")
         self.logger.debug(f"Generated path for {output_type} ({processed_key}, {suffix}): {full_path}")
         return full_path
 
-    def _save_figure(self, fig, processed_key, plot_type): # plot_type: 'spatial' or 'temporal'
+    def _save_figure(self, fig, processed_key, plot_type):
         """
         Saves the generated figure with a unique name based on config.
 
@@ -315,16 +313,15 @@ class RMSE:
             processed_key (str): The variable key (e.g., 'q_85000', '2t').
             plot_type (str): The type of plot ('spatial' or 'temporal').
         """
-        # Generate the unique filename using the helper method
         filename = self._generate_filename(processed_key, 'figure', f'{plot_type}_rmse')
+
         try:
             fig.savefig(filename)
             self.logger.info(f"Figure saved to {filename}")
         except Exception as e:
-            # Log the error with the specific filename that failed
             self.logger.error(f"Failed to save figure {filename}: {e}", exc_info=True)
 
-    def _save_netcdf(self, data, processed_key, data_type): # data_type: 'spatial' or 'temporal'
+    def _save_netcdf(self, data, processed_key, data_type):
         """
         Saves the generated netcdf file with a unique name based on config.
 
@@ -333,28 +330,28 @@ class RMSE:
             processed_key (str): The variable key (e.g., 'q_85000', '2t').
             data_type (str): The type of data ('spatial' or 'temporal').
         """
-        # Generate the unique filename using the helper method
         filename = self._generate_filename(processed_key, 'netcdf', f'{data_type}_rmse')
+
         try:
             data.to_netcdf(filename)
             self.logger.info(f"NetCDF data saved to {filename}")
         except Exception as e:
-            # Log the error with the specific filename that failed
             self.logger.error(f"Failed to save NetCDF {filename}: {e}", exc_info=True)
 
-    # Helper function to parse the processed key
-    def _parse_processed_key(self, processed_key):
+    @staticmethod
+    def _parse_processed_key(processed_key):
+        """Parses the processed key into base variable name and level."""
         parts = processed_key.split('_')
         level = None
         base_var_name = processed_key
+
         # Check if the last part is likely a level (numeric)
         if len(parts) > 1 and parts[-1].isdigit():
             try:
                 level = int(parts[-1])
-                base_var_name = '_'.join(parts[:-1]) # Rejoin in case var name had underscores
+                base_var_name = '_'.join(parts[:-1])
             except ValueError:
-                 # Not a simple integer level, treat whole key as base name
-                 pass # Keep defaults: level=None, base_var_name=processed_key
+                 pass
                  
         return base_var_name, level
 
@@ -373,11 +370,6 @@ class RMSE:
             save_netcdf (bool, optional): If True, saves the RMSE results as NetCDF files
                 to the configured output directory. Defaults to False.
 
-        Returns:
-            dict: A dictionary containing the RMSE results for each processed variable/level
-                combination. Keys are the processed variable names (e.g., 'q_85000', '2t')
-                and values are the corresponding xarray DataArrays containing RMSE values.
-
         Note:
             - The retrieve() method must be called before this method.
             - Only variables/levels present in both datasets will be processed.
@@ -391,12 +383,11 @@ class RMSE:
 
         # Find common keys (e.g., 'q_85000', '2t') retrieved in both datasets
         common_keys = set(self.retrieved_data.keys()) & set(self.retrieved_data_ref.keys())
-
         if not common_keys:
             self.logger.warning("No common data keys found between reference and main retrieved data. Cannot calculate RMSE.")
             return {}
 
-        results = {} # Dictionary to store results for each key
+        results = {}
 
         # Get metadata for title from config
         config_data = self.config.get('data', {})
@@ -425,7 +416,7 @@ class RMSE:
                 data, data_ref = self.check_and_convert_coords(data, data_ref, base_var_name=base_var_name)
                 self.logger.debug(f"Coordinates checked/converted for {processed_key}")
 
-                # Calculate RMSE using AQUA's temporal aggregation
+                # Calculate RMSE 
                 squared_diff = (data[base_var_name] - data_ref[base_var_name])**2
                 temporal_mean_sq = self.reader_data.timmean(squared_diff)
                 rmse = np.sqrt(temporal_mean_sq)
@@ -433,23 +424,23 @@ class RMSE:
 
                 # Plotting
                 vmin = 0 # RMSE is always non-negative
-                # Ensure the rmse DataArray is not empty before quantile calculation
+                
                 if rmse.size > 0:
                     vmax = float(rmse.quantile(0.98, skipna=True))
-                    if np.isnan(vmax): vmax = float(rmse.max(skipna=True)) # Fallback if quantile is NaN
-                    if np.isnan(vmax) or vmax <= vmin : vmax = vmin + 1.0 # Further fallback if max is also NaN or not > vmin
+                    if np.isnan(vmax): vmax = float(rmse.max(skipna=True))
+                    if np.isnan(vmax) or vmax <= vmin : vmax = vmin + 1.0 
                 else:
-                     vmax = 1.0 # Default vmax if rmse is empty
+                     vmax = 1.0
                      self.logger.warning(f"RMSE data for {processed_key} is empty or all NaN. Using default vmax=1.0.")
 
                 self.logger.debug(f"Plotting parameters for {processed_key}: vmin={vmin}, vmax={vmax}")
 
                 title_level_part = f" at level {level}" if level is not None else ""
-                title = (f"{base_var_name}{title_level_part} RMSE of {model} {exp} ({source})\n" # Use base_var_name
+                title = (f"{base_var_name}{title_level_part} RMSE of {model} {exp} ({source})\n"
                          f"relative to {model_ref} {exp_ref} ({source_ref})\n"
                          f"{self.startdate} to {self.enddate}")
 
-                fig, ax = plot_single_map(data=rmse, # Pass the calculated rmse DataArray
+                fig, ax = plot_single_map(data=rmse,
                                           return_fig=True,
                                           contour=True,
                                           title=title,
@@ -462,41 +453,39 @@ class RMSE:
                 self.logger.info(f"Spatial RMSE plot generated for {processed_key}")
 
                 # Store results using the processed key
-                results[processed_key] = (fig, ax, xr.Dataset({base_var_name: rmse})) # Store dataset with base_var_name
+                results[processed_key] = (fig, ax, xr.Dataset({base_var_name: rmse}))
 
             except Exception as e:
                 self.logger.error(f"Failed to calculate or plot spatial RMSE for key {processed_key}: {e}", exc_info=True)
-                # Clear potentially incomplete results for this key
-                if processed_key in results: del results[processed_key]
+                if processed_key in results: del results[processed_key] # Clear potentially incomplete results for this key
 
         self.logger.info("Finished spatial RMSE processing.")
 
         if save_fig:
             self.logger.info("Saving spatial RMSE figures...")
             for key, result_tuple in results.items():
-                if len(result_tuple) >= 1 and result_tuple[0] is not None: # Check if fig exists
+                if len(result_tuple) >= 1 and result_tuple[0] is not None:
                      fig_to_save = result_tuple[0]
-                     self._save_figure(fig_to_save, key, 'spatial') # Pass 'spatial' type
+                     self._save_figure(fig_to_save, key, 'spatial')
                 else:
                      self.logger.warning(f"Skipping saving figure for key {key} as no figure object was found in results.")
 
         if save_netcdf:
             self.logger.info("Saving spatial RMSE netcdf files...")
             for key, result_tuple in results.items():
-                if len(result_tuple) >= 3 and result_tuple[2] is not None: # Check if dataset exists
+                if len(result_tuple) >= 3 and result_tuple[2] is not None:
                     rmse_ds_to_save = result_tuple[2]
-                    self._save_netcdf(data=rmse_ds_to_save, processed_key=key, data_type='spatial') # Pass 'spatial' type
+                    self._save_netcdf(data=rmse_ds_to_save, processed_key=key, data_type='spatial')
                 else:
                     self.logger.warning(f"Skipping saving NetCDF for key {key} as no dataset object was found in results.")
 
-        # Return only the datasets for consistency, or modify based on actual needs
-        return {key: res[2] for key, res in results.items() if len(res) >= 3 and res[2] is not None}
+        return None
 
     def temporal_rmse(self, save_fig: bool = False, save_netcdf: bool = False):
         """
         Calculates and plots the temporal RMSE (spatially averaged) for all variables and levels retrieved.
 
-        The temporal RMSE is calculated by:
+        The temporal RMSE is calculated as follows:
         1. Taking the difference between the main and reference datasets
         2. Squaring the differences
         3. Averaging spatially over latitude and longitude
@@ -504,19 +493,9 @@ class RMSE:
         
         This gives a time series of RMSE values showing how the error varies temporally.
 
-        Parameters
-        ----------
-        save_fig : bool, optional
-            Whether to save the generated figures to disk (default is False)
-        save_netcdf : bool, optional 
-            Whether to save the RMSE data as NetCDF files (default is False)
-
-        Returns
-        -------
-        dict
-            Dictionary containing the results for each variable/level combination.
-            Keys are the processed variable names (e.g. 'q_85000' for specific humidity at 850hPa)
-            Values are tuples of (figure, axis, dataset) containing the plot and data
+        Args:
+            save_fig (bool, optional): Whether to save the generated figures to disk (default is False)
+            save_netcdf (bool, optional): Whether to save the RMSE data as NetCDF files (default is False)
         """
         self.logger.info('Calculating and plotting temporal RMSE for retrieved variables/levels.')
 
@@ -525,14 +504,14 @@ class RMSE:
              self.logger.error("Data has not been retrieved yet. Call the retrieve() method first.")
              return {}
 
-        # Find common keys (e.g., 'q_85000', '2t')
+        # Find common keys
         common_keys = set(self.retrieved_data.keys()) & set(self.retrieved_data_ref.keys())
 
         if not common_keys:
             self.logger.warning("No common data keys found between reference and main retrieved data. Cannot calculate RMSE.")
             return {}
 
-        results = {} # Dictionary to store results for each key
+        results = {}
 
         # Get metadata for title from config
         config_data = self.config.get('data', {})
@@ -561,57 +540,43 @@ class RMSE:
                 data, data_ref = self.check_and_convert_coords(data, data_ref, base_var_name=base_var_name)
                 self.logger.debug(f"Coordinates checked/converted for {processed_key}")
 
-                # Calculate RMSE using AQUA's spatial aggregation
+                # Calculate RMSE
                 squared_diff = (data[base_var_name] - data_ref[base_var_name])**2
 
-                # Identify horizontal dimensions for spatial averaging
+                # Identify horizontal dimensions for spatial averaging using GridInspector
                 horizontal_dims = []
                 try:
                     grid_types = GridInspector(squared_diff).get_gridtype()
                     if grid_types:
                         horizontal_dims = [dim for dim in grid_types[0].horizontal_dims if dim in squared_diff.dims]
                 except Exception as exc:
-                    self.logger.warning(
-                        "Could not infer horizontal dimensions for fldmean on %s: %s",
-                        processed_key,
-                        exc,
-                    )
+                    self.logger.warning(f"Could not infer horizontal dimensions for fldmean on {processed_key}: {exc}")
 
                 fldmean_kwargs = {}
                 if horizontal_dims:
                     fldmean_kwargs["dims"] = horizontal_dims
-
-                    # Synchronise the underlying FldStat horizontal dims with the data
-                    fldstat_obj = self.reader_data.tgt_fldstat or self.reader_data.src_fldstat
+                    fldstat_obj = self.reader_data.tgt_fldstat or self.reader_data.src_fldstat # Use whichever one exist
                     if fldstat_obj is not None:
                         fldstat_obj.horizontal_dims = horizontal_dims
 
                 spatial_mean_sq = self.reader_data.fldmean(squared_diff, **fldmean_kwargs)
 
-                # Ensure residual spatial dims are collapsed (e.g. ncells)
+                # Ensure spatial dims are collapsed
                 for dim in horizontal_dims:
                     if dim in spatial_mean_sq.dims:
-                        self.logger.debug(
-                            "Residual dimension %s present after fldmean for %s. Applying mean.",
-                            dim,
-                            processed_key,
-                        )
+                        self.logger.debug(f"Residual dimension {dim} present after fldmean for {processed_key}. Applying mean.")
                         spatial_mean_sq = spatial_mean_sq.mean(dim=dim)
 
                 rmse = np.sqrt(spatial_mean_sq)
-                self.logger.debug(
-                    "Temporal RMSE calculated for %s with dims %s",
-                    processed_key,
-                    rmse.dims,
-                )
+                self.logger.debug(f"Temporal RMSE calculated for {processed_key} with dims {rmse.dims}")
 
                 # Plotting
                 fig, ax = plt.subplots(figsize=(12, 6))
 
-                # Plot the rmse DataArray directly
+                # Plot the RMSE DataArray directly
                 rmse.plot(ax=ax)
 
-                # Format Time Axis
+                # Format time axis
                 time_coords = rmse['time'].values
                 if len(time_coords) > 1:
                     time_diff = np.diff(time_coords)[0]
@@ -635,7 +600,7 @@ class RMSE:
 
                 # Construct title using base_var_name and level
                 title_level_part = f" at level {level}" if level is not None else ""
-                title = (f"Temporal RMSE: {base_var_name}{title_level_part}\n" # Use base_var_name
+                title = (f"Temporal RMSE: {base_var_name}{title_level_part}\n"
                          f"{model} {exp} ({source}) vs {model_ref} {exp_ref} ({source_ref})\n"
                          f"{self.startdate} to {self.enddate}")
                 ax.set_title(title)
@@ -644,24 +609,22 @@ class RMSE:
 
                 self.logger.info(f"Temporal RMSE plot generated for {processed_key}")
 
-                # Store results using processed key, dataset contains base_var_name
+                # Store results using processed key
                 results[processed_key] = (fig, ax, xr.Dataset({base_var_name: rmse}))
 
             except Exception as e:
                 self.logger.error(f"Failed to calculate or plot temporal RMSE for key {processed_key}: {e}", exc_info=True)
-                # Clear potentially incomplete results for this key
-                if processed_key in results: del results[processed_key]
+                if processed_key in results: del results[processed_key] # Clear potentially incomplete results for this key
 
         self.logger.info("Finished temporal RMSE processing.")
 
-        # Save Figure if requested
+        # Save figure if requested
         if save_fig:
             self.logger.info("Saving temporal RMSE figures...")
             for key, result_tuple in results.items():
                 if len(result_tuple) >= 1 and result_tuple[0] is not None:
                     fig_to_save = result_tuple[0]
-                    # Note: No longer adding suffix manually here
-                    self._save_figure(fig_to_save, key, 'temporal') # Pass 'temporal' type
+                    self._save_figure(fig_to_save, key, 'temporal')
                 else:
                      self.logger.warning(f"Skipping saving figure for key {key} as no figure object was found in results.")
 
@@ -671,10 +634,8 @@ class RMSE:
             for key, result_tuple in results.items():
                  if len(result_tuple) >= 3 and result_tuple[2] is not None:
                     rmse_ds_to_save = result_tuple[2]
-                    # Note: No longer adding suffix manually here
-                    self._save_netcdf(data=rmse_ds_to_save, processed_key=key, data_type='temporal') # Pass 'temporal' type
+                    self._save_netcdf(data=rmse_ds_to_save, processed_key=key, data_type='temporal')
                  else:
                     self.logger.warning(f"Skipping saving NetCDF for key {key} as no dataset object was found in results.")
 
-        # Return only the datasets
-        return {key: res[2] for key, res in results.items() if len(res) >= 3 and res[2] is not None}
+        return None

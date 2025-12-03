@@ -1,5 +1,3 @@
-# Config file for RMSE diagnostic
-
 # Reference data
 data_ref:
   catalog: 'CMIP6_F8_phase1'

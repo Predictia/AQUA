@@ -2,7 +2,8 @@ import os
 import sys
 import argparse
 
-# Add the directory containing the diagnostic module to the Python path.
+# Add the directory containing the diagnostic module to the Python path
+# (First position in the sys.path list)
 script_dir = os.path.dirname(os.path.abspath(__file__))
 diagnostic_module_path = os.path.join("/", script_dir, "../")
 sys.path.insert(0, diagnostic_module_path)
@@ -10,18 +11,18 @@ sys.path.insert(0, diagnostic_module_path)
 def parse_arguments(args):
     """Parse command line arguments"""
 
-    parser = argparse.ArgumentParser(description='RMSE Diagnostic CLI') # Updated description
+    parser = argparse.ArgumentParser(description='RMSE Diagnostic CLI')
 
-    # Require configuration file
+    # Configuration file (required)
     parser.add_argument('-c', '--config', type=str,
                         help='YAML configuration file for the RMSE diagnostic',
                         required=True)
 
-    # Keep loglevel argument
+    # Log level
     parser.add_argument('-l', '--loglevel', type=str, default='WARNING',
                         help='Log level [default: WARNING]')
 
-    # Add flags for saving outputs
+    # Flags for saving outputs
     parser.add_argument('--save-fig', action='store_true',
                         help='Save output figures')
     parser.add_argument('--save-netcdf', action='store_true',
@@ -31,7 +32,7 @@ def parse_arguments(args):
 
 if __name__ == '__main__':
 
-    print('Running RMSE Diagnostic CLI') # Updated print message
+    print('Running RMSE Diagnostic CLI')
     args = parse_arguments(sys.argv[1:])
 
     try:
@@ -52,7 +53,7 @@ if __name__ == '__main__':
 
     logger.info('Running aqua version {}'.format(aqua_version))
 
-    # change the current directory to the one of the CLI so that relative path works
+    # Change the current directory to the one of the CLI so that relative paths work
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
     if os.getcwd() != dname:
@@ -72,7 +73,7 @@ if __name__ == '__main__':
         logger.error(f"Failed to load or parse configuration file {config_file}: {e}")
         sys.exit(1)
 
-    # RMSE Diagnostic Execution
+    # Run the RMSE diagnostic
     try:
         logger.info("Initializing RMSE diagnostic...")
         rmse_diagnostic = RMSE(config=config, loglevel=loglevel)
