@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 Unreleased in the current development version (target v0.22.0):
 
+AQUA core complete list:
+- Removed plt.close() in plotting functions (#2538)
 - Documentation aligned to the new repository structure (#2525)
 - Complete workflow for pypi version to be run once per week (#2527)
 - Add a `cleanup` class with a fixture to clean files from tests (#2526)
