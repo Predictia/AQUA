@@ -252,12 +252,12 @@ Usage
 .. option:: --startdate
 
     Start date for the DROP output (default: as the original data).
-    Accepted format: 'YYYY-MM-DD'
+    Accepted format: 'YYYY-MM-DDT00:00:00'
 
 .. option:: --enddate
 
     End date for the DROP output (default: as the original data).
-    Accepted format: 'YYYY-MM-DD'
+    Accepted format: 'YYYY-MM-DDT23:00:00'
 
 **Examples:**
 
