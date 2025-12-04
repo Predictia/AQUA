@@ -331,6 +331,48 @@ In case you plan to use Visual Studio Code, you can add a kernel pointing to the
 
     $HPCPERM/tykky/aqua/bin/python3 -m ipykernel install --user --name=<my_containerised_env_name>
 
+Installation on Windows Subsystem for Linux (WSL)
+-------------------------------------------------
+
+AQUA can be installed on Windows Subsystem for Linux (WSL) following this guide.
+Here we describe an installation using a cloned version of AQUA, but the same procedure can be used for a pip installation.
+
+Install WSL on your Windows machine.
+You can do it by running the following command in PowerShell as Administrator:
+
+.. code-block:: powershell
+
+    wsl --install
+
+This will install WSL with the default Linux distribution (usually Ubuntu).
+You will need to restart your machine after the installation.
+
+Open the WSL terminal and install the latest version of Miniconda installer for Linux from `here <https://docs.conda.io/en/latest/miniconda.html>`_.
+Then run the installer with the following commands:
+
+.. code-block:: bash
+
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    bash Miniconda3-latest-Linux-x86_64.sh
+
+Follow the instructions on the screen to complete the installation.
+You may need to restart the terminal after the installation or to run ``source ~/.bashrc``.
+
+In order to verify that conda is installed correctly, run the following command:
+
+.. code-block:: bash
+
+    conda --version
+
+You now need to clone the AQUA repository to the WSL filesystem.
+The usual location is ``/mnt/wsl/ubuntu/home/<your_username>/``.
+
+It is now possible to follow the instructions in the :ref:`installation-conda` section to create the conda environment and install AQUA.
+
+If you want to use VSCode with WSL, you may need to install the `Remote - WSL extension <https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl>`_.
+With this extension, you can open the AQUA folder in WSL directly from VSCode and use the AQUA environment.
+The python extension will automatically detect the conda environment and you can select it as the interpreter for your workspace.
+
 
 Installation and use of the AQUA container
 ------------------------------------------
