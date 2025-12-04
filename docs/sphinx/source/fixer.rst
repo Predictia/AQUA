@@ -272,7 +272,7 @@ In order to create a fix for a specific variable, two approaches are possibile:
   multiple variables (e.g. getting ``mtntrf2`` from ``ttr`` + ``tsr``). 
 
 .. note ::
-    The ``derived`` block supports basic arithmetic operations (+, -, *, /, ^) and parentheses.
+    The ``derived`` block supports basic arithmetic operations (``+``, ``-``, ``*``, ``/``, ``^``) and parentheses.
 
 Then, extra keys can be then specified for **each** variable to allow for further fine tuning:
 
@@ -289,7 +289,7 @@ Then, extra keys can be then specified for **each** variable to allow for furthe
   This is useful when dealing with data that are not available for the whole period of interest or which are partially wrong.
 
 .. warning ::
-    Recursive fixes (i.e. fixes of fixes) cannot be implemented yet. For example, it is not possibile to derive a variable from a derived variable
+    Recursive fixes (i.e. fixes of fixes) cannot be implemented yet. For example, it is not possibile to derive a variable from a derived variable.
 
 .. _coord-fix:
 
