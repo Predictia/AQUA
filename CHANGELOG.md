@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.22.0):
 
 AQUA core complete list:
+- Fix of aqua_path for analysis console (#2542)
 - Add a `cleanup` class with a fixture to clean files from tests (#2526)
 
 ## [v0.21.0]
