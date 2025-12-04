@@ -5,6 +5,7 @@ Adding new data
 
 To add new data the 3-level hierarchy on which AQUA is based must be respected (i.e. **model** - **exp** - **source**), so that specific files must be created within the catalog.
 How to create a new source and add new data is documented in the next sections.
+If you need to add data in a new catalog, please refer to :ref:`new-catalog` before proceeding.
 
 - To add your data to AQUA, you have to provide an ``intake`` catalog that describes your data,
   and in particular, the location of the data. 
