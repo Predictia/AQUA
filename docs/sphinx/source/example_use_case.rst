@@ -85,7 +85,7 @@ See :ref:`accessors` for more information.
 .. note::
 
     The regridding requires the download of auxiliary files containing the grids.
-    Please refer to :ref:`dvc` for more information on how to manage these files.
+    Please refer to :ref:`aqua-dvc` for more information on how to manage these files.
 
 We can now calculate the mean global temperature time series on the original grid.
 We will use the original data, without regridding them,
@@ -99,7 +99,7 @@ to show area evaluation capabilities of AQUA.
 .. note ::
 
     Also for area evaluations, AQUA uses precomputed auxiliary files containing the area cells values.
-    Please refer to :ref:`dvc` for more information on how to manage these files.
+    Please refer to :ref:`aqua-dvc` for more information on how to manage these files.
 
 We obtain as image:
 
