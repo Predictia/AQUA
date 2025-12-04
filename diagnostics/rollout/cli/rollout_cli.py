@@ -1,22 +1,19 @@
-"""CLI entry point for the Rollout diagnostic."""
-
-from __future__ import annotations
-
-import argparse
 import os
 import sys
+import argparse
 
-
+# Add the directory containing the diagnostic module to the Python path
+# (First position in the sys.path list)
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DIAG_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, os.pardir))
-AQUA_ROOT = os.path.abspath(os.path.join(DIAG_ROOT, os.pardir, os.pardir))
-
 sys.path.insert(0, DIAG_ROOT)
-sys.path.insert(0, AQUA_ROOT)
 
 
 def parse_arguments(argv):
+    """Parse command line arguments"""
+    
     parser = argparse.ArgumentParser(description="Rollout Diagnostic CLI")
+
     parser.add_argument(
         "-c",
         "--config",
@@ -31,7 +28,7 @@ def parse_arguments(argv):
         default="WARNING",
         help="Log level (default: WARNING)",
     )
-    parser.add_argument(
+    parser.add_argument( # Figures are saved by default
         "--no-save-fig",
         action="store_true",
         help="Do not save figures to disk",
@@ -41,6 +38,7 @@ def parse_arguments(argv):
         action="store_true",
         help="Save rollout time series as NetCDF files",
     )
+
     return parser.parse_args(argv)
 
 
@@ -55,7 +53,6 @@ def main(argv=None):
     except ImportError as exc:
         print(f"Failed to import required modules: {exc}")
         print(f"Diagnostic module path: {DIAG_ROOT}")
-        print(f"AQUA root path: {AQUA_ROOT}")
         print(f"sys.path: {sys.path}")
         sys.exit(1)
 
@@ -83,6 +80,7 @@ def main(argv=None):
     save_data = args.save_data
 
     outputs = diag.compute_rollout(save_fig=save_fig, save_data=save_data)
+    
     if outputs:
         for key, path in outputs.items():
             logger.info("Processed rollout for %s", key)

@@ -6,6 +6,7 @@ data_ref:
   exp: 'piControl'
   source: 'daily'
   regrid: False
+  areas: False
   fix: True
 
 data:
@@ -14,6 +15,7 @@ data:
   exp: 'piControl'
   source: 'e5.3.1p_FT_member1_epoch_69'
   regrid: False
+  areas: False
   fix: True
 
 annual: True
