@@ -39,11 +39,6 @@ The fixer performs a range of operations on data:
 The fixer is split in two dictionaries that can be merged together, the ``convention`` and the ``fixer_name``.
 We describe in the following sections the structure of the two dictionaries and in which files they should be placed.
 
-.. warning::
-
-    Other fixes at individual source level are still supported but will be deprecated in the future.
-    Also the usage of a ``model-default`` as fallback fixer_name is deprecated in favor of the new approach.
-
 .. _convention-structure:
 
 Convention file structure
