@@ -127,7 +127,7 @@ The "predefined" target grids are:
   r250: r144x72
 
 For example, ``r100`` is a regular grid at 1° resolution, ``r005`` at 0.05°, etc.
-The list is available in the ``config/grids/default.yaml`` file.
+The list is available in the ``aqua/core/config/grids/default.yaml`` file.
 
 .. note::
     The currently defined target grids follow the convention that for example a 1° grid (``r100``) has 360x180 points centered 
@@ -136,7 +136,7 @@ The list is available in the ``config/grids/default.yaml`` file.
     an s to the corresponding convention defined above (e.g. ``r100s`` ).
 
 .. note::
-    Inside the ``config/grids`` directory, it is possible to define custom grids that can be used in the regridding process.
+    Inside the ``aqua/core/config/grids`` directory, it is possible to define custom grids that can be used in the regridding process.
     Currently grids supported by CDO, which do not require extra CDO options, are supported and can be used directly as target grids.
     We are planning to be able to support also more complex irregular grids as target grids in the future (e.g. allowing to regrid everything to
     HealPix grids).
