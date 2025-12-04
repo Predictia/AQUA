@@ -192,7 +192,7 @@ def get_aqua_paths(*, args, logger):
     Returns:
         tuple: AQUA path and configuration path.
     """
-    aqua_path = os.path.abspath(os.path.join(pypath[0], "..", ".."))
+    aqua_path = os.path.abspath(os.path.join(pypath[0], ".."))
     logger.debug(f"AQUA path: {aqua_path}")
 
     aqua_configdir = ConfigPath().configdir
