@@ -14,10 +14,10 @@ Welcome to AQUA's documentation!
    getting_started
    example_use_case
    reader
-   polytope
    aqua_console
    regrid
    fixer
+   polytope
    graphics
    other_components
    container
