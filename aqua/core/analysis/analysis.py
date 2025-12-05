@@ -193,8 +193,8 @@ def get_aqua_paths(*, args, logger):
     Returns:
         tuple: AQUA path and configuration path.
     """
-    aqua_core_path = pypath.files('aqua.core')
-    aqua_diagnostics_path = pypath.files('aqua.diagnostics')
+    aqua_core_path = str(pypath.files('aqua.core'))
+    aqua_diagnostics_path = str(pypath.files('aqua.diagnostics'))
 
     logger.debug(f"AQUA core path: {aqua_core_path}")
     logger.debug(f"AQUA diagnostics path: {aqua_diagnostics_path}")
