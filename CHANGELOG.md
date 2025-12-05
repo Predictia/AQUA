@@ -8,8 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.22.0):
 
 AQUA core complete list:
-
 - Fix of aqua_path for analysis console (#2542)
+- Fix for 3d grid generation of `GridBuilder` (#2545)
+- Fix failing console test (#2549)
 - New `filter_key` option to filter NetCDF files before loading them based on year (#2543)
 - Removed plt.close() in plotting functions (#2538)
 - Documentation aligned to the new repository structure (#2525)
