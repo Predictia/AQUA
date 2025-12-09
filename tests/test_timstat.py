@@ -133,7 +133,7 @@ class TestTimmean():
         hist1 = reader.timstat(data_2t['2t'], freq='monthly', stat='histogram', bins=bins, range=range, exclude_incomplete=True)
         # timhist passes a function
         hist2 = reader.timhist(data_2t['2t'], freq='monthly', bins=bins, range=range, exclude_incomplete=True)
-        hist3 = reader.timstat(data_2t['2t'], freq='monthly', stat=histogram,bins=bins, range=range, exclude_incomplete=True)
+        hist3 = reader.timstat(data_2t['2t'], freq='monthly', stat=histogram, bins=bins, range=range, exclude_incomplete=True)
 
         assert hist1['center_of_bin'].shape == hist2['center_of_bin'].shape
         assert hist1['center_of_bin'].shape == hist3['center_of_bin'].shape

@@ -161,7 +161,7 @@ def chunk_dataset_times(xdataset, resample_frequency, loglevel):
     Common setup for chunk completeness checking.
     
     Returns:
-        tuple: (logger, data_frequency, chunks)
+        tuple: (data_frequency, chunks)
     """
     logger = log_configure(loglevel, 'timmean_chunking')
 
@@ -269,13 +269,13 @@ def check_seasonal_chunk_completeness(xdataset, resample_frequency='QS-DEC', log
 
     # Generate quarter months: e.g. {'DEC': {'Q1': [12,1,2], 'Q2': [3,4,5], ...}}
     quarters_full = generate_quarter_months(anchor_month)
-    quarter_months = quarters_full[anchor_month]
+    quarter_months = quarters_full[anchor_month] # e.g. {'Q1': [12, 1, 2], 'Q2': [3, 4, 5], ...}
 
     # Build season_months: map from start_month 
     # e.g., {12: {12, 1, 2}, 3: {3, 4, 5}, 6: {6, 7, 8}, 9: {9, 10, 11}}
     season_months = {}
     for quarter_key in ['Q1', 'Q2', 'Q3', 'Q4']:
-        months_list = quarter_months[quarter_key]
+        months_list = quarter_months[quarter_key] # e.g. [12, 1, 2]
         start_month = months_list[0]
         season_months[start_month] = set(months_list)
 
@@ -288,10 +288,11 @@ def check_seasonal_chunk_completeness(xdataset, resample_frequency='QS-DEC', log
         complete_month_times = xdataset.time.resample(time='MS').mean().time
         complete_month_times = complete_month_times.where(monthly_mask, drop=True)
 
-        complete_months_available = set(complete_month_times.to_index().month)
-        logger.debug('Complete months available: %s', sorted(complete_months_available))
+        # Store complete month-year combinations as timestamps
+        complete_month_timestamps = set(complete_month_times.to_index())
+        logger.debug('Complete months available: %s', sorted(complete_month_timestamps))
     else:
-        complete_months_available = set(xdataset.time.to_index().month)
+        complete_month_timestamps = set(xdataset.time.to_index())
         logger.debug('Retrieved data frequency is monthly or coarser, using all months')
 
     check_completeness = []
@@ -318,7 +319,14 @@ def check_seasonal_chunk_completeness(xdataset, resample_frequency='QS-DEC', log
 
         # Additionally check that these months are complete
         if 'D' in data_frequency or 'h' in data_frequency:
-            months_are_complete = expected_months.issubset(complete_months_available)
+            # Check completeness for the specific months within this quarter period
+            # Generate the expected month timestamps for this quarter
+            quarter_start = pd.Timestamp(chunk)
+            quarter_end = pd.Timestamp(end_date)
+            # Get all month starts within this quarter e.g. [2024-12-01, 2025-01-01, 2025-02-01]
+            quarter_month_starts = pd.date_range(start=quarter_start, end=quarter_end, freq='MS', inclusive='left')
+            # Check if all these specific month-year combinations are complete
+            months_are_complete = quarter_month_starts.isin(complete_month_timestamps).all()
             is_complete = has_all_months and months_are_complete
         else:
             # For monthly data, just check presence

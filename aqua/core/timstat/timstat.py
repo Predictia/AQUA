@@ -108,7 +108,7 @@ class TimStat():
 
         if exclude_incomplete and freq not in [None]:
             self.logger.info('Checking if incomplete chunks has been produced...')
-            if 'QS' in freq:
+            if 'Q' in resample_freq:
                 boolean_mask = check_seasonal_chunk_completeness(data,
                                                                  resample_frequency=resample_freq,
                                                                  loglevel=self.loglevel)
