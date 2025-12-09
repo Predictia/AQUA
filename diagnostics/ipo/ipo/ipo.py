@@ -2,6 +2,7 @@ import os
 import xarray as xr
 import numpy as np
 from scipy.signal import cheby1, filtfilt
+import matplotlib.pyplot as plt
 
 from aqua.graphics.multiple_maps import plot_maps
 from aqua.graphics.single_map import plot_single_map
@@ -11,42 +12,63 @@ from aqua.util import load_yaml, to_list
 from aqua.util.sci_util import area_selection, select_season
 
 class IPO:
-    """Tripole Index diagnostic for the Interdecadal Pacific Oscillation."""
+    """
+    Tripole Index diagnostic for the Interdecadal Pacific Oscillation.
+    
+    Henley, B. J., Gergis, J., Karoly, D. J., Power, S., Kennedy, J., & Folland, C. K. (2015).
+    A tripole index for the interdecadal Pacific oscillation. Climate dynamics, 45(11), 3077-3090.
+    """
 
     def __init__(self, config, loglevel: str = "WARNING"):
+        """
+        Initialize the IPO diagnostic.
+
+        Args:
+            config (str or dict): Configuration file or dictionary.
+            loglevel (str): Logging level.
+        """
+        # Configure the logger
         self.logger = log_configure(log_name="IPO", log_level=loglevel)
         self.loglevel = loglevel
         self.config = load_yaml(config) if isinstance(config, str) else config
 
+        # Validate the configuration
         required = ["data", "regions", "dates"]
         missing = [k for k in required if k not in self.config]
         if missing:
+            self.logger.error(f"Missing configuration sections: {missing}")
             raise ValueError(f"Missing configuration sections: {missing}")
 
+        # Get the dates
         dates = self.config["dates"]
         self.startdate = dates.get("startdate")
         self.enddate = dates.get("enddate")
         if not self.startdate or not self.enddate:
+            self.logger.error("Configuration must provide dates.startdate and dates.enddate")
             raise ValueError("Configuration must provide dates.startdate and dates.enddate")
 
+        # Get the data configuration
         self.data_cfg = self.config["data"]
-        self.data_label = self.data_cfg.get("label") or self.data_cfg.get("model") or "Dataset"
+        self.data_label = self.data_cfg.get("label") or self.data_cfg.get("model") or "Emulator"
 
+        # Get the field to use for the IPO computation
         self.field = self.config.get("field", "tos")
-        self.window = self.config.get("window", 13)
+        self.window = self.config.get("window", 13) # Window (years) for the low-pass filter
         
         # Chebyshev filter configuration
         self.filter_cfg = self.config.get("filter", {})
-        self.filter_type = self.filter_cfg.get("type", "chebyshev")  # "chebyshev" or "rolling"
-        self.cutoff_freq = self.filter_cfg.get("cutoff_freq", 1.0 / (self.window * 12))  # cycles per month
+        self.filter_type = self.filter_cfg.get("type", "chebyshev") 
+        self.cutoff_freq = self.filter_cfg.get("cutoff_freq", 1.0 / (self.window * 12)) 
         self.filter_order = self.filter_cfg.get("order", 4)
         self.ripple_db = self.filter_cfg.get("ripple_db", 1.0)
         
+        # Get the reference data configuration
         self.data_ref_cfg = self.config.get("data_ref")
         self.data_ref_label = None
         if self.data_ref_cfg:
             self.data_ref_label = self.data_ref_cfg.get("label") or self.data_ref_cfg.get("model") or "Reference"
 
+        # Get the plotting configuration
         self.maps_cfg = self.config.get("maps", {})
         self.compute_maps = self.maps_cfg.get("run", True)
         self.map_variables = self._ensure_list(self.maps_cfg.get("variables")) or [self.field]
@@ -56,11 +78,14 @@ class IPO:
         self.maps_fig_formats = self._ensure_list(self.maps_cfg.get("figure_format", "pdf")) or ["pdf"]
         self.maps_output_subdir = self.maps_cfg.get("output_subdir", "maps")
 
+        # Initialize the reader
         self._reader()
+
+        # Get the output directory
         self.output_dir = self.config.get("output_dir", "./ipo_output")
         self.maps_output_dir = os.path.join(self.output_dir, self.maps_output_subdir)
-        self.sst = None
-        self.sst_ref = None
+        self.sst = None # We assume that the variable used to compute the index will be SST (just for naming consistency)
+        self.sst_ref = None  
         self.index = None
         self.index_filtered = None
         self.index_ref = None
@@ -71,12 +96,14 @@ class IPO:
 
     @staticmethod
     def _ensure_list(value):
+        """Ensure the value is a list."""
         if value is None:
             return None
         return to_list(value)
 
     @staticmethod
     def _normalize_seasons(seasons):
+        """Normalize the seasons."""
         if not seasons:
             return []
         normalized = []
@@ -94,46 +121,43 @@ class IPO:
         return normalized
 
     def _reader(self):
+        """Initialize the reader."""
         cfg = self.data_cfg
-        self.reader = Reader(
-            catalog=cfg.get("catalog"),
-            model=cfg.get("model"),
-            exp=cfg.get("exp"),
-            source=cfg.get("source"),
-            regrid=cfg.get("regrid"),
-            fix=cfg.get("fix"),
-            startdate=self.startdate,
-            enddate=self.enddate,
-            loglevel=self.loglevel,
-        )
+        self.reader = Reader(catalog=cfg.get("catalog"),
+                             model=cfg.get("model"),
+                             exp=cfg.get("exp"),
+                             source=cfg.get("source"),
+                             regrid=cfg.get("regrid"),
+                             fix=cfg.get("fix"),
+                             startdate=self.startdate,
+                             enddate=self.enddate,
+                             loglevel=self.loglevel)
 
         if self.data_ref_cfg:
             cfg_ref = self.data_ref_cfg
-            self.reader_ref = Reader(
-                catalog=cfg_ref.get("catalog"),
-                model=cfg_ref.get("model"),
-                exp=cfg_ref.get("exp"),
-                source=cfg_ref.get("source"),
-                regrid=cfg_ref.get("regrid"),
-                fix=cfg_ref.get("fix"),
-                startdate=self.startdate,
-                enddate=self.enddate,
-                loglevel=self.loglevel,
-            )
+            self.reader_ref = Reader(catalog=cfg_ref.get("catalog"),
+                                     model=cfg_ref.get("model"),
+                                     exp=cfg_ref.get("exp"),
+                                     source=cfg_ref.get("source"),
+                                     regrid=cfg_ref.get("regrid"),
+                                     fix=cfg_ref.get("fix"),
+                                     startdate=self.startdate,
+                                     enddate=self.enddate,
+                                     loglevel=self.loglevel)
         else:
             self.reader_ref = None
 
     def retrieve(self):
-        """Load SST and aggregate to monthly means."""
+        """Load field data (SST) and aggregate to monthly means."""
         field = self.field
-        self.logger.info("Retrieving SST '%s' for %s", field, self.data_label)
+        self.logger.info("Retrieving field '%s' for %s", field, self.data_label)
         self.sst = self.reader.retrieve(var=field)[field]
         self.sst = self.reader.timmean(self.sst, freq="MS")
         self.logger.info("Retrieved %s monthly points for %s", self.sst.sizes["time"], self.data_label)
 
         if self.reader_ref:
-            label = self.data_ref_label or "Reference"
-            self.logger.info("Retrieving SST '%s' for %s", field, label)
+            label = self.data_ref_label
+            self.logger.info("Retrieving field '%s' for %s", field, label)
             self.sst_ref = self.reader_ref.retrieve(var=field)[field]
             self.sst_ref = self.reader_ref.timmean(self.sst_ref, freq="MS")
             self.logger.info("Retrieved %s monthly points for %s", self.sst_ref.sizes["time"], label)
@@ -141,6 +165,7 @@ class IPO:
             self.sst_ref = None
 
     def _select_region_mean(self, data, region, reader):
+        """Select a region and compute the area-weighted mean."""
         lat = region["lat"]
         lon = region["lon"]
         self.logger.debug("Selecting box lat=%s, lon=%s", lat, lon)
@@ -149,9 +174,13 @@ class IPO:
         return mean
 
     def compute_index(self):
+        """Compute the IPO index."""
+
+        # Compute the IPO index
         self.index = self._compute_tpi(self.sst, self.reader, name="tpi")
         self.index_filtered = self._apply_filter(self.index)
 
+        # Compute the IPO index for the reference data
         if self.sst_ref is not None and self.reader_ref is not None:
             self.index_ref = self._compute_tpi(self.sst_ref, self.reader_ref, name="tpi_ref")
             self.index_filtered_ref = self._apply_filter(self.index_ref)
@@ -161,24 +190,31 @@ class IPO:
 
         # Generate the plot
         self.plot_index()
+        
         # Compute regression and correlation maps
         if self.compute_maps:
             self._compute_maps()
 
     def _compute_tpi(self, sst_data, reader, name="tpi"):
+        """Compute the IPO index from SST data using the Tripole Index method from Henley et al. (2015)."""
+        # Get the regions to compute the index
         regions = self.config["regions"]
+        # Compute the monthly SST anomalies
         anomalies = sst_data.groupby("time.month") - sst_data.groupby("time.month").mean(dim="time")
+        # Compute the index for the southwest region
         ssta_1 = self._select_region_mean(anomalies, regions["southwest"], reader)
         ssta_2 = self._select_region_mean(anomalies, regions["equatorial"], reader)
         ssta_3 = self._select_region_mean(anomalies, regions["northwest"], reader)
+        # Compute the IPO index
         return (ssta_2 - 0.5 * (ssta_1 + ssta_3)).rename(name)
 
     def _apply_filter(self, index):
+        """Apply a smoothing filter to the index."""
         if not self.window:
             return None
 
         if self.filter_type == "rolling":
-            # Original rolling mean approach
+            # Rolling mean approach
             window = self.window * 12
             filtered = index.rolling(time=window, center=True, min_periods=max(1, window // 2)).mean()
             if filtered is None:
@@ -217,23 +253,23 @@ class IPO:
             filtered_data = filtfilt(b, a, data)
             
             # Create new xarray DataArray with same coordinates as original
-            filtered_index = xr.DataArray(
-                filtered_data,
-                dims=index.dims,
-                coords=index.coords,
-                attrs=index.attrs)
+            filtered_index = xr.DataArray(filtered_data,
+                                          dims=index.dims,
+                                          coords=index.coords,
+                                          attrs=index.attrs)
             
             self.logger.info(f"Applied Chebyshev filter: order={self.filter_order}, "
                              f"cutoff={self.cutoff_freq:.4f} cycles/month, "
                              f"ripple={self.ripple_db} dB")
             
             return filtered_index
-            
+
         except Exception as e:
             self.logger.error(f"Error applying Chebyshev filter: {e}")
             return None
 
     def _prepare_data_for_stats(self, var, use_reference):
+        """Prepare data for computing regression and correlation maps."""
         cache_key = (var, use_reference)
         if cache_key in self._data_cache:
             return self._data_cache[cache_key]
@@ -253,6 +289,7 @@ class IPO:
         return data
 
     def _compute_stat_maps(self, var, season, use_reference=False):
+        """Compute regression and correlation maps for a given variable and season."""
         index = self.index_ref if use_reference else self.index
         if index is None:
             return None, None
@@ -264,11 +301,13 @@ class IPO:
         data, index = self._select_season_if_needed(data, index, season)
         data = data.groupby("time.month") - data.groupby("time.month").mean(dim="time")
 
+        # Compute the regression and correlation maps
         regression = xr.cov(index, data, dim="time") / index.var(dim="time", skipna=True)
         correlation = xr.corr(index, data, dim="time")
         return regression, correlation
 
     def _select_season_if_needed(self, data, index, season):
+        """Select the season if needed."""
         if season == "annual":
             return data, index
         data_selected = select_season(data, season)
@@ -276,11 +315,14 @@ class IPO:
         return data_selected, index_selected
 
     def _compute_maps(self):
+        """Compute regression and correlation maps."""
+        # Clear the dictionaries
         self.regression_maps.clear()
         self.correlation_maps.clear()
 
         for var in self.map_variables:
             for season in self.map_seasons:
+                # Compute the regression and correlation maps
                 reg_model, cor_model = self._compute_stat_maps(var=var, season=season, use_reference=False)
                 reg_ref, cor_ref = self._compute_stat_maps(var=var, season=season, use_reference=True)
 
@@ -304,6 +346,7 @@ class IPO:
         if not self.save_combined_maps and not self.save_maps_netcdf:
             return
 
+        # Create the output directory
         os.makedirs(self.maps_output_dir, exist_ok=True)
         season_suffix = season.lower()
         var_suffix = var
@@ -358,21 +401,21 @@ class IPO:
 
     def plot_index(self, title="IPO Tripole Index", output_filename="ipo_index.pdf"):
         """Generate and save the IPO index time series plot."""
-        import matplotlib.pyplot as plt
-        
         # Ensure output directory exists
         os.makedirs(self.output_dir, exist_ok=True)
         output_path = os.path.join(self.output_dir, output_filename)
         
+        # Generate the plot
         plt.figure(figsize=(10, 4))
         series = []
         if self.index is not None:
             series.append((self.index_filtered, self.data_label))
         if self.index_ref is not None:
-            label = self.data_ref_label or "Reference"
+            label = self.data_ref_label
             series.append((self.index_filtered_ref, label))
 
         if not series:
+            self.logger.error("No index to plot")
             raise ValueError("No index to plot")
 
         color_cycle = plt.rcParams["axes.prop_cycle"].by_key().get("color", [])

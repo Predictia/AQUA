@@ -1,7 +1,9 @@
+# Dates to evaluate
 dates:
   startdate: '1900-01-01'
   enddate: '1929-12-31'
 
+# Reference data
 data_ref:
   catalog: "CMIP6_interExtrapolation"
   model: "UKESM1"
@@ -10,6 +12,7 @@ data_ref:
   fix: True
   regrid: False
 
+# Data to evaluate
 # It is possible only pass this dataset for the IPO computation.
 data:
   catalog: "CMIP6_interExtrapolation"
@@ -19,17 +22,19 @@ data:
   fix: True
   regrid: False
 
+# Field to use for the IPO computation
 field: tos
-window: 13 # years for low-pass filter
+window: 13 # Window (years) for the low-pass filter
 
 # Filter configuration
-# Values for the Chebyshev filter are taken from the paper by Henley et al. (2015)
+# Values for the Chebyshev filter are taken from Henley et al. (2015)
 filter:
   type: chebyshev  # "chebyshev" or "rolling"
-  cutoff_freq: 0.0064  # cycles per month (1/(13*12) for 13-year cutoff)
-  order: 6  # filter order
-  ripple_db: 1.0  # passband ripple in dB (default)
+  cutoff_freq: 0.0064  # Cutoff frequency (cycles per month) (1/(13*12) for 13-year cutoff)
+  order: 6  # Filter order
+  ripple_db: 1.0  # Passband ripple in dB (default)
 
+# Region to compute the IPO index taken from Henley et al. (2015)
 regions:
   equatorial:
     lat: [-10, 10]
@@ -41,6 +46,7 @@ regions:
     lat: [-50, -15]
     lon: [150, -160]
 
+# Maps configuration
 maps:
   run: True
   variables:
