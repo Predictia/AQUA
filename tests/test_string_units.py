@@ -1,7 +1,7 @@
 """Tests for string unit conversion utilities"""
 
 import pytest
-from aqua.core.util.string import convert_unit_to_latex
+from aqua.core.util.string import unit_to_latex
 
 @pytest.mark.aqua
 @pytest.mark.parametrize("input_str, expected", [
@@ -50,19 +50,19 @@ from aqua.core.util.string import convert_unit_to_latex
     (r"$\mathrm{W} \mathrm{m}^{-2}$", r"$\mathrm{W} \mathrm{m}^{-2}$"),
     ("m^{2}", "m^{2}"), # Partial LaTeX
 ])
-def test_convert_unit_to_latex(input_str, expected):
-    """Test convert_unit_to_latex with various input formats"""
-    assert convert_unit_to_latex(input_str) == expected
+def test_unit_to_latex(input_str, expected):
+    """Test unit_to_latex with various input formats"""
+    assert unit_to_latex(input_str) == expected
 
 @pytest.mark.aqua
-def test_convert_unit_to_latex_complex():
+def test_unit_to_latex_complex():
     """Test more complex combinations"""
     # Test complex mixed format
-    assert convert_unit_to_latex("W m-2 K-1") == "W m^{-2} K^{-1}"
+    assert unit_to_latex("W m-2 K-1") == "W m^{-2} K^{-1}"
     
     # Test complex division with implicit exponents
-    assert convert_unit_to_latex("kg/m3") == "kg m^{-3}"
+    assert unit_to_latex("kg/m3") == "kg m^{-3}"
     
     # Test with extra spaces
-    assert convert_unit_to_latex(" W /  m^2 ") == "W m^{-2}"
+    assert unit_to_latex(" W /  m^2 ") == "W m^{-2}"
 

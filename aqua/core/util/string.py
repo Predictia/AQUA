@@ -91,7 +91,7 @@ def extract_literal_and_numeric(text):
         return None, None
 
 
-def convert_unit_to_latex(unit_str):
+def unit_to_latex(unit_str):
     """
     Convert unit string to LaTeX notation. Preserves existing LaTeX notation.
     Handles:
