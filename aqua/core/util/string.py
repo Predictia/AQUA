@@ -89,3 +89,87 @@ def extract_literal_and_numeric(text):
     else:
         # If no match is found, return None or handle it accordingly
         return None, None
+
+
+def convert_unit_to_latex(unit_str):
+    """
+    Convert unit string to LaTeX notation. Preserves existing LaTeX notation.
+    Handles:
+    - Division:  W/m^2 -> W m^{-2}; W/(m^2 s) -> W m^{-2} s^{-1}
+    - Exponents: m-2   -> m^{-2}; m^2, m**2, m2 -> m^{2}; kg m-1 s-1 -> kg m^{-1} s^{-1}
+    
+    Args:
+        unit_str: Unit string in various formats
+        
+    Returns:
+        Unit string in LaTeX format
+    """
+    if not unit_str:
+        return unit_str
+        
+    if not unit_str.strip():
+        return ""
+
+    s = unit_str.strip()
+
+    # Preserve if already in LaTeX format
+    if any(x in s for x in ['$', '\\', '{']):
+        return s
+
+    # Replace ** with ^ for consistency; e.g. m**2 -> m^2
+    s = s.replace('**', '^')
+
+    # Handle grouped division; e.g. W/(m^2 s) -> W / m^2 / s
+    def _repl_div_group(match):
+        content = match.group(1)
+        return '/' + content.replace(' ', '/')
+
+    s = re.sub(r'/\s*\(([^)]+)\)', _repl_div_group, s)
+    
+    # Remove any remaining parentheses
+    s = s.replace('(', '').replace(')', '')
+
+    # Split by '/' to handle division
+    parts = s.split('/')
+    
+    latex_parts = []
+    # Process numerator
+    latex_parts.extend(_parse_unit_parts(parts[0], invert=False))
+
+    # Process denominators by inverting exponents
+    for p in parts[1:]:
+        latex_parts.extend(_parse_unit_parts(p, invert=True))
+
+    return ' '.join(latex_parts)
+
+
+def _parse_unit_parts(text, invert):
+    """Parses units and exponents from a string segment."""
+
+    # Pattern matches: unit (letters/µ/°) followed by optional exponent 
+    pattern = r'([a-zA-Zµ°]+)(?:\^?\s*(-?\d+)|(-?\d+))?'
+
+    matches = re.findall(pattern, text)
+    results = []
+
+    for match in matches:
+        unit = match[0]
+        if not unit:
+            continue
+
+        # Get exponent from either capture group (^number or implicit number)
+        exp_str = match[1] or match[2]
+
+        # Parse exponent, default to 1
+        exp = int(exp_str) if exp_str else 1
+
+        if invert:
+            exp = -exp
+
+        # Format 
+        if exp == 1:
+            results.append(unit)
+        else:
+            results.append(f"{unit}^{{{exp}}}")
+
+    return results
