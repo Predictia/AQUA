@@ -95,14 +95,15 @@ def unit_to_latex(unit_str):
     """
     Convert unit string to LaTeX notation. Preserves existing LaTeX notation.
     Handles:
-    - Division:  W/m^2 -> W m^{-2}; W/(m^2 s) -> W m^{-2} s^{-1}
-    - Exponents: m-2   -> m^{-2}; m^2, m**2, m2 -> m^{2}; kg m-1 s-1 -> kg m^{-1} s^{-1}
+    - Division:  W/m^2 -> W m$^{-2}$; W/(m^2 s) -> W m$^{-2}$ s$^{-1}$
+    - Exponents: m-2   -> m$^{-2}$; m^2, m**2, m2 -> m$^{2}$; kg m-1 s-1 -> kg m$^{-1}$ s$^{-1}$
+    - Multi-word: million km^2 -> million km$^{2}$
     
     Args:
         unit_str: Unit string in various formats
         
     Returns:
-        Unit string in LaTeX format
+        Unit string with only exponents in LaTeX math mode
     """
     if not unit_str:
         return unit_str
@@ -144,32 +145,38 @@ def unit_to_latex(unit_str):
 
 
 def _parse_unit_parts(text, invert):
-    """Parses units and exponents from a string segment."""
-
-    # Pattern matches: unit (letters/µ/°) followed by optional exponent 
-    pattern = r'([a-zA-Zµ°]+)(?:\^?\s*(-?\d+)|(-?\d+))?'
-
+    """
+    Parses units and exponents from a string segment.
+    Preserves spaces and only wraps exponents in math mode.
+    """
+    # Pattern matches: optional leading space, unit (letters/µ/°), optional exponent
+    # This preserves spaces between units
+    pattern = r'(\s*)([a-zA-Zµ°]+)(?:\^?\s*(-?\d+)|(-?\d+))?'
+    
     matches = re.findall(pattern, text)
     results = []
-
+    
     for match in matches:
-        unit = match[0]
+        leading_space = match[0]  # Preserve any leading whitespace
+        unit = match[1]
         if not unit:
             continue
-
+        
         # Get exponent from either capture group (^number or implicit number)
-        exp_str = match[1] or match[2]
-
-        # Parse exponent, default to 1
+        exp_str = match[2] or match[3]
+        
+        # Parse exponent, default to 1 (no exponent)
         exp = int(exp_str) if exp_str else 1
-
+        
         if invert:
             exp = -exp
-
-        # Format 
+        
+        # Format: only wrap exponents
         if exp == 1:
-            results.append(unit)
+            # No exponent: just the unit with its leading space
+            results.append(leading_space + unit)
         else:
-            results.append(f"{unit}^{{{exp}}}")
-
+            # With exponent: unit + $^{exp}$ with leading space
+            results.append(leading_space + unit + f"$^{{{exp}}}$")
+    
     return results
