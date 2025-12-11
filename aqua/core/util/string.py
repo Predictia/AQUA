@@ -141,7 +141,10 @@ def unit_to_latex(unit_str):
     for p in parts[1:]:
         latex_parts.extend(_parse_unit_parts(p, invert=True))
 
-    return ' '.join(latex_parts)
+    # Join and normalize spaces and replace multiple spaces with single space
+    result = ' '.join(latex_parts)
+    result = re.sub(r'\s+', ' ', result)
+    return result
 
 
 def _parse_unit_parts(text, invert):
