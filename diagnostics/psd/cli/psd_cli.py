@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     logger.info(f'Running aqua version {aqua_version}')
 
-    # change the current directory to the one of the CLI so that relative path works
+    # Change the current directory to the one of the CLI so that relative paths work
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
     if os.getcwd() != dname:
@@ -72,7 +72,7 @@ if __name__ == '__main__':
         logger.error(f"Failed to load or parse configuration file {config_file}: {e}")
         sys.exit(1)
 
-    # PSD Diagnostic Execution
+    # Run the PSD diagnostic
     try:
         logger.info("Initializing PSD diagnostic...")
         psd_diagnostic = PSD(config=config, loglevel=loglevel)

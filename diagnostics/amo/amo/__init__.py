@@ -1,3 +1,4 @@
-from .amo import AMO
+"""AMO module"""
 
+from .amo import AMO
 __all__ = ["AMO"]

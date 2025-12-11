@@ -1,7 +1,9 @@
+# Dates to evaluate
 dates:
   startdate: '1950-01-01'
   enddate: '1979-12-31'
 
+# Reference data
 data_ref:
   catalog: "CMIP6_interExtrapolation"
   model: "UKESM1"
@@ -10,6 +12,7 @@ data_ref:
   fix: True
   regrid: False
 
+# Data to evaluate
 # It is possible to pass only this dataset for the AMO computation.
 data:
   catalog: "CMIP6_interExtrapolation"
@@ -27,14 +30,15 @@ amo:
   region:
     lat: [25, 60]  # North Atlantic: 25N-60N
     lon: [-75, -7]  # West Atlantic: 75W-7W
-  detrend: False  # Detrend 
+  detrend: False  # Apply detrending to the AMO index
   detrend_variable: tos  # Variable to use for detrending 
-  smooth: True   # Apply smoothing filter
+  smooth: True   # Apply smoothing
 
-# Filter configuration (rolling)
+# Smoothing configuration
 filter:
   window: 5 # Years
 
+# Regression and correlation maps configuration
 maps:
   run: True
   variables:

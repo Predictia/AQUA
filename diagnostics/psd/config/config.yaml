@@ -1,5 +1,3 @@
-# Config file for PSD diagnostic
-
 # Reference data
 data_ref:
   catalog: 'CMIP6_F8_phase1'
@@ -18,7 +16,7 @@ data:
   regrid: False
   fix: True
 
-# Dates to evaluate (a longer period is better for PSD)
+# Dates to evaluate
 dates:
   startdate: '1945-01-01'
   enddate: '1949-12-31'
@@ -32,8 +30,8 @@ variables:
 
 # Select which PSD calculations to perform
 psd_calculations:
-  time_averaged_psd: true
-  psd_of_time_mean: true
+  time_averaged_psd: true # Time-averaged PSD
+  psd_of_time_mean: true # PSD of the climatological mean
 
 # Output directory
 outputdir_data: ${DATA_DIR}

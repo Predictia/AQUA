@@ -2,6 +2,7 @@ import os
 import xarray as xr
 import numpy as np
 from scipy import stats
+import matplotlib.pyplot as plt
 
 from aqua.graphics.multiple_maps import plot_maps
 from aqua.graphics.single_map import plot_single_map
@@ -11,27 +12,49 @@ from aqua.util import load_yaml, to_list
 from aqua.util.sci_util import area_selection, select_season
 
 class AMO:
-    """Atlantic Multidecadal Oscillation (AMO) diagnostic."""
+    """
+    Atlantic Multidecadal Oscillation (AMO) diagnostic.
+    
+
+    van Oldenborgh, G. J., te Raa, L. A., Dijkstra, H. A., & Philip, S. Y. (2009).
+    Frequency-or amplitude-dependent effects of the Atlantic meridional overturning on
+    the tropical Pacific Ocean. Ocean science, 5(3), 293-301.
+
+    Trenberth, K. E., & Shea, D. J. (2006). Atlantic hurricanes and natural variability
+    in 2005. Geophysical research letters, 33(12).
+    """
 
     def __init__(self, config, loglevel: str = "WARNING"):
+        """
+        Initialize the AMO diagnostic.
+
+        Args:
+            config (str or dict): Configuration file or dictionary.
+            loglevel (str): Logging level.
+        """
+        # Configure the logger
         self.logger = log_configure(log_name="AMO", log_level=loglevel)
         self.loglevel = loglevel
         self.config = load_yaml(config) if isinstance(config, str) else config
 
+        # Validate the configuration
         required = ["data", "dates"]
         missing = [k for k in required if k not in self.config]
         if missing:
             raise ValueError(f"Missing configuration sections: {missing}")
 
+        # Get the dates
         dates = self.config["dates"]
         self.startdate = dates.get("startdate")
         self.enddate = dates.get("enddate")
         if not self.startdate or not self.enddate:
             raise ValueError("Configuration must provide dates.startdate and dates.enddate")
 
+        # Get the data configuration
         self.data_cfg = self.config["data"]
         self.data_label = self.data_cfg.get("label") or self.data_cfg.get("model") or "Dataset"
 
+        # Get the field to use for the AMO computation
         self.field = self.config.get("field", "tos")
         
         # AMO-specific configuration
@@ -39,14 +62,16 @@ class AMO:
         self.amo_region = amo_cfg.get("region", {"lat": [25, 60], "lon": [-75, -7]})
         self.apply_detrending = amo_cfg.get("detrend", True)
         self.detrending_variable = amo_cfg.get("detrend_variable", "tos")
-        self.apply_smoothing = amo_cfg.get("smooth", True)
-        self.window = amo_cfg.get("window", 5) # Years
+        self.apply_smoothing = amo_cfg.get("smooth", True) # Rolling mean
+        self.window = amo_cfg.get("window", 5) # Years for the rolling mean
         
+        # Get the reference data configuration
         self.data_ref_cfg = self.config.get("data_ref")
         self.data_ref_label = None
         if self.data_ref_cfg:
-            self.data_ref_label = self.data_ref_cfg.get("label") or self.data_ref_cfg.get("model") or "Reference"
+            self.data_ref_label = self.data_ref_cfg.get("label") or self.data_ref_cfg.get("model") or "Emulator"
 
+        # Get the maps configuration
         self.maps_cfg = self.config.get("maps", {})
         self.compute_maps = self.maps_cfg.get("run", True)
         self.map_variables = self._ensure_list(self.maps_cfg.get("variables")) or [self.field]
@@ -56,9 +81,14 @@ class AMO:
         self.maps_fig_formats = self._ensure_list(self.maps_cfg.get("figure_format", "pdf")) or ["pdf"]
         self.maps_output_subdir = self.maps_cfg.get("output_subdir", "maps")
 
+        # Initialize the reader
         self._reader()
+
+        # Get the output directory
         self.output_dir = self.config.get("output_dir", "./amo_output")
         self.maps_output_dir = os.path.join(self.output_dir, self.maps_output_subdir)
+
+        # Initialize some attributes 
         self.sst = None
         self.sst_ref = None
         self.index = None
@@ -71,12 +101,14 @@ class AMO:
 
     @staticmethod
     def _ensure_list(value):
+        """Ensure the value is a list."""
         if value is None:
             return None
         return to_list(value)
 
     @staticmethod
     def _normalize_seasons(seasons):
+        """Normalize the seasons."""
         if not seasons:
             return []
         normalized = []
@@ -94,46 +126,43 @@ class AMO:
         return normalized
 
     def _reader(self):
+        """Initialize the reader."""
         cfg = self.data_cfg
-        self.reader = Reader(
-            catalog=cfg.get("catalog"),
-            model=cfg.get("model"),
-            exp=cfg.get("exp"),
-            source=cfg.get("source"),
-            regrid=cfg.get("regrid"),
-            fix=cfg.get("fix"),
-            startdate=self.startdate,
-            enddate=self.enddate,
-            loglevel=self.loglevel,
-        )
+        self.reader = Reader(catalog=cfg.get("catalog"),
+                             model=cfg.get("model"),
+                             exp=cfg.get("exp"),
+                             source=cfg.get("source"),
+                             regrid=cfg.get("regrid"),
+                             fix=cfg.get("fix"),
+                             startdate=self.startdate,
+                             enddate=self.enddate,
+                             loglevel=self.loglevel)
 
         if self.data_ref_cfg:
             cfg_ref = self.data_ref_cfg
-            self.reader_ref = Reader(
-                catalog=cfg_ref.get("catalog"),
-                model=cfg_ref.get("model"),
-                exp=cfg_ref.get("exp"),
-                source=cfg_ref.get("source"),
-                regrid=cfg_ref.get("regrid"),
-                fix=cfg_ref.get("fix"),
-                startdate=self.startdate,
-                enddate=self.enddate,
-                loglevel=self.loglevel,
-            )
+            self.reader_ref = Reader(catalog=cfg_ref.get("catalog"),
+                                     model=cfg_ref.get("model"),
+                                     exp=cfg_ref.get("exp"),
+                                     source=cfg_ref.get("source"),
+                                     regrid=cfg_ref.get("regrid"),
+                                     fix=cfg_ref.get("fix"),
+                                     startdate=self.startdate,
+                                     enddate=self.enddate,
+                                     loglevel=self.loglevel)
         else:
             self.reader_ref = None
 
     def retrieve(self):
-        """Load SST and aggregate to monthly means."""
+        """Load data (SST) and aggregate to monthly means."""
         field = self.field
-        self.logger.info("Retrieving SST '%s' for %s", field, self.data_label)
+        self.logger.info("Retrieving field '%s' for %s", field, self.data_label)
         self.sst = self.reader.retrieve(var=field)[field]
         self.sst = self.reader.timmean(self.sst, freq="MS")
         self.logger.info("Retrieved %s monthly points for %s", self.sst.sizes["time"], self.data_label)
 
         if self.reader_ref:
-            label = self.data_ref_label or "Reference"
-            self.logger.info("Retrieving SST '%s' for %s", field, label)
+            label = self.data_ref_label or "Emulator"
+            self.logger.info("Retrieving field '%s' for %s", field, label)
             self.sst_ref = self.reader_ref.retrieve(var=field)[field]
             self.sst_ref = self.reader_ref.timmean(self.sst_ref, freq="MS")
             self.logger.info("Retrieved %s monthly points for %s", self.sst_ref.sizes["time"], label)
@@ -151,12 +180,16 @@ class AMO:
 
     def compute_index(self):
         """Compute the AMO index."""
+        # Compute the index
         self.index = self._compute_amo(self.sst, self.reader, name="amo")
+
+        # Smooth the index if specified in the configuration
         if self.apply_smoothing:
             self.index_filtered = self._apply_filter(self.index)
         else:
             self.index_filtered = self.index
 
+        # Compute the index for the reference data (if provided)
         if self.sst_ref is not None and self.reader_ref is not None:
             self.index_ref = self._compute_amo(self.sst_ref, self.reader_ref, name="amo_ref")
             if self.apply_smoothing:
@@ -181,7 +214,6 @@ class AMO:
         - Compute monthly SST anomalies
         - Average over the AMO region (75W–7W, 25N–60N)
         - (Optional) Detrend 
-        - (Optional) Smooth
         """
         self.logger.info("Computing AMO index")
         
@@ -191,7 +223,7 @@ class AMO:
         # Average over the AMO region
         amo_index = self._select_region_mean(anomalies, self.amo_region, reader)
         
-        # (Optional) Detrend 
+        # Detrend if specified in the configuration
         if self.apply_detrending:
             self.logger.info("Detrending AMO index")
             amo_index = self._detrend_by_global_mean(amo_index, anomalies, reader)
@@ -199,8 +231,10 @@ class AMO:
         return amo_index.rename(name)
 
     def _detrend_by_global_mean(self, amo_index, sst_anomalies, reader):
-        """Detrend the AMO index by subtracting the anomalies of the detrending variable.
+        """Detrend the AMO index by subtracting the global mean anomalies of a chosen variable.
         
+        Currently implemented by removing the globally averaged monthly anomalies of
+        ``self.detrending_variable`` from the regional AMO index, following
         Trenberth, K. E., & Shea, D. J. (2006). Atlantic hurricanes and natural variability
         in 2005. Geophysical research letters, 33(12).
         """
@@ -256,6 +290,7 @@ class AMO:
         data, index = self._select_season_if_needed(data, index, season)
         data = data.groupby("time.month") - data.groupby("time.month").mean(dim="time")
 
+        # Compute the regression and correlation maps
         regression = xr.cov(index, data, dim="time") / index.var(dim="time", skipna=True)
         correlation = xr.corr(index, data, dim="time")
         return regression, correlation
@@ -270,9 +305,11 @@ class AMO:
 
     def _compute_maps(self):
         """Compute regression and correlation maps."""
+        # Clear the dictionaries
         self.regression_maps.clear()
         self.correlation_maps.clear()
 
+        # Compute the regression and correlation maps
         for var in self.map_variables:
             for season in self.map_seasons:
                 reg_model, cor_model = self._compute_stat_maps(var=var, season=season, use_reference=False)
@@ -315,9 +352,9 @@ class AMO:
                 base += f"_{safe_label}"
             return f"{base}.{fmt}"
 
-        # Combined plots (model vs reference)
+        # Combined plots (model vs emulator)
         if self.save_combined_maps:
-            label_ref = self.data_ref_label or "Reference"
+            label_ref = self.data_ref_label or "Emulator"
             if reg_model is not None and reg_ref is not None:
                 fig = plot_maps([reg_model, reg_ref], contour=True, sym=False,
                                 titles=[_map_title("regression", self.data_label),
@@ -336,7 +373,7 @@ class AMO:
 
         # Save NetCDF files
         if self.save_maps_netcdf:
-            label_ref = self.data_ref_label or "Reference"
+            label_ref = self.data_ref_label or "Emulator"
             def _nc_filename(map_type, label):
                 safe_label = label.replace(" ", "_")
                 return f"amo_{map_type}_{var_suffix}_{season_suffix}_{safe_label}.nc"
@@ -352,8 +389,6 @@ class AMO:
 
     def plot_index(self, title="AMO Index", output_filename="amo_index.pdf"):
         """Generate and save the AMO index time series plot."""
-        import matplotlib.pyplot as plt
-        
         # Ensure output directory exists
         os.makedirs(self.output_dir, exist_ok=True)
         output_path = os.path.join(self.output_dir, output_filename)
@@ -363,7 +398,7 @@ class AMO:
         if self.index is not None:
             series.append((self.index_filtered, self.data_label))
         if self.index_ref is not None:
-            label = self.data_ref_label or "Reference"
+            label = self.data_ref_label or "Emulator"
             series.append((self.index_filtered_ref, label))
 
         if not series:
