@@ -117,6 +117,10 @@ def unit_to_latex(unit_str):
     if any(x in s for x in ['$', '\\', '{']):
         return s
 
+    # Handle pure numeric units (e.g., "1" for dimensionless)
+    if re.match(r'^\d+$', s):
+        return s
+
     # Replace ** with ^ for consistency; e.g. m**2 -> m^2
     s = s.replace('**', '^')
 
@@ -152,9 +156,9 @@ def _parse_unit_parts(text, invert):
     Parses units and exponents from a string segment.
     Preserves spaces and only wraps exponents in math mode.
     """
-    # Pattern matches: optional leading space, unit (letters/µ/°), optional exponent
+    # Pattern matches: optional leading space, unit (letters/µ/°/%), optional exponent
     # This preserves spaces between units
-    pattern = r'(\s*)([a-zA-Zµ°]+)(?:\^?\s*(-?\d+)|(-?\d+))?'
+    pattern = r'(\s*)([a-zA-Zµ°%]+)(?:\^?\s*(-?\d+)|(-?\d+))?'
     
     matches = re.findall(pattern, text)
     results = []
@@ -174,12 +178,15 @@ def _parse_unit_parts(text, invert):
         if invert:
             exp = -exp
         
+        # Escape % for LaTeX (must be \% to display properly)
+        unit_escaped = unit.replace('%', r'\%')
+        
         # Format: only wrap exponents
         if exp == 1:
             # No exponent: just the unit with its leading space
-            results.append(leading_space + unit)
+            results.append(leading_space + unit_escaped)
         else:
             # With exponent: unit + $^{exp}$ with leading space
-            results.append(leading_space + unit + f"$^{{{exp}}}$")
+            results.append(leading_space + unit_escaped + f"$^{{{exp}}}$")
     
     return results
