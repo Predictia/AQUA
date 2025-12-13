@@ -179,7 +179,7 @@ def _parse_unit_parts(text, invert):
             exp = -exp
         
         # Escape % for LaTeX (must be \% to display properly)
-        unit_escaped = unit.replace('%', r'\%')
+        unit_escaped = unit.replace('%', r"$\%$")
         
         # Format: only wrap exponents
         if exp == 1:
