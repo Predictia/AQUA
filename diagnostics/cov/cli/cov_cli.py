@@ -12,13 +12,16 @@ def parse_arguments(args):
 
     parser = argparse.ArgumentParser(description='Covariance (COV) Diagnostic CLI')
 
+    # Required configuration file
     parser.add_argument('-c', '--config', type=str,
                         help='YAML configuration file for the COV diagnostic',
                         required=True)
 
+    # Log level
     parser.add_argument('-l', '--loglevel', type=str, default='WARNING',
                         help='Log level [default: WARNING]')
 
+    # Flags for saving outputs
     parser.add_argument('--save-fig', action='store_true',
                         help='Save output figures')
     parser.add_argument('--save-netcdf', action='store_true',
