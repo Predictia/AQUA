@@ -8,7 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v0.22.0):
 
 AQUA core complete list:
+- Remove IPython dependency from io_util (#2569)
 - Add LaTeX units formatting to labels (#2561)
+- Add concurrency suppression for Github actions (#2557)
+- Deprecate `catalog` and `inspect_catalog` (#2556)
 - Generate seasonal quarter months and allow incomplete time seasonal sequences in `timmean` (#2529)
 - Update FESOM grids for o26.1 (#2541) 
 - Update config path for push_analysis (#2553)
