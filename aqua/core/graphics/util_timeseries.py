@@ -21,17 +21,13 @@ def _plot_lx(da: xr.DataArray, ax: plt.Axes, **plot_kwargs):
     original_units = da.attrs.get('units', None)
     
     if original_units:
+        da = da.copy(deep=False)
         units_latex = unit_to_latex(original_units)
-        # Temporarily set LaTeX units (xarray will use this for ylabel)
+        # Set LaTeX units on the copy
         da.attrs['units'] = units_latex
     
-    try:
-        # Call xarray plot - it will automatically use the LaTeX
-        result = da.plot(ax=ax, **plot_kwargs)
-    finally:
-        # Restore original units if were modified
-        if original_units:
-            da.attrs['units'] = original_units
+    # Call xarray plot - it will automatically use the LaTeX
+    result = da.plot(ax=ax, **plot_kwargs)
     
     return result
     
