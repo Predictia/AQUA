@@ -24,7 +24,7 @@ dates:
 # Variables to evaluate
 variables:
   - name: '2t'
-    video:
+    video: 
       cmap: 'RdBu_r'
       figure_size: [14, 6]
       colorbar_steps: 64
@@ -48,7 +48,7 @@ video:
   outputdir: './videos'
   format: 'gif'
   fps: 10 # Default frames per second
-  dpi: 150
+  dpi: 150 # Default DPI
   cmap: 'coolwarm' # Default color map
   projection: 'plate_carree' # Default projection
   target_label: 'Target' # Default target label
