@@ -17,13 +17,15 @@ def _plot_lx(da: xr.DataArray, ax: plt.Axes, **plot_kwargs):
     Returns:
         Same return type as xarray's plot method (Line2D or list of Line2D).
     """
-    # Store original units
     original_units = da.attrs.get('units', None)
     
     if original_units:
+        # Create a copy with independent attrs to ensure original data is not modified
         da = da.copy(deep=False)
+        # Copy attrs dictionary
+        da.attrs = dict(da.attrs)
         units_latex = unit_to_latex(original_units)
-        # Set LaTeX units on the copy
+        # Set LaTeX units only on the copy
         da.attrs['units'] = units_latex
     
     # Call xarray plot - it will automatically use the LaTeX
