@@ -76,10 +76,14 @@ def plot_vertical_lines(data: xr.DataArray | list[xr.DataArray],
     var_name = data[0].long_name or data[0].short_name
     var_units = data[0].attrs.get("units", "")
 
-    var_units_latex = unit_to_latex(var_units) if var_units else ""
     units_latex = unit_to_latex(units) if units else ""
 
-    xlabel = f"{var_name} ({var_units_latex})" if var_name and var_units_latex else "Unknown variable"
+    if var_name and var_units:
+        var_units_latex = unit_to_latex(var_units)
+        xlabel = f"{var_name} ({var_units_latex})"
+    else:
+        xlabel = "Unknown variable"
+        
     ylabel = f"{lev_name} ({units_latex})" if units_latex else lev_name  # Replace 'units' with actual units if available
 
     ax.set_ylabel(ylabel, fontsize=axis_label_size)
