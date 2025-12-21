@@ -202,7 +202,7 @@ class GridEntryManager:
             self.logger.info("Grid block: %s", grid_block)
 
         lock_path = gridfile + '.lock'
-        with SafeFileLock(lock_path, timeout=60, loglevel=self.loglevel):
+        with SafeFileLock(lock_path, loglevel=self.loglevel):
             if not os.path.exists(gridfile):
                 if self.logger:
                     self.logger.info("Grid file %s does not exist, creating it", gridfile)
