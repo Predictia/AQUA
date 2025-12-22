@@ -201,13 +201,14 @@ class GridEntryManager:
             self.logger.info("Grid entry name: %s", grid_entry_name)
             self.logger.info("Grid block: %s", grid_block)
 
-        lock_path = gridfile + '.lock'
-        with SafeFileLock(lock_path, loglevel=self.loglevel):
-            if not os.path.exists(gridfile):
-                if self.logger:
-                    self.logger.info("Grid file %s does not exist, creating it", gridfile)
-                final_block = {'grids': {grid_entry_name: grid_block}}
-            else:
+        if not os.path.exists(gridfile):
+            if self.logger:
+                self.logger.info("Grid file %s does not exist, creating it", gridfile)
+            final_block = {'grids': {grid_entry_name: grid_block}}
+            dump_yaml(gridfile, final_block)
+        else:
+            lock_path = gridfile + '.lock'
+            with SafeFileLock(lock_path, loglevel=self.loglevel):
                 if self.logger:
                     self.logger.info("Grid file %s exists, adding the grid entry %s", gridfile, grid_entry_name)
                 final_block = load_yaml(gridfile)
@@ -215,4 +216,4 @@ class GridEntryManager:
                     self.logger.warning("Grid entry %s already exists in %s, skipping", grid_entry_name, gridfile)
                     return
                 final_block['grids'][grid_entry_name] = grid_block
-            dump_yaml(gridfile, final_block)
+                dump_yaml(gridfile, final_block)
