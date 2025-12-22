@@ -37,7 +37,7 @@ from aqua.core.util.string import get_quarter_anchor_month, clean_filename
     ("°C", "°C"),
     ("µg m^-3", "µg m$^{-3}$"),
     ("µg/m^3", "µg m$^{-3}$"),
-    ("%", r"\%"),
+    ("%", r"$\%$"),
     
     # Dimensionless units
     ("1", "1"),
