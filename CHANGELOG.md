@@ -9,6 +9,7 @@ Unreleased in the current development version (target v1.0.0):
 
 Complete list:
 - Improve fldstat handling of gaussian grids (#2584)
+- Data model now uses a ranking system to identify coordinates (#2585) 
 
 ## [v1.0.0a1]
 
