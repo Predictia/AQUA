@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 Unreleased in the current development version (target v1.0.0):
 
+Complete list:
+- Improve fldstat handling of gaussian grids (#2584)
+
 ## [v1.0.0a1]
 
 Main changes:
