@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Unreleased in the current development version (target v1.0.0):
 
 Complete list:
+- Add LaTeX units formatting to labels (#2561)
 - Explicit netcdf4 dependency in conda-forge and dask-distributed in pyproject to reduce incompatibilities (#2603)
 - Remove support for intake-esm due to deprecation of intake v1 version (#2603)
 - Aqua web push folder management improvements (#2574)
@@ -26,7 +27,6 @@ AQUA core complete list:
 - Improve test cleaning and avoid specific race conditions in tests (#2587)
 - Shapefile support for spatial selection in `AreaSelection` (#2576)
 - Remove IPython dependency from io_util (#2569)
-- Add LaTeX units formatting to labels (#2561)
 - Add concurrency suppression for Github actions (#2557)
 - Deprecate `catalog` and `inspect_catalog` (#2556)
 - Generate seasonal quarter months and allow incomplete time seasonal sequences in `timmean` (#2529)
