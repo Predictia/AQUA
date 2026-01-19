@@ -71,6 +71,8 @@ def _get_shortname_from_paramid(pid):
         string: The short name associated with the given paramId.
     """
     gid = codes_grib_new_from_samples("GRIB2")
+    # HACK: if the pid is not defined in the WMO table, first set the GRIB2 template
+    # with Destine local parameters definitions (12)
     try:
         codes_set(gid, "paramId", pid)
     except CodesInternalError:
