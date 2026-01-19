@@ -71,7 +71,11 @@ def _get_shortname_from_paramid(pid):
         string: The short name associated with the given paramId.
     """
     gid = codes_grib_new_from_samples("GRIB2")
-    codes_set(gid, "paramId", pid)
+    try:
+        codes_set(gid, "paramId", pid)
+    except CodesInternalError:
+        codes_set(gid, 'productionStatusOfProcessedData', 12)
+        codes_set(gid, "paramId", pid)
     sn = codes_get(gid, "shortName")
     codes_release(gid)
     return sn
