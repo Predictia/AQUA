@@ -87,7 +87,6 @@ class GSVSource(base.DataSource):
             self.databridge = None
         self.gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
         self.logger.debug("Init of the GSV source class")
-        self.databridge = 'lumi' if databridge is None else databridge
 
         if not gsv_available:
             raise ImportError(gsv_error_cause)
