@@ -76,6 +76,8 @@ def _get_shortname_from_paramid(pid):
     try:
         codes_set(gid, "paramId", pid)
     except CodesInternalError:
+        logger = log_configure(log_level='WARNING', log_name='eccodes')
+        logger.warning("paramId %s not found in default WMO definitions, switching to destine local parameters",pid)
         codes_set(gid, 'productionStatusOfProcessedData', 12)
         codes_set(gid, "paramId", pid)
     sn = codes_get(gid, "shortName")
