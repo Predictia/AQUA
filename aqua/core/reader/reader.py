@@ -160,10 +160,21 @@ class Reader():
         # load the catalog
         aqua.core.gsv.GSVSource.first_run = True  # Hack needed to avoid double checking of paths (which would not work if on another machine using polytope)
         self.expcat = self.cat(**intake_vars)[self.model][self.exp]  # the top-level experiment entry
+
+        # check machine compatibility
+        self.machine_from_catalog = self.expcat.metadata.get('machine')
+        if engine != 'polytope':
+            if self.machine_from_catalog and self.machine_from_catalog.lower() != self.machine.lower():
+                self.logger.warning(
+                    "The machine configured (%s) is different from the machine in the catalog (%s). "
+                    "Please check that the data you are looking for are on the machine you are working on.",
+                    self.machine.lower(),
+                    self.machine_from_catalog.lower(),
+                )
         # We open before without kwargs to filter kwargs which are not in the parameters allowed by the intake catalog entry
         self.esmcat = self.expcat[self.source]()
 
-        self.kwargs = self._filter_kwargs(kwargs, engine=engine, intake_vars=intake_vars)
+        self.kwargs = self._filter_kwargs(kwargs, engine=engine, intake_vars=intake_vars, databridge=self.machine_from_catalog)
         self.kwargs = self._format_realization_reader_kwargs(self.kwargs)
         self.logger.debug("Using filtered kwargs: %s", self.kwargs)
         self.esmcat = self.expcat[self.source](**self.kwargs)
