@@ -458,6 +458,7 @@ class GSVSource(base.DataSource):
         self.gsv_log_level = state['gsv_log_level']
         self.logger = state['logger']
         self.engine = state['engine']
+        self.databridge = state['databridge']
 
     def _get_schema(self):
         """
