@@ -667,7 +667,7 @@ class Reader():
             self._intake_user_parameters = self.esmcat.describe().get('user_parameters', {})
         return self._intake_user_parameters
 
-    def _filter_kwargs(self, kwargs: dict={}, engine: str = 'fdb', intake_vars: dict = None):
+    def _filter_kwargs(self, kwargs: dict={}, engine: str = 'fdb', intake_vars: dict={}, databridge_source: str = None) -> dict:        
         """
         Uses the esmcat.describe() to remove the intake_vars, then check in the parameters if the kwargs are present.
         Kwargs which are not present in the intake_vars will be removed.
@@ -675,6 +675,7 @@ class Reader():
         Args:
             kwargs (dict): The keyword arguments passed to the reader, which are intake parameters in the source.
             engine (str): The engine used for the GSV retrieval, default is 'fdb'.
+            databridge (str): The databridge used for the GSV retrieval, default is None. 
             intake_vars (dict): Machine-specific intake variables to exclude from checks.
 
         Returns:
@@ -704,6 +705,12 @@ class Reader():
             if 'engine' not in filtered_kwargs:
                 filtered_kwargs['engine'] = engine
                 self.logger.debug('Adding engine=%s to the filtered kwargs', engine)
+
+        if engine == 'polytope' and databridge is not None:
+            # If the engine is polytope, we need to add the databridge parameter
+            if 'databridge' not in filtered_kwargs:
+                filtered_kwargs.update({'databridge': databridge})
+                self.logger.debug('Adding databridge=%s to the filtered kwargs', databridge)
 
         # HACK: Keep chunking info if present as reader kwarg
         if self.chunks is not None:
