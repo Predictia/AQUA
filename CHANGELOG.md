@@ -13,7 +13,7 @@ Unreleased in the current development version (target v1.0.0):
 ## [v1.0.0a2]
 
 Main changes:
-1. DataModel module can be disabled and it is independent from the Fixer
+1. DataModel module can be disabled and it is independent from the Fixer 
 2. Intake-esm support removed due to deprecation of intake v1 version, will be reintroduced with intake v2
 
 Complete list:
