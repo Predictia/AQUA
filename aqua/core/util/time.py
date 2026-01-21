@@ -184,7 +184,6 @@ def chunk_dataset_times(xdataset, resample_frequency, loglevel):
     data_frequency = xarray_to_pandas_freq(xdataset)
     logger.debug('Data frequency detected as: %s', data_frequency)
 
-    # Pass the frequency string directly to avoid the MonthBegin object bug in pandas 3.0
     # Normalize to Period-compatible frequency (e.g. MS -> M)
     period_freq = _normalize_period_freq(resample_frequency)
     normalized_dates = xdataset.time.to_index().to_period(period_freq).to_timestamp()
